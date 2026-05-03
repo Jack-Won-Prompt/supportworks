@@ -35,6 +35,7 @@ use App\Http\Controllers\MessageImageCommentController;
 use App\Http\Controllers\MessageImageAnnotationController;
 use App\Http\Controllers\TranslateController;
 use App\Http\Controllers\AiAgentController;
+use App\Http\Controllers\AiAgentApprovalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -513,6 +514,15 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('prompts',      [AiAgentController::class, 'commonPrompts'])->name('prompts');
                 Route::get('usage',        [AiAgentController::class, 'usage'])->name('usage');
                 Route::get('permissions',  [AiAgentController::class, 'permissions'])->name('permissions');
+            });
+
+            // 승인 게이트 (T12)
+            Route::prefix('approvals')->name('approvals.')->group(function () {
+                Route::get ('demo',           [AiAgentApprovalController::class, 'demo'])->name('demo');
+                Route::post('request',        [AiAgentApprovalController::class, 'store'])->name('request');
+                Route::post('{gate}/approve', [AiAgentApprovalController::class, 'approve'])->name('approve');
+                Route::post('{gate}/reject',  [AiAgentApprovalController::class, 'reject'])->name('reject');
+                Route::post('{gate}/cancel',  [AiAgentApprovalController::class, 'cancel'])->name('cancel');
             });
         });
     });
