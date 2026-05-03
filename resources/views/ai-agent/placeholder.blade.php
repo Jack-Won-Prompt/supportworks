@@ -1,13 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.ai-agent')
 @section('title', $pageTitle . ' — AI Agent')
 
 @push('styles')
 <style>
-.aia-wrap { max-width: 860px; margin: 0 auto; }
-.aia-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #94a3b8; margin-bottom: 20px; flex-wrap: wrap; }
-.aia-breadcrumb a { color: #94a3b8; text-decoration: none; transition: color .12s; }
-.aia-breadcrumb a:hover { color: var(--t600); }
-.aia-breadcrumb svg { flex-shrink: 0; }
 .aia-stage-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--t100); color: var(--t700); margin-bottom: 10px; }
 .aia-title { font-size: 22px; font-weight: 800; color: #1e1b2e; margin: 0 0 8px; }
 .aia-desc { font-size: 14px; color: #64748b; line-height: 1.7; margin: 0 0 28px; max-width: 640px; }
@@ -27,23 +22,9 @@
 </style>
 @endpush
 
-@section('content')
-<div class="aia-wrap">
+@section('ai-agent-content')
 
-    {{-- 브레드크럼 --}}
-    <div class="aia-breadcrumb">
-        <a href="{{ route('ai-agent.dashboard') }}">AI Agent</a>
-        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <a href="{{ route('ai-agent.projects.home', $project) }}">{{ $project->name }}</a>
-        @if($stageLabel)
-        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span>{{ $stageLabel }}</span>
-        @endif
-        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span style="color:#1e1b2e;font-weight:600;">{{ $pageTitle }}</span>
-    </div>
-
-    {{-- 헤더 --}}
+    {{-- Stage badge + page title --}}
     @if($stageLabel)
     <div class="aia-stage-badge">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -73,7 +54,7 @@
         <div class="aia-meta">
             <span class="aia-meta-item">작업 ID: {{ $taskId }}</span>
             <span class="aia-meta-item">spec.md §{{ $specSection }}</span>
-            <span class="aia-meta-item">프로젝트: {{ $project->name }}</span>
+            <span class="aia-meta-item">프로젝트: {{ $aiProject->name }}</span>
         </div>
     </div>
 
@@ -81,32 +62,32 @@
     <div style="margin-top:36px;">
         <div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">빠른 이동</div>
         <div class="aia-nav-grid">
-            <a href="{{ route('ai-agent.projects.planning.index', $project) }}" class="aia-nav-card">
+            <a href="{{ route('ai-agent.projects.planning.index', $aiProject) }}" class="aia-nav-card">
                 <span class="aia-nav-card-label">단계 1</span>
                 <span class="aia-nav-card-title">🎯 기획</span>
                 <span class="aia-nav-card-task">T16–T26</span>
             </a>
-            <a href="{{ route('ai-agent.projects.design.index', $project) }}" class="aia-nav-card">
+            <a href="{{ route('ai-agent.projects.design.index', $aiProject) }}" class="aia-nav-card">
                 <span class="aia-nav-card-label">단계 2</span>
                 <span class="aia-nav-card-title">🎨 디자인</span>
                 <span class="aia-nav-card-task">T27–T35</span>
             </a>
-            <a href="{{ route('ai-agent.projects.pre-dev.index', $project) }}" class="aia-nav-card">
+            <a href="{{ route('ai-agent.projects.pre-dev.index', $aiProject) }}" class="aia-nav-card">
                 <span class="aia-nav-card-label">단계 3</span>
                 <span class="aia-nav-card-title">⚙️ 개발 준비</span>
                 <span class="aia-nav-card-task">T36–T42</span>
             </a>
-            <a href="{{ route('ai-agent.projects.dev.index', $project) }}" class="aia-nav-card">
+            <a href="{{ route('ai-agent.projects.dev.index', $aiProject) }}" class="aia-nav-card">
                 <span class="aia-nav-card-label">단계 4</span>
                 <span class="aia-nav-card-title">💻 개발</span>
                 <span class="aia-nav-card-task">T43–T47</span>
             </a>
-            <a href="{{ route('ai-agent.projects.release', $project) }}" class="aia-nav-card">
+            <a href="{{ route('ai-agent.projects.release', $aiProject) }}" class="aia-nav-card">
                 <span class="aia-nav-card-label">최종</span>
                 <span class="aia-nav-card-title">📦 릴리즈</span>
                 <span class="aia-nav-card-task">T48</span>
             </a>
-            <a href="{{ route('ai-agent.projects.common.traceability', $project) }}" class="aia-nav-card">
+            <a href="{{ route('ai-agent.projects.common.traceability', $aiProject) }}" class="aia-nav-card">
                 <span class="aia-nav-card-label">공통</span>
                 <span class="aia-nav-card-title">🔧 공통 기능</span>
                 <span class="aia-nav-card-task">T07, T08, T14, T49</span>
@@ -114,5 +95,4 @@
         </div>
     </div>
 
-</div>
 @endsection
