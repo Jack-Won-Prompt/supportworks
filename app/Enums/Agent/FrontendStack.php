@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Enums\Agent;
+
+enum FrontendStack: string
+{
+    case HTML  = 'html';
+    case REACT = 'react';
+    case VUE   = 'vue';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::HTML  => 'HTML / Vanilla JS',
+            self::REACT => 'React',
+            self::VUE   => 'Vue 3',
+        };
+    }
+}
