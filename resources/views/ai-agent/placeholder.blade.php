@@ -1,5 +1,5 @@
 @extends('layouts.ai-agent')
-@section('title', $pageTitle . ' — AI Agent')
+@section('title', $pageTitle . ' — 웍스 Agent')
 
 @push('styles')
 <style>

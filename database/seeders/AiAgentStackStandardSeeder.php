@@ -27,7 +27,7 @@ class AiAgentStackStandardSeeder extends Seeder
             );
         }
 
-        $this->command->info('StackStandard 시드 완료: ' . count($this->data()) . '개 레코드 (HTML/React/Vue × 4카테고리)');
+        $this->command->info('StackStandard 시드 완료: ' . count($this->data()) . '개 레코드 (HTML/React/Vue/Blade × 4카테고리)');
     }
 
     // -------------------------------------------------------------------------
@@ -53,7 +53,7 @@ class AiAgentStackStandardSeeder extends Seeder
                         'assets/js/'      => '페이지별 JS 파일 + 공용 유틸',
                         'assets/images/'  => '이미지/아이콘 (최적화 후 배치)',
                         'components/'     => '재사용 HTML 단편 (헤더, 푸터, 모달 …)',
-                        'templates/'      => 'AI 생성 기반 Jinja2/Mustache 템플릿',
+                        'templates/'      => '웍스 생성 기반 Jinja2/Mustache 템플릿',
                     ],
                     'naming' => [
                         'page'      => 'kebab-case.html  (예: user-profile.html)',
@@ -313,6 +313,96 @@ class AiAgentStackStandardSeeder extends Seeder
                     'dark_mode'        => 'Tailwind class 전략 + useDark composable (VueUse)',
                     'animation'        => 'Tailwind transition + <Transition> 컴포넌트',
                     'css_variables'    => ':root 변수로 브랜드 색상 관리, Tailwind extend에 매핑',
+                ],
+            ],
+
+            // ─────────────────────────────────────────────────────────────────
+            // BLADE (Laravel 12)
+            // ─────────────────────────────────────────────────────────────────
+            [
+                'stack'       => FrontendStack::BLADE,
+                'category'    => 'folder_structure',
+                'name'        => 'Blade 표준 폴더 구조',
+                'description' => 'Laravel 12 Blade + Alpine.js + Tailwind CSS 기반 표준 레이아웃',
+                'definition'  => [
+                    'root'      => 'resources',
+                    'structure' => [
+                        'views/layouts/'      => '공통 레이아웃 (app.blade.php, guest.blade.php)',
+                        'views/components/'   => '익명/클래스 기반 Blade 컴포넌트 (kebab-case.blade.php)',
+                        'views/partials/'     => '부분 템플릿 (헤더/푸터/사이드바)',
+                        'views/{domain}/'     => '도메인별 뷰 (예: views/projects/, views/ai-agent/)',
+                        'css/'                => 'Tailwind 엔트리 (app.css)',
+                        'js/'                 => 'Vite 진입점 (app.js) + Alpine 컴포넌트',
+                    ],
+                    'naming' => [
+                        'view'      => 'kebab-case.blade.php (예: project-detail.blade.php)',
+                        'component' => 'kebab-case (예: <x-ai-agent.approval-gate />)',
+                        'partial'   => '_접두어 없이 kebab-case (예: breadcrumb.blade.php)',
+                        'layout'    => 'kebab-case (예: app.blade.php, ai-agent.blade.php)',
+                    ],
+                ],
+                'examples' => [
+                    'tree' => "resources/\n├── views/\n│   ├── layouts/app.blade.php\n│   ├── components/\n│   │   └── ai-agent/approval-gate.blade.php\n│   ├── ai-agent/dashboard.blade.php\n│   └── projects/show.blade.php\n├── css/app.css\n└── js/app.js",
+                ],
+            ],
+
+            [
+                'stack'       => FrontendStack::BLADE,
+                'category'    => 'naming',
+                'name'        => 'Blade 명명 규칙',
+                'description' => 'Blade 파일·컴포넌트·CSS·Alpine 식별자 명명 표준',
+                'definition'  => [
+                    'view_file'    => 'kebab-case.blade.php',
+                    'component'    => '<x-namespace.component-name /> (kebab-case)',
+                    'slot_name'    => 'kebab-case (예: $slot, $header)',
+                    'prop'         => 'camelCase (PHP) / kebab-case (HTML attribute)',
+                    'directive'    => '@directiveName (예: @auth, @can)',
+                    'css_class'    => 'Tailwind 유틸리티 우선, 커스텀은 BEM',
+                    'alpine_data'  => 'camelCase (예: x-data="{ isOpen: false }")',
+                    'route_name'   => 'dot.notation (예: ai-agent.projects.show)',
+                ],
+                'validation_rules' => [
+                    'forbidden_patterns' => ['{!! $userInput !!}', 'eval(', 'unescaped output'],
+                    'required_patterns'  => ['@csrf (form)', '{{ }} 이스케이프 출력', 'lang="ko"'],
+                    'accessibility'      => ['aria-label', '<label for>', 'alt 필수'],
+                ],
+            ],
+
+            [
+                'stack'       => FrontendStack::BLADE,
+                'category'    => 'component',
+                'name'        => 'Blade 컴포넌트 패턴',
+                'description' => '클래스/익명 Blade 컴포넌트 + Alpine.js 상호작용 표준',
+                'definition'  => [
+                    'style_approach'   => 'Tailwind CSS 유틸리티 우선, 복잡한 스타일은 @push(\'styles\')',
+                    'interactivity'    => 'Alpine.js (x-data, x-show, x-on, x-bind), 단순한 상태는 인라인',
+                    'props'            => '@props([\'variant\' => \'primary\', \'size\' => \'md\']) 명시 + 기본값',
+                    'class_component'  => 'app/View/Components/* (복잡한 로직 필요할 때만)',
+                    'anonymous'        => '단순한 UI는 익명 컴포넌트 (resources/views/components/*)',
+                    'slot_pattern'     => '{{ $slot }} + named slots ({{ $header ?? \'\' }})',
+                    'data_fetch'       => '컨트롤러에서 데이터 주입, 뷰에서는 출력만',
+                    'component_skeleton' => "{{-- resources/views/components/ai-agent/info-card.blade.php --}}\n@props(['title', 'variant' => 'default'])\n\n<div\n    {{ \$attributes->class([\n        'rounded-lg border p-4',\n        'border-blue-200 bg-blue-50' => \$variant === 'info',\n        'border-gray-200 bg-white'   => \$variant === 'default',\n    ]) }}\n    x-data=\"{ collapsed: false }\"\n>\n    <h3 class=\"font-semibold text-gray-900\">{{ \$title }}</h3>\n    <div x-show=\"!collapsed\">{{ \$slot }}</div>\n</div>",
+                ],
+                'validation_rules' => [
+                    'required_patterns'  => ['@props(', '{{ ', '$attributes'],
+                    'forbidden_patterns' => ['{!! ', 'echo ', '<?php echo'],
+                    'accessibility'      => ['role 명시', 'aria-* 속성', 'focus-visible'],
+                ],
+            ],
+
+            [
+                'stack'       => FrontendStack::BLADE,
+                'category'    => 'styling',
+                'name'        => 'Blade 스타일링 표준',
+                'description' => 'Tailwind CSS + Vite 통합 + Alpine.js 인터랙션 스타일',
+                'definition'  => [
+                    'framework'      => 'Tailwind CSS 3.x (Vite 통합, @vite([\'resources/css/app.css\', \'resources/js/app.js\']))',
+                    'entry'          => 'resources/css/app.css (@tailwind base/components/utilities)',
+                    'responsive'     => 'Mobile-first: sm → md → lg → xl',
+                    'dark_mode'      => 'Tailwind class 전략 (html.dark) + Alpine 토글',
+                    'transition'     => 'Tailwind transition-* 유틸리티 + Alpine x-transition',
+                    'css_variables'  => ':root 변수 → tailwind.config.js extend.colors 매핑',
+                    'forms'          => '@tailwindcss/forms 플러그인 활용',
                 ],
             ],
         ];

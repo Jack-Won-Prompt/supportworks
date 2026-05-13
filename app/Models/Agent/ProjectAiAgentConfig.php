@@ -51,12 +51,13 @@ class ProjectAiAgentConfig extends Model
     protected function frontendStack(): Attribute
     {
         return Attribute::make(
-            set: function (string $value) {
+            set: function (string|FrontendStack $value) {
+                $raw = $value instanceof FrontendStack ? $value->value : $value;
                 if ($this->exists && $this->getRawOriginal('frontend_stack') !== null
-                    && $this->getRawOriginal('frontend_stack') !== $value) {
+                    && $this->getRawOriginal('frontend_stack') !== $raw) {
                     throw new \DomainException('frontend_stack은 최초 설정 후 변경할 수 없습니다.');
                 }
-                return $value;
+                return $raw;
             }
         );
     }

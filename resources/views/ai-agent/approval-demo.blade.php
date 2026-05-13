@@ -1,5 +1,5 @@
 @extends('layouts.ai-agent')
-@section('title', '승인 게이트 데모 — AI Agent')
+@section('title', '승인 게이트 데모 — 웍스 Agent')
 
 @push('styles')
 <style>

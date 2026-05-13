@@ -1,0 +1,38 @@
+<?php
+
+return [
+    'collab_title'       => '실시간 협업',
+    'online_users'       => '온라인 사용자',
+    'no_users'           => '접속 중인 사용자가 없습니다.',
+    'request_sent_waiting' => '에게 공유 요청을 보냈습니다. 수락 대기 중...',
+    'cancel_request'     => '요청 취소',
+    'request_received'   => '님이 공유를 요청했습니다.',
+    'accept'             => '수락',
+    'decline'            => '거절',
+    'partner_permission' => '상대방 권한',
+    'perm_view'          => '보기',
+    'perm_guide'         => '클릭 안내',
+    'perm_control'       => '원격 조작',
+    'end_session'        => '협업 종료',
+    'online_prefix'      => '온라인 ',
+    'online_suffix'      => '명',
+    'request_arrow'      => '공유 요청 →',
+    'confirm_request'    => '님에게 공유를 요청할까요?',
+    'request_fail'       => '요청 실패',
+    'request_declined'   => '님이 공유 요청을 거절했습니다.',
+    'role_host'          => '호스트',
+    'role_participant'   => '참여자',
+    'following_host'     => '호스트 화면을 따라갑니다',
+
+    // 화면 공유
+    'screen_share_btn'      => '화면 공유 요청',
+    'screen_requesting'     => '화면 공유 요청 중...',
+    'screen_sharing_active' => '화면 공유 중',
+    'screen_share_end'      => '공유 종료',
+    'screen_share_cancel'   => '취소',
+    'screen_share_confirm'  => '님에게 화면 공유를 요청할까요?',
+    'screen_share_incoming' => '님이 화면 공유를 요청했습니다.',
+    'screen_share_declined' => '님이 화면 공유 요청을 거절했습니다.',
+    'screen_popup_waiting'  => '상대방의 수락을 기다리는 중...',
+    'screen_popup_blocked'  => '팝업이 차단되었습니다. 주소 표시줄에서 팝업을 허용한 뒤 다시 시도해 주세요.',
+];

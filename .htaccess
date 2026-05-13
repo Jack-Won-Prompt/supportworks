@@ -1,0 +1,23 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /supportworks/
+
+    # .env 접근 차단
+    <Files .env>
+        Order Allow,Deny
+        Deny from all
+    </Files>
+
+    # 정적 파일은 public/ 에서 직접 서빙
+    RewriteRule ^(build/.+|js/.+|css/.+|images/.+)$ public/$1 [L]
+    RewriteRule ^(favicon\.ico|favicon\.png|robots\.txt|storage/.+|sr-images/.+|support_works_logo\.png)$ public/$1 [L]
+
+    # public/ 내 실제 파일/디렉토리 요청은 직접 통과
+    RewriteCond %{REQUEST_URI} ^/supportworks/public/
+    RewriteRule ^ - [L]
+
+    # PHP 라우트 요청은 root index.php 로 전달 (SCRIPT_NAME 일관성 유지)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>

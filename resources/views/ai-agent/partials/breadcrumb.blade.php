@@ -1,5 +1,5 @@
 <nav class="aia-breadcrumb" aria-label="breadcrumb">
-    <a href="{{ route('ai-agent.dashboard') }}">AI Agent</a>
+    <a href="{{ route('ai-agent.dashboard') }}">웍스 Agent</a>
 
     @if($aiProject ?? null)
         <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

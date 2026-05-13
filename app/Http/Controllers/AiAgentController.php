@@ -4,57 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\ProjectMember;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AiAgentController extends Controller
 {
     // ─────────────────────────────────────────────────────────────────────────
-    // 대시보드 (T15)
+    // 기획 단계 (planning.index → AiPlanningScreenController)
     // ─────────────────────────────────────────────────────────────────────────
-
-    public function dashboard(): View
-    {
-        $projects = auth()->user()->isAdmin()
-            ? Project::orderBy('name')->get()
-            : auth()->user()->projects()->orderBy('name')->get();
-
-        return view('ai-agent.dashboard', compact('projects'));
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // 프로젝트 홈 (T15)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function projectHome(Project $project): View|RedirectResponse
-    {
-        $this->authorizeProject($project);
-
-        return $this->placeholder($project, [
-            'pageTitle'   => 'AI Agent 프로젝트 홈',
-            'stageLabel'  => null,
-            'description' => '프로젝트의 AI Agent 개발 워크플로우 진입점. 각 단계(기획→디자인→개발 준비→개발→릴리즈)로 이동합니다.',
-            'taskId'      => 'T15',
-            'specSection' => '3.1',
-        ]);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // 기획 단계
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function planningIndex(Project $project): View
-    {
-        $this->authorizeProject($project);
-
-        return $this->placeholder($project, [
-            'pageTitle'   => '기획 단계',
-            'stageLabel'  => '단계 1: 기획',
-            'description' => 'AS-IS 분석부터 AI 기획서 작성, 화면 흐름도, 목업까지 기획 산출물 전체를 AI로 생성합니다.',
-            'taskId'      => 'T16',
-            'specSection' => '3.2',
-        ]);
-    }
 
     public function asIs(Project $project): View
     {
@@ -63,7 +19,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => 'AS-IS 분석',
             'stageLabel'  => '단계 1: 기획',
-            'description' => '현황 자료(텍스트/이미지/Excel/PPT/PDF)를 AI로 분석하여 핵심 이슈와 문제점을 추출합니다.',
+            'description' => '현황 자료(텍스트/이미지/Excel/PPT/PDF)를 웍스로 분석하여 핵심 이슈와 문제점을 추출합니다.',
             'taskId'      => 'T18',
             'specSection' => '3.2.2',
         ]);
@@ -89,7 +45,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => 'Gap 분석',
             'stageLabel'  => '단계 1: 기획',
-            'description' => 'AS-IS와 TO-BE를 비교하여 개선이 필요한 갭을 AI로 분석하고 우선순위를 제시합니다.',
+            'description' => 'AS-IS와 TO-BE를 비교하여 개선이 필요한 갭을 웍스로 분석하고 우선순위를 제시합니다.',
             'taskId'      => 'T20',
             'specSection' => '3.2.4',
         ]);
@@ -100,7 +56,7 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'AI 기획서 작성',
+            'pageTitle'   => '웍스 기획서 작성',
             'stageLabel'  => '단계 1: 기획',
             'description' => 'AS-IS·TO-BE·Gap 분석 결과를 종합하여 표준 기획서를 자동 작성하고 편집·승인합니다.',
             'taskId'      => 'T22',
@@ -128,7 +84,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => '화면 생성 프롬프트',
             'stageLabel'  => '단계 1: 기획',
-            'description' => 'SCR-XXX 화면 ID별로 AI 목업 생성에 사용할 프롬프트를 자동 작성하고 편집합니다.',
+            'description' => 'SCR-XXX 화면 ID별로 웍스 목업 생성에 사용할 프롬프트를 자동 작성하고 편집합니다.',
             'taskId'      => 'T24',
             'specSection' => '3.2.7',
         ]);
@@ -139,7 +95,7 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'AI 샘플 화면(목업)',
+            'pageTitle'   => '웍스 샘플 화면(목업)',
             'stageLabel'  => '단계 1: 기획',
             'description' => '화면 프롬프트를 기반으로 프로젝트 스택(HTML/React/Vue)에 맞는 목업을 자동 생성하고 피드백으로 개선합니다.',
             'taskId'      => 'T25',
@@ -234,9 +190,9 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => '디자인 일관성 AI 검수',
+            'pageTitle'   => '디자인 일관성 웍스 검수',
             'stageLabel'  => '단계 2: 디자인',
-            'description' => '디자인 토큰 이탈, 미사용 컴포넌트, 레이아웃 이탈 항목을 AI로 자동 검출하고 리포트를 생성합니다.',
+            'description' => '디자인 토큰 이탈, 미사용 컴포넌트, 레이아웃 이탈 항목을 웍스로 자동 검출하고 리포트를 생성합니다.',
             'taskId'      => 'T32',
             'specSection' => '3.3.5',
         ]);
@@ -292,7 +248,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => '개발 준비 단계',
             'stageLabel'  => '단계 3: 개발 준비',
-            'description' => 'ERD, API 명세서, 권한 모델을 AI로 자동 생성하고 코드 생성을 준비합니다.',
+            'description' => 'ERD, API 명세서, 권한 모델을 웍스로 자동 생성하고 코드 생성을 준비합니다.',
             'taskId'      => 'T36',
             'specSection' => '3.4',
         ]);
@@ -331,7 +287,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => '권한 모델 (RBAC)',
             'stageLabel'  => '단계 3: 개발 준비',
-            'description' => '역할-기능 권한 매트릭스를 AI로 자동 생성하고 편집합니다.',
+            'description' => '역할-기능 권한 매트릭스를 웍스로 자동 생성하고 편집합니다.',
             'taskId'      => 'T38',
             'specSection' => '3.4.3',
         ]);
@@ -342,7 +298,7 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'Figma → AI 코드 프롬프트',
+            'pageTitle'   => 'Figma → 웍스 코드 프롬프트',
             'stageLabel'  => '단계 3: 개발 준비',
             'description' => '프로젝트 스택(HTML/React/Vue)에 맞는 코드 생성 프롬프트를 화면별로 자동 생성합니다.',
             'taskId'      => 'T39',
@@ -355,7 +311,7 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'AI Output 생성 (Frontend)',
+            'pageTitle'   => '웍스 Output 생성 (Frontend)',
             'stageLabel'  => '단계 3: 개발 준비',
             'description' => '화면별 프롬프트로 프론트엔드 코드를 자동 생성하고 표준 폴더 구조에 배치합니다.',
             'taskId'      => 'T40',
@@ -368,9 +324,9 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'AI Output 검증',
+            'pageTitle'   => '웍스 Output 검증',
             'stageLabel'  => '단계 3: 개발 준비',
-            'description' => '디자인 일치도, 접근성, 반응형, 스택별 컨벤션 준수를 AI로 검증하고 리포트를 생성합니다.',
+            'description' => '디자인 일치도, 접근성, 반응형, 스택별 컨벤션 준수를 웍스로 검증하고 리포트를 생성합니다.',
             'taskId'      => 'T41',
             'specSection' => '3.4.6',
         ]);
@@ -400,7 +356,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => '개발 단계',
             'stageLabel'  => '단계 4: 개발',
-            'description' => 'Backend 코드 생성, API 연계, AI 코드 리뷰, AI 추가 수정을 순서대로 진행합니다.',
+            'description' => 'Backend 코드 생성, API 연계, 웍스 코드 리뷰, 웍스 추가 수정을 순서대로 진행합니다.',
             'taskId'      => 'T43',
             'specSection' => '3.5',
         ]);
@@ -413,7 +369,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => 'Backend 개발',
             'stageLabel'  => '단계 4: 개발',
-            'description' => 'ERD와 API 명세서를 기반으로 Backend 코드를 AI로 자동 생성합니다.',
+            'description' => 'ERD와 API 명세서를 기반으로 Backend 코드를 웍스로 자동 생성합니다.',
             'taskId'      => 'T43',
             'specSection' => '3.5.1',
         ]);
@@ -437,9 +393,9 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'AI 코드 리뷰',
+            'pageTitle'   => '웍스 코드 리뷰',
             'stageLabel'  => '단계 4: 개발',
-            'description' => '보안·성능·컨벤션 관점에서 AI 코드 리뷰를 수행하고 리포트를 생성합니다.',
+            'description' => '보안·성능·컨벤션 관점에서 웍스 코드 리뷰를 수행하고 리포트를 생성합니다.',
             'taskId'      => 'T45',
             'specSection' => '3.5.3',
         ]);
@@ -450,9 +406,9 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'AI 추가 수정',
+            'pageTitle'   => '웍스 추가 수정',
             'stageLabel'  => '단계 4: 개발',
-            'description' => '추가 작업 요청을 AI에게 전달하고 코드 변경 이력을 자동으로 기록합니다.',
+            'description' => '추가 작업 요청을 웍스에게 전달하고 코드 변경 이력을 자동으로 기록합니다.',
             'taskId'      => 'T46',
             'specSection' => '3.5.4',
         ]);
@@ -525,7 +481,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => '프롬프트 라이브러리',
             'stageLabel'  => '공통 기능',
-            'description' => '단계별 AI 프롬프트 템플릿을 등록·조회·편집하고 버전 관리합니다.',
+            'description' => '단계별 웍스 프롬프트 템플릿을 등록·조회·편집하고 버전 관리합니다.',
             'taskId'      => 'T08',
             'specSection' => '3.7.3',
         ]);
@@ -536,9 +492,9 @@ class AiAgentController extends Controller
         $this->authorizeProject($project);
 
         return $this->placeholder($project, [
-            'pageTitle'   => 'AI 사용량 / 비용',
+            'pageTitle'   => '웍스 사용량 / 비용',
             'stageLabel'  => '공통 기능',
-            'description' => '프로젝트별 AI 호출 횟수, 토큰 사용량, 누적 비용을 조회합니다.',
+            'description' => '프로젝트별 웍스 호출 횟수, 토큰 사용량, 누적 비용을 조회합니다.',
             'taskId'      => 'T07',
             'specSection' => '3.7.4',
         ]);
@@ -551,7 +507,7 @@ class AiAgentController extends Controller
         return $this->placeholder($project, [
             'pageTitle'   => '권한 관리',
             'stageLabel'  => '공통 기능',
-            'description' => '프로젝트 AI Agent 메뉴의 접근 권한과 승인 권한자를 관리합니다.',
+            'description' => '프로젝트 웍스 Agent 메뉴의 접근 권한과 승인 권한자를 관리합니다.',
             'taskId'      => 'T51',
             'specSection' => '5.2',
         ]);

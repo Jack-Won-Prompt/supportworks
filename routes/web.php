@@ -27,6 +27,8 @@ use App\Http\Controllers\CollabController;
 use App\Http\Controllers\FileCommentController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PlanningDocController;
+use App\Http\Controllers\UrsController;
+use App\Http\Controllers\DeliverableController;
 use App\Http\Controllers\ProjectMaintenanceController;
 use App\Http\Controllers\ProjectMaintenanceReplyController;
 use App\Http\Controllers\TeamsController;
@@ -36,6 +38,31 @@ use App\Http\Controllers\MessageImageAnnotationController;
 use App\Http\Controllers\TranslateController;
 use App\Http\Controllers\AiAgentController;
 use App\Http\Controllers\AiAgentApprovalController;
+use App\Http\Controllers\AiStreamController;
+use App\Http\Controllers\AiVersionController;
+use App\Http\Controllers\AiTraceabilityController;
+use App\Http\Controllers\AiDashboardController;
+use App\Http\Controllers\AiProjectConfigController;
+use App\Http\Controllers\AiPlanningScreenController;
+use App\Http\Controllers\AsIsAnalysisController;
+use App\Http\Controllers\ToBeAnalysisController;
+use App\Http\Controllers\GapAnalysisController;
+use App\Http\Controllers\PlanningDocumentController;
+use App\Http\Controllers\IaDiagramController;
+use App\Http\Controllers\ScreenPromptController;
+use App\Http\Controllers\MockupController;
+use App\Http\Controllers\DesignTokenController;
+use App\Http\Controllers\ComponentSpecController;
+use App\Http\Controllers\LayoutSpecController;
+use App\Http\Controllers\ScreenMappingController;
+use App\Http\Controllers\DesignReviewController;
+use App\Http\Controllers\FigmaSettingsController;
+use App\Http\Controllers\PlanningApprovalController;
+use App\Http\Controllers\PromptRefinerController;
+use App\Http\Controllers\MilestoneController;
+use App\Http\Controllers\TaskGroupController;
+use App\Http\Controllers\SubTaskController;
+use App\Http\Controllers\IssueController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -100,15 +127,30 @@ Route::get('/files/serve-pdf/{file}',     [ProjectFileController::class, 'serveC
 Route::get('/maintenance-files/serve/{maintenanceFile}',     [\App\Http\Controllers\MaintenanceFileController::class, 'serve'])->name('maintenance-files.serve');
 Route::get('/maintenance-files/serve-pdf/{maintenanceFile}', [\App\Http\Controllers\MaintenanceFileController::class, 'servePdf'])->name('maintenance-files.serve-pdf');
 
+// 기획서 외부 공유 — 로그인 불필요
+Route::get('/share/planning/{token}',       [\App\Http\Controllers\PublicPlanningShareController::class, 'show'])->name('planning.public-share');
+Route::get('/share/planning/{token}/print', [\App\Http\Controllers\PublicPlanningShareController::class, 'printPdf'])->name('planning.public-print');
+
 // 외부 공유 파일 — 로그인 불필요
 Route::get ('/share/file/{token}',             [\App\Http\Controllers\PublicFileShareController::class, 'show'])->name('files.public-share');
 Route::get ('/share/serve/{token}',            [\App\Http\Controllers\PublicFileShareController::class, 'serve'])->name('files.public-serve');
+Route::get ('/share/serve-pdf/{token}',        [\App\Http\Controllers\PublicFileShareController::class, 'servePdf'])->name('files.public-serve-pdf');
 Route::get ('/share/file/{token}/comments',    [\App\Http\Controllers\PublicFileShareController::class, 'getComments'])->name('files.public-comments.index');
 Route::post('/share/file/{token}/comments',    [\App\Http\Controllers\PublicFileShareController::class, 'storeComment'])->name('files.public-comments.store');
 Route::get ('/share/file/{token}/annotations', [\App\Http\Controllers\PublicFileShareController::class, 'getAnnotations'])->name('files.public-annotations.index');
 Route::post ('/share/file/{token}/annotations',              [\App\Http\Controllers\PublicFileShareController::class, 'storeAnnotation'])->name('files.public-annotations.store');
 Route::patch ('/share/file/{token}/annotations/{annotation}', [\App\Http\Controllers\PublicFileShareController::class, 'updateAnnotation'])->name('files.public-annotations.update');
 Route::delete('/share/file/{token}/annotations/{annotation}', [\App\Http\Controllers\PublicFileShareController::class, 'destroyAnnotation'])->name('files.public-annotations.destroy');
+
+// 외부 공유 페이지에서 SupportWorks 회원가입 (공유한 사람의 회사로 자동 소속)
+Route::get ('/share/file/{token}/signup', [\App\Http\Controllers\PublicFileShareController::class, 'signupForm'])->name('files.public-share.signup');
+Route::post('/share/file/{token}/signup', [\App\Http\Controllers\PublicFileShareController::class, 'signup'])->name('files.public-share.signup.post');
+
+// 산출물 공개 링크 공유 — 로그인 불필요
+Route::get('/share/deliverable/{token}', [\App\Http\Controllers\DeliverableController::class, 'publicShare'])->name('deliverables.public-share');
+
+// 논의 의견 외부 공유 — 로그인 불필요
+Route::get('/share/discussion-comment/{token}', [\App\Http\Controllers\DiscussionController::class, 'publicShowComment'])->name('discussions.public-comment');
 
 // SR 접수 파일 외부 공유 — 로그인 불필요
 Route::get ('/share/maintenance-file/{token}',             [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'show'])->name('maintenance-files.public-share');
@@ -138,8 +180,24 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     Route::get('/', fn() => redirect()->route('admin.dashboard'));
     Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
 
-    // 활동 로그
-    Route::get('activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+    // 프로젝트 현황
+    Route::get('projects', [\App\Http\Controllers\Admin\AdminProjectController::class, 'index'])->name('projects.index');
+
+    // AI 에이전트 사용량
+    Route::get('ai-usage', [\App\Http\Controllers\Admin\AdminAiUsageController::class, 'index'])->name('ai-usage.index');
+
+    // 공지사항 관리
+    Route::get   ('announcements',                        [\App\Http\Controllers\Admin\AdminAnnouncementController::class, 'index'])  ->name('announcements.index');
+    Route::post  ('announcements',                        [\App\Http\Controllers\Admin\AdminAnnouncementController::class, 'store'])  ->name('announcements.store');
+    Route::put   ('announcements/{announcement}',         [\App\Http\Controllers\Admin\AdminAnnouncementController::class, 'update']) ->name('announcements.update');
+    Route::delete('announcements/{announcement}',         [\App\Http\Controllers\Admin\AdminAnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::patch ('announcements/{announcement}/toggle',  [\App\Http\Controllers\Admin\AdminAnnouncementController::class, 'toggleActive'])->name('announcements.toggle');
+
+    // 통합 로그
+    Route::get('/logs', [\App\Http\Controllers\Admin\AdminLogsController::class, 'index'])->name('logs.index');
+
+    // 하위 호환 리다이렉트 (기존 북마크/링크 지원)
+    Route::get('activity-logs',    fn() => redirect()->route('admin.logs.index', ['tab' => 'activity']))->name('activity-logs.index');
 
     // 사용자 관리
     Route::post('users/invite',             [\App\Http\Controllers\Admin\UserController::class, 'invite'])->name('users.invite');
@@ -210,10 +268,10 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     Route::post ('/maintenances/{maintenance}/replies',             [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'storeReply'])->name('maintenances.replies.store');
     Route::delete('/maintenance-replies/{reply}',                   [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'destroyReply'])->name('maintenance-replies.destroy');
 
-    // 로그인 로그
-    Route::get('/login-logs', [\App\Http\Controllers\Admin\AdminLoginLogController::class, 'index'])->name('login-logs.index');
-    Route::get('/user-login-logs', [\App\Http\Controllers\Admin\AdminUserLoginLogController::class, 'index'])->name('user-login-logs.index');
-    Route::get('/user-page-logs',  [\App\Http\Controllers\Admin\AdminUserPageLogController::class,  'index'])->name('user-page-logs.index');
+    // 하위 호환 리다이렉트
+    Route::get('/login-logs',      fn() => redirect()->route('admin.logs.index', ['tab' => 'login']))->name('login-logs.index');
+    Route::get('/user-login-logs', fn() => redirect()->route('admin.logs.index', ['tab' => 'user-login']))->name('user-login-logs.index');
+    Route::get('/user-page-logs',  fn() => redirect()->route('admin.logs.index', ['tab' => 'page']))->name('user-page-logs.index');
 
     // 앱 버전 관리
     Route::get   ('app-versions',                      [\App\Http\Controllers\Admin\AppVersionWebController::class, 'index'])   ->name('app-versions.index');
@@ -225,6 +283,10 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     // AI API 키 설정
     Route::get('ai-settings',     [\App\Http\Controllers\Admin\AiSettingController::class, 'index']) ->name('ai-settings.index');
     Route::put('ai-settings',     [\App\Http\Controllers\Admin\AiSettingController::class, 'update'])->name('ai-settings.update');
+
+    // 시스템 유지보수 모드
+    Route::get  ('system-maintenance', [\App\Http\Controllers\Admin\SystemMaintenanceController::class, 'index']) ->name('system-maintenance.index');
+    Route::patch('system-maintenance', [\App\Http\Controllers\Admin\SystemMaintenanceController::class, 'update'])->name('system-maintenance.update');
 
     // AI 프롬프트 내역
     Route::get('ai-prompts',           [\App\Http\Controllers\Admin\AdminAiPromptController::class, 'index'])->name('ai-prompts.index');
@@ -241,9 +303,12 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     // Super Admin 데이터 초기화
     Route::delete('reset/inquiries',     [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetInquiries'])    ->name('reset.inquiries');
     Route::delete('reset/activity-logs', [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetActivityLogs']) ->name('reset.activity-logs');
-    Route::delete('reset/login-logs',    [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetLoginLogs'])    ->name('reset.login-logs');
+    Route::delete('reset/login-logs',       [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetLoginLogs'])      ->name('reset.login-logs');
+    Route::delete('reset/user-login-logs',  [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetUserLoginLogs'])  ->name('reset.user-login-logs');
     Route::delete('reset/system-errors',    [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetSystemErrors'])   ->name('reset.system-errors');
-    Route::delete('reset/user-page-logs',  [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetUserPageLogs'])  ->name('reset.user-page-logs');
+    Route::delete('reset/user-page-logs',    [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetUserPageLogs'])    ->name('reset.user-page-logs');
+    Route::delete('reset/meeting-minutes',   [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetMeetingMinutes'])   ->name('reset.meeting-minutes');
+    Route::delete('reset/weekly-reports',    [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetWeeklyReports'])    ->name('reset.weekly-reports');
 
 });
 
@@ -253,6 +318,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+
+    // 상단바 이메일 보내기 (팝오버)
+    Route::get ('/email-compose/recipients', [\App\Http\Controllers\EmailComposeController::class, 'recipients'])->name('email-compose.recipients');
+    Route::post('/email-compose',             [\App\Http\Controllers\EmailComposeController::class, 'send'])->name('email-compose.send');
 
     // 메시지
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
@@ -286,6 +355,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get   ('/previous-tasks',          [\App\Http\Controllers\WeeklyReportController::class, 'previousTasks'])  ->name('previous-tasks');
         Route::get   ('/check-concurrent',        [\App\Http\Controllers\WeeklyReportController::class, 'checkConcurrent'])->name('check-concurrent');
         Route::get   ('/team-names',              [\App\Http\Controllers\WeeklyReportController::class, 'teamNames'])      ->name('team-names');
+        Route::get   ('/manager-summary',          [\App\Http\Controllers\ManagerWeeklySummaryController::class, 'index'])   ->name('manager-summary');
+        Route::post  ('/manager-summary/download', [\App\Http\Controllers\ManagerWeeklySummaryController::class, 'download']) ->name('manager-summary.download');
+        Route::get   ('/ai-summary',               [\App\Http\Controllers\WeeklyAiSummaryController::class, 'show'])          ->name('ai-summary');
+        Route::post  ('/ai-summary/generate',      [\App\Http\Controllers\WeeklyAiSummaryController::class, 'generate'])      ->name('ai-summary.generate');
+        Route::get   ('/ai-summary/download',      [\App\Http\Controllers\WeeklyAiSummaryController::class, 'download'])      ->name('ai-summary.download');
         Route::get   ('/{weeklyReport}/edit',     [\App\Http\Controllers\WeeklyReportController::class, 'edit'])           ->name('edit');
         Route::patch ('/{weeklyReport}',          [\App\Http\Controllers\WeeklyReportController::class, 'update'])         ->name('update');
         Route::delete('/{weeklyReport}',          [\App\Http\Controllers\WeeklyReportController::class, 'destroy'])        ->name('destroy');
@@ -307,13 +381,97 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{member}', [ProjectMemberController::class, 'update'])->name('update');
     });
 
-    // 일정
+    // 일정 (legacy schedules — data now in sub_tasks)
     Route::resource('projects.schedules', ScheduleController::class)->shallow();
-    Route::get('projects/{project}/gantt', [ScheduleController::class, 'gantt'])->name('projects.gantt');
-    Route::patch('projects/{project}/gantt/{schedule}', [ScheduleController::class, 'ganttUpdate'])->name('projects.gantt.update');
-    Route::post('projects/{project}/gantt/reorder', [ScheduleController::class, 'ganttReorder'])->name('projects.gantt.reorder');
+    Route::get ('projects/{project}/gantt',                     [ScheduleController::class, 'gantt'])        ->name('projects.gantt');
+    Route::patch('projects/{project}/gantt/{subTask}',          [ScheduleController::class, 'ganttUpdate'])  ->name('projects.gantt.update');
+    Route::post ('projects/{project}/gantt/reorder',            [ScheduleController::class, 'ganttReorder']) ->name('projects.gantt.reorder');
+
+    // 마일스톤
+    Route::prefix('projects/{project}/milestones')->name('projects.milestones.')->group(function () {
+        Route::get   ('/',              [MilestoneController::class, 'index'])  ->name('index');
+        Route::post  ('/',              [MilestoneController::class, 'store'])  ->name('store');
+        Route::patch ('/{milestone}',   [MilestoneController::class, 'update']) ->name('update');
+        Route::delete('/{milestone}',   [MilestoneController::class, 'destroy'])->name('destroy');
+        Route::post  ('/reorder',       [MilestoneController::class, 'reorder'])->name('reorder');
+    });
+
+    // 태스크 그룹
+    Route::prefix('projects/{project}/task-groups')->name('projects.task-groups.')->group(function () {
+        Route::post  ('/',              [TaskGroupController::class, 'store'])  ->name('store');
+        Route::patch ('/{taskGroup}',   [TaskGroupController::class, 'update']) ->name('update');
+        Route::delete('/{taskGroup}',   [TaskGroupController::class, 'destroy'])->name('destroy');
+        Route::post  ('/{taskGroup}/move', [TaskGroupController::class, 'move'])->name('move');
+        Route::post  ('/reorder',       [TaskGroupController::class, 'reorder'])->name('reorder');
+    });
+
+    // 서브태스크
+    Route::prefix('projects/{project}/sub-tasks')->name('projects.sub-tasks.')->group(function () {
+        Route::get   ('/',              [SubTaskController::class, 'index'])  ->name('index');
+        Route::post  ('/',              [SubTaskController::class, 'store'])  ->name('store');
+        Route::get   ('/{subTask}',     [SubTaskController::class, 'show'])   ->name('show');
+        Route::patch ('/{subTask}',     [SubTaskController::class, 'update']) ->name('update');
+        Route::delete('/{subTask}',     [SubTaskController::class, 'destroy'])->name('destroy');
+        Route::post  ('/{subTask}/move',[SubTaskController::class, 'move'])   ->name('move');
+        Route::post  ('/reorder',       [SubTaskController::class, 'reorder'])->name('reorder');
+    });
+
+    // 일정 트리 (Milestone → TaskGroup → SubTask)
+    Route::get('projects/{project}/schedule-tree', function (\App\Models\Project $project) {
+        $service = app(\App\Services\Schedule\ScheduleService::class);
+        return response()->json($service->getTree($project->id));
+    })->name('projects.schedule-tree');
+
+    // 요구사항
+    Route::prefix('projects/{project}/requirements')->name('projects.requirements.')->group(function () {
+        Route::get   ('/',                              [\App\Http\Controllers\RequirementController::class, 'index'])         ->name('index');
+        Route::post  ('/',                              [\App\Http\Controllers\RequirementController::class, 'store'])         ->name('store');
+        Route::get   ('/export',                        [\App\Http\Controllers\RequirementController::class, 'export'])        ->name('export');
+        Route::post  ('/bulk-destroy',                  [\App\Http\Controllers\RequirementController::class, 'bulkDestroy'])   ->name('bulk-destroy');
+        Route::get   ('/{requirement}',                 [\App\Http\Controllers\RequirementController::class, 'show'])          ->name('show');
+        Route::patch ('/{requirement}',                 [\App\Http\Controllers\RequirementController::class, 'update'])        ->name('update');
+        Route::delete('/{requirement}',                 [\App\Http\Controllers\RequirementController::class, 'destroy'])       ->name('destroy');
+        Route::post  ('/{requirement}/approve',         [\App\Http\Controllers\RequirementController::class, 'approve'])       ->name('approve');
+        Route::post  ('/{requirement}/comments',        [\App\Http\Controllers\RequirementController::class, 'storeComment'])  ->name('comments.store');
+        Route::post  ('/{requirement}/watch',           [\App\Http\Controllers\RequirementController::class, 'toggleWatcher']) ->name('watch');
+        Route::post  ('/analyze-attachment',            [\App\Http\Controllers\RequirementController::class, 'analyzeAttachment'])->name('attachments.analyze');
+        Route::get   ('/ai-context',                    [\App\Http\Controllers\RequirementController::class, 'aiContext'])          ->name('ai-context');
+        Route::get   ('/{requirement}/attachments/{attachment}', [\App\Http\Controllers\RequirementController::class, 'downloadAttachment'])->name('attachments.download');
+
+        // AI 분석 세션
+        Route::prefix('analysis')->name('analysis.')->group(function () {
+            Route::get   ('/',                          [\App\Http\Controllers\AnalysisSessionController::class, 'index'])   ->name('index');
+            Route::get   ('/new',                       [\App\Http\Controllers\AnalysisSessionController::class, 'create'])  ->name('create');
+            Route::post  ('/',                          [\App\Http\Controllers\AnalysisSessionController::class, 'store'])   ->name('store');
+            Route::get   ('/{session}',                 [\App\Http\Controllers\AnalysisSessionController::class, 'show'])    ->name('show');
+            Route::post  ('/{session}/approve',         [\App\Http\Controllers\AnalysisSessionController::class, 'approve']) ->name('approve');
+            Route::post  ('/{session}/reject',          [\App\Http\Controllers\AnalysisSessionController::class, 'reject'])  ->name('reject');
+            Route::post  ('/{session}/retry',           [\App\Http\Controllers\AnalysisSessionController::class, 'retry'])   ->name('retry');
+        });
+    });
 
     // 기획서
+    // 논의사항
+    Route::prefix('projects/{project}/discussions')->name('projects.discussions.')->group(function () {
+        Route::get ('/',                                          [\App\Http\Controllers\DiscussionController::class, 'index'])       ->name('index');
+        Route::post('/',                                          [\App\Http\Controllers\DiscussionController::class, 'store'])       ->name('store');
+        Route::post('/refine',                                    [\App\Http\Controllers\DiscussionController::class, 'refine'])      ->name('refine');
+        Route::post('/upload-image',                              [\App\Http\Controllers\DiscussionController::class, 'uploadProjectInlineImage'])->name('upload-image');
+        Route::get ('/inline-image/{filename}',                   [\App\Http\Controllers\DiscussionController::class, 'serveProjectInlineImage'])->name('inline-image')->where('filename', '[A-Za-z0-9._-]+');
+        Route::get ('/{discussion}/download-word',                [\App\Http\Controllers\DiscussionController::class, 'downloadWord'])->name('download-word');
+        Route::get ('/{discussion}',                              [\App\Http\Controllers\DiscussionController::class, 'show'])        ->name('show');
+        Route::patch('/{discussion}',                             [\App\Http\Controllers\DiscussionController::class, 'update'])      ->name('update');
+        Route::delete('/{discussion}',                            [\App\Http\Controllers\DiscussionController::class, 'destroy'])     ->name('destroy');
+        Route::post('/{discussion}/share',                        [\App\Http\Controllers\DiscussionController::class, 'share'])       ->name('share');
+        Route::post('/{discussion}/comments',                     [\App\Http\Controllers\DiscussionController::class, 'storeComment'])->name('comments.store');
+        Route::post('/{discussion}/comments/refine',              [\App\Http\Controllers\DiscussionController::class, 'refineComment'])->name('comments.refine');
+        Route::post('/{discussion}/comments/summarize',           [\App\Http\Controllers\DiscussionController::class, 'summarizeComments'])->name('comments.summarize');
+        Route::post('/{discussion}/comments/upload-image',        [\App\Http\Controllers\DiscussionController::class, 'uploadInlineImage'])->name('comments.upload-image');
+        Route::post('/{discussion}/comments/{comment}/toggle-share', [\App\Http\Controllers\DiscussionController::class, 'toggleCommentShare'])->name('comments.toggle-share');
+        Route::delete('/{discussion}/comments/{comment}',         [\App\Http\Controllers\DiscussionController::class, 'destroyComment'])->name('comments.destroy');
+        Route::get ('/{discussion}/attachments/{attachment}',     [\App\Http\Controllers\DiscussionController::class, 'downloadAttachment'])->name('attachments.download');
+    });
+
     Route::prefix('projects/{project}/planning')->name('projects.planning.')->group(function () {
         Route::get ('/',                              [PlanningDocController::class, 'index'])       ->name('index');
         Route::post('/',                              [PlanningDocController::class, 'store'])       ->name('store');
@@ -327,10 +485,65 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{doc}/reject',                  [PlanningDocController::class, 'reject'])      ->name('reject');
         Route::get ('/{doc}/download',                [PlanningDocController::class, 'download'])    ->name('download');
         Route::post('/{doc}/ai-write',                [PlanningDocController::class, 'aiWrite'])              ->name('aiWrite');
+        Route::post('/{doc}/ai-write-stream',         [PlanningDocController::class, 'aiWriteStream'])        ->name('aiWriteStream');
         Route::post('/{doc}/ai-cleanup',              [PlanningDocController::class, 'aiCleanup'])            ->name('aiCleanup');
-        Route::post('/{doc}/suggest-features',        [PlanningDocController::class, 'suggestFeatures'])      ->name('suggestFeatures');
+        Route::post('/{doc}/send-email',              [PlanningDocController::class, 'sendEmail'])             ->name('sendEmail');
+        Route::post('/{doc}/suggest-features',        [PlanningDocController::class, 'suggestFeatures'])        ->name('suggestFeatures');
+        Route::post('/{doc}/suggest-features-stream',[PlanningDocController::class, 'suggestFeaturesStream']) ->name('suggestFeaturesStream');
         Route::post('/{doc}/feature/{suggestion}/apply', [PlanningDocController::class, 'applyFeatureSuggestion'])->name('applyFeatureSuggestion');
         Route::delete('/feature/{suggestion}',        [PlanningDocController::class, 'deleteFeatureSuggestion'])->name('deleteFeatureSuggestion');
+        // 요구사항 적용
+        Route::get ('/{doc}/applied-requirements',    [\App\Http\Controllers\PlanApplicationController::class, 'listByPlan'])  ->name('applied-requirements');
+        Route::post('/{doc}/apply-requirements',      [\App\Http\Controllers\PlanApplicationController::class, 'apply'])       ->name('apply-requirements');
+        // 외부 공유 링크 토글
+        Route::post('/{doc}/toggle-share',            [PlanningDocController::class, 'toggleShare'])                           ->name('toggleShare');
+        // 기획서 전체 리셋
+        Route::post('/{doc}/reset',                   [PlanningDocController::class, 'reset'])                                 ->name('reset');
+    });
+
+    // URS (User Requirements Specification)
+    Route::prefix('projects/{project}/urs')->name('projects.urs.')->group(function () {
+        Route::get ('/',                    [UrsController::class, 'index'])       ->name('index');
+        Route::post('/',                    [UrsController::class, 'store'])       ->name('store');
+        Route::get ('/{urs}',               [UrsController::class, 'show'])        ->name('show');
+        Route::put ('/{urs}',               [UrsController::class, 'update'])      ->name('update');
+        Route::post('/{urs}/qa/start',      [UrsController::class, 'startQA'])     ->name('qa.start');
+        Route::post('/{urs}/qa/answer',     [UrsController::class, 'answerQA'])    ->name('qa.answer');
+        Route::post('/{urs}/generate',      [UrsController::class, 'generateURS']) ->name('generate');
+        Route::post('/{urs}/reset',         [UrsController::class, 'reset'])       ->name('reset');
+        Route::get ('/{urs}/download/word',   [UrsController::class, 'downloadWord'])     ->name('download.word');
+        Route::get ('/{urs}/download/pdf',    [UrsController::class, 'downloadPdf'])      ->name('download.pdf');
+        Route::post('/{urs}/translate-en',    [UrsController::class, 'translateToEnglish'])->name('translate-en');
+    });
+
+    // 기획서 적용 관련 (프로젝트 레벨)
+    Route::prefix('projects/{project}/plan-applications')->name('projects.plan-applications.')->group(function () {
+        Route::get  ('/plans',                      [\App\Http\Controllers\PlanApplicationController::class, 'plans'])         ->name('plans');
+        Route::post ('/preview',                    [\App\Http\Controllers\PlanApplicationController::class, 'preview'])       ->name('preview');
+        Route::post ('/{application}/complete',     [\App\Http\Controllers\PlanApplicationController::class, 'toggleComplete'])->name('complete');
+        Route::delete('/{application}',             [\App\Http\Controllers\PlanApplicationController::class, 'revert'])        ->name('revert');
+    });
+
+    // 요구사항별 기획서 적용 이력
+    Route::get('projects/{project}/requirements/{requirement}/plan-applications',
+        [\App\Http\Controllers\PlanApplicationController::class, 'listByRequirement'])
+        ->name('projects.requirements.plan-applications');
+
+    // 이슈
+    Route::prefix('projects/{project}/issues')->name('projects.issues.')->group(function () {
+        Route::get   ('/',                        [\App\Http\Controllers\IssueController::class, 'index'])             ->name('index');
+        Route::post  ('/',                        [\App\Http\Controllers\IssueController::class, 'store'])             ->name('store');
+        Route::get   ('/{issue}',                 [\App\Http\Controllers\IssueController::class, 'show'])              ->name('show');
+        Route::patch ('/{issue}',                 [\App\Http\Controllers\IssueController::class, 'update'])            ->name('update');
+        Route::delete('/{issue}',                 [\App\Http\Controllers\IssueController::class, 'destroy'])           ->name('destroy');
+        Route::post  ('/{issue}/resolve',         [\App\Http\Controllers\IssueController::class, 'resolve'])           ->name('resolve');
+        Route::post  ('/{issue}/link-requirement',[\App\Http\Controllers\IssueController::class, 'linkRequirement'])   ->name('link-requirement');
+        Route::delete('/{issue}/link-requirement',[\App\Http\Controllers\IssueController::class, 'unlinkRequirement']) ->name('unlink-requirement');
+        Route::post  ('/{issue}/comments',        [\App\Http\Controllers\IssueController::class, 'storeComment'])      ->name('comments.store');
+        Route::post  ('/{issue}/watch',           [\App\Http\Controllers\IssueController::class, 'toggleWatcher'])     ->name('watch');
+        Route::get   ('/export/csv',              [\App\Http\Controllers\IssueController::class, 'export'])            ->name('export');
+        Route::get   ('/stats/summary',           [\App\Http\Controllers\IssueController::class, 'stats'])             ->name('stats');
+        Route::post  ('/convert-from-question',   [\App\Http\Controllers\IssueController::class, 'convertFromQuestion'])->name('convert-from-question');
     });
 
     // Q&A
@@ -394,9 +607,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{file}/download', [ProjectFileController::class, 'download'])->name('download');
         Route::get('/{file}/url-view', [ProjectFileController::class, 'urlViewer'])->name('url-view');
         Route::patch('/{file}/category', [ProjectFileController::class, 'updateCategory'])->name('update-category');
+        Route::patch('/{file}', [ProjectFileController::class, 'update'])->name('update');
         Route::post('/{file}/share', [ProjectFileController::class, 'toggleShare'])->name('toggle-share');
         Route::delete('/{file}', [ProjectFileController::class, 'destroy'])->name('destroy');
         Route::post('/{file}/review-request', [ProjectFileController::class, 'requestReview'])->name('review-request');
+        Route::post('/{file}/review-complete', [ProjectFileController::class, 'completeReview'])->name('review-complete');
         Route::post('/{file}/copy', [ProjectFileController::class, 'copy'])->name('copy');
         Route::get('/{file}/action-logs', [ProjectFileController::class, 'actionLogs'])->name('action-logs');
         Route::post('/{file}/log-action', [ProjectFileController::class, 'logAction'])->name('log-action');
@@ -451,61 +666,362 @@ Route::middleware(['auth'])->group(function () {
 
     // AI Agent 개발 워크플로우
     Route::prefix('ai-agent')->name('ai-agent.')->group(function () {
-        Route::get('/', [AiAgentController::class, 'dashboard'])->name('dashboard');
+        // 대시보드 (T15)
+        Route::get ('/',        [AiDashboardController::class,    'index'])->name('dashboard');
+        Route::post('projects', [AiProjectConfigController::class, 'store'])->name('projects.store');
+
+        // T27: Figma 설정 (사용자별, 프로젝트 독립)
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get   ('figma',          [FigmaSettingsController::class, 'index'])->name('figma');
+            Route::post  ('figma/save',     [FigmaSettingsController::class, 'save'])->name('figma.save');
+            Route::post  ('figma/validate', [FigmaSettingsController::class, 'validateToken'])->name('figma.validate');
+            Route::delete('figma',          [FigmaSettingsController::class, 'delete'])->name('figma.delete');
+        });
+
+        // 스트리밍 데모 + 공용 취소 엔드포인트 (T13)
+        Route::get ('stream/demo',                    [AiStreamController::class, 'demo'])->name('stream.demo');
+        Route::get ('stream/demo-sse/{scenario}',     [AiStreamController::class, 'demoSse'])->name('stream.demo-sse');
+        Route::post('stream/{sessionId}/cancel',      [AiStreamController::class, 'cancel'])->name('stream.cancel');
+
+        // 버전 이력 · 추적성 데모 (T14)
+        Route::get('demo/version-traceability',                    [AiVersionController::class,       'demo'])->name('demo.version-traceability');
+        Route::get('demo/artifact/{artifactId}/versions',          [AiVersionController::class,       'demoHistory'])->name('demo.artifact.versions');
+        Route::get('demo/artifact/{artifactId}/versions/{version}',[AiVersionController::class,       'demoVersionDetail'])->name('demo.artifact.version');
+        Route::get('demo/traceability/{type}/{id}/links',          [AiTraceabilityController::class,  'demoLinks'])->name('demo.traceability.links');
+        Route::get('demo/traceability/{type}/{id}/impact',         [AiTraceabilityController::class,  'demoImpact'])->name('demo.traceability.impact');
 
         Route::prefix('projects/{project}')->name('projects.')->group(function () {
-            Route::get('/', [AiAgentController::class, 'projectHome'])->name('home');
+            // 프로젝트 홈 (T15)
+            Route::get('/', [AiDashboardController::class, 'show'])->name('home');
+
+            // 산출물 (Deliverables)
+            Route::prefix('deliverables')->name('deliverables.')->group(function () {
+                Route::get ('/',                          [DeliverableController::class, 'index'])   ->name('index');
+                Route::get ('/{typeId}',                  [DeliverableController::class, 'show'])    ->name('show');
+                Route::post('/{typeId}/save-step',        [DeliverableController::class, 'saveStep'])    ->name('save-step');
+                Route::post('/{typeId}/save-translation', [DeliverableController::class, 'saveTranslation'])->name('save-translation');
+                Route::get ('/{typeId}/all-step-fields',  [DeliverableController::class, 'allStepFields'])  ->name('all-step-fields');
+                Route::post('/{typeId}/save-tool',        [DeliverableController::class, 'saveTool'])    ->name('save-tool');
+                Route::post('/{typeId}/generate-draft',        [DeliverableController::class, 'generateDraft'])      ->name('generate-draft');
+                Route::get ('/{typeId}/generate-draft-stream', [DeliverableController::class, 'generateDraftStream'])->name('generate-draft-stream');
+                Route::post('/{typeId}/analyze',               [DeliverableController::class, 'analyzeStep'])         ->name('analyze-step');
+                Route::delete('/{typeId}',                [DeliverableController::class, 'destroy'])      ->name('destroy');
+                // 승인 워크플로
+                Route::post('/{typeId}/approval-request', [DeliverableController::class, 'approvalRequest'])->name('approval-request');
+                Route::post('/{typeId}/approval-respond',  [DeliverableController::class, 'approvalRespond'])->name('approval-respond');
+                // 링크 공유 토큰
+                Route::post('/{typeId}/toggle-share',      [DeliverableController::class, 'toggleShare'])->name('toggle-share');
+                // Word 내보내기
+                Route::get ('/{typeId}/export-word',       [DeliverableController::class, 'exportWord'])->name('export-word');
+                // 뷰어 의견
+                Route::get   ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsIndex'])  ->name('viewer-comments.index');
+                Route::post  ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsStore'])  ->name('viewer-comments.store');
+                Route::delete('/{typeId}/viewer-comments/{comment}', [DeliverableController::class, 'viewerCommentsDestroy'])->name('viewer-comments.destroy');
+            });
 
             // 기획 단계
             Route::prefix('planning')->name('planning.')->group(function () {
-                Route::get('/',        [AiAgentController::class, 'planningIndex'])->name('index');
-                Route::get('as-is',    [AiAgentController::class, 'asIs'])->name('as-is');
-                Route::get('to-be',    [AiAgentController::class, 'toBe'])->name('to-be');
-                Route::get('gap',      [AiAgentController::class, 'gap'])->name('gap');
-                Route::get('document', [AiAgentController::class, 'document'])->name('document');
-                Route::get('ia',       [AiAgentController::class, 'ia'])->name('ia');
-                Route::get('prompts',  [AiAgentController::class, 'planningPrompts'])->name('prompts');
-                Route::get('mockups',  [AiAgentController::class, 'mockups'])->name('mockups');
-                Route::get('approval', [AiAgentController::class, 'planningApproval'])->name('approval');
+                // T16: 화면(작업 항목) 목록 — 기획 진입점
+                Route::get ('/',                         [AiPlanningScreenController::class, 'index'])->name('index');
+                Route::post('screens',                   [AiPlanningScreenController::class, 'store'])->name('screens.store');
+                Route::get ('screens/{screen}',          [AiPlanningScreenController::class, 'show'])->name('screens.show');
+                Route::put ('screens/{screen}',          [AiPlanningScreenController::class, 'update'])->name('screens.update');
+                Route::post('screens/{screen}/archive',  [AiPlanningScreenController::class, 'archive'])->name('screens.archive');
+                Route::post('screens/{screen}/restore',  [AiPlanningScreenController::class, 'restore'])->name('screens.restore');
+                Route::get ('sync-gantt',                [AiPlanningScreenController::class, 'ganttPreview'])->name('sync-gantt.preview');
+                Route::post('sync-gantt',                [AiPlanningScreenController::class, 'syncFromGantt'])->name('sync-gantt');
+
+                // T17/T18: AS-IS 분석 (프로젝트 스코프)
+                Route::get   ('as-is',                                  [AsIsAnalysisController::class, 'projectIndex'])->name('as-is');
+                Route::post  ('as-is/files',                            [AsIsAnalysisController::class, 'projectUpload'])->name('as-is.upload');
+                Route::get   ('as-is/status',                           [AsIsAnalysisController::class, 'projectStatus'])->name('as-is.status');
+                Route::delete('as-is/files/{file}',                     [AsIsAnalysisController::class, 'projectDeleteFile'])->name('as-is.file.delete');
+                Route::post  ('as-is/analyze/start',                    [AsIsAnalysisController::class, 'projectAnalyzeStart'])->name('as-is.analyze.start');
+                Route::get   ('as-is/analyze/{sessionId}/sse',          [AsIsAnalysisController::class, 'projectAnalyzeSse'])->name('as-is.analyze.sse');
+                Route::post  ('as-is/save',                             [AsIsAnalysisController::class, 'projectSave'])->name('as-is.save');
+                Route::get   ('as-is/export',                           [AsIsAnalysisController::class, 'projectExport'])->name('as-is.export');
+
+                // T17/T18: AS-IS 분석 (화면 스코프)
+                Route::get   ('screens/{screen}/as-is',                             [AsIsAnalysisController::class, 'screenIndex'])->name('screens.as-is');
+                Route::post  ('screens/{screen}/as-is/files',                       [AsIsAnalysisController::class, 'screenUpload'])->name('screens.as-is.upload');
+                Route::get   ('screens/{screen}/as-is/status',                      [AsIsAnalysisController::class, 'screenStatus'])->name('screens.as-is.status');
+                Route::delete('screens/{screen}/as-is/files/{file}',                [AsIsAnalysisController::class, 'screenDeleteFile'])->name('screens.as-is.file.delete');
+                Route::post  ('screens/{screen}/as-is/analyze/start',               [AsIsAnalysisController::class, 'screenAnalyzeStart'])->name('screens.as-is.analyze.start');
+                Route::get   ('screens/{screen}/as-is/analyze/{sessionId}/sse',     [AsIsAnalysisController::class, 'screenAnalyzeSse'])->name('screens.as-is.analyze.sse');
+                Route::post  ('screens/{screen}/as-is/save',                        [AsIsAnalysisController::class, 'screenSave'])->name('screens.as-is.save');
+                Route::get   ('screens/{screen}/as-is/export',                      [AsIsAnalysisController::class, 'screenExport'])->name('screens.as-is.export');
+                // T19: TO-BE 요구사항 분석 (프로젝트 스코프)
+                Route::get   ('to-be',                                    [ToBeAnalysisController::class, 'projectIndex'])->name('to-be');
+                Route::post  ('to-be/files',                              [ToBeAnalysisController::class, 'projectUpload'])->name('to-be.upload');
+                Route::get   ('to-be/status',                             [ToBeAnalysisController::class, 'projectStatus'])->name('to-be.status');
+                Route::delete('to-be/files/{file}',                       [ToBeAnalysisController::class, 'projectDeleteFile'])->name('to-be.file.delete');
+                Route::post  ('to-be/analyze/start',                      [ToBeAnalysisController::class, 'projectAnalyzeStart'])->name('to-be.analyze.start');
+                Route::get   ('to-be/analyze/{sessionId}/sse',            [ToBeAnalysisController::class, 'projectAnalyzeSse'])->name('to-be.analyze.sse');
+                Route::post  ('to-be/save',                               [ToBeAnalysisController::class, 'projectSave'])->name('to-be.save');
+                Route::get   ('to-be/export',                             [ToBeAnalysisController::class, 'projectExport'])->name('to-be.export');
+                Route::post  ('to-be/requirements',                       [ToBeAnalysisController::class, 'requirementStore'])->name('to-be.req.store');
+                Route::patch ('to-be/requirements/{requirement}',         [ToBeAnalysisController::class, 'requirementUpdate'])->name('to-be.req.update');
+                Route::delete('to-be/requirements/{requirement}',         [ToBeAnalysisController::class, 'requirementDestroy'])->name('to-be.req.destroy');
+
+                // T20: Gap 분석
+                Route::get   ('gap',                                      [GapAnalysisController::class, 'projectIndex'])->name('gap');
+                Route::get   ('gap/prerequisites',                        [GapAnalysisController::class, 'prerequisites'])->name('gap.prerequisites');
+                Route::post  ('gap/analyze/start',                        [GapAnalysisController::class, 'analyzeStart'])->name('gap.analyze.start');
+                Route::get   ('gap/analyze/{sessionId}/sse',              [GapAnalysisController::class, 'analyzeSse'])->name('gap.analyze.sse');
+                Route::post  ('gap/save',                                 [GapAnalysisController::class, 'save'])->name('gap.save');
+                Route::get   ('gap/export',                               [GapAnalysisController::class, 'export'])->name('gap.export');
+                Route::post  ('gap/items',                                [GapAnalysisController::class, 'gapStore'])->name('gap.items.store');
+                Route::patch ('gap/items/{gap}',                          [GapAnalysisController::class, 'gapUpdate'])->name('gap.items.update');
+                Route::delete('gap/items/{gap}',                          [GapAnalysisController::class, 'gapDestroy'])->name('gap.items.destroy');
+                // T21/T22: AI 기획서
+                Route::get  ('document',                                [PlanningDocumentController::class, 'index'])->name('document');
+                Route::get  ('document/template',                       [PlanningDocumentController::class, 'templatePreview'])->name('document.template');
+                Route::get  ('document/data-status',                    [PlanningDocumentController::class, 'dataStatus'])->name('document.data-status');
+                Route::post ('document/generate/start',                 [PlanningDocumentController::class, 'generateStart'])->name('document.generate.start');
+                Route::get  ('document/generate/{sessionId}/sse',       [PlanningDocumentController::class, 'generateSse'])->name('document.generate.sse');
+                Route::post ('document/save',                           [PlanningDocumentController::class, 'save'])->name('document.save');
+                Route::get  ('document/export',                         [PlanningDocumentController::class, 'export'])->name('document.export');
+                Route::post ('document/regenerate-section',             [PlanningDocumentController::class, 'regenerateSection'])->name('document.regenerate');
+                // T23: IA / 화면 흐름도
+                Route::get  ('ia',                              [IaDiagramController::class, 'index'])->name('ia');
+                Route::post ('ia/generate/start',               [IaDiagramController::class, 'generateStart'])->name('ia.generate.start');
+                Route::get  ('ia/generate/{sessionId}/sse',     [IaDiagramController::class, 'generateSse'])->name('ia.generate.sse');
+                Route::post ('ia/save',                         [IaDiagramController::class, 'save'])->name('ia.save');
+                Route::get  ('ia/export',                       [IaDiagramController::class, 'export'])->name('ia.export');
+                Route::post ('ia/regenerate',                   [IaDiagramController::class, 'regenerateDiagram'])->name('ia.regenerate');
+                // T24: 화면 생성 프롬프트
+                Route::get  ('screen-prompts',                           [ScreenPromptController::class, 'index'])->name('prompts');
+                Route::post ('screen-prompts/batch/start',               [ScreenPromptController::class, 'batchStart'])->name('prompts.batch.start');
+                Route::get  ('screen-prompts/batch/{sessionId}/sse',     [ScreenPromptController::class, 'batchSse'])->name('prompts.batch.sse');
+                Route::get  ('screen-prompts/{screen}',                  [ScreenPromptController::class, 'show'])->name('prompts.show');
+                Route::post ('screen-prompts/{screen}/generate',         [ScreenPromptController::class, 'generateOne'])->name('prompts.generate');
+                Route::patch('screen-prompts/{screen}',                  [ScreenPromptController::class, 'update'])->name('prompts.update');
+                Route::delete('screen-prompts/{screen}/prompt',          [ScreenPromptController::class, 'destroy'])->name('prompts.destroy');
+                // T25: AI 샘플 화면(목업) 생성
+                Route::get  ('mockups',                                        [MockupController::class, 'index'])->name('mockups');
+                Route::post ('mockups/batch/start',                            [MockupController::class, 'batchStart'])->name('mockups.batch.start');
+                Route::get  ('mockups/batch/{sessionId}/sse',                  [MockupController::class, 'batchSse'])->name('mockups.batch.sse');
+                Route::get  ('mockups/{screen}',                               [MockupController::class, 'show'])->name('mockups.show');
+                Route::post ('mockups/{screen}/generate',                      [MockupController::class, 'generateOne'])->name('mockups.generate');
+                Route::patch('mockups/{screen}',                               [MockupController::class, 'update'])->name('mockups.update');
+                Route::delete('mockups/{screen}',                              [MockupController::class, 'destroy'])->name('mockups.destroy');
+                Route::get  ('mockups/{screen}/preview',                       [MockupController::class, 'preview'])->name('mockups.preview');
+                Route::get  ('mockups/{screen}/preview/standalone',            [MockupController::class, 'previewStandalone'])->name('mockups.preview.standalone');
+                Route::get  ('mockups/{screen}/download',                      [MockupController::class, 'download'])->name('mockups.download');
+                // T26: 기획 단계 승인 게이트
+                Route::get('approval',           [PlanningApprovalController::class, 'index'])->name('approval');
+                Route::get('approval/diagnosis', [PlanningApprovalController::class, 'diagnosis'])->name('approval.diagnosis');
             });
 
             // 디자인 단계
             Route::prefix('design')->name('design.')->group(function () {
                 Route::get('/',          [AiAgentController::class, 'designIndex'])->name('index');
-                Route::get('tokens',     [AiAgentController::class, 'designTokens'])->name('tokens');
-                Route::get('components', [AiAgentController::class, 'designComponents'])->name('components');
-                Route::get('layout',     [AiAgentController::class, 'designLayout'])->name('layout');
-                Route::get('screens',    [AiAgentController::class, 'designScreens'])->name('screens');
-                Route::get('validation', [AiAgentController::class, 'designValidation'])->name('validation');
-                Route::get('system',     [AiAgentController::class, 'designSystem'])->name('system');
-                Route::get('figma-dev',  [AiAgentController::class, 'figmaDev'])->name('figma-dev');
-                Route::get('approval',   [AiAgentController::class, 'designApproval'])->name('approval');
+                // T28: Design Tokens
+                Route::get   ('tokens',                [DesignTokenController::class, 'index'])->name('tokens');
+                Route::post  ('tokens/extract',        [DesignTokenController::class, 'extract'])->name('tokens.extract');
+                Route::get   ('tokens/preview',        [DesignTokenController::class, 'preview'])->name('tokens.preview');
+                Route::get   ('tokens/export',         [DesignTokenController::class, 'export'])->name('tokens.export');
+                Route::patch ('tokens',                [DesignTokenController::class, 'update'])->name('tokens.update');
+                // T29: Component 명세서
+                Route::get   ('components',                [ComponentSpecController::class, 'index'])->name('components');
+                Route::post  ('components/extract',        [ComponentSpecController::class, 'extract'])->name('components.extract');
+                Route::get   ('components/export',         [ComponentSpecController::class, 'export'])->name('components.export');
+                Route::get   ('components/{component}',    [ComponentSpecController::class, 'show'])->name('components.show');
+                Route::patch ('components/{component}',    [ComponentSpecController::class, 'update'])->name('components.update');
+                // T30: 표준 Layout
+                Route::get   ('layout',                  [LayoutSpecController::class, 'index'])->name('layout');
+                Route::post  ('layout/analyze',          [LayoutSpecController::class, 'analyze'])->name('layout.analyze');
+                Route::get   ('layout/preview',          [LayoutSpecController::class, 'preview'])->name('layout.preview');
+                Route::get   ('layout/export',           [LayoutSpecController::class, 'export'])->name('layout.export');
+                Route::patch ('layout/{layoutKey}',      [LayoutSpecController::class, 'update'])->name('layout.update');
+                // T31: 화면 매핑 (SCR-XXX ↔ Figma)
+                Route::get   ('screens',             [ScreenMappingController::class, 'index'])->name('screens');
+                Route::post  ('screens/load-figma',  [ScreenMappingController::class, 'loadFigma'])->name('screens.load-figma');
+                Route::get   ('screens/suggestions', [ScreenMappingController::class, 'suggestions'])->name('screens.suggestions');
+                Route::post  ('screens/apply',       [ScreenMappingController::class, 'apply'])->name('screens.apply');
+                Route::post  ('screens/apply-batch', [ScreenMappingController::class, 'applyBatch'])->name('screens.apply-batch');
+                Route::delete('screens/{screen}',    [ScreenMappingController::class, 'unmap'])->name('screens.unmap');
+                Route::get   ('screens/export',      [ScreenMappingController::class, 'export'])->name('screens.export');
+                // T32: 디자인 일관성 검수
+                Route::get   ('review',                              [DesignReviewController::class, 'index'])->name('validation');
+                Route::post  ('review/start',                        [DesignReviewController::class, 'start'])->name('review.start');
+                Route::get   ('review/sse/{session}',                [DesignReviewController::class, 'sse'])->name('review.sse');
+                Route::get   ('review/screens/{screen}',             [DesignReviewController::class, 'screenShow'])->name('review.screen');
+                Route::post  ('review/save',                         [DesignReviewController::class, 'save'])->name('review.save');
+                Route::get   ('review/export',                       [DesignReviewController::class, 'export'])->name('review.export');
+                Route::post  ('review/screens/{screen}/regenerate',  [DesignReviewController::class, 'regenerate'])->name('review.regenerate');
+                // T33: 디자인 시스템 문서
+                Route::get  ('system',         [\App\Http\Controllers\DesignSystemController::class, 'index'])  ->name('system');
+                Route::post ('system/generate',[\App\Http\Controllers\DesignSystemController::class, 'generate'])->name('system.generate');
+                Route::post ('system/enrich',  [\App\Http\Controllers\DesignSystemController::class, 'enrich']) ->name('system.enrich');
+                Route::get  ('system/export',  [\App\Http\Controllers\DesignSystemController::class, 'export']) ->name('system.export');
+                Route::patch('system',         [\App\Http\Controllers\DesignSystemController::class, 'update']) ->name('system.update');
+                Route::get  ('system/preview', [\App\Http\Controllers\DesignSystemController::class, 'preview'])->name('system.preview');
+                // T34: 개발 핸드오프 (Figma Dev URL)
+                Route::get ('figma-dev',         [\App\Http\Controllers\DevHandoffController::class, 'index'])   ->name('figma-dev');
+                Route::post('figma-dev/validate', [\App\Http\Controllers\DevHandoffController::class, 'validate'])->name('figma-dev.validate');
+                Route::post('figma-dev/generate', [\App\Http\Controllers\DevHandoffController::class, 'generate'])->name('figma-dev.generate');
+                Route::get ('figma-dev/export',   [\App\Http\Controllers\DevHandoffController::class, 'export'])  ->name('figma-dev.export');
+                Route::get ('figma-dev/package',  [\App\Http\Controllers\DevHandoffController::class, 'package']) ->name('figma-dev.package');
+                // T35: 디자인 단계 승인 게이트
+                Route::get('approval',           [\App\Http\Controllers\DesignApprovalController::class, 'index'])    ->name('approval');
+                Route::get('approval/diagnosis', [\App\Http\Controllers\DesignApprovalController::class, 'diagnosis'])->name('approval.diagnosis');
             });
 
             // 개발 준비 단계
             Route::prefix('pre-dev')->name('pre-dev.')->group(function () {
                 Route::get('/',          [AiAgentController::class, 'preDevIndex'])->name('index');
-                Route::get('erd',        [AiAgentController::class, 'erd'])->name('erd');
-                Route::get('api-spec',   [AiAgentController::class, 'apiSpec'])->name('api-spec');
-                Route::get('rbac',       [AiAgentController::class, 'rbac'])->name('rbac');
-                Route::get('code-prompts', [AiAgentController::class, 'codePrompts'])->name('code-prompts');
+                // T36: ERD 자동 생성
+                Route::get  ('erd',                   [\App\Http\Controllers\ErdController::class, 'index'])        ->name('erd');
+                Route::post ('erd/generate/start',    [\App\Http\Controllers\ErdController::class, 'generateStart'])->name('erd.generate.start');
+                Route::get  ('erd/generate/sse/{session}', [\App\Http\Controllers\ErdController::class, 'generateSse'])->name('erd.generate.sse');
+                Route::post ('erd/save',              [\App\Http\Controllers\ErdController::class, 'save'])         ->name('erd.save');
+                Route::get  ('erd/export',            [\App\Http\Controllers\ErdController::class, 'export'])       ->name('erd.export');
+                Route::post ('erd/regenerate',        [\App\Http\Controllers\ErdController::class, 'regenerate'])   ->name('erd.regenerate');
+                // T37: API 명세서 자동 생성
+                Route::get  ('api-spec',                          [\App\Http\Controllers\ApiSpecController::class, 'index'])        ->name('api-spec');
+                Route::post ('api-spec/generate/start',           [\App\Http\Controllers\ApiSpecController::class, 'generateStart'])->name('api-spec.generate.start');
+                Route::get  ('api-spec/generate/sse/{sessionId}', [\App\Http\Controllers\ApiSpecController::class, 'generateSse']) ->name('api-spec.generate.sse');
+                Route::post ('api-spec/save',                     [\App\Http\Controllers\ApiSpecController::class, 'save'])         ->name('api-spec.save');
+                Route::get  ('api-spec/export',                   [\App\Http\Controllers\ApiSpecController::class, 'export'])       ->name('api-spec.export');
+                Route::post ('api-spec/regenerate',               [\App\Http\Controllers\ApiSpecController::class, 'regenerate'])   ->name('api-spec.regenerate');
+                // T38: RBAC 권한 모델
+                Route::get    ('rbac',                          [\App\Http\Controllers\RbacController::class, 'index'])            ->name('rbac');
+                Route::post   ('rbac/generate/start',           [\App\Http\Controllers\RbacController::class, 'generateStart'])    ->name('rbac.generate.start');
+                Route::get    ('rbac/generate/sse/{sessionId}', [\App\Http\Controllers\RbacController::class, 'generateSse'])      ->name('rbac.generate.sse');
+                Route::post   ('rbac/save',                     [\App\Http\Controllers\RbacController::class, 'save'])             ->name('rbac.save');
+                Route::get    ('rbac/export',                   [\App\Http\Controllers\RbacController::class, 'export'])           ->name('rbac.export');
+                Route::post   ('rbac/regenerate',               [\App\Http\Controllers\RbacController::class, 'regenerate'])       ->name('rbac.regenerate');
+                Route::post   ('rbac/roles',                    [\App\Http\Controllers\RbacController::class, 'storeRole'])        ->name('rbac.roles.store');
+                Route::patch  ('rbac/roles/{roleKey}',          [\App\Http\Controllers\RbacController::class, 'updateRole'])       ->name('rbac.roles.update');
+                Route::delete ('rbac/roles/{roleKey}',          [\App\Http\Controllers\RbacController::class, 'destroyRole'])      ->name('rbac.roles.destroy');
+                Route::post   ('rbac/permissions',              [\App\Http\Controllers\RbacController::class, 'storePermission'])  ->name('rbac.permissions.store');
+                Route::patch  ('rbac/matrix',                   [\App\Http\Controllers\RbacController::class, 'updateMatrix'])     ->name('rbac.matrix.update');
+                // T39: 코드 생성 프롬프트
+                Route::get    ('code-prompts',                       [\App\Http\Controllers\CodeGenPromptController::class, 'index'])            ->name('code-prompts');
+                Route::post   ('code-prompts/batch/start',           [\App\Http\Controllers\CodeGenPromptController::class, 'batchStart'])       ->name('code-prompts.batch.start');
+                Route::get    ('code-prompts/batch/sse/{sessionId}', [\App\Http\Controllers\CodeGenPromptController::class, 'batchSse'])         ->name('code-prompts.batch.sse');
+                Route::get    ('code-prompts/{screen}',              [\App\Http\Controllers\CodeGenPromptController::class, 'show'])             ->name('code-prompts.show');
+                Route::post   ('code-prompts/{screen}/generate',     [\App\Http\Controllers\CodeGenPromptController::class, 'generateForScreen'])->name('code-prompts.screen.generate');
+                Route::patch  ('code-prompts/{screen}',              [\App\Http\Controllers\CodeGenPromptController::class, 'update'])           ->name('code-prompts.screen.update');
+                Route::delete ('code-prompts/{screen}',              [\App\Http\Controllers\CodeGenPromptController::class, 'destroy'])          ->name('code-prompts.screen.destroy');
                 Route::get('ai-output',  [AiAgentController::class, 'aiOutput'])->name('ai-output');
                 Route::get('validation', [AiAgentController::class, 'preDevValidation'])->name('validation');
-                Route::get('approval',   [AiAgentController::class, 'preDevApproval'])->name('approval');
+                // T42: 개발 준비 단계 승인 게이트
+                Route::get('approval',           [\App\Http\Controllers\DevPrepApprovalController::class, 'index'])    ->name('approval');
+                Route::get('approval/diagnosis', [\App\Http\Controllers\DevPrepApprovalController::class, 'diagnosis'])->name('approval.diagnosis');
             });
 
             // 개발 단계
             Route::prefix('dev')->name('dev.')->group(function () {
                 Route::get('/',           [AiAgentController::class, 'devIndex'])->name('index');
-                Route::get('backend',     [AiAgentController::class, 'backend'])->name('backend');
-                Route::get('api-connect', [AiAgentController::class, 'apiConnect'])->name('api-connect');
-                Route::get('code-review', [AiAgentController::class, 'codeReview'])->name('code-review');
-                Route::get('ai-tasks',    [AiAgentController::class, 'aiTasks'])->name('ai-tasks');
-                Route::get('approval',    [AiAgentController::class, 'devApproval'])->name('approval');
+                // T40: Frontend 코드 생성
+                Route::get    ('frontend-code',                         [\App\Http\Controllers\FrontendCodeController::class, 'index'])            ->name('frontend-code');
+                Route::post   ('frontend-code/batch/start',             [\App\Http\Controllers\FrontendCodeController::class, 'batchStart'])       ->name('frontend-code.batch.start');
+                Route::get    ('frontend-code/batch/sse/{sessionId}',   [\App\Http\Controllers\FrontendCodeController::class, 'batchSse'])         ->name('frontend-code.batch.sse');
+                Route::get    ('frontend-code/download-all',            [\App\Http\Controllers\FrontendCodeController::class, 'downloadAll'])      ->name('frontend-code.download-all');
+                Route::get    ('frontend-code/{screen}/preview',        [\App\Http\Controllers\FrontendCodeController::class, 'preview'])          ->name('frontend-code.screen.preview');
+                Route::get    ('frontend-code/{screen}/download',       [\App\Http\Controllers\FrontendCodeController::class, 'download'])         ->name('frontend-code.screen.download');
+                Route::get    ('frontend-code/{screen}',                [\App\Http\Controllers\FrontendCodeController::class, 'show'])             ->name('frontend-code.show');
+                Route::post   ('frontend-code/{screen}/generate',       [\App\Http\Controllers\FrontendCodeController::class, 'generateForScreen'])->name('frontend-code.screen.generate');
+                Route::patch  ('frontend-code/{screen}/files',          [\App\Http\Controllers\FrontendCodeController::class, 'updateFile'])       ->name('frontend-code.screen.files.update');
+                Route::delete ('frontend-code/{screen}',                [\App\Http\Controllers\FrontendCodeController::class, 'destroy'])          ->name('frontend-code.screen.destroy');
+                // T41: Output 검증
+                Route::get    ('code-validation',                              [\App\Http\Controllers\CodeValidationController::class, 'index'])          ->name('code-validation');
+                Route::post   ('code-validation/batch/start',                 [\App\Http\Controllers\CodeValidationController::class, 'batchStart'])      ->name('code-validation.batch.start');
+                Route::get    ('code-validation/batch/sse/{sessionId}',       [\App\Http\Controllers\CodeValidationController::class, 'batchSse'])         ->name('code-validation.batch.sse');
+                Route::get    ('code-validation/export',                      [\App\Http\Controllers\CodeValidationController::class, 'export'])           ->name('code-validation.export');
+                Route::get    ('code-validation/{screen}',                    [\App\Http\Controllers\CodeValidationController::class, 'show'])             ->name('code-validation.show');
+                Route::post   ('code-validation/{screen}/validate',           [\App\Http\Controllers\CodeValidationController::class, 'validateScreen'])   ->name('code-validation.screen.validate');
+                Route::post   ('code-validation/{screen}/auto-fix',           [\App\Http\Controllers\CodeValidationController::class, 'autoFix'])          ->name('code-validation.screen.auto-fix');
+                Route::post   ('code-validation/{screen}/ignore/{violationId}',[\App\Http\Controllers\CodeValidationController::class, 'ignore'])          ->name('code-validation.screen.ignore');
+                Route::delete ('code-validation/{screen}',                    [\App\Http\Controllers\CodeValidationController::class, 'destroy'])          ->name('code-validation.screen.destroy');
+                // T43: Backend 코드 생성
+                Route::get    ('backend',                         [\App\Http\Controllers\BackendCodeController::class, 'index'])              ->name('backend');
+                Route::post   ('backend/batch/start',             [\App\Http\Controllers\BackendCodeController::class, 'batchStart'])         ->name('backend.batch.start');
+                Route::get    ('backend/batch/sse/{sessionId}',   [\App\Http\Controllers\BackendCodeController::class, 'batchSse'])           ->name('backend.batch.sse');
+                Route::get    ('backend/download-all',            [\App\Http\Controllers\BackendCodeController::class, 'downloadAll'])        ->name('backend.download-all');
+                Route::get    ('backend/{resource}/download',     [\App\Http\Controllers\BackendCodeController::class, 'download'])           ->name('backend.resource.download');
+                Route::get    ('backend/{resource}',              [\App\Http\Controllers\BackendCodeController::class, 'show'])               ->name('backend.show');
+                Route::post   ('backend/{resource}/generate',     [\App\Http\Controllers\BackendCodeController::class, 'generateForResource'])->name('backend.resource.generate');
+                Route::patch  ('backend/{resource}/files',        [\App\Http\Controllers\BackendCodeController::class, 'updateFile'])         ->name('backend.resource.files.update');
+                Route::delete ('backend/{resource}',              [\App\Http\Controllers\BackendCodeController::class, 'destroy'])            ->name('backend.resource.destroy');
+                // T44: API 연계
+                Route::get  ('api-connect',                  [\App\Http\Controllers\ApiIntegrationController::class, 'index'])    ->name('api-connect');
+                Route::post ('api-connect/analyze',          [\App\Http\Controllers\ApiIntegrationController::class, 'analyze'])  ->name('api-connect.analyze');
+                Route::get  ('api-connect/preview',          [\App\Http\Controllers\ApiIntegrationController::class, 'preview'])  ->name('api-connect.preview');
+                Route::post ('api-connect/regen-files',      [\App\Http\Controllers\ApiIntegrationController::class, 'regenFiles'])->name('api-connect.regen-files');
+                Route::get  ('api-connect/export',           [\App\Http\Controllers\ApiIntegrationController::class, 'export'])   ->name('api-connect.export');
+                // T45: AI 코드 리뷰
+                Route::get    ('code-review',                                  [\App\Http\Controllers\CodeReviewController::class, 'index'])     ->name('code-review');
+                Route::post   ('code-review/start',                            [\App\Http\Controllers\CodeReviewController::class, 'batchStart']) ->name('code-review.start');
+                Route::get    ('code-review/sse/{sessionId}',                  [\App\Http\Controllers\CodeReviewController::class, 'batchSse'])   ->name('code-review.sse');
+                Route::get    ('code-review/system',                           [\App\Http\Controllers\CodeReviewController::class, 'system'])     ->name('code-review.system');
+                Route::get    ('code-review/export',                           [\App\Http\Controllers\CodeReviewController::class, 'export'])     ->name('code-review.export');
+                Route::get    ('code-review/screens/{screen}',                 [\App\Http\Controllers\CodeReviewController::class, 'show'])       ->name('code-review.screen.show');
+                Route::post   ('code-review/screens/{screen}/regenerate',      [\App\Http\Controllers\CodeReviewController::class, 'regenerate']) ->name('code-review.screen.regenerate');
+                Route::post   ('code-review/screens/{screen}/auto-fix',        [\App\Http\Controllers\CodeReviewController::class, 'autoFix'])    ->name('code-review.screen.auto-fix');
+                Route::post   ('code-review/screens/{screen}/ignore/{findingId}',[\App\Http\Controllers\CodeReviewController::class, 'ignore'])   ->name('code-review.screen.ignore');
+                // T46: AI 추가 수정
+                Route::get  ('additional-fix',                           [\App\Http\Controllers\AdditionalFixController::class, 'index'])      ->name('additional-fix');
+                Route::get  ('additional-fix/groups',                    [\App\Http\Controllers\AdditionalFixController::class, 'groups'])     ->name('additional-fix.groups');
+                Route::post ('additional-fix/groups/{key}/fix',          [\App\Http\Controllers\AdditionalFixController::class, 'fixGroup'])   ->name('additional-fix.group.fix');
+                Route::post ('additional-fix/groups/{key}/ignore',       [\App\Http\Controllers\AdditionalFixController::class, 'ignoreGroup'])->name('additional-fix.group.ignore');
+                Route::post ('additional-fix/groups/{key}/manual',       [\App\Http\Controllers\AdditionalFixController::class, 'manualFixed'])->name('additional-fix.group.manual');
+                Route::post ('additional-fix/batch/start',               [\App\Http\Controllers\AdditionalFixController::class, 'batchStart']) ->name('additional-fix.batch.start');
+                Route::get  ('additional-fix/batch/sse/{sessionId}',     [\App\Http\Controllers\AdditionalFixController::class, 'batchSse'])   ->name('additional-fix.batch.sse');
+                Route::post ('additional-fix/reverify',                  [\App\Http\Controllers\AdditionalFixController::class, 'reverify'])   ->name('additional-fix.reverify');
+                Route::get  ('additional-fix/export',                    [\App\Http\Controllers\AdditionalFixController::class, 'export'])     ->name('additional-fix.export');
+                // T47: 개발 단계 승인 게이트
+                Route::get('approval',           [\App\Http\Controllers\DevApprovalController::class, 'index'])    ->name('approval');
+                Route::get('approval/diagnosis', [\App\Http\Controllers\DevApprovalController::class, 'diagnosis'])->name('approval.diagnosis');
             });
 
             // 릴리즈
             Route::get('release', [AiAgentController::class, 'release'])->name('release');
+            // T48: 통합 릴리즈 패키지
+            Route::prefix('release/package')->name('release.package.')->group(function () {
+                Route::get  ('/',         [\App\Http\Controllers\ReleasePackageController::class, 'index'])    ->name('index');
+                Route::post ('/generate', [\App\Http\Controllers\ReleasePackageController::class, 'generate']) ->name('generate');
+                Route::get  ('/download', [\App\Http\Controllers\ReleasePackageController::class, 'download']) ->name('download');
+                Route::get  ('/manifest', [\App\Http\Controllers\ReleasePackageController::class, 'manifest']) ->name('manifest');
+                Route::get  ('/preview',  [\App\Http\Controllers\ReleasePackageController::class, 'preview'])  ->name('preview');
+                Route::delete('/',        [\App\Http\Controllers\ReleasePackageController::class, 'destroy'])  ->name('destroy');
+            });
+
+            // T51: 마이그레이션 가이드
+            Route::prefix('release/migration-guide')->name('release.migration-guide.')->group(function () {
+                Route::get   ('/',        [\App\Http\Controllers\MigrationGuideController::class, 'index'])    ->name('index');
+                Route::post  ('/generate',[\App\Http\Controllers\MigrationGuideController::class, 'generate'])->name('generate');
+                Route::get   ('/preview', [\App\Http\Controllers\MigrationGuideController::class, 'preview']) ->name('preview');
+                Route::get   ('/export',  [\App\Http\Controllers\MigrationGuideController::class, 'export'])  ->name('export');
+                Route::patch ('/',        [\App\Http\Controllers\MigrationGuideController::class, 'update'])  ->name('update');
+            });
+
+            // T50: 사용자 매뉴얼
+            Route::prefix('release/user-manual')->name('release.user-manual.')->group(function () {
+                Route::get   ('/',        [\App\Http\Controllers\UserManualController::class, 'index'])    ->name('index');
+                Route::post  ('/generate',[\App\Http\Controllers\UserManualController::class, 'generate'])->name('generate');
+                Route::get   ('/preview', [\App\Http\Controllers\UserManualController::class, 'preview']) ->name('preview');
+                Route::get   ('/export',  [\App\Http\Controllers\UserManualController::class, 'export'])  ->name('export');
+                Route::patch ('/',        [\App\Http\Controllers\UserManualController::class, 'update'])  ->name('update');
+            });
+
+            // T49: 배포 가이드
+            Route::prefix('release/deploy-guide')->name('release.deploy-guide.')->group(function () {
+                Route::get   ('/',       [\App\Http\Controllers\DeployGuideController::class, 'index'])    ->name('index');
+                Route::post  ('/generate',[\App\Http\Controllers\DeployGuideController::class, 'generate'])->name('generate');
+                Route::get   ('/preview',[\App\Http\Controllers\DeployGuideController::class, 'preview']) ->name('preview');
+                Route::get   ('/export', [\App\Http\Controllers\DeployGuideController::class, 'export'])  ->name('export');
+                Route::patch ('/',       [\App\Http\Controllers\DeployGuideController::class, 'update'])  ->name('update');
+            });
+
+            // T52: 릴리즈 단계 승인 게이트
+            Route::prefix('release/approval')->name('release.approval.')->group(function () {
+                Route::get('/',          [\App\Http\Controllers\ReleaseApprovalController::class, 'index'])    ->name('index');
+                Route::get('/diagnosis', [\App\Http\Controllers\ReleaseApprovalController::class, 'diagnosis'])->name('diagnosis');
+                Route::get('/summary',   [\App\Http\Controllers\ReleaseApprovalController::class, 'summary'])  ->name('summary');
+            });
 
             // 공통 기능
             Route::prefix('common')->name('common.')->group(function () {
@@ -514,6 +1030,26 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('prompts',      [AiAgentController::class, 'commonPrompts'])->name('prompts');
                 Route::get('usage',        [AiAgentController::class, 'usage'])->name('usage');
                 Route::get('permissions',  [AiAgentController::class, 'permissions'])->name('permissions');
+            });
+
+            // 스트리밍 세션 (T13)
+            Route::prefix('stream')->name('stream.')->group(function () {
+                Route::post('start',              [AiStreamController::class, 'start'])->name('start');
+                Route::get ('sse/{sessionId}',    [AiStreamController::class, 'sse'])->name('sse');
+                Route::get ('{sessionId}/status', [AiStreamController::class, 'status'])->name('status');
+            });
+
+            // 버전 이력 (T14)
+            Route::prefix('artifacts/{artifact}')->name('artifact.')->group(function () {
+                Route::get ('versions',                    [AiVersionController::class, 'history'])->name('versions');
+                Route::get ('versions/{version}',          [AiVersionController::class, 'show'])->name('version');
+                Route::post('versions/{version}/restore',  [AiVersionController::class, 'restore'])->name('restore');
+            });
+
+            // 추적성 (T14)
+            Route::prefix('traceability/{type}/{id}')->name('traceability.')->group(function () {
+                Route::get('links',  [AiTraceabilityController::class, 'links'])->name('links');
+                Route::get('impact', [AiTraceabilityController::class, 'impact'])->name('impact');
             });
 
             // 승인 게이트 (T12)
@@ -561,6 +1097,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/team', [TeamController::class, 'index'])->name('team.index');
     Route::post('/team/invite', [TeamController::class, 'invite'])->name('team.invite');
     Route::delete('/team/invite/{invitation}', [TeamController::class, 'cancelInvite'])->name('team.invite.cancel');
+    Route::patch('/team/members/{member}/projects', [TeamController::class, 'updateMemberProjects'])->name('team.member.projects');
+    Route::patch('/team/members/{member}/company',  [TeamController::class, 'updateMemberCompany'])->name('team.member.company');
+    Route::get  ('/team/companies',                  [TeamController::class, 'listCompanies'])->name('team.companies.index');
+    Route::get  ('/team/companies/search',           [TeamController::class, 'searchCompanies'])->name('team.companies.search');
+    Route::post ('/team/companies',                  [TeamController::class, 'storeCompany'])->name('team.companies.store');
 
     // 문의하기
     Route::prefix('inquiry')->name('inquiry.')->group(function () {
@@ -589,9 +1130,16 @@ Route::middleware(['auth'])->group(function () {
     // 메모
     Route::get('/memos', [MemoController::class, 'index'])->name('memos.index');
     Route::post('/memos', [MemoController::class, 'store'])->name('memos.store');
+    Route::get('/memos/members', [MemoController::class, 'members'])->name('memos.members');
     Route::patch('/memos/{memo}', [MemoController::class, 'update'])->name('memos.update');
     Route::patch('/memos/{memo}/pin', [MemoController::class, 'togglePin'])->name('memos.pin');
     Route::delete('/memos/{memo}', [MemoController::class, 'destroy'])->name('memos.destroy');
+    Route::post('/memos/{memo}/share', [MemoController::class, 'share'])->name('memos.share');
+    Route::delete('/memos/{memo}/share', [MemoController::class, 'unshare'])->name('memos.unshare');
+    Route::patch('/memo-shares/{share}/pin', [MemoController::class, 'toggleSharedPin'])->name('memo-shares.pin');
+
+    // 내업무 통합 대시보드
+    Route::get('/my-work', [\App\Http\Controllers\MyWorkController::class, 'index'])->name('my-work.index');
 
     // Action 아이템
     Route::get('/action-items', [ActionItemController::class, 'index'])->name('action-items.index');
@@ -600,12 +1148,17 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/action-items/{actionItem}', [ActionItemController::class, 'destroy'])->name('action-items.destroy');
 
     // 회의록
+    // 나의 위클리 (전체 프로젝트)
+    Route::get('/my-weekly', [\App\Http\Controllers\MyWeeklyReportController::class, 'index'])->name('my-weekly.index');
+
     Route::prefix('meeting-minutes')->name('meeting-minutes.')->group(function () {
         Route::get('/',                      [MeetingMinuteController::class, 'index'])->name('index');
         Route::get('/create',                [MeetingMinuteController::class, 'create'])->name('create');
         Route::post('/',                     [MeetingMinuteController::class, 'store'])->name('store');
         Route::get('/{meetingMinute}',            [MeetingMinuteController::class, 'show'])->name('show');
+        Route::get('/{meetingMinute}/popup',      [MeetingMinuteController::class, 'showPopup'])->name('popup');
         Route::get('/{meetingMinute}/download',   [MeetingMinuteController::class, 'downloadDocx'])->name('download');
+        Route::get('/{meetingMinute}/json',       [MeetingMinuteController::class, 'getJson'])->name('json');
         Route::get('/{meetingMinute}/edit',       [MeetingMinuteController::class, 'edit'])->name('edit');
         Route::patch('/{meetingMinute}',     [MeetingMinuteController::class, 'update'])->name('update');
         Route::delete('/{meetingMinute}',    [MeetingMinuteController::class, 'destroy'])->name('destroy');
@@ -646,6 +1199,83 @@ Route::middleware(['auth'])->group(function () {
         Route::post  ('/screen/request/{sessionKey}',   [CollabController::class, 'screenRequest'])->name('screen.request');
         Route::post  ('/screen/signal/{sessionKey}',    [CollabController::class, 'screenSignal'])->name('screen.signal');
         Route::delete('/screen/end/{sessionKey}',       [CollabController::class, 'screenEnd'])->name('screen.end');
+    });
+
+    // Prompt Builder
+    Route::prefix('prompt-builder')->name('builder.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'index'])->name('index');
+
+        // 새 빌더 시작 (Wizard)
+        Route::get('/new', [\App\Http\Controllers\PromptBuilder\WizardController::class, 'create'])->name('new');
+
+        // Wizard API
+        Route::prefix('wizard')->name('wizard.')->group(function () {
+            Route::post  ('/sessions',                      [\App\Http\Controllers\PromptBuilder\WizardController::class, 'startSession'])->name('start');
+            Route::get   ('/sessions/{session}',            [\App\Http\Controllers\PromptBuilder\WizardController::class, 'show'])->name('show');
+            Route::put   ('/sessions/{session}/step/{step}',[\App\Http\Controllers\PromptBuilder\WizardController::class, 'updateStep'])->name('update');
+            Route::post  ('/sessions/{session}/analyze',    [\App\Http\Controllers\PromptBuilder\WizardController::class, 'analyze'])->name('analyze');
+            Route::post  ('/sessions/{session}/generate',   [\App\Http\Controllers\PromptBuilder\WizardController::class, 'generate'])->name('generate');
+            Route::post  ('/sessions/{session}/preview-ai', [\App\Http\Controllers\PromptBuilder\WizardController::class, 'previewWithDifferentAi'])->name('preview');
+            Route::post  ('/sessions/{session}/complete',   [\App\Http\Controllers\PromptBuilder\WizardController::class, 'complete'])->name('complete');
+            Route::delete('/sessions/{session}',            [\App\Http\Controllers\PromptBuilder\WizardController::class, 'abandon'])->name('abandon');
+        });
+
+        // 시퀀스
+        Route::prefix('sequences')->name('sequences.')->group(function () {
+            Route::get  ('/',                           [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forSequences'])->name('select-project');
+            Route::get  ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'index'])->name('index');
+            Route::post ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'store'])->name('store');
+            Route::get  ('/{sequence}',                 [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'show'])->name('show');
+            Route::put  ('/{sequence}/progress',        [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'updateProgress'])->name('progress');
+            Route::get  ('/{sequence}/export',          [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'export'])->name('export');
+        });
+
+        // 이력
+        Route::prefix('history')->name('history.')->group(function () {
+            Route::get  ('/',                           [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forHistory'])->name('select-project');
+            Route::get  ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'index'])->name('index');
+            Route::get  ('/{builder}',                  [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'show'])->name('show');
+            Route::get  ('/{builder}/versions',         [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'versions'])->name('versions');
+            Route::post ('/{builder}/duplicate',        [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'duplicate'])->name('duplicate');
+            Route::post ('/{builder}/revert/{version}', [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'revert'])->name('revert');
+        });
+
+        // 피드백
+        Route::prefix('feedback')->name('feedback.')->group(function () {
+            Route::get  ('/',                           [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forFeedback'])->name('select-project');
+            Route::get  ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'index'])->name('index');
+            Route::get  ('/project/{project}/upload',   [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'uploadForm'])->name('upload');
+            Route::post ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'store'])->name('store');
+            Route::get  ('/{feedback}',                 [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'show'])->name('show');
+            Route::post ('/{feedback}/apply',           [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'applyImprovements'])->name('apply');
+        });
+
+        // 템플릿
+        Route::prefix('templates')->name('templates.')->group(function () {
+            Route::get  ('/',                   [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forTemplates'])->name('select-project');
+            Route::get  ('/all',                [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'all'])->name('all');
+            Route::get  ('/project/{project}',  [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'index'])->name('index');
+            Route::post ('/',                   [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'store'])->name('store');
+            Route::delete('/{template}',        [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'destroy'])->name('destroy');
+        });
+
+        // API
+        Route::prefix('api')->name('api.')->group(function () {
+            Route::get('/projects',                         [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'getProjects'])->name('projects');
+            Route::get ('/projects/{project}/workspaces',    [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'getWorkspaces'])->name('workspaces');
+            Route::post('/projects/{project}/workspaces',    [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'createWorkspace'])->name('workspaces.create');
+            Route::get('/projects/{project}/standards',     [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'getStandards'])->name('standards');
+        });
+    });
+
+    // 프롬프트 정제하기
+    Route::prefix('prompt-refiner')->name('prompt-refiner.')->middleware('throttle:20,1')->group(function () {
+        Route::get   ('/',                              [PromptRefinerController::class, 'index'])          ->name('index');
+        Route::post  ('/refine',                        [PromptRefinerController::class, 'refine'])         ->name('refine');
+        Route::get   ('/projects/{projectId}/tasks',    [PromptRefinerController::class, 'projectTasks'])   ->name('project.tasks');
+        Route::get   ('/history',                       [PromptRefinerController::class, 'history'])        ->name('history');
+        Route::get   ('/history/{id}',                  [PromptRefinerController::class, 'historyShow'])    ->name('history.show');
+        Route::delete('/history/{id}',                  [PromptRefinerController::class, 'historyDestroy']) ->name('history.destroy');
     });
 
     // (관리자 패널은 별도 admin.web 미들웨어로 분리됨)

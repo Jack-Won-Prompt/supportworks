@@ -2,10 +2,12 @@
 
 namespace App\View\Composers;
 
-use App\Enums\Agent\StageType;
 use App\Models\Agent\AiAgentProjectStage;
+use App\Models\Agent\AiAgentUserCredential;
 use App\Models\Agent\ProjectAiAgentConfig;
 use App\Models\Project;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class AiAgentComposer
@@ -15,12 +17,13 @@ class AiAgentComposer
         $project = $this->resolveProject();
 
         if (!$project) {
-            $view->with([
-                'aiProject'       => null,
-                'aiConfig'        => null,
-                'aiStages'        => collect(),
+            $view->with(array_merge([
+                'aiProject'        => null,
+                'aiConfig'         => null,
+                'aiStages'         => collect(),
                 'aiCurrentSection' => $this->currentSection(),
-            ]);
+                'aiSwitchProjects' => collect(),
+            ], $this->figmaData()));
             return;
         }
 
@@ -33,12 +36,46 @@ class AiAgentComposer
                 ->keyBy(fn($s) => $s->type->value)
             : collect();
 
-        $view->with([
+        $view->with(array_merge([
             'aiProject'        => $project,
             'aiConfig'         => $config,
             'aiStages'         => $stages,
             'aiCurrentSection' => $this->currentSection(),
-        ]);
+            'aiSwitchProjects' => $this->enabledProjectsExcept($project),
+        ], $this->figmaData()));
+    }
+
+    private function figmaData(): array
+    {
+        $user       = Auth::user();
+        $credential = $user ? AiAgentUserCredential::where('user_id', $user->id)->first() : null;
+        $hasToken   = $credential && $credential->hasPat();
+
+        return [
+            'aiFigmaHasToken'      => $hasToken,
+            'aiFigmaStatus'        => $credential?->figma_pat_validation_status,
+            'aiFigmaLastValidated' => $credential?->figma_pat_validated_at,
+            'aiFigmaMaskedPat'     => $hasToken ? $credential->maskedPat() : null,
+        ];
+    }
+
+    private function enabledProjectsExcept(?Project $current): Collection
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return collect();
+        }
+
+        $allProjects = $user->isAdmin()
+            ? Project::orderBy('name')->get()
+            : $user->projects()->orderBy('name')->get();
+
+        $configuredIds = ProjectAiAgentConfig::whereIn('project_id', $allProjects->pluck('id'))
+            ->pluck('project_id');
+
+        return $allProjects
+            ->filter(fn($p) => $configuredIds->contains($p->id) && (!$current || $p->id !== $current->id))
+            ->values();
     }
 
     private function resolveProject(): ?Project

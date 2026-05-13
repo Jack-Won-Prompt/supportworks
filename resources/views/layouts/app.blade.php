@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <script>window.broadcastAuthPath = '{{ request()->getBasePath() }}/broadcasting/auth';</script>
         <title>{{ config('app.name', 'SupportWorks') }} - @yield('title', __('app.nav_home'))</title>
+        <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
         <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -177,6 +178,13 @@
             <span style="opacity:.7;font-size:11.5px;font-weight:400;">{{ session('impersonating_email') }}</span>
             <span style="flex:1;"></span>
             <span style="opacity:.75;font-size:11px;font-weight:400;">{{ __('app.admin_mode_notice') }}</span>
+            <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+                @csrf
+                <button type="submit" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-right:6px;">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    로그아웃
+                </button>
+            </form>
             <button onclick="window.close()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 {{ __('app.admin_mode_close') }}
@@ -205,6 +213,19 @@
                 ->whereHas('participants', fn($q) => $q->where('user_id', auth()->id()))
                 ->count();
 
+            // 고정된 메모 (전역 floating)
+            $pinnedMemos = \App\Models\Memo::where('user_id', auth()->id())
+                ->where('is_pinned', true)
+                ->orderByDesc('updated_at')
+                ->get();
+
+            // 공유 받아 고정한 메모
+            $pinnedSharedMemos = \App\Models\MemoShare::where('shared_to', auth()->id())
+                ->where('is_pinned', true)
+                ->with(['memo', 'sharedByUser'])
+                ->latest()
+                ->get();
+
             // 현재 활성 프로젝트 ID 감지 (중첩 라우트 포함)
             $currentProjectId = null;
             if ($rp = request()->route('project')) {
@@ -221,7 +242,7 @@
         <div class="min-h-screen flex">
 
             {{-- ===== 사이드바 ===== --}}
-            <aside id="global-sidebar" style="width:240px;min-width:240px;background:#fff;border-right:1px solid #ede8ff;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow:hidden;box-shadow:2px 0 12px rgba(139,122,240,.06);transition:width .22s ease,min-width .22s ease;">
+            <aside id="global-sidebar" style="width:240px;min-width:240px;background:#fff;border-right:1px solid #ede8ff;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;box-shadow:2px 0 12px rgba(139,122,240,.06);transition:width .22s ease,min-width .22s ease;">
 
                 {{-- 워크스페이스 헤더 --}}
                 <div style="padding:12px 10px 12px;border-bottom:1px solid #f0eeff;flex-shrink:0;display:flex;align-items:center;gap:8px;">
@@ -249,18 +270,42 @@
                 </div>
 
                 {{-- 스크롤 영역 --}}
-                <div style="flex:1;overflow-y:auto;padding:4px 10px 10px;">
+                <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 10px 10px;min-height:0;">
 
                     {{-- 메인 네비게이션 --}}
                     <div style="margin-bottom:4px;overflow:hidden;">
+                        @if(auth()->user()->hasFeature('dashboard'))
                         <a href="{{ route('dashboard') }}" class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             <span class="gsb-hide">{{ __('app.nav_home') }}</span>
                         </a>
-                        <a href="{{ route('projects.index') }}" class="sidebar-item {{ request()->routeIs('projects.index') || request()->routeIs('projects.create') ? 'active' : '' }}">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_my_work') }}</span>
+                        @endif {{-- dashboard feature --}}
+                        @if(auth()->user()->hasFeature('tasks') || auth()->user()->hasFeature('action_items'))
+                        @php
+                            $myWorkOverdue = 0;
+                            try {
+                                $myWorkOverdue = \App\Models\Task::where('user_id', auth()->id())
+                                    ->whereIn('status', ['todo','in_progress'])
+                                    ->where('due_date', '<', today())
+                                    ->count()
+                                    + \App\Models\ActionItem::where(fn($q) => $q->where('user_id', auth()->id())->orWhere('assigned_to', auth()->id()))
+                                    ->where('is_completed', false)
+                                    ->whereNotNull('due_date')
+                                    ->where('due_date', '<', today())
+                                    ->count();
+                            } catch (\Throwable $e) {}
+                        @endphp
+                        <a href="{{ route('my-work.index') }}" class="sidebar-item {{ request()->routeIs('my-work.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                            <span class="gsb-hide">내업무</span>
+                            @if($myWorkOverdue > 0)
+                            <span class="gsb-hide" style="margin-left:auto;min-width:18px;height:18px;padding:0 5px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:9px;display:flex;align-items:center;justify-content:center;">{{ $myWorkOverdue > 99 ? '99+' : $myWorkOverdue }}</span>
+                            @endif
                         </a>
+                        @endif {{-- tasks/action_items feature --}}
+                        {{-- 메모 사이드바 메뉴 비표시 --}}
                         @if(auth()->user()->hasFeature('calendar'))
                         <a href="{{ route('calendar') }}" class="sidebar-item {{ request()->routeIs('calendar') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -274,14 +319,48 @@
                             <span id="sidebar-msg-badge" class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;display:{{ $unreadMessages > 0 ? 'inline-block' : 'none' }};">{{ $unreadMessages ?: '' }}</span>
                         </a>
                         @endif
+                        @if(auth()->user()->hasFeature('team'))
                         <a href="{{ route('team.index') }}" class="sidebar-item {{ request()->routeIs('team.*') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             <span class="gsb-hide">{{ __('app.nav_team') }}</span>
                         </a>
+                        @endif {{-- team feature --}}
+                        @if(auth()->user()->hasFeature('meeting_minutes'))
+                        <a href="{{ route('meeting-minutes.index') }}" class="sidebar-item {{ request()->routeIs('meeting-minutes.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="gsb-hide">{{ __('app.nav_meeting_minutes') }}</span>
+                        </a>
+                        @endif {{-- meeting_minutes feature --}}
+                        @if(auth()->user()->hasFeature('weekly_reports'))
+                        <a href="{{ route('my-weekly.index') }}" class="sidebar-item {{ request()->routeIs('my-weekly.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="gsb-hide">위클리</span>
+                        </a>
+                        @endif {{-- weekly_reports feature --}}
+                        @if(auth()->user()->hasFeature('teams'))
+                        <a href="{{ route('teams.index') }}" class="sidebar-item {{ request()->routeIs('teams.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M14 5.5C14 6.88 12.88 8 11.5 8S9 6.88 9 5.5 10.12 3 11.5 3 14 4.12 14 5.5z" fill="{{ request()->routeIs('teams.*') ? '#6d5ce7' : '#9e97c0' }}"/>
+                                <path d="M19 7.5C19 8.33 18.33 9 17.5 9S16 8.33 16 7.5 16.67 6 17.5 6 19 6.67 19 7.5z" fill="{{ request()->routeIs('teams.*') ? '#9b8afb' : '#c4b5fd' }}"/>
+                                <path d="M16 10h3a1 1 0 011 1v4a3 3 0 01-3 3h-.5A5.5 5.5 0 0111 13.5V10h5z" fill="{{ request()->routeIs('teams.*') ? '#7c6ef5' : '#b8b0d8' }}"/>
+                                <path d="M5 10h9v3.5A4.5 4.5 0 019.5 18h-1A3.5 3.5 0 015 14.5V10z" fill="{{ request()->routeIs('teams.*') ? '#6d5ce7' : '#9e97c0' }}"/>
+                            </svg>
+                            <span class="gsb-hide">Teams</span>
+                            @php $teamsVerified = \App\Models\TeamsSetting::current()->is_verified; @endphp
+                            @if($teamsVerified)
+                            <span class="gsb-hide" style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#16a34a;flex-shrink:0;display:block;"></span>
+                            @endif
+                        </a>
+                        @endif {{-- teams feature --}}
 
                     <div class="sidebar-divider"></div>
 
                     {{-- 내 프로젝트 섹션 --}}
+                    @if(auth()->user()->hasFeature('my_projects'))
                     <div style="margin-bottom:4px;">
                         <div class="gsb-hide" style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px 4px;">
                             <button onclick="toggleSection('proj-list')" style="display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:0;flex:1;text-align:left;">
@@ -317,6 +396,7 @@
                         @endif
                         </div>
                     </div>
+                    @endif {{-- my_projects feature --}}
 
                     <div class="sidebar-divider"></div>
 
@@ -352,41 +432,69 @@
 
                     <div class="sidebar-divider"></div>
 
-                    <div style="margin-bottom:4px;overflow:hidden;">
-                        @if(auth()->user()->hasFeature('meeting_minutes'))
-                        <a href="{{ route('meeting-minutes.index') }}" class="sidebar-item {{ request()->routeIs('meeting-minutes.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            <span class="gsb-hide">{{ __('app.nav_meeting_minutes') }}</span>
+                    {{-- Prompt Builder 섹션 --}}
+                    @if(auth()->user()->hasFeature('prompt_builder'))
+                    <div style="margin-bottom:4px;">
+                        <div class="gsb-hide" style="padding:6px 10px 4px;">
+                            <span class="section-label">Prompt Builder</span>
+                        </div>
+                        <a href="{{ route('builder.new') }}" class="sidebar-item {{ request()->routeIs('builder.new') || request()->routeIs('builder.wizard.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span class="gsb-hide">새 빌더 시작</span>
                         </a>
-                        @endif {{-- meeting_minutes feature --}}
+                        <a href="{{ route('builder.sequences.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.sequences.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                            <span class="gsb-hide">빌더 시퀀스</span>
+                        </a>
+                        <a href="{{ route('builder.history.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.history.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span class="gsb-hide">빌더 이력</span>
+                        </a>
+                        <a href="{{ route('builder.feedback.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.feedback.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+                            <span class="gsb-hide">결과 피드백</span>
+                        </a>
+                        <a href="{{ route('builder.templates.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.templates.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                            <span class="gsb-hide">빌더 템플릿</span>
+                        </a>
+                    </div>
+                    @endif {{-- prompt_builder feature --}}
 
-                        @if(auth()->user()->hasFeature('teams'))
-                        <a href="{{ route('teams.index') }}" class="sidebar-item {{ request()->routeIs('teams.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                <path d="M14 5.5C14 6.88 12.88 8 11.5 8S9 6.88 9 5.5 10.12 3 11.5 3 14 4.12 14 5.5z" fill="{{ request()->routeIs('teams.*') ? '#6d5ce7' : '#9e97c0' }}"/>
-                                <path d="M19 7.5C19 8.33 18.33 9 17.5 9S16 8.33 16 7.5 16.67 6 17.5 6 19 6.67 19 7.5z" fill="{{ request()->routeIs('teams.*') ? '#9b8afb' : '#c4b5fd' }}"/>
-                                <path d="M16 10h3a1 1 0 011 1v4a3 3 0 01-3 3h-.5A5.5 5.5 0 0111 13.5V10h5z" fill="{{ request()->routeIs('teams.*') ? '#7c6ef5' : '#b8b0d8' }}"/>
-                                <path d="M5 10h9v3.5A4.5 4.5 0 019.5 18h-1A3.5 3.5 0 015 14.5V10z" fill="{{ request()->routeIs('teams.*') ? '#6d5ce7' : '#9e97c0' }}"/>
-                            </svg>
-                            <span class="gsb-hide">Teams</span>
-                            @php $teamsVerified = \App\Models\TeamsSetting::current()->is_verified; @endphp
-                            @if($teamsVerified)
-                            <span class="gsb-hide" style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#16a34a;flex-shrink:0;display:block;"></span>
-                            @endif
-                        </a>
-                        @endif {{-- teams feature --}}
-                        @if(auth()->user()->hasFeature('ai'))
+                    <div class="sidebar-divider"></div>
+
+                    {{-- 웍스 도구 섹션 --}}
+                    <div style="margin-bottom:4px;">
+                        <div class="gsb-hide" style="padding:6px 10px 4px;">
+                            <span class="section-label">웍스 도구</span>
+                        </div>
+                        @if(auth()->user()->hasFeature('ai_chat'))
                         <a href="{{ route('ai.index') }}" class="sidebar-item {{ request()->routeIs('ai.index') || (request()->routeIs('ai.*') && !request()->routeIs('ai-agent.*')) ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-                            <span class="gsb-hide">AI 채팅</span>
+                            <span class="gsb-hide">웍스 채팅</span>
                         </a>
-                        <a href="{{ route('ai-agent.dashboard') }}" class="sidebar-item {{ request()->routeIs('ai-agent.*') ? 'active' : '' }}">
+                        @endif {{-- ai_chat feature --}}
+                        @if(auth()->user()->hasFeature('prompt_agent'))
+                        <a href="{{ route('prompt-refiner.index') }}" class="sidebar-item {{ request()->routeIs('prompt-refiner.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            <span class="gsb-hide">프롬프트 Agent</span>
+                        </a>
+                        @endif {{-- prompt_agent feature --}}
+                        @if(auth()->user()->hasFeature('ai_agent'))
+                        <a href="{{ route('ai-agent.dashboard', ['force_home' => 1]) }}" class="sidebar-item {{ request()->routeIs('ai-agent.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                            <span class="gsb-hide">AI 개발 에이전트</span>
+                            <span class="gsb-hide">웍스 개발 Agent</span>
                         </a>
-                        @endif {{-- ai feature --}}
+                        @endif {{-- ai_agent feature --}}
+                    </div>
+
+                    <div class="sidebar-divider"></div>
+
+                    {{-- 커뮤니티 섹션 --}}
+                    <div style="margin-bottom:4px;">
+                        <div class="gsb-hide" style="padding:6px 10px 4px;">
+                            <span class="section-label">{{ __('app.nav_community') }}</span>
+                        </div>
                         @if(auth()->user()->hasFeature('community'))
                         <a href="{{ route('community.index') }}" class="sidebar-item {{ request()->routeIs('community.*') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
@@ -400,42 +508,6 @@
                             <span id="sidebar-inquiry-badge" class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;display:{{ $unreadInquiries > 0 ? 'inline-block' : 'none' }};">{{ $unreadInquiries ?: '' }}</span>
                         </a>
                         @endif {{-- inquiry feature --}}
-                    </div>
-
-                    <div class="sidebar-divider"></div>
-
-                    {{-- 개인 작업 --}}
-                    <div style="margin-bottom:4px;">
-                        <div class="gsb-hide" style="padding:6px 10px 4px;">
-                            <span class="section-label">{{ __('app.nav_personal') }}</span>
-                        </div>
-
-                        @if(auth()->user()->hasFeature('tasks'))
-                        <a href="{{ route('tasks.index') }}" class="sidebar-item {{ request()->routeIs('tasks.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                            </svg>
-                            <span class="gsb-hide">Tasks</span>
-                        </a>
-                        @endif {{-- tasks feature --}}
-
-                        @if(auth()->user()->hasFeature('action_items'))
-                        <a href="{{ route('action-items.index') }}" class="sidebar-item {{ request()->routeIs('action-items.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                            <span class="gsb-hide">{{ __('app.nav_action_items') }}</span>
-                        </a>
-                        @endif {{-- action_items feature --}}
-
-                        @if(auth()->user()->hasFeature('memos'))
-                        <a href="{{ route('memos.index') }}" class="sidebar-item {{ request()->routeIs('memos.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                            <span class="gsb-hide">{{ __('app.nav_memos') }}</span>
-                        </a>
-                        @endif {{-- memos feature --}}
                     </div>
 
                     <div class="sidebar-divider"></div>
@@ -456,6 +528,8 @@
                     <div class="sidebar-divider"></div>
                     @endif
 
+                </div>
+                {{-- /스크롤 영역 --}}
                 </div>
 
                 {{-- 하단 프로필 영역 --}}
@@ -493,6 +567,329 @@
                         @yield('header-breadcrumb')
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
+
+                        {{-- 휴대폰 미등록 안내 (등록되어 있으면 숨김) --}}
+                        @if(empty(auth()->user()->phone))
+                        <div id="phone-notice-wrap" style="position:relative;">
+                            <a id="phone-notice-btn" href="{{ route('profile.edit') }}#phone"
+                               onclick="event.preventDefault(); togglePhoneNotice();"
+                               title="휴대폰 번호를 등록해 주세요"
+                               style="position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:#fff7ed;color:#ea580c;text-decoration:none;transition:background .12s;"
+                               onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff7ed'">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                                <span style="position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid #fff;"></span>
+                            </a>
+                            <div id="phone-notice-popover" style="display:none;position:absolute;top:42px;right:0;background:#fff;border:1px solid #fde68a;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;width:280px;overflow:hidden;">
+                                <div style="padding:12px 14px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border-bottom:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                                    <div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#9a3412;">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                        휴대폰 번호 미등록
+                                    </div>
+                                    <button onclick="dismissPhoneNotice(event)" title="닫기"
+                                        style="background:none;border:none;cursor:pointer;color:#9a3412;font-size:18px;line-height:1;padding:2px 4px;border-radius:5px;transition:background .12s;"
+                                        onmouseover="this.style.background='rgba(154,52,18,.12)'" onmouseout="this.style.background='none'">&times;</button>
+                                </div>
+                                <div style="padding:12px 14px;font-size:12px;color:#57534e;line-height:1.55;">
+                                    승인 요청 · 검토 요청 등 주요 알림을 <b style="color:#9a3412;">SMS</b>로도 받으려면 휴대폰 번호를 등록하세요.
+                                </div>
+                                <div style="padding:0 14px 12px;">
+                                    <a href="{{ route('profile.edit') }}#phone"
+                                       style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:linear-gradient(135deg,#ea580c,#c2410c);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:opacity .12s;"
+                                       onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+                                        지금 등록하기
+                                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                            (function() {
+                                if (sessionStorage.getItem('phone-notice-dismissed') !== '1') {
+                                    var p = document.getElementById('phone-notice-popover');
+                                    if (p) p.style.display = 'block';
+                                }
+                            })();
+                            function togglePhoneNotice() {
+                                var p = document.getElementById('phone-notice-popover');
+                                if (!p) return;
+                                p.style.display = (p.style.display === 'none') ? 'block' : 'none';
+                            }
+                            function dismissPhoneNotice(e) {
+                                e.stopPropagation();
+                                var p = document.getElementById('phone-notice-popover');
+                                if (p) p.style.display = 'none';
+                                try { sessionStorage.setItem('phone-notice-dismissed', '1'); } catch (_) {}
+                            }
+                        </script>
+                        @endif
+
+                        {{-- 공지사항 아이콘 --}}
+                        @php $__announcements = \App\Models\Announcement::active()->latest()->get(); @endphp
+                        <div style="position:relative;" id="ann-icon-wrap">
+                            <button id="ann-icon-btn" onclick="toggleAnnDropdown()" title="공지사항"
+                                style="position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;transition:background .12s,color .12s;"
+                                onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
+                                onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                                </svg>
+                                <span id="ann-badge" style="display:{{ $__announcements->count()>0?'flex':'none' }};position:absolute;top:-3px;right:-3px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 3px;align-items:center;justify-content:center;border:2px solid #fff;line-height:1;">{{ $__announcements->count() }}</span>
+                            </button>
+                            <div id="ann-dropdown" style="display:none;position:absolute;top:42px;right:0;background:#fff;border:1px solid #ede8ff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;width:340px;max-height:440px;flex-direction:column;overflow:hidden;">
+                                <div style="padding:12px 16px 10px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                                    <span style="display:flex;align-items:center;gap:6px;">
+                                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                                        공지사항
+                                    </span>
+                                    @if($__announcements->isNotEmpty())
+                                    <button onclick="dismissAllAnn()" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:3px 7px;border-radius:6px;transition:background .1s;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">모두 닫기</button>
+                                    @endif
+                                </div>
+                                <div style="overflow-y:auto;flex:1;">
+                                @if($__announcements->isEmpty())
+                                <div style="padding:28px 16px;text-align:center;color:#94a3b8;font-size:13px;">공지사항이 없습니다</div>
+                                @else
+                                @foreach($__announcements as $__ann2)
+                                @php
+                                    $__ac=['info'=>['#eff6ff','#bfdbfe','#1d4ed8'],'warning'=>['#fffbeb','#fde68a','#b45309'],'maintenance'=>['#fef2f2','#fecaca','#dc2626'],'update'=>['#f5f3ff','#ddd6fe','#6d28d9']];
+                                    [$__ab,$__abo,$__at]=$__ac[$__ann2->type]??['#f8fafc','#e2e8f0','#334155'];
+                                    $__al2=['info'=>'안내','warning'=>'주의','maintenance'=>'점검','update'=>'업데이트'][$__ann2->type]??$__ann2->type;
+                                @endphp
+                                <div data-ann-drop="{{ $__ann2->id }}" style="padding:12px 16px;border-bottom:1px solid #f4f4f5;display:flex;align-items:flex-start;gap:10px;transition:background .1s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                                            <span style="flex-shrink:0;background:{{ $__abo }};color:{{ $__at }};font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">{{ $__al2 }}</span>
+                                            @if($__ann2->ends_at)<span style="font-size:11px;color:#94a3b8;">~ {{ $__ann2->ends_at->format('Y.m.d') }}</span>@endif
+                                        </div>
+                                        <div style="font-size:13px;font-weight:600;color:#18181b;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $__ann2->title }}</div>
+                                        <div style="font-size:12px;color:#71717a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $__ann2->body }}</div>
+                                    </div>
+                                    <button onclick="dismissAnn({{ $__ann2->id }})" title="닫기" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:17px;line-height:1;padding:1px 2px;margin-top:-1px;">&times;</button>
+                                </div>
+                                @endforeach
+                                @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 이메일 보내기 (팝오버) --}}
+                        <div style="position:relative;" id="mail-compose-wrap">
+                            <button id="mail-compose-btn" type="button" onclick="mailComposeToggle()" title="이메일 보내기"
+                                style="position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;transition:background .12s,color .12s;"
+                                onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
+                                onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                            <div id="mail-compose-pop" style="display:none;position:absolute;top:42px;right:0;background:#fff;border:1px solid var(--t200,#ddd6fe);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:9999;width:440px;flex-direction:column;overflow:visible;">
+                                <div style="padding:13px 16px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                                    <span style="display:flex;align-items:center;gap:6px;">
+                                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                        이메일 보내기
+                                    </span>
+                                    <button type="button" onclick="mailComposeClose()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;padding:2px 4px;">&times;</button>
+                                </div>
+                                <form id="mail-compose-form" onsubmit="return mailComposeSend(event)" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:visible;">
+                                    <div>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">보낸 사람</label>
+                                        <div style="padding:8px 10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;">
+                                            {{ auth()->user()?->name }} <span style="color:#9ca3af;font-size:12px;">&lt;{{ auth()->user()?->email }}&gt;</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">받는 사람</label>
+                                        <div style="display:flex;gap:6px;margin-bottom:6px;">
+                                            <select id="mail-compose-pick" style="flex:1;padding:7px 9px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;">
+                                                <option value="">구성원에서 선택…</option>
+                                            </select>
+                                            <button type="button" onclick="mailComposeAddPicked()" style="padding:6px 14px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 1px 3px rgba(124,58,237,.25);transition:filter .12s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">추가</button>
+                                        </div>
+                                        <input id="mail-compose-direct" type="text" placeholder="직접 입력: name@example.com (Enter 또는 쉼표로 추가)"
+                                            onkeydown="mailComposeOnDirectKey(event)"
+                                            style="width:100%;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;box-sizing:border-box;">
+                                        <div id="mail-compose-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:4px;"></div>
+                                    </div>
+                                    <div>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">제목</label>
+                                        <input id="mail-compose-subject" type="text" maxlength="200" required
+                                            style="width:100%;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;color:#374151;box-sizing:border-box;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">내용</label>
+                                        <textarea id="mail-compose-body" rows="6" maxlength="50000" required
+                                            style="width:100%;padding:9px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;color:#374151;box-sizing:border-box;resize:vertical;line-height:1.6;font-family:inherit;"></textarea>
+                                    </div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:4px;">
+                                        <span id="mail-compose-status" style="font-size:11.5px;color:#94a3b8;"></span>
+                                        <div style="display:flex;gap:6px;">
+                                            <button type="button" onclick="mailComposeClose()" style="padding:7px 14px;background:#fff;border:1px solid var(--t200,#e5e7eb);color:var(--tText,#6b7280);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='#fff'">취소</button>
+                                            <button type="submit" id="mail-compose-send" style="padding:7px 18px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(124,58,237,.3);transition:filter .12s,transform .08s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">발송</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <script>
+                            (function() {
+                                let _mcRecipients = [];   // 추가된 수신자: {label, value}
+
+                                window.mailComposeToggle = function() {
+                                    const pop = document.getElementById('mail-compose-pop');
+                                    if (!pop) return;
+                                    const show = pop.style.display === 'none' || !pop.style.display;
+                                    pop.style.display = show ? 'flex' : 'none';
+                                    if (show) mailComposeLoadRecipients();   // 매 오픈마다 재조회 (캐시 X)
+                                };
+                                window.mailComposeClose = function() {
+                                    const pop = document.getElementById('mail-compose-pop');
+                                    if (pop) pop.style.display = 'none';
+                                };
+                                document.addEventListener('click', function(e) {
+                                    const wrap = document.getElementById('mail-compose-wrap');
+                                    if (!wrap) return;
+                                    if (!wrap.contains(e.target)) mailComposeClose();
+                                });
+
+                                async function mailComposeLoadRecipients() {
+                                    const sel = document.getElementById('mail-compose-pick');
+                                    if (!sel) return;
+                                    console.log('[mail-compose v3] fetching recipients…');
+                                    // 기존 옵션 모두 제거 후 첫 placeholder만 남기기
+                                    sel.innerHTML = '<option value="">구성원에서 선택…</option>';
+                                    try {
+                                        const r = await fetch('{{ route('email-compose.recipients') }}?_=' + Date.now(), {
+                                            headers: { 'Accept': 'application/json' },
+                                            cache: 'no-store',
+                                        });
+                                        const d = await r.json();
+                                        const users = d.users || [];
+                                        console.log('[mail-compose v3] server returned', users.length, 'users:', users);
+                                        if (users.length === 0) {
+                                            const opt = document.createElement('option');
+                                            opt.value = '';
+                                            opt.disabled = true;
+                                            opt.textContent = '참여한 프로젝트의 구성원이 없습니다 (직접 입력)';
+                                            sel.appendChild(opt);
+                                            return;
+                                        }
+                                        users.forEach(u => {
+                                            const opt = document.createElement('option');
+                                            opt.value = `${u.name || ''}|${u.email || ''}|${u.phone || ''}`;
+                                            const co = (u.company && u.company !== '-') ? ` · ${u.company}` : '';
+                                            opt.textContent = `${u.name || '(이름없음)'}${co} <${u.email || ''}>`;
+                                            sel.appendChild(opt);
+                                        });
+                                    } catch (e) { console.warn('[mail-compose v3] fetch failed', e); }
+                                }
+
+                                window.mailComposeAddPicked = function() {
+                                    const sel = document.getElementById('mail-compose-pick');
+                                    if (!sel || !sel.value) return;
+                                    const val = sel.value; // name|email|phone
+                                    const parts = val.split('|');
+                                    const label = `${parts[0] || ''} <${parts[1] || ''}>`;
+                                    mailComposeAddChip(label.trim(), val);
+                                    sel.value = '';
+                                };
+
+                                window.mailComposeOnDirectKey = function(e) {
+                                    if (e.key === 'Enter' || e.key === ',') {
+                                        e.preventDefault();
+                                        const inp = e.target;
+                                        const v = (inp.value || '').trim().replace(/,$/, '').trim();
+                                        if (v) {
+                                            mailComposeAddChip(v, v);
+                                            inp.value = '';
+                                        }
+                                    }
+                                };
+
+                                function mailComposeAddChip(label, value) {
+                                    if (!value) return;
+                                    if (_mcRecipients.some(r => r.value === value)) return;
+                                    _mcRecipients.push({ label, value });
+                                    mailComposeRenderChips();
+                                }
+                                function mailComposeRemoveChip(idx) {
+                                    _mcRecipients.splice(idx, 1);
+                                    mailComposeRenderChips();
+                                }
+                                window.mailComposeRemoveChip = mailComposeRemoveChip;
+
+                                function mailComposeRenderChips() {
+                                    const box = document.getElementById('mail-compose-chips');
+                                    if (!box) return;
+                                    box.innerHTML = _mcRecipients.map((r, i) =>
+                                        `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 4px 3px 9px;background:var(--t100,#ede9fe);color:var(--t700,#4c1d95);border:1px solid var(--t200,#ddd6fe);border-radius:999px;font-size:11.5px;font-weight:600;">${
+                                            r.label.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))
+                                        }<button type="button" onclick="mailComposeRemoveChip(${i})" style="background:none;border:none;cursor:pointer;color:var(--t700,#7c3aed);font-size:14px;line-height:1;padding:0 2px;">&times;</button></span>`
+                                    ).join('');
+                                }
+
+                                window.mailComposeSend = async function(ev) {
+                                    ev.preventDefault();
+                                    const subject = document.getElementById('mail-compose-subject').value.trim();
+                                    const body    = document.getElementById('mail-compose-body').value;
+                                    const direct  = document.getElementById('mail-compose-direct').value.trim();
+                                    const status  = document.getElementById('mail-compose-status');
+                                    const btn     = document.getElementById('mail-compose-send');
+                                    if (direct) mailComposeAddChip(direct, direct);
+
+                                    if (!_mcRecipients.length) {
+                                        status.style.color = '#dc2626';
+                                        status.textContent = '받는 사람을 1명 이상 추가하세요.';
+                                        return false;
+                                    }
+                                    if (!subject || !body.trim()) {
+                                        status.style.color = '#dc2626';
+                                        status.textContent = '제목과 내용을 입력하세요.';
+                                        return false;
+                                    }
+
+                                    btn.disabled = true;
+                                    const orig = btn.textContent;
+                                    btn.textContent = '발송 중…';
+                                    status.style.color = '#6b7280';
+                                    status.textContent = '';
+
+                                    try {
+                                        const r = await fetch('{{ route('email-compose.send') }}', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                            },
+                                            body: JSON.stringify({
+                                                subject,
+                                                body,
+                                                recipients: _mcRecipients.map(r => r.value),
+                                            }),
+                                        });
+                                        const d = await r.json();
+                                        if (!d.ok) throw new Error(d.message || '발송 실패');
+
+                                        status.style.color = '#15803d';
+                                        status.textContent = d.message || '발송 완료';
+                                        document.getElementById('mail-compose-subject').value = '';
+                                        document.getElementById('mail-compose-body').value = '';
+                                        document.getElementById('mail-compose-direct').value = '';
+                                        _mcRecipients = [];
+                                        mailComposeRenderChips();
+                                        setTimeout(() => { mailComposeClose(); status.textContent = ''; }, 1200);
+                                    } catch (e) {
+                                        status.style.color = '#dc2626';
+                                        status.textContent = '발송 실패: ' + e.message;
+                                    }
+                                    btn.disabled = false;
+                                    btn.textContent = orig;
+                                    return false;
+                                };
+                            })();
+                        </script>
 
                         {{-- 언어 스위처 --}}
                         <div style="position:relative;">
@@ -543,10 +940,38 @@
                                 </div>
                             </div>
                         </div>
+                        {{-- 메모 버튼 --}}
+                        @if(auth()->user()->hasFeature('memos'))
+                        <button id="memo-btn" onclick="memoPopupToggle()" title="메모"
+                            style="display:flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
+                            onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
+                            onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            <span>메모</span>
+                        </button>
+                        @endif {{-- memos feature --}}
+
                         @include('partials.collab-widget')
                         @yield('header-actions')
                     </div>
                 </header>
+
+                {{-- 공지사항 배너 ($__announcements는 헤더 아이콘 섹션에서 이미 로드됨) --}}
+                @foreach($__announcements as $__ann)
+                @php
+                    $__annColors = ['info'=>['#eff6ff','#bfdbfe','#1d4ed8'],'warning'=>['#fffbeb','#fde68a','#b45309'],'maintenance'=>['#fef2f2','#fecaca','#dc2626'],'update'=>['#f5f3ff','#ddd6fe','#6d28d9']];
+                    [$__bg,$__border,$__text] = $__annColors[$__ann->type] ?? ['#f8fafc','#e2e8f0','#334155'];
+                    $__annLabel = ['info'=>'안내','warning'=>'주의','maintenance'=>'점검','update'=>'업데이트'][$__ann->type] ?? $__ann->type;
+                @endphp
+                <div style="background:{{ $__bg }};border-bottom:1px solid {{ $__border }};padding:9px 24px;display:flex;align-items:center;gap:10px;" data-announcement-id="{{ $__ann->id }}">
+                    <span style="flex-shrink:0;background:{{ $__border }};color:{{ $__text }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;">{{ $__annLabel }}</span>
+                    <span style="font-size:13px;font-weight:500;color:{{ $__text }};flex:1;">{{ $__ann->title }}</span>
+                    <span style="font-size:12px;color:{{ $__text }};opacity:.7;flex-shrink:0;">{{ $__ann->body }}</span>
+                    <button onclick="dismissAnn({{ $__ann->id }})" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:{{ $__text }};opacity:.5;font-size:16px;line-height:1;padding:0 2px;">&times;</button>
+                </div>
+                @endforeach
 
                 {{-- 알림 메시지 --}}
                 @if(session('success') || session('error') || $errors->any())
@@ -590,6 +1015,177 @@
         {{-- 인앱 토스트 컨테이너 --}}
         <div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
 
+        {{-- ===== 메모 팝업 ===== --}}
+        <div id="memo-popup" style="display:none;position:fixed;top:60px;right:20px;z-index:9995;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:360px;max-height:calc(100vh - 80px);flex-direction:column;overflow:hidden;border:1px solid #ede8ff;">
+            {{-- 팝업 헤더 --}}
+            <div style="padding:14px 16px 12px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fff;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" fill="none" stroke="var(--tText)" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    <span style="font-size:14px;font-weight:700;color:#18181b;">메모</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <button onclick="memoShowAddForm()" id="memo-add-btn"
+                        style="display:flex;align-items:center;gap:5px;height:28px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;transition:background .12s;"
+                        onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        메모 추가
+                    </button>
+                    <button onclick="memoPopupClose()"
+                        style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:6px;"
+                        onmouseover="this.style.background='#f3f0ff'" onmouseout="this.style.background='none'">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- 메모 추가 폼 --}}
+            <div id="memo-add-form" style="display:none;padding:12px 14px;border-bottom:1px solid #f0eeff;background:#fafaff;flex-shrink:0;">
+                <input id="memo-input-title" type="text" placeholder="제목 (선택)"
+                    style="width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;outline:none;background:#fff;color:#18181b;margin-bottom:8px;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
+                <textarea id="memo-input-content" placeholder="메모 내용을 입력하세요..." rows="4"
+                    style="width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;outline:none;background:#fff;color:#18181b;resize:vertical;margin-bottom:8px;box-sizing:border-box;line-height:1.55;"
+                    onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;gap:7px;align-items:center;" id="memo-color-picker">
+                        <button class="memo-color-dot" data-color="yellow" onclick="memoSelectColor(this)"
+                            style="width:20px;height:20px;border-radius:50%;background:#fde047;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="노랑"></button>
+                        <button class="memo-color-dot" data-color="green" onclick="memoSelectColor(this)"
+                            style="width:20px;height:20px;border-radius:50%;background:#86efac;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="초록"></button>
+                        <button class="memo-color-dot" data-color="blue" onclick="memoSelectColor(this)"
+                            style="width:20px;height:20px;border-radius:50%;background:#93c5fd;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="파랑"></button>
+                        <button class="memo-color-dot" data-color="pink" onclick="memoSelectColor(this)"
+                            style="width:20px;height:20px;border-radius:50%;background:#f9a8d4;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="핑크"></button>
+                        <button class="memo-color-dot" data-color="purple" onclick="memoSelectColor(this)"
+                            style="width:20px;height:20px;border-radius:50%;background:#c4b5fd;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="보라"></button>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button onclick="memoHideAddForm()"
+                            style="height:28px;padding:0 12px;border:1.5px solid #e5e7eb;background:#fff;border-radius:7px;font-size:12px;color:#6b7280;cursor:pointer;"
+                            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">취소</button>
+                        <button onclick="memoSave()"
+                            style="height:28px;padding:0 12px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;"
+                            onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">저장</button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 메모 목록 --}}
+            <div id="memo-list" style="overflow-y:auto;flex:1;padding:12px 14px;"></div>
+        </div>
+
+        {{-- ===== 메모 드래그 드롭 힌트 ===== --}}
+        <div id="memo-drop-hint" style="display:none;position:fixed;inset:0;z-index:9980;pointer-events:none;align-items:center;justify-content:center;">
+            <div style="background:rgba(124,58,237,.13);border:2.5px dashed var(--t400);border-radius:16px;padding:18px 32px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(2px);">
+                <svg width="22" height="22" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span style="font-size:14px;font-weight:600;color:var(--t700);">여기에 놓으면 화면에 고정됩니다</span>
+            </div>
+        </div>
+
+        {{-- ===== 메모 공유 모달 ===== --}}
+        <div id="memo-share-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:16px;width:380px;max-height:540px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;" onclick="event.stopPropagation()">
+                <div style="padding:16px 18px 12px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <svg width="16" height="16" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                        <span style="font-size:15px;font-weight:700;color:#18181b;">메모 공유</span>
+                    </div>
+                    <button onclick="memoShareModalClose()" style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:6px;" onmouseover="this.style.background='#f3f0ff'" onmouseout="this.style.background='none'">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div style="padding:10px 16px;border-bottom:1px solid #f0eeff;flex-shrink:0;">
+                    <input id="memo-share-search" type="text" placeholder="멤버 검색..."
+                        style="width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fafaff;color:#18181b;box-sizing:border-box;"
+                        onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"
+                        oninput="memoShareFilterMembers(this.value)">
+                </div>
+                <div id="memo-share-member-list" style="overflow-y:auto;flex:1;padding:6px 0;min-height:120px;max-height:280px;"></div>
+                <div style="padding:12px 16px;border-top:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <span id="memo-share-count" style="font-size:12px;color:#7c3aed;font-weight:600;"></span>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="memoShareModalClose()" style="height:32px;padding:0 14px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-size:13px;color:#6b7280;cursor:pointer;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">취소</button>
+                        <button id="memo-share-confirm-btn" onclick="memoShareConfirm()" style="height:32px;padding:0 16px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">공유하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ===== 고정 메모 컨테이너 (모든 화면에서 표시) ===== --}}
+        @php
+            $pmColors = [
+                'yellow' => ['bg'=>'#fef9c3','border'=>'#fde047','header'=>'#fef08a'],
+                'green'  => ['bg'=>'#dcfce7','border'=>'#86efac','header'=>'#bbf7d0'],
+                'blue'   => ['bg'=>'#dbeafe','border'=>'#93c5fd','header'=>'#bfdbfe'],
+                'pink'   => ['bg'=>'#fce7f3','border'=>'#f9a8d4','header'=>'#fbcfe8'],
+                'purple' => ['bg'=>'#ede9fe','border'=>'#c4b5fd','header'=>'#ddd6fe'],
+            ];
+        @endphp
+        <div id="pinned-memos-wrap">
+            @foreach($pinnedMemos as $pm)
+            @php $pc = $pmColors[$pm->color] ?? $pmColors['yellow']; @endphp
+            <div class="pinned-memo-note" data-id="{{ $pm->id }}"
+                style="position:fixed;right:24px;bottom:{{ 80 + $loop->index * 230 }}px;z-index:9988;background:{{ $pc['bg'] }};border:1.5px solid {{ $pc['border'] }};border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;">
+                <div class="pinned-memo-header" style="padding:6px 8px;background:{{ $pc['header'] }};border-bottom:1px solid {{ $pc['border'] }};border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">
+                    <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $pm->title ?: '메모' }}</span>
+                    <div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">
+                        <button onclick="memoTogglePin({{ $pm->id }})" title="고정 해제"
+                            style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
+                            onmouseover="this.style.background='#fde047';this.style.color='#92400e'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                        </button>
+
+                        <button onclick="memoDelete({{ $pm->id }})" title="삭제"
+                            style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
+                            onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="클릭하여 수정">{{ $pm->content }}</div>
+                <div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">
+                    <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round">
+                        <line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/>
+                    </svg>
+                </div>
+            </div>
+            @endforeach
+            @php $totalPinned = $pinnedMemos->count(); @endphp
+            @foreach($pinnedSharedMemos as $ps)
+            @php
+                $psm = $ps->memo;
+                $pc2 = $pmColors[$psm->color] ?? $pmColors['yellow'];
+                $psIdx = $totalPinned + $loop->index;
+            @endphp
+            <div class="pinned-memo-note" data-id="{{ $psm->id }}" data-share-id="{{ $ps->id }}"
+                style="position:fixed;right:24px;bottom:{{ 80 + $psIdx * 230 }}px;z-index:9988;background:{{ $pc2['bg'] }};border:1.5px solid {{ $pc2['border'] }};border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;">
+                <div class="pinned-memo-header" style="padding:6px 8px;background:{{ $pc2['header'] }};border-bottom:1px solid {{ $pc2['border'] }};border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">
+                    <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $psm->title ?: '메모' }}</span>
+                    <div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">
+                        <button onclick="memoToggleSharedPin({{ $ps->id }})" title="고정 해제"
+                            style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
+                            onmouseover="this.style.background='#fde047';this.style.color='#92400e'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div style="padding:3px 10px 0;font-size:10px;color:#7c3aed;font-weight:600;background:{{ $pc2['header'] }};border-bottom:1px solid {{ $pc2['border'] }};flex-shrink:0;">
+                    {{ $ps->sharedByUser->name ?? '' }} 공유
+                </div>
+                <div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:default;">{{ $psm->content }}</div>
+                <div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">
+                    <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round">
+                        <line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/>
+                    </svg>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
         <script>
         // ── 전역 변수 ─────────────────────────────────────────
         window.MY_ID              = {{ auth()->id() }};
@@ -605,7 +1201,7 @@
         window.OPEN_CONV_ID = null; // 메시지 페이지에서 덮어씀
 
         // ── 인앱 토스트 ────────────────────────────────────────
-        window.showToast = function(senderName, preview, href) {
+        window.showToast = async function(senderName, preview, href) {
             const t = document.createElement('div');
             t.style.cssText = 'display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #ede8ff;border-radius:14px;padding:12px 16px;box-shadow:0 8px 28px rgba(139,122,240,.18);pointer-events:auto;cursor:pointer;max-width:320px;opacity:0;transform:translateY(12px);transition:all .25s;';
             t.innerHTML = `
@@ -622,7 +1218,7 @@
         };
 
         // ── 사이드바 뱃지 ─────────────────────────────────────
-        window.updateSidebarBadge = function(delta, isInquiry) {
+        window.updateSidebarBadge = async function(delta, isInquiry) {
             const id = isInquiry ? 'sidebar-inquiry-badge' : 'sidebar-msg-badge';
             const el = document.getElementById(id);
             if (!el) return;
@@ -637,11 +1233,11 @@
         }
 
         // ── 전역 Pusher 구독 ──────────────────────────────────
-        function setupGlobalEcho() {
+        async function setupGlobalEcho() {
             const msgBase = '{{ url("/messages") }}';
-            window.MY_CONV_IDS.forEach(function(cid) {
+            window.MY_CONV_IDS.forEach(async function(cid) {
                 window.Echo.private('conversation.' + cid)
-                    .listen('.MessageSent', function(data) {
+                    .listen('.MessageSent', async function(data) {
                         if (data.sender_id === window.MY_ID) return;
 
                         const isOpenConv = (window.OPEN_CONV_ID && cid === window.OPEN_CONV_ID);
@@ -670,10 +1266,10 @@
         else { window.addEventListener('echoReady', setupGlobalEcho, { once: true }); }
 
         // ── 관리자 발송 메시지 수신 (개인 채널) ─────────────────
-        function setupUserChannel() {
+        async function setupUserChannel() {
             const userCh = window.Echo.private('user.' + window.MY_ID);
 
-            userCh.listen('.LeaveNotification', function(data) {
+            userCh.listen('.LeaveNotification', async function(data) {
                 var previewMap = {
                     leave_requested: data.leave_label + ' (' + data.date_range + ') ' + window.APP_STR.leaveRequested,
                     leave_approved:  data.leave_label + ' (' + data.date_range + ') ' + window.APP_STR.leaveApproved,
@@ -686,7 +1282,7 @@
             });
 
             userCh
-                .listen('.NewAdminMessage', function(data) {
+                .listen('.NewAdminMessage', async function(data) {
                     const cid        = data.conv_id;
                     const adminName  = data.admin_name || window.APP_STR.adminLabel;
                     const preview    = data.body || '';
@@ -699,7 +1295,7 @@
                         window.MY_INQUIRY_CONV_IDS.add(cid);
 
                         window.Echo.private('conversation.' + cid)
-                            .listen('.MessageSent', function(msgData) {
+                            .listen('.MessageSent', async function(msgData) {
                                 if (msgData.sender_id === window.MY_ID) return;
                                 const isOpenConv = (window.OPEN_CONV_ID && cid === window.OPEN_CONV_ID);
                                 if (!isOpenConv) {
@@ -730,7 +1326,7 @@
         else { window.addEventListener('echoReady', setupUserChannel, { once: true }); }
 
         // ── 사이드바 검색 드롭다운
-        (function() {
+        (async function() {
             const MENU = [
                 { label:'{{ __("app.search_label_home") }}',      url:'{{ route("dashboard") }}',        icon:'🏠' },
                 { label:'{{ __("app.nav_my_work") }}',            url:'{{ route("projects.index") }}',   icon:'📋' },
@@ -738,7 +1334,7 @@
                 { label:'{{ __("app.search_label_messages") }}',  url:'{{ route("messages.index") }}',   icon:'💬' },
                 { label:'{{ __("app.search_label_team") }}',      url:'{{ route("team.index") }}',       icon:'👥' },
                 { label:'Teams',                                   url:'{{ route("teams.index") }}',      icon:'🔗' },
-                { label:'AI Agent',                                url:'{{ route("ai.index") }}',         icon:'🤖' },
+                { label:'웍스 Agent',                                url:'{{ route("ai.index") }}',         icon:'🤖' },
                 { label:'{{ __("app.search_label_community") }}', url:'{{ route("community.index") }}',  icon:'🌐' },
                 { label:'{{ __("app.search_label_inquiry") }}',   url:'{{ route("inquiry.index") }}',    icon:'❓' },
                 { label:'{{ __("app.search_label_minutes") }}',   url:'{{ route("meeting-minutes.index") }}', icon:'📋' },
@@ -754,7 +1350,7 @@
                 @endforeach
             ];
             /* SR 접수 메뉴 항목 — 사이드바 DOM에서 읽어 추가 (Blade 표현식 불필요) */
-            document.querySelectorAll('#sr-menu-items a[href]').forEach(function(a) {
+            document.querySelectorAll('#sr-menu-items a[href]').forEach(async function(a) {
                 var name = (a.querySelector('.gsb-hide') || {}).textContent || '';
                 if (name.trim()) MENU.push({ label: 'SR - ' + name.trim(), url: a.href, icon: '🔧' });
             });
@@ -763,7 +1359,7 @@
             const drop  = document.getElementById('sidebar-search-drop');
             if (!input || !drop) return;
 
-            function renderDrop(q) {
+            async function renderDrop(q) {
                 if (!q) { drop.style.display = 'none'; return; }
                 const matched = MENU.filter(m => m.label.toLowerCase().includes(q));
                 if (!matched.length) {
@@ -778,15 +1374,15 @@
                 drop.style.display = 'block';
             }
 
-            input.addEventListener('input', function() {
+            input.addEventListener('input', async function() {
                 renderDrop(this.value.trim().toLowerCase());
             });
 
-            input.addEventListener('keydown', function(e) {
+            input.addEventListener('keydown', async function(e) {
                 if (e.key === 'Escape') { this.value = ''; drop.style.display = 'none'; }
             });
 
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', async function(e) {
                 if (!input.contains(e.target) && !drop.contains(e.target)) {
                     drop.style.display = 'none';
                 }
@@ -801,7 +1397,7 @@
             green: { t50:'#f0fdf4',t100:'#dcfce7',t200:'#bbf7d0',t300:'#86efac',t400:'#4ade80',t500:'#22c55e',t600:'#16a34a',t700:'#15803d',tText:'#16a34a',tBg:'#f0fdf4' },
             amber: { t50:'#fffbeb',t100:'#fef3c7',t200:'#fde68a',t300:'#fcd34d',t400:'#fbbf24',t500:'#f59e0b',t600:'#d97706',t700:'#b45309',tText:'#d97706',tBg:'#fffbeb' },
         };
-        window.applyTheme = function(name) {
+        window.applyTheme = async function(name) {
             const t = THEMES[name]; if (!t) return;
             const r = document.documentElement;
             const vars = {'--t50':t.t50,'--t100':t.t100,'--t200':t.t200,'--t300':t.t300,'--t400':t.t400,'--t500':t.t500,'--t600':t.t600,'--t700':t.t700,'--tText':t.tText,'--tBg':t.tBg};
@@ -810,13 +1406,13 @@
             const main = document.querySelector('main'); if (main) main.style.background = t.tBg;
             const avatar = document.getElementById('sw-avatar'); if (avatar) avatar.style.background = 'linear-gradient(135deg,'+t.t200+','+t.t300+')';
             localStorage.setItem('app-theme', name);
-            document.querySelectorAll('.theme-swatch').forEach(function(s) {
+            document.querySelectorAll('.theme-swatch').forEach(async function(s) {
                 const active = s.dataset.theme === name;
                 s.style.boxShadow = active ? '0 0 0 3px #fff,0 0 0 5px '+t.t500 : 'none';
                 s.style.transform = active ? 'scale(1.15)' : 'scale(1)';
             });
         };
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', async function(e) {
             const sw = e.target.closest('.theme-swatch');
             if (sw) { applyTheme(sw.dataset.theme); return; }
             const dd = document.getElementById('theme-dropdown');
@@ -833,20 +1429,20 @@
         applyTheme(localStorage.getItem('app-theme') || 'violet');
 
         // ── 글로벌 사이드바 접기/펼치기 ──────────────────────
-        window.toggleGlobalSidebar = function() {
+        window.toggleGlobalSidebar = async function() {
             const aside = document.getElementById('global-sidebar');
             if (!aside) return;
             const collapsed = aside.classList.toggle('gsb-collapsed');
             localStorage.setItem('gsb-collapsed', collapsed ? '1' : '0');
         };
-        (function() {
+        (async function() {
             if (localStorage.getItem('gsb-collapsed') === '1') {
                 document.getElementById('global-sidebar')?.classList.add('gsb-collapsed');
             }
         })();
 
         // ── 섹션 접힘/펼침 (내 프로젝트 / SR 접수) ───────────
-        window.toggleSection = function(id) {
+        window.toggleSection = async function(id) {
             var el = document.getElementById(id);
             var ch = document.getElementById('chevron-' + id);
             if (!el) return;
@@ -855,8 +1451,8 @@
             if (ch) ch.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
             localStorage.setItem('sec-' + id, isCollapsed ? '0' : '1');
         };
-        (function() {
-            ['proj-list', 'sr-list'].forEach(function(id) {
+        (async function() {
+            ['proj-list', 'sr-list'].forEach(async function(id) {
                 if (localStorage.getItem('sec-' + id) === '1') {
                     var el = document.getElementById(id);
                     if (el) el.style.maxHeight = '0px';
@@ -923,7 +1519,7 @@
                 xhr.responseType = 'blob';
 
                 let hasLen = false;
-                xhr.onprogress = function (e) {
+                xhr.onprogress = async function (e) {
                     if (e.lengthComputable && e.total > 0) {
                         hasLen = true;
                         setPct(el, (e.loaded / e.total) * 97);
@@ -932,7 +1528,7 @@
                     }
                 };
 
-                xhr.onload = function () {
+                xhr.onload = async function () {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         setPct(el, 100);
                         let filename = fname;
@@ -949,19 +1545,19 @@
                         const a = document.createElement('a');
                         a.href = blobUrl; a.download = filename;
                         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                        setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 1500);
+                        setTimeout(async function () { URL.revokeObjectURL(blobUrl); }, 1500);
                         const pctEl = el._swDlp && el._swDlp.querySelector('.sw-dlp-pct');
                         if (pctEl) pctEl.textContent = '✓';
-                        setTimeout(function () { removeBar(el); }, 1200);
+                        setTimeout(async function () { removeBar(el); }, 1200);
                     } else {
                         removeBar(el);
                     }
                 };
-                xhr.onerror = xhr.onabort = function () { removeBar(el); };
+                xhr.onerror = xhr.onabort = async function () { removeBar(el); };
                 xhr.send();
             }
 
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', async function (e) {
                 const a = e.target.closest('a');
                 if (!isDownloadAnchor(a)) return;
                 const href = a.getAttribute('href');
@@ -1069,14 +1665,14 @@
             </div>
         </div>
         <script>
-        function openNewProjectModal() {
+        async function openNewProjectModal() {
             const modal = document.getElementById('modal-new-project');
             modal.style.display = 'flex';
             document.getElementById('form-new-project').reset();
             document.getElementById('np-error').style.display = 'none';
             setTimeout(() => modal.querySelector('input[name="name"]').focus(), 50);
         }
-        function closeNewProjectModal() {
+        async function closeNewProjectModal() {
             document.getElementById('modal-new-project').style.display = 'none';
         }
         async function submitNewProject(e) {
@@ -1117,6 +1713,82 @@
         @yield('scripts')
         @stack('scripts')
         <script>
+        (async function() {
+            var ANN_KEY = 'sw_ann_dismissed';
+
+            function getDismissed() {
+                try { return JSON.parse(localStorage.getItem(ANN_KEY) || '[]'); } catch(e) { return []; }
+            }
+
+            function saveDismissed(list) {
+                localStorage.setItem(ANN_KEY, JSON.stringify(list));
+            }
+
+            window.dismissAnn = async function(id) {
+                id = parseInt(id);
+                var list = getDismissed();
+                if (list.indexOf(id) === -1) { list.push(id); saveDismissed(list); }
+                // 배너 숨김
+                document.querySelectorAll('[data-announcement-id="'+id+'"]').forEach(async function(el){ el.style.display='none'; });
+                // 드롭다운 아이템 흐리게
+                var di = document.querySelector('[data-ann-drop="'+id+'"]');
+                if (di) { di.style.opacity='0.35'; di.style.pointerEvents='none'; }
+                updateBadge();
+            };
+
+            window.dismissAllAnn = async function() {
+                var list = getDismissed();
+                document.querySelectorAll('[data-ann-drop]').forEach(async function(el){
+                    var id = parseInt(el.dataset.annDrop);
+                    if (list.indexOf(id)===-1) list.push(id);
+                    el.style.opacity='0.35'; el.style.pointerEvents='none';
+                });
+                document.querySelectorAll('[data-announcement-id]').forEach(async function(el){ el.style.display='none'; });
+                saveDismissed(list);
+                updateBadge();
+            };
+
+            window.toggleAnnDropdown = async function() {
+                var drop = document.getElementById('ann-dropdown');
+                var isOpen = drop.style.display === 'flex';
+                // 다른 드롭다운 닫기
+                ['lang-dropdown','theme-dropdown'].forEach(async function(id){
+                    var el = document.getElementById(id); if(el) el.style.display='none';
+                });
+                drop.style.display = isOpen ? 'none' : 'flex';
+            };
+
+            async function updateBadge() {
+                var dismissed = getDismissed();
+                var items = document.querySelectorAll('[data-ann-drop]');
+                var unread = 0;
+                items.forEach(async function(el){ if (dismissed.indexOf(parseInt(el.dataset.annDrop))===-1) unread++; });
+                var badge = document.getElementById('ann-badge');
+                if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
+            }
+
+            document.addEventListener('DOMContentLoaded', async function() {
+                var dismissed = getDismissed();
+                // 이미 닫은 배너 즉시 숨김
+                dismissed.forEach(async function(id) {
+                    document.querySelectorAll('[data-announcement-id="'+id+'"]').forEach(async function(el){ el.style.display='none'; });
+                    var di = document.querySelector('[data-ann-drop="'+id+'"]');
+                    if (di) { di.style.opacity='0.35'; di.style.pointerEvents='none'; }
+                });
+                updateBadge();
+
+                // 외부 클릭 시 드롭다운 닫기
+                document.addEventListener('click', async function(e) {
+                    var wrap = document.getElementById('ann-icon-wrap');
+                    if (wrap && !wrap.contains(e.target)) {
+                        var drop = document.getElementById('ann-dropdown');
+                        if (drop) drop.style.display = 'none';
+                    }
+                });
+            });
+        })();
+        </script>
+        <script>
         if (typeof window.MAINTENANCE_KEY === 'undefined') {
             window.MAINTENANCE_KEY   = '{{ addslashes(request()->route()?->getName() ?? '') }}';
             window.MAINTENANCE_NAME  = window.MAINTENANCE_KEY;
@@ -1124,5 +1796,830 @@
         }
         </script>
         {{-- @include('maintenance._panel') --}}
+
+        {{-- ===== 메모 시스템 JS ===== --}}
+        <script>
+        (async function() {
+            var CSRF     = document.querySelector('meta[name="csrf-token"]').content;
+            var MEMO_URL = '{{ url("/memos") }}';
+            var MC = {
+                yellow: { bg:'#fef9c3', border:'#fde047', header:'#fef08a' },
+                green:  { bg:'#dcfce7', border:'#86efac', header:'#bbf7d0' },
+                blue:   { bg:'#dbeafe', border:'#93c5fd', header:'#bfdbfe' },
+                pink:   { bg:'#fce7f3', border:'#f9a8d4', header:'#fbcfe8' },
+                purple: { bg:'#ede9fe', border:'#c4b5fd', header:'#ddd6fe' },
+            };
+
+            function esc(s) {
+                return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            }
+
+            // ── 팝업 토글 ──────────────────────────────────────
+            window.memoPopupToggle = async function() {
+                var p = document.getElementById('memo-popup');
+                if (!p) return;
+                if (p.style.display === 'none' || p.style.display === '') {
+                    p.style.display = 'flex';
+                    memoLoadList();
+                } else {
+                    memoPopupClose();
+                }
+            };
+
+            window.memoPopupClose = async function() {
+                var p = document.getElementById('memo-popup');
+                if (p) p.style.display = 'none';
+                memoHideAddForm();
+            };
+
+            // ── 추가 폼 ────────────────────────────────────────
+            window.memoShowAddForm = async function() {
+                var f = document.getElementById('memo-add-form');
+                if (!f) return;
+                f.style.display = 'block';
+                var dots = document.querySelectorAll('.memo-color-dot');
+                var hasSelected = false;
+                dots.forEach(async function(d) { if (d.classList.contains('memo-selected')) hasSelected = true; });
+                if (!hasSelected && dots.length) memoSelectColor(dots[0]);
+                setTimeout(async function() { document.getElementById('memo-input-content').focus(); }, 50);
+            };
+
+            window.memoHideAddForm = async function() {
+                var f = document.getElementById('memo-add-form');
+                if (!f) return;
+                f.style.display = 'none';
+                document.getElementById('memo-input-title').value = '';
+                document.getElementById('memo-input-content').value = '';
+                document.getElementById('memo-input-content').style.borderColor = '#e5e7eb';
+                document.querySelectorAll('.memo-color-dot').forEach(async function(d) {
+                    d.classList.remove('memo-selected');
+                    d.style.transform = 'scale(1)';
+                    d.style.boxShadow = 'none';
+                    d.style.borderColor = 'transparent';
+                });
+            };
+
+            window.memoSelectColor = async function(btn) {
+                document.querySelectorAll('.memo-color-dot').forEach(async function(d) {
+                    d.classList.remove('memo-selected');
+                    d.style.transform = 'scale(1)';
+                    d.style.boxShadow = 'none';
+                    d.style.borderColor = 'transparent';
+                });
+                btn.classList.add('memo-selected');
+                btn.style.transform = 'scale(1.25)';
+                btn.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px #7c3aed';
+                btn.style.borderColor = '#fff';
+            };
+
+            // ── 목록 로드 ──────────────────────────────────────
+            async function memoLoadList() {
+                var list = document.getElementById('memo-list');
+                if (!list) return;
+                list.innerHTML = '<div style="text-align:center;padding:28px;color:#a1a1aa;font-size:13px;">불러오는 중...</div>';
+                fetch(MEMO_URL, {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                }).then(async function(r) { return r.json(); }).then(async function(data) {
+                    var mine   = data.mine   || [];
+                    var shared = data.shared || [];
+                    var all    = mine.concat(shared);
+                    window._memoCache = {};
+                    all.forEach(async function(m) { window._memoCache[m.id] = m; });
+                    if (!all.length) {
+                        list.innerHTML = '<div style="text-align:center;padding:34px 20px;color:#a1a1aa;font-size:13px;line-height:1.7;">메모가 없습니다.<br><span style="font-size:12px;">위의 메모 추가 버튼을 클릭하세요.</span></div>';
+                        return;
+                    }
+                    var html = '';
+                    if (mine.length) html += mine.map(function(m) { return renderMemoCard(m); }).join('');
+                    if (shared.length) {
+                        html += '<div style="margin:8px 0 4px;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;">공유 받은 메모</div>';
+                        html += shared.map(function(m) { return renderMemoCard(m); }).join('');
+                    }
+                    list.innerHTML = html;
+                }).catch(async function() {
+                    list.innerHTML = '<div style="text-align:center;padding:28px;color:#ef4444;font-size:13px;">오류가 발생했습니다.</div>';
+                });
+            }
+
+            function renderMemoCard(m) {
+                var c = MC[m.color] || MC.yellow;
+                var titleHtml = m.title ? '<div style="font-weight:600;font-size:13px;color:#18181b;margin-bottom:5px;">' + esc(m.title) + '</div>' : '';
+                var preview = m.content.length > 130 ? esc(m.content.slice(0, 130)) + '…' : esc(m.content);
+
+                // 공유 받은 메모 뱃지
+                var receivedBadge = '';
+                if (m.is_received) {
+                    receivedBadge = '<div style="display:flex;align-items:center;gap:5px;margin-bottom:7px;">'
+                        + '<span style="display:inline-flex;align-items:center;gap:4px;background:#ede9fe;color:#7c3aed;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:600;">'
+                        + '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>'
+                        + esc(m.shared_by_name) + ' · ' + esc(m.shared_at)
+                        + '</span>'
+                        + '</div>';
+                }
+
+                // 공유된 멤버 아바타 (내 메모)
+                var sharedAvatars = '';
+                if (!m.is_received && m.shared_with && m.shared_with.length) {
+                    sharedAvatars = '<div style="display:flex;align-items:center;gap:2px;margin-right:4px;" title="공유된 멤버">';
+                    m.shared_with.slice(0, 3).forEach(async function(u) {
+                        var letter = (u.name || '?').charAt(0).toUpperCase();
+                        sharedAvatars += '<span style="width:20px;height:20px;border-radius:50%;background:var(--t500);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;">' + esc(letter) + '</span>';
+                    });
+                    if (m.shared_with.length > 3) sharedAvatars += '<span style="font-size:10px;color:#7c3aed;font-weight:600;">+' + (m.shared_with.length - 3) + '</span>';
+                    sharedAvatars += '</div>';
+                }
+
+                var pinFill  = m.is_pinned ? 'currentColor' : 'none';
+                var pinBg    = m.is_pinned ? '#fde047' : 'transparent';
+                var pinCol   = m.is_pinned ? '#92400e' : '#9ca3af';
+                var pinTitle = m.is_pinned ? '고정 해제' : '고정';
+
+                // 공유 버튼 (내 메모에만)
+                var shareBtnHtml = '';
+                if (!m.is_received) {
+                    var shareActive = m.shared_with && m.shared_with.length > 0;
+                    var shareBg     = shareActive ? 'rgba(124,58,237,.12)' : 'transparent';
+                    var shareCol    = shareActive ? '#7c3aed' : '#9ca3af';
+                    shareBtnHtml = '<button onclick="memoShareOpen(' + m.id + ')" title="공유" '
+                        + 'style="width:26px;height:26px;border-radius:6px;border:none;background:' + shareBg + ';cursor:pointer;display:flex;align-items:center;justify-content:center;color:' + shareCol + ';transition:background .12s,color .12s;" '
+                        + 'onmouseover="this.style.background=\'rgba(124,58,237,.15)\';this.style.color=\'#7c3aed\'" '
+                        + 'onmouseout="this.style.background=\'' + shareBg + '\';this.style.color=\'' + shareCol + '\'">'
+                        + '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>'
+                        + '</button>';
+                }
+
+                var sharedWithJson = (!m.is_received && m.shared_with) ? encodeURIComponent(JSON.stringify(m.shared_with)) : '';
+                return '<div class="memo-card" data-id="' + m.id + '" data-shared-with="' + sharedWithJson + '" draggable="true" ondragstart="memoDragStart(event,' + m.id + ')" style="cursor:grab;background:' + c.bg + ';border:1.5px solid ' + c.border + ';border-radius:10px;padding:12px;margin-bottom:8px;">'
+                    + receivedBadge
+                    + titleHtml
+                    + '<div style="font-size:12.5px;color:#374151;line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + preview + '</div>'
+                    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">'
+                    +   '<span style="font-size:11px;color:#9ca3af;">' + esc(m.updated_at) + '</span>'
+                    +   '<div style="display:flex;align-items:center;gap:2px;">'
+                    +   sharedAvatars
+                    +   shareBtnHtml
+                    +   (m.is_received
+                        ? '<button onclick="memoToggleSharedPin(' + m.share_id + ',' + m.id + ')" title="' + pinTitle + '" '
+                        +   'style="width:26px;height:26px;border-radius:6px;border:none;background:' + pinBg + ';cursor:pointer;display:flex;align-items:center;justify-content:center;color:' + pinCol + ';transition:background .12s;" '
+                        +   'onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" '
+                        +   'onmouseout="this.style.background=\'' + pinBg + '\';this.style.color=\'' + pinCol + '\'">'
+                        +   '<svg width="13" height="13" viewBox="0 0 24 24" fill="' + pinFill + '" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
+                        +   '</button>'
+                        : '<button onclick="memoTogglePin(' + m.id + ')" title="' + pinTitle + '" '
+                        +   'style="width:26px;height:26px;border-radius:6px;border:none;background:' + pinBg + ';cursor:pointer;display:flex;align-items:center;justify-content:center;color:' + pinCol + ';transition:background .12s;" '
+                        +   'onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" '
+                        +   'onmouseout="this.style.background=\'' + pinBg + '\';this.style.color=\'' + pinCol + '\'">'
+                        +   '<svg width="13" height="13" viewBox="0 0 24 24" fill="' + pinFill + '" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
+                        +   '</button>'
+                    )
+                    +     '<button onclick="memoDelete(' + m.id + ')" title="삭제" '
+                    +       'style="width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#9ca3af;transition:background .12s,color .12s;" '
+                    +       'onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" '
+                    +       'onmouseout="this.style.background=\'transparent\';this.style.color=\'#9ca3af\'">'
+                    +       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
+                    +     '</button>'
+                    +   '</div>'
+                    + '</div>'
+                    + '</div>';
+            }
+
+            // ── 메모 저장 ──────────────────────────────────────
+            window.memoSave = async function() {
+                var title   = document.getElementById('memo-input-title').value.trim();
+                var content = document.getElementById('memo-input-content').value.trim();
+                var sel     = document.querySelector('.memo-color-dot.memo-selected');
+                var color   = sel ? sel.dataset.color : 'yellow';
+                if (!content) {
+                    document.getElementById('memo-input-content').style.borderColor = '#ef4444';
+                    document.getElementById('memo-input-content').focus();
+                    return;
+                }
+                fetch(MEMO_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': CSRF
+                    },
+                    body: JSON.stringify({ title: title, content: content, color: color })
+                }).then(async function(r) {
+                    if (r.ok) { memoHideAddForm(); memoLoadList(); }
+                });
+            };
+
+            // ── 고정 토글 ──────────────────────────────────────
+            window.memoTogglePin = async function(id) {
+                fetch(MEMO_URL + '/' + id + '/pin', {
+                    method: 'PATCH',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                }).then(async function(r) { return r.json(); }).then(async function(memo) {
+                    memoLoadList();
+                    memoUpdatePinnedNote(memo);
+                });
+            };
+
+            // ── 메모 드래그 앤 드롭 ────────────────────────────
+            var _memoDragId = null;
+
+            window.memoDragStart = async function(e, id) {
+                _memoDragId = id;
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', String(id));
+                var card = e.currentTarget;
+                setTimeout(async function() { if (card) card.style.opacity = '0.45'; }, 0);
+            };
+
+            document.addEventListener('dragend', async function(e) {
+                if (e.target.classList && e.target.classList.contains('memo-card')) {
+                    e.target.style.opacity = '';
+                    e.target.style.cursor = 'grab';
+                }
+                _memoDragId = null;
+                var hint = document.getElementById('memo-drop-hint');
+                if (hint) hint.style.display = 'none';
+            });
+
+            document.addEventListener('dragover', async function(e) {
+                if (!_memoDragId) return;
+                var popup = document.getElementById('memo-popup');
+                if (popup && popup.contains(e.target)) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                var hint = document.getElementById('memo-drop-hint');
+                if (hint) hint.style.display = 'flex';
+            });
+
+            document.addEventListener('dragleave', async function(e) {
+                if (e.clientX <= 0 || e.clientY <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
+                    var hint = document.getElementById('memo-drop-hint');
+                    if (hint) hint.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('drop', async function(e) {
+                var hint = document.getElementById('memo-drop-hint');
+                if (hint) hint.style.display = 'none';
+                var popup = document.getElementById('memo-popup');
+                if (popup && popup.contains(e.target)) return;
+                if (!_memoDragId) return;
+                e.preventDefault();
+
+                var id = _memoDragId;
+                _memoDragId = null;
+                var memo = window._memoCache && window._memoCache[id];
+                if (!memo) return;
+
+                var dropX = e.clientX;
+                var dropY = e.clientY;
+
+                if (!memo.is_pinned) {
+                    fetch(MEMO_URL + '/' + id + '/pin', {
+                        method: 'PATCH',
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                    }).then(async function(r) { return r.json(); }).then(async function(pinned) {
+                        memoPinAtPosition(pinned, dropX, dropY);
+                        memoLoadList();
+                    });
+                } else {
+                    memoPinAtPosition(memo, dropX, dropY);
+                }
+            });
+
+            async function memoPinAtPosition(memo, x, y) {
+                var existing = document.querySelector('.pinned-memo-note[data-id="' + memo.id + '"]');
+                var lx = Math.max(10, Math.min(x - 115, window.innerWidth  - 250));
+                var ty = Math.max(10, Math.min(y - 20,  window.innerHeight - 150));
+                if (existing) {
+                    existing.style.left   = lx + 'px';
+                    existing.style.top    = ty + 'px';
+                    existing.style.right  = 'auto';
+                    existing.style.bottom = 'auto';
+                    return;
+                }
+                var c = MC[memo.color] || MC.yellow;
+                var div = document.createElement('div');
+                div.className  = 'pinned-memo-note';
+                div.dataset.id = memo.id;
+                div.style.cssText = 'position:fixed;left:' + lx + 'px;top:' + ty + 'px;z-index:9988;background:' + c.bg + ';border:1.5px solid ' + c.border + ';border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;';
+                div.innerHTML =
+                    '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
+                    + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || '메모') + '</span>'
+                    + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
+                    +   '<button onclick="memoTogglePin(' + memo.id + ')" title="고정 해제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                    +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
+                    +   '</button>'
+                    +   '<button onclick="memoDelete(' + memo.id + ')" title="삭제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                    +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
+                    +   '</button>'
+                    + '</div>'
+                    + '</div>'
+                    + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="클릭하여 수정">' + esc(memo.content) + '</div>'
+                    + '<div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
+                    +   '<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/></svg>'
+                    + '</div>';
+                document.body.appendChild(div);
+                makeDraggable(div);
+                makeResizable(div);
+                setupNoteAutoSave(div);
+            }
+
+            // ── 공유 받은 메모 고정 토글 ────────────────────────
+            window.memoToggleSharedPin = async function(shareId, memoId) {
+                fetch('{{ url("/memo-shares") }}/' + shareId + '/pin', {
+                    method: 'PATCH',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                }).then(async function(r) { return r.json(); }).then(async function(memo) {
+                    memoLoadList();
+                    memoUpdatePinnedSharedNote(memo);
+                });
+            };
+
+            // ── 삭제 ───────────────────────────────────────────
+            window.memoDelete = async function(id) {
+                if (!await __confirm('메모를 삭제하시겠습니까?')) return;
+                fetch(MEMO_URL + '/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                }).then(async function(r) {
+                    if (r.ok) {
+                        memoLoadList();
+                        var note = document.querySelector('.pinned-memo-note[data-id="' + id + '"]');
+                        if (note) note.remove();
+                    }
+                });
+            };
+
+            // ── 메모 공유 ──────────────────────────────────────
+            var _shareTargetId  = null;
+            var _shareAllMembers = [];
+            var _shareSelected  = {};   // { userId: true/false }
+            var _shareAlreadyShared = {}; // { userId: true } — 기존 공유 멤버
+
+            window.memoShareOpen = async function(id) {
+                _shareTargetId = id;
+                _shareSelected = {};
+                _shareAlreadyShared = {};
+                document.getElementById('memo-share-search').value = '';
+                document.getElementById('memo-share-member-list').innerHTML =
+                    '<div style="text-align:center;padding:24px;color:#a1a1aa;font-size:13px;">불러오는 중...</div>';
+                document.getElementById('memo-share-modal').style.display = 'flex';
+
+                // 현재 카드의 기존 공유 멤버 파악
+                var card = document.querySelector('.memo-card[data-id="' + id + '"]');
+                // 서버에서 최신 데이터 fetch
+                fetch(MEMO_URL + '/members', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } })
+                    .then(async function(r) { return r.json(); })
+                    .then(async function(members) {
+                        _shareAllMembers = members;
+                        // 기존 공유 상태는 카드 data에서 읽는다 — memoLoadList 후 DOM에 저장
+                        var existingEl = document.querySelector('.memo-card[data-id="' + id + '"]');
+                        if (existingEl && existingEl.dataset.sharedWith) {
+                            try {
+                                JSON.parse(decodeURIComponent(existingEl.dataset.sharedWith)).forEach(async function(u) {
+                                    _shareAlreadyShared[u.user_id] = true;
+                                    _shareSelected[u.user_id]      = true;
+                                });
+                            } catch(e) {}
+                        }
+                        memoShareRenderMembers(members);
+                    });
+            };
+
+            async function memoShareRenderMembers(members) {
+                var list = document.getElementById('memo-share-member-list');
+                if (!members.length) {
+                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#a1a1aa;font-size:13px;">공유 가능한 멤버가 없습니다.</div>';
+                    return;
+                }
+                list.innerHTML = members.map(async function(u) {
+                    var checked  = _shareSelected[u.id] ? true : false;
+                    var isOld    = _shareAlreadyShared[u.id] ? true : false;
+                    var letter   = (u.name || '?').charAt(0).toUpperCase();
+                    var checkStyle = checked
+                        ? 'background:var(--t600);border-color:var(--t600);'
+                        : 'background:#fff;border-color:#d1d5db;';
+                    return '<div class="memo-share-member-row" data-uid="' + u.id + '" onclick="memoShareToggle(' + u.id + ',this)" '
+                        + 'style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;transition:background .1s;" '
+                        + 'onmouseover="this.style.background=\'#fafaff\'" onmouseout="this.style.background=\'#fff\'">'
+                        + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--t300),var(--t500));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;">' + esc(letter) + '</div>'
+                        + '<div style="flex:1;min-width:0;">'
+                        +   '<div style="font-size:13px;font-weight:600;color:#18181b;">' + esc(u.name) + '</div>'
+                        +   '<div style="font-size:11.5px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(u.email) + '</div>'
+                        + '</div>'
+                        + (isOld ? '<span style="font-size:10.5px;color:#7c3aed;font-weight:600;background:#ede9fe;border-radius:20px;padding:2px 8px;margin-right:6px;">공유중</span>' : '')
+                        + '<div class="memo-share-checkbox" style="width:20px;height:20px;border-radius:5px;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;' + checkStyle + '">'
+                        + (checked ? '<svg width="11" height="11" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : '')
+                        + '</div>'
+                        + '</div>';
+                }).join('');
+                memoShareUpdateCount();
+            }
+
+            window.memoShareToggle = async function(uid, row) {
+                _shareSelected[uid] = !_shareSelected[uid];
+                var cb = row.querySelector('.memo-share-checkbox');
+                if (_shareSelected[uid]) {
+                    cb.style.background = 'var(--t600)';
+                    cb.style.borderColor = 'var(--t600)';
+                    cb.innerHTML = '<svg width="11" height="11" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+                } else {
+                    cb.style.background = '#fff';
+                    cb.style.borderColor = '#d1d5db';
+                    cb.innerHTML = '';
+                }
+                memoShareUpdateCount();
+            };
+
+            async function memoShareUpdateCount() {
+                var cnt = Object.values(_shareSelected).filter(Boolean).length;
+                var el = document.getElementById('memo-share-count');
+                el.textContent = cnt > 0 ? cnt + '명 선택됨' : '';
+            }
+
+            window.memoShareFilterMembers = async function(q) {
+                var lower = q.trim().toLowerCase();
+                var filtered = lower
+                    ? _shareAllMembers.filter(async function(u) {
+                        return u.name.toLowerCase().includes(lower) || u.email.toLowerCase().includes(lower);
+                      })
+                    : _shareAllMembers;
+                memoShareRenderMembers(filtered);
+            };
+
+            window.memoShareModalClose = async function() {
+                document.getElementById('memo-share-modal').style.display = 'none';
+                _shareTargetId = null;
+            };
+
+            window.memoShareConfirm = async function() {
+                var newIds = Object.keys(_shareSelected).filter(async function(uid) {
+                    return _shareSelected[uid] && !_shareAlreadyShared[uid];
+                }).map(Number);
+                var removeIds = Object.keys(_shareAlreadyShared).filter(async function(uid) {
+                    return !_shareSelected[uid];
+                }).map(Number);
+
+                if (!newIds.length && !removeIds.length) {
+                    memoShareModalClose();
+                    return;
+                }
+
+                var btn = document.getElementById('memo-share-confirm-btn');
+                btn.disabled = true;
+                btn.textContent = '공유 중...';
+
+                var tasks = [];
+                if (newIds.length) {
+                    tasks.push(fetch(MEMO_URL + '/' + _shareTargetId + '/share', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+                        body: JSON.stringify({ user_ids: newIds })
+                    }).then(async function(r) { return r.json(); }));
+                }
+                removeIds.forEach(async function(uid) {
+                    tasks.push(fetch(MEMO_URL + '/' + _shareTargetId + '/share', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+                        body: JSON.stringify({ user_id: uid })
+                    }).then(async function(r) { return r.json(); }));
+                });
+
+                Promise.all(tasks).then(async function() {
+                    btn.disabled = false;
+                    btn.textContent = '공유하기';
+                    memoShareModalClose();
+                    memoLoadList();
+                });
+            };
+
+            // 공유 받은 메모 삭제 (share 레코드만 제거)
+            window.memoDeleteShared = async function(shareId) {
+                if (!await __confirm('공유 받은 메모를 목록에서 제거하시겠습니까?')) return;
+                // share_id 기반 삭제는 별도 엔드포인트 없이 간단히 목록 갱신
+                memoLoadList();
+            };
+
+            // ── 고정 메모 floating 업데이트 ────────────────────
+            async function memoUpdatePinnedNote(memo) {
+                var existing = document.querySelector('.pinned-memo-note[data-id="' + memo.id + '"]');
+                if (memo.is_pinned) {
+                    if (existing) return;
+                    var c = MC[memo.color] || MC.yellow;
+                    var div = document.createElement('div');
+                    div.className = 'pinned-memo-note';
+                    div.dataset.id = memo.id;
+                    // 기본 위치: 현재 고정 노트 수 기반으로 우하단 스택
+                    var noteCount = document.querySelectorAll('.pinned-memo-note').length;
+                    div.style.cssText = 'position:fixed;right:24px;bottom:' + (80 + noteCount * 230) + 'px;z-index:9988;background:' + c.bg + ';border:1.5px solid ' + c.border + ';border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;';
+                    div.innerHTML =
+                        '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
+                        + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || '메모') + '</span>'
+                        + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
+                        +   '<button onclick="memoTogglePin(' + memo.id + ')" title="고정 해제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                        +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
+                        +   '</button>'
+
+                        +   '<button onclick="memoDelete(' + memo.id + ')" title="삭제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                        +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
+                        +   '</button>'
+                        + '</div>'
+                        + '</div>'
+                        + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="클릭하여 수정">' + esc(memo.content) + '</div>'
+                        + '<div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
+                        +   '<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/></svg>'
+                        + '</div>';
+                    document.body.appendChild(div);
+                    makeDraggable(div);
+                    makeResizable(div);
+                    setupNoteAutoSave(div);
+                } else {
+                    if (existing) existing.remove();
+                    localStorage.removeItem('memo-pos-' + memo.id);
+                }
+            }
+
+            // ── 공유 받은 메모 floating 업데이트 ──────────────
+            async function memoUpdatePinnedSharedNote(memo) {
+                // data-share-id 로 조회
+                var existing = document.querySelector('.pinned-memo-note[data-share-id="' + memo.share_id + '"]');
+                if (memo.is_pinned) {
+                    if (existing) return;
+                    var c = MC[memo.color] || MC.yellow;
+                    var div = document.createElement('div');
+                    div.className = 'pinned-memo-note';
+                    div.dataset.id      = memo.id;
+                    div.dataset.shareId = memo.share_id;
+                    var noteCount = document.querySelectorAll('.pinned-memo-note').length;
+                    div.style.cssText = 'position:fixed;right:24px;bottom:' + (80 + noteCount * 230) + 'px;z-index:9988;background:' + c.bg + ';border:1.5px solid ' + c.border + ';border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;';
+                    div.innerHTML =
+                        '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
+                        + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || '메모') + '</span>'
+                        + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
+                        +   '<button onclick="memoToggleSharedPin(' + memo.share_id + ',' + memo.id + ')" title="고정 해제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                        +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
+                        +   '</button>'
+                        + '</div>'
+                        + '</div>'
+                        + '<div style="padding:3px 10px 0;font-size:10px;color:#7c3aed;font-weight:600;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';flex-shrink:0;">' + esc(memo.shared_by_name || '') + ' 공유</div>'
+                        + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:default;">' + esc(memo.content) + '</div>'
+                        + '<div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
+                        +   '<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/></svg>'
+                        + '</div>';
+                    document.body.appendChild(div);
+                    makeDraggable(div);
+                    makeResizable(div);
+                } else {
+                    if (existing) existing.remove();
+                    localStorage.removeItem('memo-pos-' + memo.id);
+                }
+            }
+
+            // ── 드래그 시스템 ──────────────────────────────────
+            var _drag   = { el: null, ox: 0, oy: 0 };
+            var _resize = { el: null, startX: 0, startY: 0, startW: 0, startH: 0 };
+
+            document.addEventListener('mousemove', async function(e) {
+                if (_drag.el) {
+                    var el = _drag.el;
+                    var newLeft = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  e.clientX - _drag.ox));
+                    var newTop  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, e.clientY - _drag.oy));
+                    el.style.left = newLeft + 'px';
+                    el.style.top  = newTop  + 'px';
+                }
+                if (_resize.el) {
+                    var el = _resize.el;
+                    var newW = Math.max(180, Math.min(window.innerWidth  - 20, _resize.startW + (e.clientX - _resize.startX)));
+                    var newH = Math.max(100, Math.min(window.innerHeight - 20, _resize.startH + (e.clientY - _resize.startY)));
+                    el.style.width  = newW + 'px';
+                    el.style.height = newH + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', async function() {
+                if (_drag.el) {
+                    var el = _drag.el;
+                    var h = el.querySelector('.pinned-memo-header');
+                    if (h) h.style.cursor = 'grab';
+                    document.body.style.userSelect = '';
+                    el.style.zIndex = '9988';
+                    localStorage.setItem('memo-pos-' + el.dataset.id, JSON.stringify({
+                        left: parseInt(el.style.left), top: parseInt(el.style.top)
+                    }));
+                    _drag.el = null;
+                }
+                if (_resize.el) {
+                    var el = _resize.el;
+                    document.body.style.userSelect = '';
+                    localStorage.setItem('memo-size-' + el.dataset.id, JSON.stringify({
+                        width: el.offsetWidth, height: el.offsetHeight
+                    }));
+                    _resize.el = null;
+                }
+            });
+
+            // 터치 드래그 / 리사이즈 지원
+            document.addEventListener('touchmove', async function(e) {
+                var t = e.touches[0];
+                if (_drag.el) {
+                    var el = _drag.el;
+                    var newLeft = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  t.clientX - _drag.ox));
+                    var newTop  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, t.clientY - _drag.oy));
+                    el.style.left = newLeft + 'px';
+                    el.style.top  = newTop  + 'px';
+                    e.preventDefault();
+                }
+                if (_resize.el) {
+                    var el = _resize.el;
+                    var newW = Math.max(180, Math.min(window.innerWidth  - 20, _resize.startW + (t.clientX - _resize.startX)));
+                    var newH = Math.max(100, Math.min(window.innerHeight - 20, _resize.startH + (t.clientY - _resize.startY)));
+                    el.style.width  = newW + 'px';
+                    el.style.height = newH + 'px';
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('touchend', async function() {
+                if (_drag.el) {
+                    var el = _drag.el;
+                    localStorage.setItem('memo-pos-' + el.dataset.id, JSON.stringify({
+                        left: parseInt(el.style.left), top: parseInt(el.style.top)
+                    }));
+                    _drag.el = null;
+                }
+                if (_resize.el) {
+                    var el = _resize.el;
+                    localStorage.setItem('memo-size-' + el.dataset.id, JSON.stringify({
+                        width: el.offsetWidth, height: el.offsetHeight
+                    }));
+                    _resize.el = null;
+                }
+            });
+
+            async function makeDraggable(el) {
+                // 저장된 위치 복원
+                var saved = null;
+                try { saved = JSON.parse(localStorage.getItem('memo-pos-' + el.dataset.id)); } catch(e2) {}
+                if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+                    el.style.left   = saved.left + 'px';
+                    el.style.top    = saved.top  + 'px';
+                    el.style.right  = 'auto';
+                    el.style.bottom = 'auto';
+                }
+                var header = el.querySelector('.pinned-memo-header');
+                if (!header) return;
+                header.addEventListener('mousedown', async function(e) {
+                    if (e.target.closest('button')) return;
+                    var rect = el.getBoundingClientRect();
+                    _drag.ox = e.clientX - rect.left;
+                    _drag.oy = e.clientY - rect.top;
+                    el.style.left   = rect.left + 'px';
+                    el.style.top    = rect.top  + 'px';
+                    el.style.right  = 'auto';
+                    el.style.bottom = 'auto';
+                    el.style.zIndex = '9996';
+                    header.style.cursor = 'grabbing';
+                    document.body.style.userSelect = 'none';
+                    _drag.el = el;
+                    e.preventDefault();
+                });
+                header.addEventListener('touchstart', async function(e) {
+                    if (e.target.closest('button')) return;
+                    var t = e.touches[0];
+                    var rect = el.getBoundingClientRect();
+                    _drag.ox = t.clientX - rect.left;
+                    _drag.oy = t.clientY - rect.top;
+                    el.style.left   = rect.left + 'px';
+                    el.style.top    = rect.top  + 'px';
+                    el.style.right  = 'auto';
+                    el.style.bottom = 'auto';
+                    el.style.zIndex = '9996';
+                    _drag.el = el;
+                }, { passive: true });
+            }
+
+            async function makeResizable(el) {
+                // 저장된 크기 복원
+                var saved = null;
+                try { saved = JSON.parse(localStorage.getItem('memo-size-' + el.dataset.id)); } catch(e2) {}
+                if (saved && typeof saved.width === 'number' && saved.width >= 180) {
+                    el.style.width  = saved.width  + 'px';
+                    el.style.height = saved.height + 'px';
+                }
+                var handle = el.querySelector('.pinned-memo-resize');
+                if (!handle) return;
+                handle.addEventListener('mousedown', async function(e) {
+                    _resize.el     = el;
+                    _resize.startX = e.clientX;
+                    _resize.startY = e.clientY;
+                    _resize.startW = el.offsetWidth;
+                    _resize.startH = el.offsetHeight;
+                    document.body.style.userSelect = 'none';
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
+                handle.addEventListener('touchstart', async function(e) {
+                    var t = e.touches[0];
+                    _resize.el     = el;
+                    _resize.startX = t.clientX;
+                    _resize.startY = t.clientY;
+                    _resize.startW = el.offsetWidth;
+                    _resize.startH = el.offsetHeight;
+                    e.stopPropagation();
+                }, { passive: true });
+            }
+
+            // ── 고정 메모 자동 저장 (contenteditable + debounce) ─
+            async function setupNoteAutoSave(el) {
+                var body = el.querySelector('.pinned-memo-body');
+                if (!body || body._autoSaveInit) return;
+                body._autoSaveInit = true;
+
+                // 본문을 바로 편집 가능하게
+                body.contentEditable = 'true';
+                body.style.outline   = 'none';
+
+                // 헤더에 저장 상태 표시 요소 삽입
+                var header = el.querySelector('.pinned-memo-header');
+                var status = document.createElement('span');
+                status.style.cssText = 'font-size:10px;color:#9ca3af;flex-shrink:0;opacity:0;transition:opacity .3s;white-space:nowrap;';
+                var btns = header.querySelector('div');
+                header.insertBefore(status, btns);
+
+                var saveTimer = null;
+                var lastContent = body.innerText.trim();
+
+                async function showStatus(msg, autoHide) {
+                    status.textContent = msg;
+                    status.style.opacity = '1';
+                    if (autoHide) setTimeout(async function() { status.style.opacity = '0'; }, autoHide);
+                }
+
+                async function doSave() {
+                    var content = body.innerText.trim();
+                    if (!content || content === lastContent) {
+                        status.style.opacity = '0';
+                        return;
+                    }
+                    showStatus('저장 중...', 0);
+                    fetch(MEMO_URL + '/' + el.dataset.id, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify({ content: content })
+                    }).then(async function(r) { return r.json(); }).then(async function(memo) {
+                        lastContent = memo.content;
+                        showStatus('✓ 저장됨', 1800);
+                        var popup = document.getElementById('memo-popup');
+                        if (popup && popup.style.display === 'flex') memoLoadList();
+                    }).catch(async function() {
+                        showStatus('저장 실패', 2500);
+                    });
+                }
+
+                body.addEventListener('input', async function() {
+                    clearTimeout(saveTimer);
+                    showStatus('...', 0);
+                    saveTimer = setTimeout(doSave, 700);
+                });
+
+                // 붙여넣기: 서식 제거 후 순수 텍스트만 삽입
+                body.addEventListener('paste', async function(e) {
+                    e.preventDefault();
+                    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                    document.execCommand('insertText', false, text);
+                });
+
+                // body 클릭 시 드래그 이벤트로 전파되지 않도록 차단
+                body.addEventListener('mousedown', async function(e) { e.stopPropagation(); });
+            }
+
+            // 페이지 로드 시 기존 고정 메모에 드래그 + 리사이즈 + 자동저장 적용
+            document.querySelectorAll('.pinned-memo-note').forEach(async function(el) {
+                makeDraggable(el);
+                makeResizable(el);
+                setupNoteAutoSave(el);
+            });
+
+            // ── 팝업 / 공유 모달 외부 클릭 시 닫기 ─────────────
+            document.addEventListener('click', async function(e) {
+                var popup = document.getElementById('memo-popup');
+                var btn   = document.getElementById('memo-btn');
+                if (popup && btn && popup.style.display === 'flex') {
+                    if (!popup.contains(e.target) && !btn.contains(e.target)) {
+                        memoPopupClose();
+                    }
+                }
+                var modal = document.getElementById('memo-share-modal');
+                if (modal && modal.style.display === 'flex') {
+                    if (e.target === modal) memoShareModalClose();
+                }
+            });
+        })();
+        </script>
+
+    @include('partials.custom-dialog')
     </body>
 </html>

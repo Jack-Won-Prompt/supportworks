@@ -18,10 +18,10 @@ class AgentUsageLogService
     ];
 
     /**
-     * AI 호출을 실행하고 결과를 usage_logs에 기록.
+     * 웍스 호출을 실행하고 결과를 usage_logs에 기록.
      * T06 AIProvider와 통합된 단일 진입점.
      *
-     * @param  callable(): AIResponse  $call  실제 AI 호출을 감싸는 클로저
+     * @param  callable(): AIResponse  $call  실제 웍스 호출을 감싸는 클로저
      */
     public function callAndLog(
         AIProvider $provider,
@@ -100,7 +100,7 @@ class AgentUsageLogService
         ];
     }
 
-    private function calculateCost(string $model, int $inputTokens, int $outputTokens): float
+    public function calculateCost(string $model, int $inputTokens, int $outputTokens): float
     {
         $modelKey = $this->resolveModelKey($model);
         $pricing  = self::PRICING[$modelKey] ?? ['input' => 0.003, 'output' => 0.015];

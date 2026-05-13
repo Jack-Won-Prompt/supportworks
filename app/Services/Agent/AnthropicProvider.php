@@ -4,6 +4,7 @@ namespace App\Services\Agent;
 
 use App\Services\Agent\Contracts\AIProvider;
 use App\Services\Agent\Contracts\AIResponse;
+use App\Services\Agent\Contracts\ToolUseResponse;
 use Illuminate\Support\Facades\Http;
 
 class AnthropicProvider implements AIProvider
@@ -95,6 +96,17 @@ class AnthropicProvider implements AIProvider
                 'stream'     => true,
             ]);
 
+        if (!$response->successful()) {
+            $rawBody = '';
+            $errStream = $response->getBody();
+            while (!$errStream->eof()) {
+                $rawBody .= $errStream->read(512);
+            }
+            $parsed = json_decode($rawBody, true);
+            $msg = $parsed['error']['message'] ?? mb_substr($rawBody, 0, 300);
+            throw new \RuntimeException("Anthropic Streaming API 오류 ({$response->status()}): {$msg}");
+        }
+
         $body = $response->getBody();
         $buffer = '';
 
@@ -135,6 +147,62 @@ class AnthropicProvider implements AIProvider
             outputTokens: $outputTokens,
             model:        $model,
             stopReason:   $stopReason,
+        );
+    }
+
+    /**
+     * Tool Use 호출 — Claude가 반드시 지정된 도구를 사용하여 구조화된 JSON 결과를 반환합니다.
+     * PDF 첨부 시 $extraHeaders에 ['anthropic-beta' => 'pdfs-2024-09-25'] 를 전달하세요.
+     *
+     * @param  array  $tools       Anthropic Tool 스키마 배열
+     * @param  array  $extraHeaders 추가 헤더 (beta 기능 등)
+     */
+    public function generateWithTools(
+        string $systemPrompt,
+        array  $messages,
+        array  $tools,
+        array  $options = [],
+        array  $extraHeaders = []
+    ): ToolUseResponse {
+        $maxTokens = $options['max_tokens'] ?? self::DEFAULT_MAX_TOKENS;
+        $timeout   = $options['timeout']    ?? self::DEFAULT_TIMEOUT;
+
+        $headers = array_merge([
+            'x-api-key'         => $this->apiKey,
+            'anthropic-version' => '2023-06-01',
+            'content-type'      => 'application/json',
+        ], $extraHeaders);
+
+        $res = Http::withOptions(['verify' => false])
+            ->withHeaders($headers)
+            ->timeout($timeout)
+            ->post(self::API_URL, [
+                'model'       => self::MODEL,
+                'max_tokens'  => $maxTokens,
+                'system'      => $systemPrompt,
+                'messages'    => $messages,
+                'tools'       => $tools,
+                'tool_choice' => ['type' => 'any'],
+            ]);
+
+        if (!$res->successful()) {
+            $err = $res->json('error.message') ?? $res->body();
+            throw new \RuntimeException("Anthropic API 오류 (Tool Use): {$err}");
+        }
+
+        $toolBlock = collect($res->json('content') ?? [])
+            ->firstWhere('type', 'tool_use');
+
+        if (!$toolBlock) {
+            throw new \RuntimeException('Anthropic이 tool_use 블록 없이 응답했습니다.');
+        }
+
+        return new ToolUseResponse(
+            toolName:     $toolBlock['name'] ?? '',
+            toolInput:    $toolBlock['input'] ?? [],
+            inputTokens:  $res->json('usage.input_tokens') ?? 0,
+            outputTokens: $res->json('usage.output_tokens') ?? 0,
+            model:        $res->json('model') ?? self::MODEL,
         );
     }
 

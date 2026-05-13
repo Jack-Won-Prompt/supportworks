@@ -1,5 +1,5 @@
 {{--
-  AI Agent 승인 게이트 컴포넌트
+  웍스 Agent 승인 게이트 컴포넌트
   Usage:
     <x-ai-agent.approval-gate
         :gate="$gate"
@@ -25,6 +25,7 @@
 @php
 use App\Enums\Agent\ApprovalStatus;
 use App\Models\ProjectMember;
+use App\Services\Agent\ApprovalGateHelper;
 
 $userId     = auth()->id();
 $isAdmin    = auth()->user()->isAdmin();
@@ -34,8 +35,10 @@ $canRequest = $project && ($isAdmin || $isMember);
 $canReview  = $isManager;
 $isRequester = $gate && $gate->requested_by === $userId;
 
-$typeLabel = $type === 'stage' ? '단계' : '산출물';
+$typeLabel    = $type === 'stage' ? '단계' : '산출물';
 $displayLabel = $label ?? $typeLabel;
+$badgeClass   = ApprovalGateHelper::getUiBadgeClass($gate);
+$passable     = ApprovalGateHelper::isPassable($gate);
 
 $gateJs = $gate ? [
     'id'              => $gate->id,
@@ -97,23 +100,27 @@ $cancelUrl  = ($gate && $project) ? route('ai-agent.projects.approvals.cancel', 
 </style>
 @endpush
 
+@php
+$_agData = [
+    'gate'         => $gateJs,
+    'type'         => $type,
+    'targetId'     => $targetId,
+    'userId'       => $userId,
+    'canRequest'   => $canRequest,
+    'canReview'    => $canReview,
+    'isRequester'  => $isRequester,
+    'isAdmin'      => $isAdmin,
+    'displayLabel' => $displayLabel,
+    'requestUrl'   => $requestUrl,
+    'approveUrl'   => $approveUrl,
+    'rejectUrl'    => $rejectUrl,
+    'cancelUrl'    => $cancelUrl,
+    'csrfToken'    => csrf_token(),
+    'passable'     => $passable,
+];
+@endphp
 <div class="apg"
-     x-data="approvalGate(@json([
-         'gate'       => $gateJs,
-         'type'       => $type,
-         'targetId'   => $targetId,
-         'userId'     => $userId,
-         'canRequest' => $canRequest,
-         'canReview'  => $canReview,
-         'isRequester'=> $isRequester,
-         'isAdmin'    => $isAdmin,
-         'displayLabel' => $displayLabel,
-         'requestUrl' => $requestUrl,
-         'approveUrl' => $approveUrl,
-         'rejectUrl'  => $rejectUrl,
-         'cancelUrl'  => $cancelUrl,
-         'csrfToken'  => csrf_token(),
-     ]))">
+     x-data="approvalGate(@json($_agData))">
 
     {{-- 헤더 --}}
     <div class="apg-header">
@@ -122,28 +129,13 @@ $cancelUrl  = ($gate && $project) ? route('ai-agent.projects.approvals.cancel', 
         </svg>
         <span class="apg-title">HITL 승인 게이트</span>
 
-        {{-- Status badge --}}
-        <template x-if="!gate">
-            <span class="apg-badge none">요청 전</span>
-        </template>
-        <template x-if="gate && gate.status === 'pending'">
-            <span class="apg-badge pending">
-                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                승인 대기
-            </span>
-        </template>
-        <template x-if="gate && gate.status === 'approved'">
-            <span class="apg-badge approved">
-                <svg width="10" height="10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                승인됨
-            </span>
-        </template>
-        <template x-if="gate && gate.status === 'rejected'">
-            <span class="apg-badge rejected">
-                <svg width="10" height="10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-                반려됨
-            </span>
-        </template>
+        {{-- Status badge — class driven by statusClass(), icons toggled with x-show --}}
+        <span class="apg-badge" :class="statusClass(gate?.status)">
+            <svg x-show="gate && gate.status === 'pending'" width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <svg x-show="gate && gate.status === 'approved'" width="10" height="10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <svg x-show="gate && gate.status === 'rejected'" width="10" height="10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+            <span x-text="statusLabel(gate?.status)"></span>
+        </span>
     </div>
 
     {{-- Alert --}}
@@ -341,7 +333,7 @@ $cancelUrl  = ($gate && $project) ? route('ai-agent.projects.approvals.cancel', 
 @once
 @push('scripts')
 <script>
-function approvalGate(cfg) {
+async function approvalGate(cfg) {
     return {
         gate: cfg.gate,
         type: cfg.type,
@@ -357,6 +349,17 @@ function approvalGate(cfg) {
         rejectUrl: cfg.rejectUrl,
         cancelUrl: cfg.cancelUrl,
         csrfToken: cfg.csrfToken,
+        passable: cfg.passable,
+
+        // Mirror of ApprovalGateHelper::getUiBadgeClass() for dynamic re-render after AJAX.
+        statusClass(status) {
+            const map = { pending: 'pending', approved: 'approved', rejected: 'rejected' };
+            return map[status] ?? 'none';
+        },
+        statusLabel(status) {
+            const map = { pending: '승인 대기', approved: '승인됨', rejected: '반려됨' };
+            return map[status] ?? '요청 전';
+        },
 
         showRequestModal: false,
         showApproveModal: false,
@@ -465,7 +468,7 @@ function approvalGate(cfg) {
         },
 
         async submitCancel() {
-            if (!confirm('승인 요청을 취소하시겠습니까?')) return;
+            if (!await __confirm('승인 요청을 취소하시겠습니까?')) return;
             this.loading = true;
             this.alert   = null;
             try {

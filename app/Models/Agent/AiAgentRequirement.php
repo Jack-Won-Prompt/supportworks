@@ -6,6 +6,7 @@ use App\Enums\Agent\RequirementPriority;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class AiAgentRequirement extends Model
 {
@@ -17,6 +18,8 @@ class AiAgentRequirement extends Model
         'req_id',
         'title',
         'description',
+        'rationale',
+        'source_files',
         'priority',
         'category',
         'source',
@@ -24,7 +27,8 @@ class AiAgentRequirement extends Model
     ];
 
     protected $casts = [
-        'priority' => RequirementPriority::class,
+        'priority'     => RequirementPriority::class,
+        'source_files' => 'array',
     ];
 
     public function artifact(): BelongsTo
@@ -38,19 +42,22 @@ class AiAgentRequirement extends Model
             ->where('source_type', 'requirement');
     }
 
-    // REQ-001 형식으로 다음 순번 자동 생성
+    // REQ-001 형식으로 다음 순번 자동 생성 (concurrent-safe)
     public static function nextReqId(int $projectId): string
     {
-        $max = static::where('project_id', $projectId)
-            ->orderByDesc('req_id')
-            ->value('req_id');
+        return DB::transaction(function () use ($projectId) {
+            $max = static::where('project_id', $projectId)
+                ->lockForUpdate()
+                ->orderByDesc('req_id')
+                ->value('req_id');
 
-        if (!$max) {
-            return 'REQ-001';
-        }
+            if (!$max) {
+                return 'REQ-001';
+            }
 
-        $num = (int) substr($max, 4) + 1;
-        return 'REQ-' . str_pad($num, 3, '0', STR_PAD_LEFT);
+            $num = (int) substr($max, 4) + 1;
+            return 'REQ-' . str_pad($num, 3, '0', STR_PAD_LEFT);
+        });
     }
 
     public function scopeByPriority($query, RequirementPriority $priority)

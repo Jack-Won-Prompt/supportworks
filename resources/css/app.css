@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Flatpickr 달력 레이아웃 ─────────────────────────────── */
+
+/* 달력 팝업을 fixed로 고정 — 스크롤 영역 확장 방지 */
+.flatpickr-calendar {
+    position: fixed !important;
+    z-index: 99999 !important;
+    font-size: 13px !important;
+    font-family: inherit !important;
+    height: auto !important;
+    bottom: auto !important;
+}
+
+/* 날짜 입력 필드 폰트 통일 */
+.flatpickr-input {
+    font-size: 13px !important;
+    font-family: inherit !important;
+}
+
+/* 달력 내부 요소 폰트 통일 */
+.flatpickr-calendar .flatpickr-months .flatpickr-month,
+.flatpickr-calendar .flatpickr-weekdays,
+.flatpickr-calendar .flatpickr-weekday,
+.flatpickr-calendar .flatpickr-day,
+.flatpickr-calendar .flatpickr-time input,
+.flatpickr-calendar .flatpickr-time .flatpickr-am-pm {
+    font-size: 13px !important;
+    font-family: inherit !important;
+    font-weight: 400 !important;
+}
+
+/* 월/연도 헤더 */
+.flatpickr-calendar .flatpickr-current-month,
+.flatpickr-calendar .flatpickr-current-month .cur-month,
+.flatpickr-calendar .flatpickr-current-month input.cur-year {
+    font-size: 13px !important;
+    font-family: inherit !important;
+    font-weight: 600 !important;
+}
+
+/* 요일 헤더 */
+.flatpickr-calendar .flatpickr-weekday {
+    font-weight: 600 !important;
+}
+
+.flatpickr-calendar .numInputWrapper span {
+    font-size: 10px !important;
+}
+
+/* ── Flatpickr 공휴일·토요일 색상 ─────────────────────────── */
+
+/* 공휴일: 빨간색 */
+.flatpickr-day.sw-holiday {
+    color: #ef4444 !important;
+    position: relative;
+}
+.flatpickr-day.sw-holiday::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+.flatpickr-day.sw-holiday.selected,
+.flatpickr-day.sw-holiday.selected:hover {
+    color: #fff !important;
+}
+.flatpickr-day.sw-holiday.selected::after {
+    background: rgba(255,255,255,.7);
+}
+
+/* 토요일: 연한 파랑 (7번째 열 = 1st=일, 7th=토) */
+.flatpickr-days .dayContainer .flatpickr-day:nth-child(7n) {
+    color: #93c5fd;
+}
+.flatpickr-days .dayContainer .flatpickr-day:nth-child(7n).selected,
+.flatpickr-days .dayContainer .flatpickr-day:nth-child(7n).selected:hover {
+    color: #fff;
+}
+
+/* 일요일: 빨간색 (1번째 열) */
+.flatpickr-days .dayContainer .flatpickr-day:nth-child(7n+1) {
+    color: #ef4444;
+}
+.flatpickr-days .dayContainer .flatpickr-day:nth-child(7n+1).selected,
+.flatpickr-days .dayContainer .flatpickr-day:nth-child(7n+1).selected:hover {
+    color: #fff;
+}
+
+/* 공휴일이 토요일/일요일과 겹칠 때 빨간 점 유지 */
+.flatpickr-days .dayContainer .flatpickr-day.sw-holiday {
+    color: #ef4444 !important;
+}
+
+@layer base {
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+        background-size: 1.1rem;
+        padding-right: 2.2rem !important;
+    }
+}

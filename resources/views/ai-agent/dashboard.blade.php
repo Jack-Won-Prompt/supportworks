@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'AI Agent')
+@section('title', '웍스 Agent')
 
 @push('styles')
 <style>
@@ -26,7 +26,7 @@
 </style>
 @endpush
 
-@section('content')
+@section('ai-agent-content')
 <div class="aia-dash">
 
     {{-- 히어로 --}}
@@ -36,9 +36,9 @@
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
                 <path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>
             </svg>
-            AI 개발 에이전트
+            웍스 개발 에이전트
         </h1>
-        <p>프로젝트를 선택하여 AI Agent 개발 워크플로우를 시작하세요.<br>기획 → 디자인 → 개발 준비 → 개발 → 릴리즈까지 전 과정을 AI가 지원합니다.</p>
+        <p>프로젝트를 선택하여 웍스 Agent 개발 워크플로우를 시작하세요.<br>기획 → 디자인 → 개발 준비 → 개발 → 릴리즈까지 전 과정을 웍스가 지원합니다.</p>
     </div>
 
     {{-- 프로젝트 목록 --}}
@@ -79,7 +79,7 @@
                 @endif
             </div>
             <div class="aia-proj-action">
-                AI Agent 시작
+                웍스 Agent 시작
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
         </a>
@@ -91,7 +91,7 @@
     <div style="margin-top:36px;padding:20px 24px;background:#faf5ff;border:1.5px solid var(--t100);border-radius:14px;display:flex;gap:14px;align-items:flex-start;">
         <svg width="20" height="20" fill="none" stroke="var(--t500)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div>
-            <div style="font-size:13px;font-weight:700;color:var(--t700);margin-bottom:4px;">AI Agent 개발 워크플로우 안내</div>
+            <div style="font-size:13px;font-weight:700;color:var(--t700);margin-bottom:4px;">웍스 Agent 개발 워크플로우 안내</div>
             <div style="font-size:12.5px;color:#64748b;line-height:1.7;">
                 프로젝트를 선택하면 <strong>기획 → 디자인 → 개발 준비 → 개발 → 릴리즈</strong> 순서로 진행됩니다.<br>
                 각 단계는 이전 단계 승인 후 활성화됩니다. 현재 화면은 <strong>T15</strong>에서 전체 구현 예정입니다.

@@ -1,0 +1,374 @@
+<?php
+
+/*
+ * Word 내보내기용 영문 번역
+ * 구조: deliverables.{typeId}.steps.{order}.{title|description|fields.{key}}
+ *       tools.{toolId}
+ */
+
+return [
+
+    'tools' => [
+        'DIAGRAM-FLOW'   => 'Process / Flow Chart Builder',
+        'DIAGRAM-ARCH'   => 'System Architecture Diagram',
+        'DIAGRAM-DFD'    => 'Data Flow Diagram (DFD) Builder',
+        'DIAGRAM-ERD'    => 'ER Diagram Builder',
+        'DIAGRAM-NET'    => 'Network Topology Builder',
+        'DIAGRAM-SEQ'    => 'Sequence Diagram Builder',
+        'DIAGRAM-LIFE'   => 'Data Lifecycle Diagram',
+        'MATRIX-RBAC'    => 'Permission Matrix (RBAC) Builder',
+        'MATRIX-RACI'    => 'RACI Matrix Builder',
+        'MATRIX-RISK'    => 'Risk Assessment Matrix',
+        'MATRIX-CONTACT' => 'Contact / Escalation Matrix',
+        'FORM-CHECKLIST' => 'Checklist Builder',
+        'FORM-QA'        => 'Q&A Form (OneTrust Style)',
+        'FORM-SLA-CALC'  => 'SLA Calculator',
+        'FORM-RPO-RTO'   => 'RPO/RTO Calculator',
+        'TABLE-DATA'     => 'Dynamic Data Table Builder',
+        'TABLE-CASE'     => 'Test Case Table Builder',
+        'TABLE-CONFIG'   => 'Configuration Table (CMDB)',
+        'TABLE-SCHEDULE' => 'Scheduled Jobs Table',
+        'TIMELINE'       => 'Timeline / Gantt Builder',
+        'DASHBOARD'      => 'Metrics Dashboard Preview',
+        'UPLOAD-DOC'     => 'Document Upload',
+        'UPLOAD-EVIDENCE'=> 'Evidence Upload',
+        'RUNBOOK'        => 'Runbook / SOP Editor',
+        'MAPPING'        => 'Deliverable Mapping Tool',
+        'AI-CHAT'        => 'AI Assistant Side Panel',
+        'VERSION'        => 'Version & Change History',
+        'APPROVE'        => 'Digital Signature & Approval Workflow',
+        'EXPORT'         => 'Multi-Format Export',
+    ],
+
+    'deliverables' => [
+
+        'USR' => [
+            'steps' => [
+                1 => ['title' => 'Business Background',                 'description' => 'Project background, rationale',
+                      'fields' => ['background'    => 'Background and Rationale']],
+                2 => ['title' => 'Scope & Objectives',                  'description' => 'Project scope, measurable objectives',
+                      'fields' => ['scope'          => 'Scope', 'objectives' => 'Objectives']],
+                3 => ['title' => 'Business Functional Requirements',    'description' => 'Functional requirements list',
+                      'fields' => ['funcReqs'       => 'Functional Requirements']],
+                4 => ['title' => 'Business Migration Requirements',     'description' => 'Migration procedures, availability',
+                      'fields' => ['migrationReqs'  => 'Migration Requirements']],
+                5 => ['title' => 'Legal / Compliance',                  'description' => 'Applicable laws and internal policies',
+                      'fields' => ['compliance'     => 'Laws and Policies']],
+                6 => ['title' => 'IT Requirements',                     'description' => 'Performance, security, integration',
+                      'fields' => ['itReqs'          => 'IT Requirements']],
+                7 => ['title' => 'Business Process (As-is / To-be)',    'description' => 'Process flow',
+                      'fields' => ['processDesc'    => 'Process Description']],
+                8 => ['title' => 'Review & Approval',                   'description' => 'Stakeholder review, approval',
+                      'fields' => ['reviewNotes'    => 'Review Notes']],
+            ],
+        ],
+
+        'FRS' => [
+            'steps' => [
+                1 => ['title' => 'URS Integration',                     'description' => 'Auto-import URS items',
+                      'fields' => ['ursRef'          => 'URS Reference']],
+                2 => ['title' => 'System Functional Architecture',      'description' => 'Module / layer structure',
+                      'fields' => ['archDescription' => 'Architecture Description']],
+                3 => ['title' => 'Data Flow Diagram',                   'description' => 'Input, output and processing flow',
+                      'fields' => ['dfdDescription'  => 'DFD Description']],
+                4 => ['title' => 'Functional Specification',            'description' => 'Screen and function behavior',
+                      'fields' => ['funcSpec'         => 'Functional Specification']],
+                5 => ['title' => 'Interface Definition',                'description' => 'API and integration systems',
+                      'fields' => ['interfaces'       => 'Interface List']],
+                6 => ['title' => 'Review & Approval',                   'description' => 'Review findings',
+                      'fields' => ['reviewNotes'      => 'Review Notes']],
+            ],
+        ],
+
+        'InfoSec' => [
+            'steps' => [
+                1 => ['title' => 'Asset & Data Classification',         'description' => 'Asset and sensitivity input (A)',
+                      'fields' => ['assets'           => 'Asset List']],
+                2 => ['title' => 'Risk & Vulnerability Identification', 'description' => 'Technical controls input (B)',
+                      'fields' => ['riskDesc'          => 'Risk Description']],
+                3 => ['title' => 'Control Assessment',                  'description' => 'A+B agreement',
+                      'fields' => ['controls'          => 'Control Assessment']],
+                4 => ['title' => 'Transition Assessment',               'description' => 'Migration risk (A+B)',
+                      'fields' => ['transition'        => 'Transition Checklist']],
+                5 => ['title' => 'Residual Risk & Approval',            'description' => 'A approval',
+                      'fields' => ['residualRisk'      => 'Residual Risk Details']],
+            ],
+        ],
+
+        'RoPA' => [
+            'steps' => [
+                1 => ['title' => 'Processing Purpose & Legal Basis',    'description' => 'A input',
+                      'fields' => ['purpose'           => 'Processing Purpose and Legal Basis']],
+                2 => ['title' => 'Personal Data Items',                 'description' => 'A+B collected items',
+                      'fields' => ['piiItems'           => 'Personal Data Items']],
+                3 => ['title' => 'Processing Flow',                     'description' => 'B system flow',
+                      'fields' => ['flowDesc'           => 'Data Processing Flow']],
+                4 => ['title' => 'Retention & Disposal',                'description' => 'A+B',
+                      'fields' => ['retention'          => 'Retention and Disposal Policy']],
+                5 => ['title' => 'Third-Party & Cross-Border Transfer', 'description' => 'A+B',
+                      'fields' => ['thirdParty'         => 'Third-Party Transfer Information']],
+                6 => ['title' => 'Review & Registration',               'description' => 'A approval',
+                      'fields' => ['reviewNotes'        => 'Review Notes']],
+            ],
+        ],
+
+        'Access' => [
+            'steps' => [
+                1 => ['title' => 'Role Definition',                     'description' => 'A business roles',
+                      'fields' => ['roles'             => 'Role List']],
+                2 => ['title' => 'Permission Matrix',                   'description' => 'A+B role × function',
+                      'fields' => ['rbacDesc'           => 'Permission Configuration']],
+                3 => ['title' => 'Data Access Classification',          'description' => 'A+B role × data',
+                      'fields' => ['dataAccess'         => 'Data Access Classification']],
+                4 => ['title' => 'Authentication Workflow',             'description' => 'B approval procedure',
+                      'fields' => ['authFlow'           => 'Authentication Flow Description']],
+                5 => ['title' => 'SSO / Account Management',           'description' => 'B implementation',
+                      'fields' => ['ssoPolicy'          => 'SSO and Account Policy']],
+                6 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'        => 'Review Notes']],
+            ],
+        ],
+
+        'Audit' => [
+            'steps' => [
+                1 => ['title' => 'Log Target Identification',           'description' => 'Transactions and data',
+                      'fields' => ['logTargets'        => 'Log Target List']],
+                2 => ['title' => 'Log Schema Definition',               'description' => 'Who / What / When / Where / Why',
+                      'fields' => ['logSchema'          => 'Log Schema']],
+                3 => ['title' => 'Retention & Integrity',               'description' => 'Retention period, tamper prevention',
+                      'fields' => ['retentionPolicy'   => 'Retention and Integrity Policy']],
+                4 => ['title' => 'Inquiry & Audit Procedure',           'description' => 'Access rights and procedures',
+                      'fields' => ['auditProcedure'    => 'Audit Procedure']],
+                5 => ['title' => 'Review & Approval',                   'description' => 'Approver review',
+                      'fields' => ['reviewNotes'        => 'Review Notes']],
+            ],
+        ],
+
+        'PhySec' => [
+            'steps' => [
+                1 => ['title' => 'Data Center / Facility Information',  'description' => 'Location, certifications (ISO 27001, etc.)',
+                      'fields' => ['facilityInfo'      => 'Facility Information']],
+                2 => ['title' => 'Access Control',                      'description' => 'Access policy, CCTV, security',
+                      'fields' => ['accessControl'     => 'Access Control Details']],
+                3 => ['title' => 'Environmental Controls',              'description' => 'Power, cooling, fire, disaster',
+                      'fields' => ['envControl'         => 'Environmental Control Details']],
+                4 => ['title' => 'Backup Attachment & Summary',         'description' => 'Security backup upload',
+                      'fields' => ['backupDoc'          => 'Backup Document']],
+                5 => ['title' => 'Review & Approval',                   'description' => 'Review approval',
+                      'fields' => ['reviewNotes'        => 'Review Notes']],
+            ],
+        ],
+
+        'Backup' => [
+            'steps' => [
+                1 => ['title' => 'RPO / RTO Definition',               'description' => 'A business requirements',
+                      'fields' => ['rpoRto'             => 'RPO / RTO Values']],
+                2 => ['title' => 'Backup Targets & Schedule',           'description' => 'B technical policy',
+                      'fields' => ['backupPolicy'       => 'Backup Targets and Schedule']],
+                3 => ['title' => 'Backup Media & Encryption',           'description' => 'B security requirements',
+                      'fields' => ['mediaEncryption'   => 'Media and Encryption']],
+                4 => ['title' => 'Recovery Procedure',                  'description' => 'B Runbook',
+                      'fields' => ['recoveryProcedure' => 'Recovery Procedure']],
+                5 => ['title' => 'DR Drill Plan',                       'description' => 'A+B drills',
+                      'fields' => ['drPlan'             => 'DR Drill Plan']],
+                6 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'        => 'Review Notes']],
+            ],
+        ],
+
+        'BCP' => [
+            'steps' => [
+                1 => ['title' => 'Critical Business Identification',    'description' => 'A BIA',
+                      'fields' => ['criticalBiz'        => 'Critical Business List']],
+                2 => ['title' => 'Risk Scenarios',                      'description' => 'A+B disaster / failure',
+                      'fields' => ['scenarios'           => 'Risk Scenarios']],
+                3 => ['title' => 'Response Strategy',                   'description' => 'B technical / A business',
+                      'fields' => ['strategy'            => 'Response Strategy']],
+                4 => ['title' => 'BCP Procedure',                       'description' => 'A+B procedure',
+                      'fields' => ['procedure'           => 'BCP Procedure']],
+                5 => ['title' => 'Drill Plan',                          'description' => 'A+B DR drill scenarios',
+                      'fields' => ['trainPlan'           => 'Drill Plan']],
+                6 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'         => 'Review Notes']],
+            ],
+        ],
+
+        'Mon' => [
+            'steps' => [
+                1 => ['title' => 'Monitoring Targets',                  'description' => 'Systems, services, metrics',
+                      'fields' => ['targets'             => 'Monitoring Target List']],
+                2 => ['title' => 'Thresholds & Alerts',                 'description' => 'Warning / critical thresholds',
+                      'fields' => ['thresholds'          => 'Threshold Configuration']],
+                3 => ['title' => 'Alert Delivery Channels',             'description' => 'Notification targets and channels',
+                      'fields' => ['alertChannels'       => 'Alert Channel Information']],
+                4 => ['title' => 'Response Procedure',                  'description' => 'Runbook per alert',
+                      'fields' => ['runbook'              => 'Response Procedure']],
+                5 => ['title' => 'Reports',                             'description' => 'Daily / weekly / monthly reports',
+                      'fields' => ['reportTemplate'      => 'Report Template']],
+            ],
+        ],
+
+        'Jobs' => [
+            'steps' => [
+                1 => ['title' => 'Job List',                            'description' => 'B automated tasks',
+                      'fields' => ['jobList'              => 'Scheduled Job List']],
+                2 => ['title' => 'Schedule & Dependencies',             'description' => 'B Cron / dependencies',
+                      'fields' => ['schedule'             => 'Schedule and Dependencies']],
+                3 => ['title' => 'Failure Handling',                    'description' => 'A+B retry / alerts',
+                      'fields' => ['failureHandling'      => 'Failure Handling Policy']],
+                4 => ['title' => 'Monitoring Integration',              'description' => 'B metrics / alerts',
+                      'fields' => ['monitoringLink'       => 'Monitoring Integration']],
+                5 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'          => 'Review Notes']],
+            ],
+        ],
+
+        'Retention' => [
+            'steps' => [
+                1 => ['title' => 'Data Classification',                 'description' => 'A business data',
+                      'fields' => ['dataClasses'          => 'Data Classification List']],
+                2 => ['title' => 'Retention Periods',                   'description' => 'A+B laws / policies',
+                      'fields' => ['retentionPeriods'     => 'Retention Periods']],
+                3 => ['title' => 'Archiving Policy',                    'description' => 'B storage and accessibility',
+                      'fields' => ['archivePolicy'        => 'Archiving Policy']],
+                4 => ['title' => 'Disposal Procedure',                  'description' => 'A+B SOP',
+                      'fields' => ['disposalProcedure'   => 'Disposal Procedure']],
+                5 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'          => 'Review Notes']],
+            ],
+        ],
+
+        'Review' => [
+            'steps' => [
+                1 => ['title' => 'Review Item Identification',          'description' => 'A+B auto-extract from other deliverables',
+                      'fields' => ['reviewItems'          => 'Review Items']],
+                2 => ['title' => 'Schedule & Assignees',                'description' => 'A assignment',
+                      'fields' => ['schedule'              => 'Schedule and Assignees']],
+                3 => ['title' => 'Review Checklist',                    'description' => 'A+B auto-generated',
+                      'fields' => ['checklist'             => 'Checklist Content']],
+                4 => ['title' => 'Anomaly Response Procedure',          'description' => 'B escalation link',
+                      'fields' => ['escalation'            => 'Escalation Procedure']],
+                5 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'           => 'Review Notes']],
+            ],
+        ],
+
+        'Config' => [
+            'steps' => [
+                1 => ['title' => 'Hardware Configuration',              'description' => 'B CMDB standards',
+                      'fields' => ['hardware'              => 'Hardware List']],
+                2 => ['title' => 'Software Configuration',              'description' => 'B versions / licenses',
+                      'fields' => ['software'              => 'Software List']],
+                3 => ['title' => 'Network Configuration',               'description' => 'B topology',
+                      'fields' => ['netDesc'               => 'Network Configuration Description']],
+                4 => ['title' => 'Environment Differences',             'description' => 'B Dev / Stg / Prd',
+                      'fields' => ['envDiff'               => 'Environment Differences']],
+                5 => ['title' => 'Change History Integration',          'description' => 'A+B change integration',
+                      'fields' => ['changeLink'            => 'Change History Integration']],
+                6 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'           => 'Review Notes']],
+            ],
+        ],
+
+        'Test' => [
+            'steps' => [
+                1 => ['title' => 'Test Scenario Definition',            'description' => 'Based on URS / FRS',
+                      'fields' => ['scenarios'              => 'Test Scenarios']],
+                2 => ['title' => 'Test Case Creation',                  'description' => 'Input / expected results / priority',
+                      'fields' => ['testCases'              => 'Test Cases']],
+                3 => ['title' => 'Test Data Preparation',               'description' => 'Masked sample data',
+                      'fields' => ['testData'               => 'Test Data']],
+                4 => ['title' => 'Execution & Result Recording',        'description' => 'Pass / Fail, defect ID',
+                      'fields' => ['execResults'            => 'Execution Results']],
+                5 => ['title' => 'Test Report',                         'description' => 'Summary, statistics, conclusion',
+                      'fields' => ['report'                 => 'Test Report Content']],
+            ],
+        ],
+
+        'Deploy' => [
+            'steps' => [
+                1 => ['title' => 'Deployment Scope',                    'description' => 'Target modules, environment',
+                      'fields' => ['scope'                  => 'Deployment Scope']],
+                2 => ['title' => 'Pre-Check',                           'description' => 'Dependencies, prerequisites',
+                      'fields' => ['precheck'               => 'Pre-Check Content']],
+                3 => ['title' => 'Deployment Procedure',                'description' => 'Step-by-step commands / tasks',
+                      'fields' => ['procedure'              => 'Deployment Procedure']],
+                4 => ['title' => 'Rollback Plan',                       'description' => 'Rollback triggers and procedures',
+                      'fields' => ['rollback'               => 'Rollback Plan']],
+                5 => ['title' => 'Deployment Log',                      'description' => 'Date, assignee, result',
+                      'fields' => ['deployLog'              => 'Deployment Log']],
+                6 => ['title' => 'Post-Deployment Verification',        'description' => 'Monitoring and verification results',
+                      'fields' => ['postVerify'             => 'Post-Verification Results']],
+            ],
+        ],
+
+        'Train' => [
+            'steps' => [
+                1 => ['title' => 'Curriculum by Role',                  'description' => 'A+B role-based item mapping',
+                      'fields' => ['curriculum'             => 'Training Curriculum']],
+                2 => ['title' => 'Training Materials',                  'description' => 'B manuals / videos',
+                      'fields' => ['materials'              => 'Training Materials']],
+                3 => ['title' => 'Schedule & Format',                   'description' => 'A schedule / venue',
+                      'fields' => ['trainingSchedule'       => 'Training Schedule and Format']],
+                4 => ['title' => 'Evaluation Method',                   'description' => 'A+B quiz / practice',
+                      'fields' => ['evaluation'             => 'Evaluation Method']],
+                5 => ['title' => 'Completion Management',               'description' => 'A completion dashboard',
+                      'fields' => ['completion'             => 'Completion Management']],
+                6 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'            => 'Review Notes']],
+            ],
+        ],
+
+        'SLA' => [
+            'steps' => [
+                1 => ['title' => 'Service Scope',                       'description' => 'A+B contract scope mapping',
+                      'fields' => ['serviceScope'           => 'Service Scope']],
+                2 => ['title' => 'Severity Definition',                 'description' => 'A+B P1~P4',
+                      'fields' => ['severity'               => 'Severity Level Definition']],
+                3 => ['title' => 'Response & Resolution Time',          'description' => 'A+B by severity',
+                      'fields' => ['slaValues'              => 'SLA Time Standards']],
+                4 => ['title' => 'Measurement Method',                  'description' => 'B tools / means',
+                      'fields' => ['measurement'            => 'Measurement Method']],
+                5 => ['title' => 'Penalties & Rewards',                 'description' => 'A+B contract terms',
+                      'fields' => ['penalties'              => 'Penalties and Rewards']],
+                6 => ['title' => 'Reporting & Review',                  'description' => 'A+B frequency',
+                      'fields' => ['reporting'              => 'Reporting and Review Frequency']],
+                7 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'            => 'Review Notes']],
+            ],
+        ],
+
+        'Escal' => [
+            'steps' => [
+                1 => ['title' => 'Service Tier Definition',             'description' => 'A+B L1 / L2 / L3',
+                      'fields' => ['tiers'                  => 'Service Tiers']],
+                2 => ['title' => 'Tier Responsibilities',               'description' => 'A+B RACI',
+                      'fields' => ['raciDesc'               => 'RACI Configuration']],
+                3 => ['title' => 'Contact Matrix',                      'description' => 'A+B 24/7',
+                      'fields' => ['contacts'               => 'Contact Information']],
+                4 => ['title' => 'Escalation Triggers',                 'description' => 'A+B time / severity',
+                      'fields' => ['triggers'               => 'Escalation Triggers']],
+                5 => ['title' => 'Notification Channels',               'description' => 'B phone / email / messenger',
+                      'fields' => ['channels'               => 'Notification Channel Information']],
+                6 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'            => 'Review Notes']],
+            ],
+        ],
+
+        'Change' => [
+            'steps' => [
+                1 => ['title' => 'Change Type Definition',              'description' => 'A+B Std / Normal / Emergency',
+                      'fields' => ['changeTypes'            => 'Change Type Definition']],
+                2 => ['title' => 'Procedure by Type',                   'description' => 'B procedure creation',
+                      'fields' => ['procedure'              => 'Change Procedure Flow']],
+                3 => ['title' => 'CAB Configuration',                   'description' => 'A member assignment',
+                      'fields' => ['cab'                    => 'CAB Members']],
+                4 => ['title' => 'Change Form',                         'description' => 'A+B form agreement',
+                      'fields' => ['changeForm'             => 'Change Form Content']],
+                5 => ['title' => 'Review & Approval',                   'description' => 'A approval',
+                      'fields' => ['reviewNotes'            => 'Review Notes']],
+            ],
+        ],
+
+    ],
+];
