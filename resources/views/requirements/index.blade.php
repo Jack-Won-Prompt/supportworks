@@ -166,7 +166,8 @@
 
         {{-- 제목 --}}
         <div style="min-width:0;">
-            <a href="#" onclick="openReqDetail({{ $req->id }}, '{{ route('projects.requirements.show', [$project, $req]) }}'); return false;"
+            <a href="#" class="req-list-title" data-req-id="{{ $req->id }}"
+               onclick="openReqDetail({{ $req->id }}, '{{ route('projects.requirements.show', [$project, $req]) }}'); return false;"
                style="font-size:13px;font-weight:600;color:#18181b;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
                onmouseover="this.style.color='var(--t500)'" onmouseout="this.style.color='#18181b'">{{ $req->title }}</a>
             <div style="font-size:11px;color:#a1a1aa;margin-top:2px;">
@@ -620,7 +621,20 @@
     <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0;gap:12px;">
         <div style="flex:1;min-width:0;">
             <div id="rd-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;"></div>
-            <h2 id="rd-title" style="font-size:17px;font-weight:700;color:#18181b;margin:0;line-height:1.4;"></h2>
+            <div id="rd-title-wrap" style="display:flex;align-items:center;gap:6px;">
+                <h2 id="rd-title" onclick="rdToggleTitle()" title="클릭하여 수정"
+                    style="font-size:17px;font-weight:700;color:#18181b;margin:0;line-height:1.4;cursor:pointer;flex:1;min-width:0;padding:2px 4px;border-radius:6px;transition:background .12s;"
+                    onmouseover="this.style.background='#faf5ff'" onmouseout="this.style.background='transparent'"></h2>
+            </div>
+            <div id="rd-title-edit" style="display:none;margin-top:4px;">
+                <input type="text" id="rd-title-input" maxlength="255"
+                       style="width:100%;padding:6px 10px;border:1.5px solid var(--t500);border-radius:7px;font-size:16px;font-weight:700;color:#18181b;outline:none;box-sizing:border-box;"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();rdSaveTitle();}else if(event.key==='Escape'){rdToggleTitle();}">
+                <div style="display:flex;gap:6px;margin-top:6px;">
+                    <button onclick="rdSaveTitle()" style="padding:5px 12px;font-size:11px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:6px;cursor:pointer;">저장</button>
+                    <button onclick="rdToggleTitle()" style="padding:5px 12px;font-size:11px;color:#6b7280;border:1.5px solid #e4e4e7;background:#fff;border-radius:6px;cursor:pointer;">취소</button>
+                </div>
+            </div>
             <p id="rd-meta" style="font-size:11px;color:#9ca3af;margin:4px 0 0;"></p>
             <div id="rd-source-banner" style="display:none;margin-top:6px;padding:5px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;font-size:11px;color:#15803d;align-items:center;gap:6px;flex-wrap:wrap;"></div>
         </div>
@@ -2119,7 +2133,7 @@ document.addEventListener('keydown', e => {
 // ── 요구사항 상세 팝업 ─────────────────────────────────────────
 let _rd = null; // current requirement data
 
-async function rdEsc(s) {
+function rdEsc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
@@ -2302,6 +2316,41 @@ async function rdToggleDesc() {
     view.style.display = isEdit ? 'block' : 'none';
     edit.style.display = isEdit ? 'none' : 'block';
     if (!isEdit) document.getElementById('rd-desc-input').focus();
+}
+
+function rdToggleTitle() {
+    const wrap = document.getElementById('rd-title-wrap');
+    const edit = document.getElementById('rd-title-edit');
+    const input = document.getElementById('rd-title-input');
+    const isEdit = edit.style.display !== 'none';
+    if (isEdit) {
+        wrap.style.display = '';
+        edit.style.display = 'none';
+    } else {
+        input.value = _rd?.requirement?.title ?? document.getElementById('rd-title').textContent;
+        wrap.style.display = 'none';
+        edit.style.display = 'block';
+        setTimeout(() => { input.focus(); input.select(); }, 30);
+    }
+}
+
+async function rdSaveTitle() {
+    if (!_rd) return;
+    const val = document.getElementById('rd-title-input').value.trim();
+    if (!val) { alert('제목은 비워둘 수 없습니다.'); return; }
+    if (val === _rd.requirement.title) { rdToggleTitle(); return; }
+    const body = new FormData();
+    body.append('_method', 'PATCH');
+    body.append('title', val);
+    const res = await fetch(_rd.urls.update, { method:'POST', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}, body });
+    if (!res.ok) { alert('제목 저장에 실패했습니다.'); return; }
+    document.getElementById('rd-title').textContent = val;
+    _rd.requirement.title = val;
+    rdToggleTitle();
+    // 목록 행의 제목도 갱신
+    document.querySelectorAll(`a.req-list-title[data-req-id="${_rd.requirement.id}"]`).forEach(el => {
+        el.textContent = val;
+    });
 }
 
 async function rdSaveDesc() {
