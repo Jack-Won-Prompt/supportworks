@@ -22,7 +22,7 @@ class UserController extends Controller
         $groups   = $this->accessibleGroups($admin);
         $groupIds = $groups->pluck('id');
 
-        $users = User::with('companyGroup')
+        $users = User::with(['companyGroup', 'projects:id'])
             ->when($request->search, fn($q) =>
                 $q->where(fn($inner) =>
                     $inner->where('name', 'like', '%'.$request->search.'%')
@@ -91,7 +91,9 @@ class UserController extends Controller
     {
         $admin  = auth('admin')->user();
         $groups = $this->accessibleGroups($admin);
-        return view('admin.users.edit', compact('user', 'groups'));
+        $projects = Project::orderBy('name')->get(['id', 'name', 'status']);
+        $assignedProjectIds = $user->projects()->pluck('projects.id')->all();
+        return view('admin.users.edit', compact('user', 'groups', 'projects', 'assignedProjectIds'));
     }
 
     public function update(Request $request, User $user)
@@ -106,6 +108,8 @@ class UserController extends Controller
             'phone'            => 'nullable|string|max:20',
             'password'         => 'nullable|min:8|confirmed',
             'company_group_id' => 'nullable|exists:company_groups,id',
+            'project_ids'      => 'nullable|array',
+            'project_ids.*'    => 'exists:projects,id',
         ]);
 
         if (!$admin->isSuperAdmin() && $validated['company_group_id']) {
@@ -118,13 +122,27 @@ class UserController extends Controller
             }
         }
 
-        if ($validated['password']) {
+        $projectIds = $validated['project_ids'] ?? [];
+        unset($validated['project_ids']);
+
+        if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
         }
 
         $user->update($validated);
+
+        if ($request->has('project_ids_present')) {
+            $existing = $user->projects()->withPivot('role')->get()->keyBy('id');
+            $sync = [];
+            foreach ($projectIds as $pid) {
+                $pid = (int) $pid;
+                $sync[$pid] = ['role' => $existing[$pid]->pivot->role ?? 'member'];
+            }
+            $user->projects()->sync($sync);
+        }
+
         $user->refresh();
 
         if ($request->expectsJson()) {

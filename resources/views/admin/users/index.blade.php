@@ -88,6 +88,7 @@
                                     data-company="{{ $user->company ?? '' }}"
                                     data-phone="{{ $user->phone ?? '' }}"
                                     data-group="{{ $user->company_group_id ?? '' }}"
+                                    data-project-ids="{{ $user->projects->pluck('id')->implode(',') }}"
                                     class="text-xs text-indigo-600 hover:text-indigo-700">{{ __('admin.usr_edit') }}</button>
                             <button onclick="impersonateUser('{{ route('admin.users.impersonate', $user) }}', '{{ addslashes($user->name) }}')"
                                     class="text-xs text-emerald-600 hover:text-emerald-700">{{ __('admin.usr_login_as_user') }}</button>
@@ -347,6 +348,25 @@
                     </div>
                 </div>
 
+                {{-- 프로젝트 배정 (멀티 선택) --}}
+                @if($projects->isNotEmpty())
+                <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                        <label style="font-size:12px;font-weight:600;color:#475569;">{{ __('admin.mgmt_project_assign') }}</label>
+                        <span id="edit-proj-count" style="font-size:11px;font-weight:500;color:#6366f1;"></span>
+                    </div>
+                    <div style="border:1px solid #e2e8f0;border-radius:8px;max-height:180px;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:5px;">
+                        @foreach($projects as $project)
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#374151;">
+                            <input type="checkbox" class="edit-proj-check" value="{{ $project->id }}"
+                                   style="width:14px;height:14px;accent-color:#6366f1;">
+                            <span style="flex:1;">{{ $project->name }}</span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
             </div>
             <div style="padding:14px 24px 20px;display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid #f1f5f9;">
                 <button type="button" onclick="closeEditModal()"
@@ -538,9 +558,24 @@ async function openEditModal(btn) {
     document.getElementById('edit-password').value         = '';
     document.getElementById('edit-password-confirm').value = '';
     document.getElementById('edit-error').style.display    = 'none';
+
+    const projIds = (d.projectIds || '').split(',').filter(Boolean).map(Number);
+    document.querySelectorAll('.edit-proj-check').forEach(cb => {
+        cb.checked = projIds.includes(parseInt(cb.value, 10));
+    });
+    updateEditProjCount();
+
     _editModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
+
+function updateEditProjCount() {
+    const el = document.getElementById('edit-proj-count');
+    if (!el) return;
+    const n = document.querySelectorAll('.edit-proj-check:checked').length;
+    el.textContent = n > 0 ? n + '개 선택됨' : '';
+}
+document.querySelectorAll('.edit-proj-check').forEach(cb => cb.addEventListener('change', updateEditProjCount));
 
 async function closeEditModal() {
     _editModal.style.display = 'none';
@@ -555,13 +590,16 @@ async function submitEditModal(e) {
     btn.disabled = true; btn.textContent = ADMIN_B_STR.saving;
 
     const pw = document.getElementById('edit-password').value;
+    const projectIds = [...document.querySelectorAll('.edit-proj-check:checked')].map(cb => parseInt(cb.value, 10));
     const body = {
-        name:             document.getElementById('edit-name').value,
-        email:            document.getElementById('edit-email').value,
-        role:             document.getElementById('edit-role').value,
-        company:          document.getElementById('edit-company').value,
-        phone:            document.getElementById('edit-phone').value,
-        company_group_id: document.getElementById('edit-group').value || null,
+        name:                document.getElementById('edit-name').value,
+        email:               document.getElementById('edit-email').value,
+        role:                document.getElementById('edit-role').value,
+        company:             document.getElementById('edit-company').value,
+        phone:               document.getElementById('edit-phone').value,
+        company_group_id:    document.getElementById('edit-group').value || null,
+        project_ids:         projectIds,
+        project_ids_present: 1,
     };
     if (pw) {
         body.password              = pw;

@@ -65,6 +65,35 @@
                 </select>
             </div>
 
+            @php
+                $selectedProjectIds = collect(old('project_ids', $assignedProjectIds ?? []))->map(fn($v) => (int) $v)->all();
+            @endphp
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-sm font-medium text-gray-700">{{ __('admin.mgmt_project_assign') }}</label>
+                    <span id="user-proj-count" class="text-xs text-indigo-600 font-medium"></span>
+                </div>
+                <div class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto p-2 bg-white">
+                    @forelse($projects as $proj)
+                        @php
+                            $statusColor = match($proj->status) { 'active' => '#22c55e', 'completed' => '#94a3b8', default => '#f59e0b' };
+                            $statusLbl   = match($proj->status) { 'active' => __('admin.maint_status_in_progress'), 'completed' => __('admin.maint_status_completed'), default => __('admin.status_pending') };
+                            $checked     = in_array((int) $proj->id, $selectedProjectIds, true);
+                        @endphp
+                        <label class="flex items-center gap-2.5 px-2.5 py-2 rounded-md cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="project_ids[]" value="{{ $proj->id }}" {{ $checked ? 'checked' : '' }}
+                                   class="user-proj-check w-4 h-4 accent-indigo-600 cursor-pointer">
+                            <span class="text-sm text-gray-800 flex-1">{{ $proj->name }}</span>
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                                  style="background: {{ $statusColor }}22; color: {{ $statusColor }};">{{ $statusLbl }}</span>
+                        </label>
+                    @empty
+                        <p class="text-center text-sm text-gray-400 py-5">{{ __('admin.mgmt_no_projects') }}</p>
+                    @endforelse
+                </div>
+                <input type="hidden" name="project_ids_present" value="1">
+            </div>
+
             <div class="flex items-center gap-3 pt-2">
                 <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">{{ __('admin.usr_save') }}</button>
                 <a href="{{ route('admin.users.index') }}" class="px-6 py-2.5 text-gray-600 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50">{{ __('admin.usr_cancel') }}</a>
@@ -72,4 +101,18 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    const STR_SELECTED = '{{ __('admin.mgmt_selected_count') }}';
+    const checks  = document.querySelectorAll('.user-proj-check');
+    const counter = document.getElementById('user-proj-count');
+    function update() {
+        const n = document.querySelectorAll('.user-proj-check:checked').length;
+        counter.textContent = n > 0 ? n + STR_SELECTED : '';
+    }
+    checks.forEach(cb => cb.addEventListener('change', update));
+    update();
+})();
+</script>
 @endsection
