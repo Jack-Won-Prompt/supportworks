@@ -43,7 +43,12 @@
             {{ __('viewer.close') }}
         </button>
         <span id="modal-filename" style="flex:1;overflow:hidden;font-size:13px;font-weight:600;color:#e5e7eb;white-space:nowrap;text-overflow:ellipsis;"></span>
+        <span id="modal-version-bar" style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;"></span>
         <span id="modal-badge" style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;flex-shrink:0;"></span>
+        <button id="modal-upload-version" type="button" onclick="openUploadVersionModal()" style="display:inline-flex;align-items:center;gap:5px;color:#fde68a;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(253,230,138,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(253,230,138,.1)'" onmouseout="this.style.background='none'" title="의견을 반영한 수정본 업로드 (새 버전)">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            수정본 업로드
+        </button>
         <a id="modal-download" href="#" style="display:inline-flex;align-items:center;gap:5px;color:#a5b4fc;font-size:12px;font-weight:600;text-decoration:none;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;flex-shrink:0;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.download') }}
@@ -423,6 +428,48 @@
     </div>
 </div>
 
+{{-- ====== 수정본 업로드 다이얼로그 ====== --}}
+<div id="upv-modal" onclick="if(event.target===this)closeUploadVersionModal()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;width:500px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                수정본 업로드 (새 버전)
+            </h3>
+            <button type="button" onclick="closeUploadVersionModal()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
+        </div>
+        <div style="padding:18px 22px;">
+            <p style="margin:0 0 14px;font-size:13px;color:#374151;line-height:1.55;">
+                의견을 반영한 수정본을 업로드합니다.<br>
+                <span style="font-size:12px;color:#6b7280;">현재 등록된 의견들은 모두 <strong style="color:#15803d;">반영 완료</strong>로 처리됩니다.</span>
+            </p>
+            <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">새 파일 *</label>
+            <input type="file" id="upv-file" style="width:100%;padding:8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;background:#fafafa;">
+            <div id="upv-filename" style="margin-top:6px;font-size:12px;color:#7c3aed;font-weight:600;"></div>
+
+            <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">변경 노트 (선택)</label>
+            <textarea id="upv-note" rows="3" placeholder="이번 버전에서 반영한 주요 변경사항을 적어주세요."
+                      style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;line-height:1.55;resize:vertical;box-sizing:border-box;outline:none;"
+                      onfocus="this.style.borderColor='#a78bfa'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+        </div>
+        <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
+            <button type="button" onclick="closeUploadVersionModal()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
+            <button type="button" id="upv-submit-btn" onclick="submitUploadVersion()" style="padding:7px 18px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">업로드</button>
+        </div>
+    </div>
+</div>
+
+{{-- ====== 버전 이력 다이얼로그 ====== --}}
+<div id="vh-modal" onclick="if(event.target===this)closeVersionHistory()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;width:560px;max-width:calc(100vw - 48px);max-height:80vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;">버전 이력</h3>
+            <button type="button" onclick="closeVersionHistory()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
+        </div>
+        <div id="vh-list" style="padding:14px 22px;overflow-y:auto;flex:1;min-height:0;font-size:13px;color:#374151;"></div>
+    </div>
+</div>
+
 <style>
 @keyframes spin { to { transform: rotate(360deg); } }
 .comment-card { background:#f9fafb; border:1px solid #f3f4f6; border-radius:10px; padding:10px 12px; transition:background .15s; }
@@ -656,6 +703,7 @@ function openPreview(fileId, projectId, customPreviewDataUrl, customDownloadUrl)
         _currentFileName   = data.fileName || null;
 
         document.getElementById('modal-filename').textContent = data.fileName;
+        renderVersionBar(data.versions || [], data.version || 1);
         const _annDlBtn = document.getElementById('ann-dl-btn');
         if (_annDlBtn) _annDlBtn.style.display = (data.previewType === 'pdf' || data.previewType === 'image') ? 'inline-flex' : 'none';
         const downloadHref = customDownloadUrl || `${BASE_URL}/projects/${currentProjectId}/files/${fileId}/download`;
@@ -1137,6 +1185,119 @@ window.toggleCommentPageFilter = function() {
     _commentShowAll = !_commentShowAll;
     renderAllComments();
 };
+
+// ── 파일 버전 바 렌더링 + 버전 전환 ──────────────────────────
+let _previewDataUrlBase = null;
+
+function renderVersionBar(versions, activeVersion) {
+    const bar = document.getElementById('modal-version-bar');
+    if (!bar) return;
+    if (!versions || versions.length <= 1) {
+        if (versions && versions.length === 1 && versions[0].version === 1) {
+            // 단일 버전이면 v 표시 생략
+            bar.innerHTML = '';
+            return;
+        }
+        bar.innerHTML = '';
+        return;
+    }
+    bar.innerHTML = versions.map(v => {
+        const active = (v.version === activeVersion);
+        const tooltip = `${v.name || ''}${v.uploader?.name ? ' · ' + v.uploader.name : ''}${v.created_at ? ' · ' + v.created_at : ''}`;
+        const baseStyle = 'display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:24px;padding:0 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;transition:all .12s;border:none;';
+        const style = active
+            ? baseStyle + 'background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;box-shadow:0 1px 6px rgba(124,58,237,.4);'
+            : baseStyle + 'background:rgba(255,255,255,.07);color:#c4b5fd;border:1px solid rgba(196,181,253,.25);';
+        return `<button type="button" onclick="switchToVersion(${v.version})" title="${escHtml(tooltip)}" style="${style}">v${v.version}</button>`;
+    }).join('');
+}
+
+function switchToVersion(version) {
+    if (!currentProjectId || !currentFileId) return;
+    const baseUrl = _previewDataUrlBase || `${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/preview-data`;
+    const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'version=' + version;
+    openPreview(currentFileId, currentProjectId, url);
+}
+
+// ── 파일 수정본 업로드 (버전 관리) ──────────────────────────
+function openUploadVersionModal() {
+    if (!currentProjectId || !currentFileId) { alert('파일 정보를 확인할 수 없습니다.'); return; }
+    document.getElementById('upv-file').value = '';
+    document.getElementById('upv-note').value = '';
+    document.getElementById('upv-filename').textContent = '';
+    const btn = document.getElementById('upv-submit-btn');
+    btn.disabled = false; btn.textContent = '업로드';
+    document.getElementById('upv-modal').style.display = 'flex';
+}
+function closeUploadVersionModal() {
+    document.getElementById('upv-modal').style.display = 'none';
+}
+document.addEventListener('change', function(e) {
+    if (e.target?.id === 'upv-file') {
+        const f = e.target.files?.[0];
+        document.getElementById('upv-filename').textContent = f ? `선택: ${f.name} (${(f.size/1024).toFixed(0)} KB)` : '';
+    }
+});
+function submitUploadVersion() {
+    const fileInput = document.getElementById('upv-file');
+    const note      = document.getElementById('upv-note').value.trim();
+    if (!fileInput.files?.[0]) { alert('파일을 선택해주세요.'); return; }
+    if (!confirm('수정본을 업로드하면 기존 의견은 모두 "반영 완료"로 처리되고, 새 버전으로 미리보기가 갱신됩니다. 계속하시겠습니까?')) return;
+    const btn = document.getElementById('upv-submit-btn');
+    btn.disabled = true; btn.textContent = '업로드 중...';
+
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    if (note) fd.append('change_note', note);
+
+    fetch(`${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/upload-version`, {
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,'Accept':'application/json'},
+        body: fd,
+    })
+    .then(async r => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { alert(d.message || '업로드 실패'); btn.disabled = false; btn.textContent = '업로드'; return; }
+        closeUploadVersionModal();
+        alert(d.message || '업로드되었습니다.');
+        // 미리보기/의견 갱신을 위해 페이지 reload (간단)
+        location.reload();
+    })
+    .catch(() => { alert('네트워크 오류가 발생했습니다.'); btn.disabled = false; btn.textContent = '업로드'; });
+}
+
+function openVersionHistory() {
+    if (!currentProjectId || !currentFileId) return;
+    document.getElementById('vh-list').innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;">불러오는 중…</div>';
+    document.getElementById('vh-modal').style.display = 'flex';
+    fetch(`${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/versions`, {
+        headers:{'Accept':'application/json'}
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (!d.ok || !d.versions?.length) {
+            document.getElementById('vh-list').innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;">버전 이력이 없습니다.</div>';
+            return;
+        }
+        document.getElementById('vh-list').innerHTML = d.versions.map(v => `
+            <div style="padding:12px 0;border-bottom:1px solid #f3f4f6;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:5px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;">v${v.version}</span>
+                    <span style="font-size:12px;color:#374151;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(v.original_name)}</span>
+                    <span style="font-size:11px;color:#9ca3af;">${v.size_human || ''}</span>
+                </div>
+                <div style="font-size:11px;color:#6b7280;margin-bottom:2px;">${v.uploader?.name || '—'} · ${v.created_at || ''}</div>
+                ${v.change_note ? `<div style="font-size:12px;color:#374151;background:#fafafa;border-left:3px solid #c4b5fd;padding:6px 10px;margin-top:4px;white-space:pre-wrap;">${escHtml(v.change_note)}</div>` : ''}
+            </div>
+        `).join('');
+    })
+    .catch(() => {
+        document.getElementById('vh-list').innerHTML = '<div style="padding:24px;text-align:center;color:#ef4444;">불러오기 실패</div>';
+    });
+}
+function closeVersionHistory() {
+    document.getElementById('vh-modal').style.display = 'none';
+}
 
 // ── 의견 → 논의사항 변환 ──────────────────────────
 let _cnvPendingCommentId = null;

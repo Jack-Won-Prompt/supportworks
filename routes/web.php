@@ -619,6 +619,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{file}/comments', [FileCommentController::class, 'store'])->name('comments.store');
         Route::delete('/{file}/comments/{comment}', [FileCommentController::class, 'destroy'])->name('comments.destroy');
         Route::post('/{file}/comments/{comment}/convert-to-discussion', [FileCommentController::class, 'convertToDiscussion'])->name('comments.convert-to-discussion');
+        Route::post('/{file}/upload-version', [ProjectFileController::class, 'uploadVersion'])->name('upload-version');
+        Route::get('/{file}/versions', [ProjectFileController::class, 'versionList'])->name('versions');
         Route::get('/{file}/download', [ProjectFileController::class, 'download'])->name('download');
         Route::get('/{file}/url-view', [ProjectFileController::class, 'urlViewer'])->name('url-view');
         Route::patch('/{file}/category', [ProjectFileController::class, 'updateCategory'])->name('update-category');

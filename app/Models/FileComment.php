@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class FileComment extends Model
 {
-    protected $fillable = ['project_file_id', 'user_id', 'guest_name', 'page', 'video_time', 'content', 'parent_id'];
+    protected $fillable = [
+        'project_file_id', 'user_id', 'guest_name', 'page', 'video_time', 'content', 'parent_id',
+        'resolved', 'resolved_at', 'resolved_by', 'resolved_at_version',
+    ];
 
     protected $casts = [
-        'video_time' => 'float',
+        'video_time'  => 'float',
+        'resolved'    => 'boolean',
+        'resolved_at' => 'datetime',
     ];
 
     public function file()

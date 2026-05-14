@@ -333,6 +333,12 @@
                                             style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;text-align:left;padding:0;display:block;word-break:break-all;transition:color .12s;"
                                             onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
+                                        @if(($file->versions_count ?? 0) >= 2)
+                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="수정본 {{ $file->versions_count - 1 }}개 (현재 v{{ $file->versions_count }})">
+                                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                v{{ $file->versions_count }}
+                                            </span>
+                                        @endif
                                     </button>
                                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                                         <span style="font-size:11px;color:#a5b4fc;">{{ __('team.click_to_review') }}</span>
@@ -376,6 +382,12 @@
                                        style="font-size:13px;font-weight:600;color:#111827;text-decoration:none;display:block;word-break:break-all;transition:color .12s;"
                                        onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
+                                        @if(($file->versions_count ?? 0) >= 2)
+                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="수정본 {{ $file->versions_count - 1 }}개 (현재 v{{ $file->versions_count }})">
+                                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                v{{ $file->versions_count }}
+                                            </span>
+                                        @endif
                                     </a>
                                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                                         <button id="file-comment-badge-{{ $file->id }}"

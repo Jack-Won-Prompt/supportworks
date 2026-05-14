@@ -37,67 +37,84 @@ class FileCommentController extends Controller
         ]);
     }
 
-    public function previewData(Project $project, ProjectFile $file)
+    public function previewData(Project $project, ProjectFile $file, Request $request)
     {
         $this->authorizeProject($project);
 
-        $previewType = $file->previewType();
+        $currentVersion   = $file->currentVersionNumber();
+        $requestedVersion = (int) $request->query('version', 0);
+        if ($requestedVersion <= 0 || $requestedVersion >= $currentVersion) {
+            $requestedVersion = $currentVersion;
+        }
+
+        $useVersionRow = null;
+        if ($requestedVersion < $currentVersion) {
+            $useVersionRow = $file->versions()->where('version', $requestedVersion)->first();
+            if (!$useVersionRow) {
+                $requestedVersion = $currentVersion;
+            }
+        }
+
+        $serveFileName = $useVersionRow ? $useVersionRow->original_name : $file->original_name;
+        $previewType   = $useVersionRow
+            ? \App\Models\ProjectFile::previewTypeFor($serveFileName, $useVersionRow->mime_type)
+            : $file->previewType();
         if (!$previewType) {
             return response()->json(['error' => '미리보기 불가'], 422);
         }
 
-        $ext = strtolower(pathinfo($file->original_name, PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($serveFileName, PATHINFO_EXTENSION));
 
-        // 원본 파일 서빙 URL (항상 생성)
-        $originalServeUrl = URL::temporarySignedRoute(
-            'files.serve',
-            now()->addHours(2),
-            ['file' => $file->id]
-        );
+        $serveRouteParams = ['file' => $file->id];
+        if ($useVersionRow) $serveRouteParams['version'] = $requestedVersion;
+        $originalServeUrl = URL::temporarySignedRoute('files.serve', now()->addHours(2), $serveRouteParams);
 
         $serveUrl  = $originalServeUrl;
         $viewerUrl = $originalServeUrl;
         $hasPages  = in_array($previewType, ['office', 'pdf']);
 
+        $isCurrent     = ($useVersionRow === null);
+        $sourcePath    = $isCurrent ? $file->path : $useVersionRow->path;
+        $cachedPdfPath = $isCurrent ? $file->converted_pdf_path : $useVersionRow->converted_pdf_path;
+
         if ($previewType === 'office') {
-            // LibreOffice 변환 시도
             try {
                 set_time_limit(120);
 
-                if (!$file->converted_pdf_path || !Storage::disk('local')->exists($file->converted_pdf_path)) {
-                    $pdfPath = OfficeConverter::convertToPdf($file->path);
-                    $file->update(['converted_pdf_path' => $pdfPath]);
+                if (!$cachedPdfPath || !Storage::disk('local')->exists($cachedPdfPath)) {
+                    $pdfPath = OfficeConverter::convertToPdf($sourcePath);
+                    if ($isCurrent) {
+                        $file->update(['converted_pdf_path' => $pdfPath]);
+                    } else {
+                        $useVersionRow->update(['converted_pdf_path' => $pdfPath]);
+                    }
+                    $cachedPdfPath = $pdfPath;
                 }
 
-                $pdfServeUrl = URL::temporarySignedRoute(
-                    'files.serve-pdf',
-                    now()->addHours(2),
-                    ['file' => $file->id]
-                );
+                $pdfRouteParams = ['file' => $file->id];
+                if (!$isCurrent) $pdfRouteParams['version'] = $requestedVersion;
+                $pdfServeUrl = URL::temporarySignedRoute('files.serve-pdf', now()->addHours(2), $pdfRouteParams);
 
                 $serveUrl    = $pdfServeUrl;
                 $viewerUrl   = $pdfServeUrl;
                 $previewType = 'pdf';
-
             } catch (\Exception $e) {
                 Log::error('[OfficeConverter] ' . $e->getMessage(), [
-                    'file'    => $file->original_name,
-                    'path'    => $file->path,
+                    'file'    => $serveFileName,
+                    'path'    => $sourcePath,
                     'os'      => PHP_OS_FAMILY,
                     'soffice' => config('services.libreoffice.path'),
                 ]);
                 \App\Models\SystemErrorLog::record($e, 'warning');
-                // LibreOffice 미설치 또는 변환 실패 → Office Online Viewer 폴백
                 $viewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' . urlencode($originalServeUrl);
             }
         }
 
-        // Excel 시트명 추출 (PDF 변환 완료된 경우에만)
         $sheetNames = [];
-        if (in_array($ext, ['xlsx', 'xls']) && $previewType === 'pdf') {
+        if ($isCurrent && in_array($ext, ['xlsx', 'xls']) && $previewType === 'pdf') {
             try {
                 $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(
-                    Storage::disk('local')->path($file->path)
+                    Storage::disk('local')->path($sourcePath)
                 );
                 foreach ($spreadsheet->getAllSheets() as $sheet) {
                     $sheetNames[] = $sheet->getTitle();
@@ -107,24 +124,52 @@ class FileCommentController extends Controller
             }
         }
 
-        $comments = $file->comments()
+        // 의견 필터: 현재 버전이면 unresolved, 이전 버전이면 resolved_at_version = 그 버전+1
+        $commentsQuery = $file->comments()
             ->whereNull('parent_id')
             ->with(['user', 'replies.user'])
             ->orderBy('page')
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn($c) => $this->commentToArray($c));
+            ->orderBy('created_at');
+        if ($isCurrent) {
+            $commentsQuery->where('resolved', false);
+        } else {
+            $commentsQuery->where('resolved_at_version', $requestedVersion + 1);
+        }
+        $comments = $commentsQuery->get()->map(fn($c) => $this->commentToArray($c));
+
+        // 버전 목록 (오름차순)
+        $versionRows = $file->versions()->with('uploader:id,name')->orderBy('version')->get();
+        if ($versionRows->isEmpty()) {
+            $versions = [[
+                'version'    => 1,
+                'name'       => $file->original_name,
+                'uploader'   => null,
+                'created_at' => $file->created_at?->format('Y-m-d H:i'),
+                'is_current' => true,
+            ]];
+        } else {
+            $versions = $versionRows->map(fn($v) => [
+                'version'    => $v->version,
+                'name'       => $v->original_name,
+                'uploader'   => $v->uploader ? ['id' => $v->uploader->id, 'name' => $v->uploader->name] : null,
+                'created_at' => $v->created_at?->format('Y-m-d H:i'),
+                'is_current' => $v->version === $currentVersion,
+            ])->values()->toArray();
+        }
 
         return response()->json([
-            'viewerUrl'   => $viewerUrl,
-            'serveUrl'    => $serveUrl,
-            'previewType' => $previewType,
-            'hasPages'    => $hasPages,
-            'ext'         => $ext,
-            'fileName'    => $file->original_name,
-            'fileId'      => $file->id,
-            'comments'    => $comments,
-            'sheetNames'  => $sheetNames,
+            'viewerUrl'      => $viewerUrl,
+            'serveUrl'       => $serveUrl,
+            'previewType'    => $previewType,
+            'hasPages'       => $hasPages,
+            'ext'            => $ext,
+            'fileName'       => $serveFileName,
+            'fileId'         => $file->id,
+            'comments'       => $comments,
+            'sheetNames'     => $sheetNames,
+            'version'        => $requestedVersion,
+            'currentVersion' => $currentVersion,
+            'versions'       => $versions,
         ]);
     }
 

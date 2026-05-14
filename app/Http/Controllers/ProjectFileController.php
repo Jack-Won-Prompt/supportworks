@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\FileActionLog;
+use App\Models\FileComment;
+use App\Models\FileVersion;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectFileReviewRequest;
 use App\Services\ProjectNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -22,7 +25,10 @@ class ProjectFileController extends Controller
         $categoryId = $request->query('category');
         $scheduleId = $request->query('schedule');
 
-        $query = $project->files()->with('uploader', 'category', 'schedule', 'reviewRequests.reviewer')->withCount('comments')->latest();
+        $query = $project->files()
+            ->with('uploader', 'category', 'schedule', 'reviewRequests.reviewer')
+            ->withCount(['comments', 'versions'])
+            ->latest();
         if ($categoryId === 'none') {
             $query->whereNull('category_id');
         } elseif ($categoryId) {
@@ -169,27 +175,38 @@ class ProjectFileController extends Controller
             abort(403);
         }
 
-        if (!Storage::disk('local')->exists($file->path)) {
+        $version  = (int) $request->query('version', 0);
+        $path     = $file->path;
+        $fileName = $file->original_name;
+        $mime     = $file->mime_type;
+
+        if ($version > 0) {
+            $vr = $file->versions()->where('version', $version)->first();
+            if ($vr) {
+                $path = $vr->path;
+                $fileName = $vr->original_name;
+                $mime = $vr->mime_type;
+            }
+        }
+
+        if (!Storage::disk('local')->exists($path)) {
             abort(404);
         }
 
-        $absPath = Storage::disk('local')->path($file->path);
+        $absPath = Storage::disk('local')->path($path);
 
-        // 동영상은 Content-Type을 파일 내용에서 자동 감지 (DB값이 octet-stream 등 부정확할 수 있음)
-        // 그 외에는 DB 값을 우선 사용
-        $ext      = strtolower(pathinfo($file->original_name, PATHINFO_EXTENSION));
+        $ext      = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         $isVideo  = in_array($ext, ['mp4', 'webm', 'ogv', 'ogg', 'mov', 'm4v'])
-                    || ($file->mime_type && str_starts_with($file->mime_type, 'video/'));
+                    || ($mime && str_starts_with($mime, 'video/'));
 
         $headers = [
-            'Content-Disposition'          => 'inline; filename*=UTF-8\'\'' . rawurlencode($file->original_name),
+            'Content-Disposition'          => 'inline; filename*=UTF-8\'\'' . rawurlencode($fileName),
             'Accept-Ranges'                => 'bytes',
             'Access-Control-Allow-Origin'  => '*',
             'Access-Control-Allow-Methods' => 'GET',
         ];
 
         if ($isVideo) {
-            // 확장자 기반 명시 매핑 — 브라우저가 자동 재생 가능한 정확한 MIME 보장
             $videoMimeMap = [
                 'mp4' => 'video/mp4',  'm4v' => 'video/mp4',
                 'webm'=> 'video/webm',
@@ -197,11 +214,10 @@ class ProjectFileController extends Controller
                 'ogv' => 'video/ogg',  'ogg' => 'video/ogg',
             ];
             $headers['Content-Type'] = $videoMimeMap[$ext] ?? 'video/mp4';
-        } elseif ($file->mime_type) {
-            $headers['Content-Type'] = $file->mime_type;
+        } elseif ($mime) {
+            $headers['Content-Type'] = $mime;
         }
 
-        // BinaryFileResponse — HTTP Range 요청 자동 지원으로 동영상 시킹 가능
         return response()->file($absPath, $headers);
     }
 
@@ -211,12 +227,23 @@ class ProjectFileController extends Controller
             abort(403);
         }
 
-        $pdfPath = $file->converted_pdf_path;
+        $version  = (int) $request->query('version', 0);
+        $pdfPath  = $file->converted_pdf_path;
+        $baseName = $file->original_name;
+
+        if ($version > 0) {
+            $vr = $file->versions()->where('version', $version)->first();
+            if ($vr) {
+                $pdfPath  = $vr->converted_pdf_path;
+                $baseName = $vr->original_name;
+            }
+        }
+
         if (!$pdfPath || !Storage::disk('local')->exists($pdfPath)) {
             abort(404, '변환된 PDF가 없습니다.');
         }
 
-        $pdfName = pathinfo($file->original_name, PATHINFO_FILENAME) . '.pdf';
+        $pdfName = pathinfo($baseName, PATHINFO_FILENAME) . '.pdf';
 
         return Storage::disk('local')->response($pdfPath, $pdfName, [
             'Content-Type'                => 'application/pdf',
@@ -306,6 +333,114 @@ class ProjectFileController extends Controller
         ]);
 
         return response()->json(['ok' => true, 'project_name' => $target->name]);
+    }
+
+    public function uploadVersion(Request $request, Project $project, ProjectFile $file)
+    {
+        $this->authorizeProject($project);
+
+        abort_if($file->isUrlType(), 422, 'URL 항목은 수정본 업로드를 지원하지 않습니다.');
+
+        $request->validate([
+            'file'        => 'required|file|max:204800',
+            'change_note' => 'nullable|string|max:2000',
+        ]);
+
+        $uploaded = $request->file('file');
+
+        return DB::transaction(function () use ($file, $uploaded, $request) {
+            // 기존 파일에 v1 백업이 없으면 자동 생성
+            $hasAnyVersion = $file->versions()->exists();
+            if (!$hasAnyVersion) {
+                FileVersion::create([
+                    'project_file_id' => $file->id,
+                    'version'         => 1,
+                    'original_name'   => $file->original_name,
+                    'stored_name'     => $file->stored_name,
+                    'path'            => $file->path,
+                    'mime_type'       => $file->mime_type,
+                    'size'            => $file->size,
+                    'uploaded_by'     => $file->uploaded_by,
+                    'change_note'     => null,
+                    'created_at'      => $file->created_at,
+                    'updated_at'      => $file->updated_at,
+                ]);
+            }
+
+            // 새 버전 번호
+            $nextVersion = ((int) $file->versions()->max('version')) + 1;
+            if ($nextVersion < 2) $nextVersion = 2;
+
+            // 새 파일 저장
+            $storedPath = $uploaded->store('project_files', 'local');
+            $storedName = basename($storedPath);
+
+            // 새 버전 row
+            FileVersion::create([
+                'project_file_id' => $file->id,
+                'version'         => $nextVersion,
+                'original_name'   => $uploaded->getClientOriginalName(),
+                'stored_name'     => $storedName,
+                'path'            => $storedPath,
+                'mime_type'       => $uploaded->getMimeType(),
+                'size'            => $uploaded->getSize(),
+                'uploaded_by'     => auth()->id(),
+                'change_note'     => $request->input('change_note'),
+            ]);
+
+            // ProjectFile 자체도 최신으로 업데이트 (미리보기/다운로드가 최신 본을 보도록)
+            $file->update([
+                'original_name'      => $uploaded->getClientOriginalName(),
+                'stored_name'        => $storedName,
+                'path'               => $storedPath,
+                'mime_type'          => $uploaded->getMimeType(),
+                'size'               => $uploaded->getSize(),
+                'converted_pdf_path' => null,
+                'uploaded_by'        => auth()->id(),
+            ]);
+
+            // 기존 의견 일괄 '반영 완료' 마킹
+            FileComment::where('project_file_id', $file->id)
+                ->where('resolved', false)
+                ->update([
+                    'resolved'            => true,
+                    'resolved_at'         => now(),
+                    'resolved_by'         => auth()->id(),
+                    'resolved_at_version' => $nextVersion,
+                ]);
+
+            FileActionLog::create([
+                'project_file_id' => $file->id,
+                'user_id'         => auth()->id(),
+                'action'          => 'upload_version',
+            ]);
+
+            return response()->json([
+                'ok'       => true,
+                'version'  => $nextVersion,
+                'message'  => "v{$nextVersion}으로 업로드되었습니다.",
+            ]);
+        });
+    }
+
+    public function versionList(Project $project, ProjectFile $file)
+    {
+        $this->authorizeProject($project);
+        $versions = $file->versions()
+            ->with('uploader:id,name')
+            ->orderByDesc('version')
+            ->get()
+            ->map(fn($v) => [
+                'id'            => $v->id,
+                'version'       => $v->version,
+                'original_name' => $v->original_name,
+                'size'          => $v->size,
+                'size_human'    => $v->formattedSize(),
+                'uploader'      => $v->uploader ? ['id' => $v->uploader->id, 'name' => $v->uploader->name] : null,
+                'change_note'   => $v->change_note,
+                'created_at'    => $v->created_at?->format('Y-m-d H:i'),
+            ]);
+        return response()->json(['ok' => true, 'versions' => $versions]);
     }
 
     public function destroy(Request $request, Project $project, ProjectFile $file)

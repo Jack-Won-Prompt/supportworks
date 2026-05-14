@@ -55,6 +55,21 @@ class ProjectFile extends Model
         return $this->hasMany(ProjectFileReviewRequest::class, 'project_file_id')->with('reviewer:id,name');
     }
 
+    public function versions()
+    {
+        return $this->hasMany(FileVersion::class, 'project_file_id')->orderBy('version');
+    }
+
+    public function latestVersion()
+    {
+        return $this->hasOne(FileVersion::class, 'project_file_id')->latestOfMany('version');
+    }
+
+    public function currentVersionNumber(): int
+    {
+        return (int) ($this->versions()->max('version') ?? 1);
+    }
+
     public function getFormattedSizeAttribute(): string
     {
         if ($this->isUrlType()) return 'URL';
@@ -105,8 +120,13 @@ class ProjectFile extends Model
 
     public function previewType(): ?string
     {
-        $mime = $this->mime_type ?? '';
-        $ext  = strtolower(pathinfo($this->original_name, PATHINFO_EXTENSION));
+        return self::previewTypeFor($this->original_name, $this->mime_type);
+    }
+
+    public static function previewTypeFor(?string $fileName, ?string $mime): ?string
+    {
+        $mime = $mime ?? '';
+        $ext  = strtolower(pathinfo((string) $fileName, PATHINFO_EXTENSION));
 
         if (str_starts_with($mime, 'image/')) return 'image';
         if (str_starts_with($mime, 'video/')) return 'video';
@@ -122,7 +142,6 @@ class ProjectFile extends Model
         ];
         if (in_array($mime, $officeMimes)) return 'office';
 
-        // MIME이 불확실할 때 확장자로 판단
         if (in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) return 'office';
         if ($ext === 'pdf') return 'pdf';
         if (in_array($ext, ['mp4', 'webm', 'ogv', 'ogg', 'mov', 'm4v'])) return 'video';
