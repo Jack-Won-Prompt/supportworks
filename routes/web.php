@@ -38,6 +38,15 @@ use App\Http\Controllers\MessageImageAnnotationController;
 use App\Http\Controllers\TranslateController;
 use App\Http\Controllers\AiAgentController;
 use App\Http\Controllers\AiAgentApprovalController;
+use App\Http\Controllers\AiAgent\Sessions\AgentSessionDashboardController;
+use App\Http\Controllers\AiAgent\Sessions\AgentSessionController;
+use App\Http\Controllers\AiAgent\Sessions\AgentSourceController;
+use App\Http\Controllers\AiAgent\Sessions\AgentAnalysisController;
+use App\Http\Controllers\AiAgent\Sessions\AgentOutputController;
+use App\Http\Controllers\AiAgent\Sessions\AgentFeedbackController;
+use App\Http\Controllers\AiAgent\Sessions\AgentConflictController;
+use App\Http\Controllers\AiAgent\Sessions\AgentConfirmedOutputController;
+use App\Http\Controllers\AiAgent\Sessions\AgentSettingsController;
 use App\Http\Controllers\AiStreamController;
 use App\Http\Controllers\AiVersionController;
 use App\Http\Controllers\AiTraceabilityController;
@@ -330,6 +339,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{conversation}/reply', [MessageController::class, 'reply'])->name('messages.reply');
     Route::delete('/messages/{conversation}/leave', [MessageController::class, 'leave'])->name('messages.leave');
+    Route::post('/messages/{conversation}/invite', [MessageController::class, 'invite'])->name('messages.invite');
+    Route::post('/messages/{message}/email-file', [MessageController::class, 'emailFile'])->name('messages.email-file');
     Route::post('/messages/analyze', [MessageAnalyzeController::class, 'analyze'])->name('messages.analyze');
     Route::post('/translate', [TranslateController::class, 'translate'])->name('translate');
     Route::get ('/messages/{message}/image-comments',             [MessageImageCommentController::class, 'index'])->name('messages.image-comments.index');
@@ -463,6 +474,9 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{discussion}',                             [\App\Http\Controllers\DiscussionController::class, 'update'])      ->name('update');
         Route::delete('/{discussion}',                            [\App\Http\Controllers\DiscussionController::class, 'destroy'])     ->name('destroy');
         Route::post('/{discussion}/share',                        [\App\Http\Controllers\DiscussionController::class, 'share'])       ->name('share');
+        Route::get ('/{discussion}/reflect-targets',              [\App\Http\Controllers\DiscussionController::class, 'reflectTargets'])->name('reflect-targets');
+        Route::post('/{discussion}/reflect-to-planning',          [\App\Http\Controllers\DiscussionController::class, 'reflectToPlanning'])->name('reflect');
+        Route::post('/{discussion}/reject-reflection',            [\App\Http\Controllers\DiscussionController::class, 'rejectReflection'])->name('reject-reflection');
         Route::post('/{discussion}/comments',                     [\App\Http\Controllers\DiscussionController::class, 'storeComment'])->name('comments.store');
         Route::post('/{discussion}/comments/refine',              [\App\Http\Controllers\DiscussionController::class, 'refineComment'])->name('comments.refine');
         Route::post('/{discussion}/comments/summarize',           [\App\Http\Controllers\DiscussionController::class, 'summarizeComments'])->name('comments.summarize');
@@ -604,6 +618,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{file}/comments', [FileCommentController::class, 'index'])->name('comments.index');
         Route::post('/{file}/comments', [FileCommentController::class, 'store'])->name('comments.store');
         Route::delete('/{file}/comments/{comment}', [FileCommentController::class, 'destroy'])->name('comments.destroy');
+        Route::post('/{file}/comments/{comment}/convert-to-discussion', [FileCommentController::class, 'convertToDiscussion'])->name('comments.convert-to-discussion');
         Route::get('/{file}/download', [ProjectFileController::class, 'download'])->name('download');
         Route::get('/{file}/url-view', [ProjectFileController::class, 'urlViewer'])->name('url-view');
         Route::patch('/{file}/category', [ProjectFileController::class, 'updateCategory'])->name('update-category');
@@ -1059,6 +1074,37 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('{gate}/approve', [AiAgentApprovalController::class, 'approve'])->name('approve');
                 Route::post('{gate}/reject',  [AiAgentApprovalController::class, 'reject'])->name('reject');
                 Route::post('{gate}/cancel',  [AiAgentApprovalController::class, 'cancel'])->name('cancel');
+            });
+
+            // AI Agent 세션 (디자인 → Output 워크플로) — Phase 3 스켈레톤
+            Route::prefix('agent-sessions')->name('agent-sessions.')->group(function () {
+                // 작업 대시보드
+                Route::get ('/',          [AgentSessionDashboardController::class, 'index'])->name('index');
+
+                // 새 작업
+                Route::get ('create',     [AgentSessionController::class, 'create'])->name('create');
+                Route::post('/',          [AgentSessionController::class, 'store'])->name('store');
+
+                // 확정 산출물 목록
+                Route::get ('confirmed',  [AgentConfirmedOutputController::class, 'index'])->name('confirmed.index');
+
+                // Agent 세션 설정
+                Route::get ('settings',   [AgentSettingsController::class, 'show'])->name('settings');
+
+                // 세션 상세 + 하위 액션
+                Route::prefix('{session}')->group(function () {
+                    Route::get    ('/',         [AgentSessionController::class,  'show'])->name('show');
+                    Route::delete ('/',         [AgentSessionController::class,  'destroy'])->name('destroy');
+
+                    Route::get    ('source',    [AgentSourceController::class,   'show'])->name('source');
+                    Route::get    ('analysis',  [AgentAnalysisController::class, 'show'])->name('analysis');
+
+                    Route::get    ('outputs',   [AgentOutputController::class,   'index'])->name('outputs.index');
+                    Route::get    ('outputs/{output}',          [AgentOutputController::class,   'show'])->name('outputs.show');
+                    Route::get    ('outputs/{output}/feedback', [AgentFeedbackController::class, 'show'])->name('outputs.feedback');
+
+                    Route::get    ('conflicts', [AgentConflictController::class, 'index'])->name('conflicts.index');
+                });
             });
         });
     });

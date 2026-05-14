@@ -101,12 +101,14 @@ class AiAgentComposer
     private function currentSection(): string
     {
         return match (true) {
-            request()->routeIs('ai-agent.projects.design.*')  => 'design',
-            request()->routeIs('ai-agent.projects.pre-dev.*') => 'pre-dev',
-            request()->routeIs('ai-agent.projects.dev.*')     => 'dev',
-            request()->routeIs('ai-agent.projects.release')   => 'release',
-            request()->routeIs('ai-agent.projects.common.*')  => 'common',
-            default                                            => 'planning',
+            request()->routeIs('ai-agent.projects.design.*')          => 'design',
+            request()->routeIs('ai-agent.projects.pre-dev.*')         => 'pre-dev',
+            request()->routeIs('ai-agent.projects.dev.*')             => 'dev',
+            request()->routeIs('ai-agent.projects.release')           => 'release',
+            request()->routeIs('ai-agent.projects.common.*')          => 'common',
+            request()->routeIs('ai-agent.projects.agent-sessions.*')  => 'agent-sessions',
+            request()->routeIs('ai-agent.projects.deliverables.*')    => 'deliverables',
+            default                                                    => 'planning',
         };
     }
 }

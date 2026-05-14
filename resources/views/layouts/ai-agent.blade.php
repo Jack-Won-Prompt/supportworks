@@ -137,8 +137,9 @@ $_ataStages = [
     ['value' => 'design',       'section' => 'design',       'label' => '디자인',   'indexRoute' => 'ai-agent.projects.design.index',       'type' => 'stage'],
     ['value' => 'dev_prep',     'section' => 'pre-dev',      'label' => '개발 준비','indexRoute' => 'ai-agent.projects.pre-dev.index',      'type' => 'stage'],
     ['value' => 'development',  'section' => 'dev',          'label' => '개발',     'indexRoute' => 'ai-agent.projects.dev.index',          'type' => 'stage'],
-    ['value' => 'release',      'section' => 'release',      'label' => '릴리즈',   'indexRoute' => 'ai-agent.projects.release',            'type' => 'stage'],
-    ['value' => 'deliverables', 'section' => 'deliverables', 'label' => '산출물',   'indexRoute' => 'ai-agent.projects.deliverables.index', 'type' => 'feature'],
+    ['value' => 'release',         'section' => 'release',         'label' => '릴리즈',   'indexRoute' => 'ai-agent.projects.release',                'type' => 'stage'],
+    ['value' => 'deliverables',    'section' => 'deliverables',    'label' => '산출물',   'indexRoute' => 'ai-agent.projects.deliverables.index',     'type' => 'feature'],
+    ['value' => 'agent-sessions',  'section' => 'agent-sessions',  'label' => 'AI Agent', 'indexRoute' => 'ai-agent.projects.agent-sessions.index',   'type' => 'feature'],
 ];
 @endphp
 
