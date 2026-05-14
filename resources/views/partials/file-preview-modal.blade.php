@@ -177,6 +177,11 @@
                 </div>
                 {{-- PDF 네비게이션 바 (하단) --}}
                 <div style="position:absolute;bottom:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;background:#111827;border-top:1px solid rgba(255,255,255,.07);">
+                    <button id="pdf-first-btn" onclick="pdfFirstPage()" title="처음 페이지"
+                            style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;cursor:pointer;transition:background .15s;"
+                            onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 19l-7-7 7-7M11 19l-7-7 7-7"/></svg>
+                    </button>
                     <button id="pdf-prev-btn" onclick="pdfPrevPage()"
                             style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
@@ -369,6 +374,55 @@
     </div>
 </div>
 
+{{-- ============================  의견 → 논의사항 변환 다이얼로그  ============================ --}}
+<div id="cnv-confirm-modal" onclick="if(event.target===this)cnvCloseConfirm()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;width:480px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                논의사항으로 등록
+            </h3>
+            <button onclick="cnvCloseConfirm()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
+        </div>
+        <div style="padding:18px 22px;">
+            <p style="margin:0 0 12px;font-size:13px;color:#374151;">이 의견을 프로젝트 논의사항으로 등록하시겠습니까?</p>
+            <div style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;max-height:160px;overflow-y:auto;">
+                <div id="cnv-confirm-meta" style="font-size:11px;color:#9ca3af;margin-bottom:4px;font-weight:600;"></div>
+                <div id="cnv-confirm-content" style="font-size:13px;color:#1f2937;white-space:pre-wrap;word-break:break-word;line-height:1.5;"></div>
+            </div>
+        </div>
+        <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
+            <button onclick="cnvCloseConfirm()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
+            <button id="cnv-confirm-ok" onclick="cnvDoConvert()" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">등록</button>
+        </div>
+    </div>
+</div>
+
+<div id="cnv-detail-modal" onclick="if(event.target===this)cnvCloseDetail()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;width:760px;max-width:calc(100vw - 48px);max-height:85vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;">
+            <h3 id="cnv-detail-title" style="margin:0;font-size:15px;font-weight:700;color:#1f2937;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">논의사항</h3>
+            <span id="cnv-detail-status" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;flex-shrink:0;"></span>
+            <button onclick="cnvCloseDetail()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;flex-shrink:0;">×</button>
+        </div>
+        <div id="cnv-detail-meta" style="padding:10px 22px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#6b7280;background:#fafafa;"></div>
+        <div style="padding:18px 22px;overflow-y:auto;flex:1;min-height:0;">
+            <div id="cnv-detail-content" style="font-size:14px;color:#1f2937;line-height:1.7;word-break:break-word;"></div>
+            <div id="cnv-detail-conclusion" style="margin-top:18px;padding:14px;background:#fef3c7;border-left:3px solid #f59e0b;border-radius:6px;display:none;">
+                <div style="font-size:11px;font-weight:700;color:#b45309;margin-bottom:6px;letter-spacing:.05em;">결론</div>
+                <div id="cnv-detail-conclusion-body" style="font-size:13px;color:#92400e;line-height:1.6;"></div>
+            </div>
+        </div>
+        <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
+            <button onclick="cnvCloseDetail()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">닫기</button>
+            <a id="cnv-detail-link" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                논의사항 페이지에서 열기
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+        </div>
+    </div>
+</div>
+
 <style>
 @keyframes spin { to { transform: rotate(360deg); } }
 .comment-card { background:#f9fafb; border:1px solid #f3f4f6; border-radius:10px; padding:10px 12px; transition:background .15s; }
@@ -378,6 +432,9 @@
 .reply-card { background:#fff; border:1px solid #f3e8ff; border-radius:8px; padding:8px 10px; }
 .reply-btn { background:none; border:none; cursor:pointer; font-size:11px; font-weight:600; color:#9ca3af; padding:2px 6px; border-radius:4px; transition:color .12s, background .12s; }
 .reply-btn:hover { color:#7c3aed; background:#f5f3ff; }
+.cmt-reply-cta { display:inline-flex; align-items:center; gap:5px; margin-top:8px; padding:5px 11px; background:#fff; border:1.5px solid #e5e7eb; color:#6b7280; font-size:12px; font-weight:600; border-radius:7px; cursor:pointer; transition:all .12s; }
+.cmt-reply-cta:hover { background:#f5f3ff; border-color:#c4b5fd; color:#7c3aed; }
+.cmt-reply-cta svg { flex-shrink:0; }
 .reply-form { margin-top:8px; padding:8px 10px; background:#faf5ff; border:1.5px solid #e9d5ff; border-radius:8px; }
 .reply-textarea { width:100%; padding:7px 10px; border:1.5px solid #e5e7eb; border-radius:6px; font-size:12px; color:#1f2937; resize:none; outline:none; box-sizing:border-box; font-family:inherit; transition:border-color .15s; }
 .reply-textarea:focus { border-color:#a78bfa; }
@@ -820,8 +877,17 @@ async function renderPdfPage(num) {
     }
 }
 
-function pdfPrevPage() { if (pdfPage > 1) renderPdfPage(pdfPage - 1); }
-function pdfNextPage() { if (pdfPage < pdfTotal) renderPdfPage(pdfPage + 1); }
+function pdfPrevPage()  { if (pdfPage > 1) renderPdfPage(pdfPage - 1); }
+function pdfNextPage()  { if (pdfPage < pdfTotal) renderPdfPage(pdfPage + 1); }
+function pdfFirstPage() { if (pdfPage !== 1) renderPdfPage(1); }
+function gotoPage(n) {
+    n = parseInt(n, 10);
+    if (!n || n < 1) return;
+    if (typeof pdfDoc !== 'undefined' && pdfDoc) {
+        if (n > pdfTotal) n = pdfTotal;
+        if (n !== pdfPage) renderPdfPage(n);
+    }
+}
 
 function pdfZoom(delta) {
     pdfScale = Math.min(3, Math.max(0.5, pdfScale + delta));
@@ -1072,6 +1138,162 @@ window.toggleCommentPageFilter = function() {
     renderAllComments();
 };
 
+// ── 의견 → 논의사항 변환 ──────────────────────────
+let _cnvPendingCommentId = null;
+
+function convertBtnHtml(c) {
+    if (!c || c.parent_id) return '';
+    if (c.discussion_id) {
+        return `<button onclick="cnvOpenDetail(${c.discussion_id})" title="등록된 논의사항 보기"
+                    style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#15803d;background:#dcfce7;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                    onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
+                    논의사항
+                </button>`;
+    }
+    return `<button onclick="convertCommentToDiscussion(${c.id})" title="이 의견을 프로젝트 논의사항으로 등록"
+                style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#5b21b6;background:#ede9fe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                논의사항
+            </button>`;
+}
+
+function _cnvFindComment(commentId) {
+    const lists = [
+        (typeof _commentsList !== 'undefined') ? _commentsList : null,
+        (typeof _cmComments !== 'undefined') ? _cmComments : null,
+    ];
+    for (const list of lists) {
+        if (!list) continue;
+        const found = list.find(x => x.id === commentId);
+        if (found) return found;
+    }
+    return null;
+}
+
+function convertCommentToDiscussion(commentId) {
+    const c = _cnvFindComment(commentId) || { id: commentId, user_name: '', content: '', created_at: '' };
+    _cnvPendingCommentId = commentId;
+    document.getElementById('cnv-confirm-meta').textContent =
+        [c.user_name, c.created_at].filter(Boolean).join(' · ');
+    document.getElementById('cnv-confirm-content').textContent = c.content || '';
+    const okBtn = document.getElementById('cnv-confirm-ok');
+    okBtn.disabled = false; okBtn.textContent = '등록';
+    document.getElementById('cnv-confirm-modal').style.display = 'flex';
+}
+
+function cnvCloseConfirm() {
+    document.getElementById('cnv-confirm-modal').style.display = 'none';
+    _cnvPendingCommentId = null;
+}
+
+function cnvDoConvert() {
+    const commentId = _cnvPendingCommentId;
+    if (!commentId) return;
+    const fileId = (typeof _cmFileId !== 'undefined' && _cmFileId) ? _cmFileId : currentFileId;
+    if (!fileId || !currentProjectId) { alert('파일 정보를 확인할 수 없습니다.'); cnvCloseConfirm(); return; }
+
+    const okBtn = document.getElementById('cnv-confirm-ok');
+    okBtn.disabled = true; okBtn.textContent = '등록 중...';
+
+    fetch(`${BASE_URL}/projects/${currentProjectId}/files/${fileId}/comments/${commentId}/convert-to-discussion`, {
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,'Accept':'application/json'},
+    })
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            if (res.status === 409 && data.discussion_id) {
+                _cnvUpdateCardButton(commentId, data.discussion_id);
+                alert(data.message || '이미 논의사항으로 등록된 의견입니다.');
+            } else {
+                alert(data.message || '논의사항 등록에 실패했습니다.');
+            }
+            cnvCloseConfirm();
+            return;
+        }
+        _cnvUpdateCardButton(commentId, data.discussion_id);
+        cnvCloseConfirm();
+    })
+    .catch(() => {
+        alert('네트워크 오류가 발생했습니다.');
+        okBtn.disabled = false; okBtn.textContent = '등록';
+    });
+}
+
+function _cnvUpdateCardButton(commentId, discussionId) {
+    // 캐시 갱신
+    [(typeof _commentsList !== 'undefined') ? _commentsList : null,
+     (typeof _cmComments !== 'undefined') ? _cmComments : null].forEach(list => {
+        if (!list) return;
+        const item = list.find(x => x.id === commentId);
+        if (item) item.discussion_id = discussionId;
+    });
+    // DOM 버튼 교체
+    ['cmt-','cm-cmt-'].forEach(prefix => {
+        const card = document.getElementById(prefix + commentId);
+        if (!card) return;
+        const newC = { id: commentId, parent_id: null, discussion_id: discussionId };
+        card.querySelectorAll('button').forEach(el => {
+            const onc = el.getAttribute('onclick') || '';
+            if (onc.includes(`convertCommentToDiscussion(${commentId}`)) {
+                el.outerHTML = convertBtnHtml(newC);
+            }
+        });
+    });
+}
+
+function cnvOpenDetail(discussionId) {
+    if (!discussionId || !currentProjectId) return;
+    const modal = document.getElementById('cnv-detail-modal');
+    document.getElementById('cnv-detail-title').textContent = '불러오는 중...';
+    document.getElementById('cnv-detail-meta').textContent = '';
+    document.getElementById('cnv-detail-content').innerHTML = '';
+    document.getElementById('cnv-detail-conclusion').style.display = 'none';
+    const stEl = document.getElementById('cnv-detail-status');
+    stEl.textContent = ''; stEl.style.background = ''; stEl.style.color = '';
+    document.getElementById('cnv-detail-link').href = `${BASE_URL}/projects/${currentProjectId}/discussions?open=${discussionId}`;
+    modal.style.display = 'flex';
+
+    fetch(`${BASE_URL}/projects/${currentProjectId}/discussions/${discussionId}`, {
+        headers: {'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+    })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(d => {
+        document.getElementById('cnv-detail-title').textContent = d.title || '논의사항';
+        const meta = [];
+        if (d.author?.name) meta.push('작성자: ' + d.author.name);
+        if (d.discussion_date) meta.push('논의일: ' + d.discussion_date);
+        if (d.created_at) meta.push('등록: ' + d.created_at);
+        document.getElementById('cnv-detail-meta').textContent = meta.join(' · ');
+        document.getElementById('cnv-detail-content').innerHTML = d.content || '<p style="color:#9ca3af;">내용이 없습니다.</p>';
+        if (d.status_label) {
+            stEl.textContent = d.status_label;
+            stEl.style.background = d.status_color?.bg || '#f3f4f6';
+            stEl.style.color = d.status_color?.fg || '#6b7280';
+        }
+        if (d.conclusion) {
+            document.getElementById('cnv-detail-conclusion').style.display = 'block';
+            document.getElementById('cnv-detail-conclusion-body').innerHTML = d.conclusion;
+        }
+    })
+    .catch(() => { document.getElementById('cnv-detail-title').textContent = '논의사항을 불러오지 못했습니다.'; });
+}
+
+function cnvCloseDetail() {
+    document.getElementById('cnv-detail-modal').style.display = 'none';
+}
+
+// ESC로 다이얼로그 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    const dt = document.getElementById('cnv-detail-modal');
+    const cf = document.getElementById('cnv-confirm-modal');
+    if (dt && dt.style.display === 'flex') { cnvCloseDetail(); e.stopPropagation(); return; }
+    if (cf && cf.style.display === 'flex') { cnvCloseConfirm(); e.stopPropagation(); }
+}, true);
+
 function commentHtml(c, label) {
     label = label || document.getElementById('page-label').textContent;
 
@@ -1081,7 +1303,7 @@ function commentHtml(c, label) {
                 <div style="flex:1;min-width:0;">
                     <span style="font-size:11px;font-weight:700;color:#6d28d9;">↳ ${escHtml(r.user_name)}</span>
                     <span style="font-size:10px;color:#9ca3af;margin-left:5px;">${r.created_at}</span>
-                    <p style="font-size:12px;color:#374151;margin-top:3px;word-break:break-word;white-space:pre-wrap;">${escHtml(r.content)}</p>
+                    <p style="font-size:12px;color:#374151;margin-top:3px;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;">${escHtml(r.content)}</p>
                 </div>
                 ${r.can_delete ? `<button onclick="deletePanelReply(${r.id}, ${c.id}, this)" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#d1d5db;font-size:15px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
             </div>
@@ -1098,23 +1320,22 @@ function commentHtml(c, label) {
     return `<div class="comment-card" id="cmt-${c.id}">
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;">
             <span class="page-badge" style="background:#f0fdf4;color:#065f46;">${FM_STR.badge_general}</span>
-            ${c.page ? `<span class="page-badge" style="background:#ede9fe;color:#6d28d9;">${escHtml(label)} ${c.page}</span>` : ''}
+            ${c.page ? `<button type="button" onclick="event.stopPropagation();gotoPage(${c.page})" class="page-badge" title="${escHtml(label)} ${c.page} 페이지로 이동" style="background:#ede9fe;color:#6d28d9;border:none;cursor:pointer;">${escHtml(label)} ${c.page}</button>` : ''}
             ${vidBadge}
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-            <div style="flex:1;min-width:0;">
-                <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
-                <span style="font-size:11px;color:#9ca3af;margin-left:6px;">${c.created_at}</span>
-                <p style="font-size:13px;color:#374151;margin-top:4px;word-break:break-word;white-space:pre-wrap;">${escHtml(c.content)}</p>
-            </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-                <button class="reply-btn" onclick="togglePanelReplyForm(${c.id})">
-                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                    ${FM_STR.reply}
-                </button>
-                ${c.can_delete ? `<button onclick="deleteComment(${c.id}, this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
-            </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
+            <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
+                ${convertBtnHtml(c)}
+                ${c.can_delete ? `<button onclick="deleteComment(${c.id}, this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
+            </span>
         </div>
+        <p style="font-size:13px;color:#374151;margin:0;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;line-height:1.55;">${escHtml(c.content)}</p>
+        <button type="button" class="cmt-reply-cta" onclick="togglePanelReplyForm(${c.id})">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            ${FM_STR.reply}${(c.replies || []).length ? ` (${(c.replies || []).length})` : ''}
+        </button>
         ${repliesHtml ? `<div class="reply-thread">${repliesHtml}</div>` : `<div class="reply-thread" id="panel-replies-${c.id}" style="display:none;"></div>`}
         <div class="reply-form" id="panel-reply-form-${c.id}" style="display:none;">
             <textarea class="reply-textarea" id="panel-reply-ta-${c.id}" rows="2" placeholder="${FM_STR.reply_placeholder}"
@@ -1137,13 +1358,13 @@ function annCommentHtml(ann, label) {
                 <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 8h6M8 5v6" stroke-linecap="round"/></svg>
                 ${FM_STR.badge_screen_ann}
             </span>
-            ${ann.page ? `<span class="page-badge" style="background:#ede9fe;color:#6d28d9;">${escHtml(label)} ${ann.page}</span>` : ''}
+            ${ann.page ? `<button type="button" onclick="event.stopPropagation();gotoPage(${ann.page})" class="page-badge" title="${escHtml(label)} ${ann.page} 페이지로 이동" style="background:#ede9fe;color:#6d28d9;border:none;cursor:pointer;">${escHtml(label)} ${ann.page}</button>` : ''}
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
             <div style="flex:1;min-width:0;">
                 <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(ann.user_name || '')}</span>
                 ${ann.created_at ? `<span style="font-size:11px;color:#9ca3af;margin-left:6px;">${ann.created_at}</span>` : ''}
-                <p style="font-size:13px;color:#374151;margin-top:4px;word-break:break-word;white-space:pre-wrap;">${escHtml(text)}</p>
+                <p style="font-size:13px;color:#374151;margin-top:4px;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;">${escHtml(text)}</p>
             </div>
             ${ann.can_delete ? `<button onclick="event.stopPropagation();deleteAnnotation(${ann.id})" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
         </div>
@@ -1373,7 +1594,7 @@ function cmCommentHtml(c) {
                 <div style="flex:1;min-width:0;">
                     <span style="font-size:11px;font-weight:700;color:#6d28d9;">↳ ${escHtml(r.user_name)}</span>
                     <span style="font-size:10px;color:#9ca3af;margin-left:5px;">${r.created_at}</span>
-                    <p style="font-size:12px;color:#374151;margin-top:3px;word-break:break-word;white-space:pre-wrap;">${escHtml(r.content)}</p>
+                    <p style="font-size:12px;color:#374151;margin-top:3px;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;">${escHtml(r.content)}</p>
                 </div>
                 ${r.can_delete ? `<button class="cm-del-btn" data-cid="${r.id}" data-pid="${c.id}" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#d1d5db;font-size:15px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
             </div>
@@ -1382,20 +1603,19 @@ function cmCommentHtml(c) {
 
     return `<div class="comment-card" id="cm-cmt-${c.id}">
         ${c.page ? `<div class="page-badge" style="background:#ede9fe;color:#6d28d9;margin-bottom:5px;">${FM_STR.page_badge.replace(':page', c.page)}</div>` : ''}
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-            <div style="flex:1;min-width:0;">
-                <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
-                <span style="font-size:11px;color:#9ca3af;margin-left:6px;">${c.created_at}</span>
-                <p style="font-size:13px;color:#374151;margin-top:4px;word-break:break-word;white-space:pre-wrap;">${escHtml(c.content)}</p>
-            </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-                <button class="reply-btn cm-reply-btn" data-pid="${c.id}">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                    ${FM_STR.reply}
-                </button>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
+            <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
+                ${convertBtnHtml(c)}
                 ${c.can_delete ? `<button class="cm-del-btn" data-cid="${c.id}" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
-            </div>
+            </span>
         </div>
+        <p style="font-size:13px;color:#374151;margin:0;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;line-height:1.55;">${escHtml(c.content)}</p>
+        <button type="button" class="cmt-reply-cta cm-reply-btn" data-pid="${c.id}">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            ${FM_STR.reply}${(c.replies || []).length ? ` (${(c.replies || []).length})` : ''}
+        </button>
         ${repliesHtml ? `<div class="reply-thread">${repliesHtml}</div>` : '<div class="reply-thread" id="cm-replies-' + c.id + '" style="display:none;"></div>'}
         <div class="reply-form" id="cm-reply-form-${c.id}" style="display:none;">
             <textarea class="reply-textarea cm-reply-textarea" data-pid="${c.id}" rows="2" placeholder="${FM_STR.reply_placeholder}"></textarea>
@@ -2217,27 +2437,26 @@ function urlCmtHtml(c) {
                 <div style="flex:1;min-width:0;">
                     <span style="font-size:11px;font-weight:700;color:#6d28d9;">↳ ${escHtml(r.user_name)}</span>
                     <span style="font-size:10px;color:#9ca3af;margin-left:5px;">${r.created_at}</span>
-                    <p style="font-size:12px;color:#374151;margin-top:3px;word-break:break-word;white-space:pre-wrap;">${escHtml(r.content)}</p>
+                    <p style="font-size:12px;color:#374151;margin-top:3px;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;">${escHtml(r.content)}</p>
                 </div>
                 ${r.can_delete ? `<button onclick="urlDelCmt(${r.id},${c.id},this)" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#d1d5db;font-size:15px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
             </div>
         </div>`).join('');
 
     return `<div class="comment-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-            <div style="flex:1;min-width:0;">
-                <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
-                <span style="font-size:11px;color:#9ca3af;margin-left:6px;">${c.created_at}</span>
-                <p style="font-size:13px;color:#374151;margin-top:4px;word-break:break-word;white-space:pre-wrap;">${escHtml(c.content)}</p>
-            </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-                <button class="reply-btn" onclick="urlToggleReply(${c.id})">
-                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                    ${FM_STR.reply}
-                </button>
-                ${c.can_delete ? `<button onclick="urlDelCmt(${c.id},null,this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
-            </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
+            <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
+                ${convertBtnHtml(c)}
+                ${c.can_delete ? `<button onclick="urlDelCmt(${c.id},null,this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
+            </span>
         </div>
+        <p style="font-size:13px;color:#374151;margin:0;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;line-height:1.55;">${escHtml(c.content)}</p>
+        <button type="button" class="cmt-reply-cta" onclick="urlToggleReply(${c.id})">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            ${FM_STR.reply}${(c.replies || []).length ? ` (${(c.replies || []).length})` : ''}
+        </button>
         ${rHtml ? `<div class="reply-thread">${rHtml}</div>` : `<div class="reply-thread" id="url-replies-${c.id}" style="display:none;"></div>`}
         <div class="reply-form" id="url-reply-form-${c.id}" style="display:none;">
             <textarea class="reply-textarea" id="url-reply-ta-${c.id}" rows="2" placeholder="${FM_STR.reply_url_placeholder}"
@@ -2803,7 +3022,7 @@ function vidShowCommentToast() {
         <span style="flex-shrink:0;font-size:11px;font-weight:700;color:#c4b5fd;background:rgba(196,181,253,.15);padding:2px 8px;border-radius:10px;">${vidFmtTime(hit.video_time)}</span>
         <div style="flex:1;min-width:0;">
             <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:2px;">${escHtml(hit.user_name)}</div>
-            <div style="color:#e5e7eb;word-break:break-word;white-space:pre-wrap;">${escHtml(hit.content)}</div>
+            <div style="color:#e5e7eb;word-break:keep-all;overflow-wrap:break-word;white-space:pre-wrap;">${escHtml(hit.content)}</div>
         </div>
         <button onclick="document.getElementById('vid-comment-toast').style.display='none'" style="flex-shrink:0;background:none;border:none;color:#9ca3af;font-size:16px;line-height:1;cursor:pointer;padding:0 2px;">×</button>
     </div>`;

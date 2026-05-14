@@ -57,7 +57,27 @@
     overflow: hidden;
 }
 #chat-hdr { padding:13px 20px; border-bottom:1px solid var(--t100); display:flex; align-items:center; gap:10px; flex-shrink:0; background:#fff; border-radius:14px 14px 0 0; }
-#chat-hdr-members { font-size:11.5px; color:#a1a1aa; margin-top:1px; }
+#chat-hdr-members { font-size:11.5px; color:#a1a1aa; margin-top:2px; line-height:1.5; word-break:keep-all; }
+.group-tag:hover { background:var(--t200); color:var(--tText); }
+.hdr-member-chip { background:none; border:none; padding:0; margin:0; font:inherit; color:inherit; cursor:pointer; border-radius:3px; transition:color .12s, background .12s; }
+.hdr-member-chip:hover { color:var(--t500); background:var(--t100); padding:0 4px; }
+.file-with-actions { display:inline-block; max-width:100%; }
+.file-share-email-btn {
+    display:inline-flex; align-items:center; gap:5px;
+    margin-top:6px;
+    background:var(--t100); border:1px solid var(--t200);
+    color:var(--t500); font-size:12px; font-weight:700;
+    cursor:pointer; padding:4px 10px; border-radius:7px;
+    opacity:0; transform:translateY(-2px);
+    transition:opacity .15s, background .15s, transform .15s, box-shadow .15s, color .15s;
+    box-shadow:0 1px 3px rgba(124,58,237,.08);
+}
+.file-with-actions:hover .file-share-email-btn { opacity:1; transform:translateY(0); }
+.file-share-email-btn:hover {
+    background:var(--t500); color:#fff; border-color:var(--t500);
+    box-shadow:0 2px 8px rgba(124,58,237,.35);
+}
+.file-share-email-btn[disabled] { opacity:.5 !important; cursor:wait; }
 #chat-messages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; background:var(--tBg); }
 #chat-input-area { padding:13px 20px; border-top:1px solid var(--t100); background:#fff; flex-shrink:0; border-radius:0 0 14px 14px; }
 
@@ -594,13 +614,63 @@
                     <div class="conv-avatar group" style="background:linear-gradient(135deg,var(--t300),var(--t500));width:36px;height:36px;">
                         <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
-                    <div>
+                    <div style="position:relative;min-width:0;flex:1;">
                         <div style="display:flex;align-items:center;gap:6px;">
                             <span style="font-size:15px;font-weight:700;color:#1e1b2e;">{{ $conversation->name }}</span>
-                            <span class="group-tag">{{ __('messages.group_member_count', ['count' => $conversation->participants->count()]) }}</span>
+                            <button type="button" id="group-tag-btn" onclick="toggleMembersPopover(event)"
+                                    class="group-tag" style="border:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;"
+                                    title="구성원 보기">
+                                {{ __('messages.group_member_count', ['count' => $conversation->participants->count()]) }}
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
                         </div>
-                        <div id="chat-hdr-members">{{ $conversation->memberNames($me) }}</div>
+                        <div id="chat-hdr-members">
+                            @php $others = $conversation->participants->where('id', '!=', $me)->values(); @endphp
+                            @foreach($others as $i => $m)
+                                <button type="button" class="hdr-member-chip"
+                                        onclick="mentionMemberInComposer(@js($m->name))"
+                                        title="입력창에 멘션 추가">{{ $m->name }}</button>@if($i < $others->count() - 1)<span style="color:#cbd5e1;">, </span>@endif
+                            @endforeach
+                        </div>
+
+                        {{-- 구성원 팝오버 --}}
+                        <div id="members-popover" style="display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:50;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.12);min-width:260px;max-width:340px;max-height:360px;overflow:hidden;display:none;flex-direction:column;">
+                            <div style="padding:10px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fafafa;">
+                                <span style="font-size:12px;font-weight:700;color:#1f2937;">구성원 {{ $conversation->participants->count() }}명</span>
+                                <button type="button" onclick="closeMembersPopover()" style="background:none;border:none;font-size:18px;line-height:1;color:#9ca3af;cursor:pointer;padding:0;">×</button>
+                            </div>
+                            <ul style="list-style:none;margin:0;padding:6px 0;overflow-y:auto;flex:1;">
+                                @foreach($conversation->participants as $m)
+                                    @php $mColor = $colors[($m->id ?? 0) % count($colors)]; $isMe = $m->id === $me; @endphp
+                                    <li>
+                                        <button type="button"
+                                            @if(!$isMe) onclick="mentionMemberInComposer(@js($m->name))" @endif
+                                            @if($isMe) disabled title="자기 자신은 멘션할 수 없습니다" @else title="입력창에 멘션 추가" @endif
+                                            style="width:100%;display:flex;align-items:center;gap:9px;padding:7px 14px;background:none;border:none;cursor:{{ $isMe ? 'default' : 'pointer' }};text-align:left;{{ $isMe ? 'opacity:.6;' : '' }}"
+                                            @if(!$isMe) onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" @endif>
+                                            <div style="width:28px;height:28px;border-radius:50%;background:{{ $mColor }};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                                {{ mb_substr($m->name, 0, 1) }}
+                                            </div>
+                                            <div style="min-width:0;flex:1;">
+                                                <div style="font-size:13px;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                    {{ $m->name }}{{ $isMe ? ' (나)' : '' }}
+                                                </div>
+                                                <div style="font-size:11px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                    {{ $m->email }}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
+                    <button type="button" id="invite-btn" onclick="openInviteModal()" title="채팅방에 초대"
+                            style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#fff;border:1.5px solid var(--t200);color:var(--t500);font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;flex-shrink:0;transition:all .15s;"
+                            onmouseover="this.style.background='var(--t100)';this.style.borderColor='var(--t500)'" onmouseout="this.style.background='#fff';this.style.borderColor='var(--t200)'">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        초대하기
+                    </button>
                 @else
                     @php $other = $conversation->otherParticipant($me); $color = $colors[($other?->id ?? 0) % count($colors)]; @endphp
                     <div class="conv-avatar" style="background:{{ $color }};width:36px;height:36px;font-size:14px;">{{ mb_substr($other?->name ?? '?', 0, 1) }}</div>
@@ -609,6 +679,82 @@
                         <div style="font-size:12px;color:#9e97c0;">{{ $other?->email }}</div>
                     </div>
                 @endif
+            </div>
+
+            {{-- 초대 모달 (그룹 채팅 한정) --}}
+            @if($isGroup)
+                @php
+                    $existingMemberIds = $conversation->participants->pluck('id');
+                    $inviteCandidates  = $users->whereNotIn('id', $existingMemberIds)->values();
+                @endphp
+                <div id="invite-overlay" class="modal-overlay" onclick="closeInviteModal()" style="display:none;"></div>
+                <div id="invite-modal" class="modal-box" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                        <span class="modal-title">채팅방에 초대</span>
+                        <button onclick="closeInviteModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;">&times;</button>
+                    </div>
+                    <form id="invite-form" onsubmit="return submitInvite(event)">
+                        @csrf
+                        <div style="margin-bottom:10px;">
+                            <input type="text" id="invite-search" class="modal-input" placeholder="이름 또는 이메일 검색" oninput="filterInviteCandidates(this.value)">
+                        </div>
+                        @if($inviteCandidates->isEmpty())
+                            <div style="padding:32px 12px;text-align:center;color:#9ca3af;font-size:13px;">
+                                초대할 수 있는 멤버가 없습니다.<br>
+                                <span style="font-size:11px;">(같은 프로젝트 멤버 중 미참여자만 초대 가능)</span>
+                            </div>
+                        @else
+                            <div id="invite-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--t100);border-radius:9px;padding:6px;">
+                                @foreach($inviteCandidates as $u)
+                                    @php $ac = $colors[$u->id % count($colors)]; @endphp
+                                    <label class="member-row invite-row" data-name="{{ mb_strtolower($u->name) }}" data-email="{{ mb_strtolower($u->email) }}">
+                                        <input type="checkbox" name="member_ids[]" value="{{ $u->id }}" onchange="updateInviteCount()">
+                                        <div class="member-avatar-sm" style="background:{{ $ac }};">{{ mb_substr($u->name, 0, 1) }}</div>
+                                        <div>
+                                            <div style="font-size:13px;font-weight:500;color:#1e1b2e;">{{ $u->name }}</div>
+                                            <div style="font-size:11px;color:#9e97c0;">{{ $u->email }}</div>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <div id="invite-selected-count" style="font-size:12px;color:var(--t500);margin-top:6px;font-weight:500;"></div>
+                        @endif
+                        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+                            <button type="button" onclick="closeInviteModal()" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:#52525b;cursor:pointer;">취소</button>
+                            <button type="submit" id="invite-submit-btn" @if($inviteCandidates->isEmpty()) disabled style="opacity:.4;cursor:not-allowed;" @endif
+                                style="padding:8px 20px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);">
+                                초대
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            @endif
+
+            {{-- 파일 메일 발송 확인 다이얼로그 --}}
+            <div id="esf-modal" onclick="if(event.target===this)esfClose()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+                <div style="background:#fff;width:440px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
+                    <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                        <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t500)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            파일 메일 발송
+                        </h3>
+                        <button type="button" onclick="esfClose()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
+                    </div>
+                    <div style="padding:18px 22px;">
+                        <p style="margin:0 0 10px;font-size:13.5px;color:#374151;line-height:1.55;">
+                            이 파일을 채팅방 구성원 <strong id="esf-count">{{ $conversation->participants->where('id', '!=', $me)->count() }}명</strong>(나 제외)에게<br>
+                            이메일로 발송하시겠습니까?
+                        </p>
+                        <div id="esf-filename" style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#6b7280;display:flex;align-items:center;gap:6px;">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                            <span id="esf-filename-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                        </div>
+                    </div>
+                    <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
+                        <button type="button" onclick="esfClose()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
+                        <button type="button" id="esf-send-btn" onclick="esfDoSend()" style="padding:7px 18px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">발송</button>
+                    </div>
+                </div>
             </div>
 
             {{-- 메시지 목록 --}}
@@ -687,14 +833,20 @@
                                         <div class="msg-original-note"><span class="msg-original-label">원문</span>{{ Str::limit($msg->body, 120) }}</div>
                                     @endif
                                     @if($msg->file_path)
-                                        @if($msg->isImage())
-                                            <img src="{{ $msg->fileUrl() }}" alt="{{ $msg->file_name }}" class="file-img" onclick="openLightbox(this.src,this.alt,{{ $msg->id }})">
-                                        @else
-                                            <a href="{{ $msg->fileUrl() }}" download="{{ $msg->file_name }}" class="file-card {{ $isMine ? 'mine' : 'theirs' }}">
-                                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                                <div><div style="font-size:12.5px;font-weight:600;">{{ $msg->file_name }}</div><div style="font-size:11px;opacity:.7;">{{ $msg->formattedSize() }}</div></div>
-                                            </a>
-                                        @endif
+                                        <div class="file-with-actions">
+                                            @if($msg->isImage())
+                                                <img src="{{ $msg->fileUrl() }}" alt="{{ $msg->file_name }}" class="file-img" onclick="openLightbox(this.src,this.alt,{{ $msg->id }})">
+                                            @else
+                                                <a href="{{ $msg->fileUrl() }}" download="{{ $msg->file_name }}" class="file-card {{ $isMine ? 'mine' : 'theirs' }}">
+                                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                                    <div><div style="font-size:12.5px;font-weight:600;">{{ $msg->file_name }}</div><div style="font-size:11px;opacity:.7;">{{ $msg->formattedSize() }}</div></div>
+                                                </a>
+                                            @endif
+                                            <button type="button" class="file-share-email-btn" onclick="shareFileByEmail({{ $msg->id }}, this)" title="채팅방 구성원에게 이메일로 발송">
+                                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                메일 보내기
+                                            </button>
+                                        </div>
                                     @endif
                                     @if($descendants->count() > 0)
                                     <div class="bubble-replies" id="breply-{{ $msg->id }}">
@@ -990,6 +1142,159 @@
 </div>
 
 <script>
+// ── 그룹 채팅 구성원 팝오버 ─────────────────────────
+function toggleMembersPopover(ev) {
+    ev?.stopPropagation();
+    const pop = document.getElementById('members-popover');
+    if (!pop) return;
+    const open = pop.style.display === 'flex';
+    pop.style.display = open ? 'none' : 'flex';
+}
+function closeMembersPopover() {
+    const pop = document.getElementById('members-popover');
+    if (pop) pop.style.display = 'none';
+}
+// ── 채팅방 초대 ─────────────────────────
+function openInviteModal() {
+    closeMembersPopover();
+    const ov = document.getElementById('invite-overlay');
+    const md = document.getElementById('invite-modal');
+    if (!ov || !md) return;
+    ov.style.display = 'block';
+    md.style.display = 'block';
+    updateInviteCount();
+    setTimeout(() => document.getElementById('invite-search')?.focus(), 50);
+}
+function closeInviteModal() {
+    const ov = document.getElementById('invite-overlay');
+    const md = document.getElementById('invite-modal');
+    if (ov) ov.style.display = 'none';
+    if (md) md.style.display = 'none';
+}
+function filterInviteCandidates(q) {
+    const term = (q || '').toLowerCase().trim();
+    document.querySelectorAll('.invite-row').forEach(row => {
+        const name  = row.dataset.name  || '';
+        const email = row.dataset.email || '';
+        row.style.display = (!term || name.includes(term) || email.includes(term)) ? '' : 'none';
+    });
+}
+function updateInviteCount() {
+    const checked = document.querySelectorAll('#invite-list input[type=checkbox]:checked').length;
+    const el = document.getElementById('invite-selected-count');
+    if (el) el.textContent = checked > 0 ? `${checked}명 선택됨` : '';
+}
+function submitInvite(ev) {
+    ev.preventDefault();
+    const form = ev.target;
+    const ids = Array.from(form.querySelectorAll('input[name="member_ids[]"]:checked')).map(c => c.value);
+    if (!ids.length) { alert('초대할 멤버를 1명 이상 선택하세요.'); return false; }
+    const btn = document.getElementById('invite-submit-btn');
+    btn.disabled = true; btn.textContent = '초대 중...';
+
+    const url = '{{ isset($conversation) ? route("messages.invite", $conversation) : "" }}';
+    const fd = new FormData();
+    ids.forEach(id => fd.append('member_ids[]', id));
+    fetch(url, {
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,'Accept':'application/json'},
+        body: fd,
+    })
+    .then(async r => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { alert(d.message || '초대에 실패했습니다.'); btn.disabled = false; btn.textContent = '초대'; return; }
+        // 페이지 리로드해서 멤버 목록 갱신
+        location.reload();
+    })
+    .catch(() => { alert('네트워크 오류가 발생했습니다.'); btn.disabled = false; btn.textContent = '초대'; });
+    return false;
+}
+
+// ── 파일 메시지 → 채팅방 구성원에게 메일 발송 ─────────────────────────
+let _esfPendingMessageId = null;
+let _esfPendingBtn = null;
+function shareFileByEmail(messageId, btn) {
+    _esfPendingMessageId = messageId;
+    _esfPendingBtn = btn || null;
+
+    // 파일명 추출: 같은 .file-with-actions 내 .file-img alt 또는 .file-card 내 텍스트
+    let fileName = '';
+    const wrap = btn?.closest('.file-with-actions');
+    if (wrap) {
+        const img = wrap.querySelector('img.file-img');
+        if (img) fileName = img.alt || '';
+        else {
+            const nameEl = wrap.querySelector('.file-card div div');
+            if (nameEl) fileName = nameEl.textContent.trim();
+        }
+    }
+    document.getElementById('esf-filename-text').textContent = fileName || '(첨부 파일)';
+
+    const sendBtn = document.getElementById('esf-send-btn');
+    sendBtn.disabled = false; sendBtn.textContent = '발송';
+    document.getElementById('esf-modal').style.display = 'flex';
+}
+function esfClose() {
+    document.getElementById('esf-modal').style.display = 'none';
+    _esfPendingMessageId = null;
+    _esfPendingBtn = null;
+}
+function esfDoSend() {
+    const messageId = _esfPendingMessageId;
+    if (!messageId) return;
+    const sendBtn = document.getElementById('esf-send-btn');
+    const sourceBtn = _esfPendingBtn;
+    sendBtn.disabled = true; sendBtn.textContent = '발송 중...';
+    if (sourceBtn) sourceBtn.disabled = true;
+
+    fetch(`${LB_BASE}/messages/${messageId}/email-file`, {
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,'Accept':'application/json'},
+    })
+    .then(async r => {
+        const d = await r.json().catch(() => ({}));
+        esfClose();
+        alert(d.message || (r.ok ? '메일을 발송했습니다.' : '메일 발송에 실패했습니다.'));
+    })
+    .catch(() => {
+        esfClose();
+        alert('네트워크 오류가 발생했습니다.');
+    })
+    .finally(() => { if (sourceBtn) sourceBtn.disabled = false; });
+}
+// ESC로 다이얼로그 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const m = document.getElementById('esf-modal');
+        if (m && m.style.display === 'flex') esfClose();
+    }
+});
+
+function mentionMemberInComposer(name) {
+    closeMembersPopover();
+    const ta = document.getElementById('msg-textarea');
+    if (!ta || !name) return;
+    const prefixRe = /^[^\n:]+? 님에게:\s*/;
+    const body = ta.value.replace(prefixRe, '');
+    const prefix = `${name} 님에게: `;
+    ta.value = prefix + body;
+    ta.focus();
+    const caret = ta.value.length;
+    ta.setSelectionRange(caret, caret);
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+}
+document.addEventListener('click', function(e) {
+    const pop = document.getElementById('members-popover');
+    const btn = document.getElementById('group-tag-btn');
+    if (!pop || pop.style.display !== 'flex') return;
+    if (pop.contains(e.target) || (btn && btn.contains(e.target))) return;
+    pop.style.display = 'none';
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMembersPopover();
+});
+
 const LB_BASE  = '{{ rtrim(url("/"), "/") }}';
 const STR_READ = '{{ __("messages.read") }}';
 const STR_ME   = '{{ __("messages.me") }}';
@@ -1707,7 +2012,7 @@ window.addEventListener('newChatMessage', async function(e) {
         catsEl.appendChild(btn);
     });
 
-    async function emojiBtn(e) {
+    function emojiBtn(e) {
         return `<button type="button" class="emoji-btn" data-e="${e}" title="${e}">${e}</button>`;
     }
 

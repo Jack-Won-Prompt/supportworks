@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Events\ConversationRead;
 use App\Events\MessageSent;
+use App\Mail\ChatFileShareMail;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -167,6 +171,109 @@ class MessageController extends Controller
         }
 
         return redirect()->route('messages.show', $conversation)->withFragment('bottom');
+    }
+
+    public function invite(Request $request, Conversation $conversation)
+    {
+        $user = auth()->user();
+
+        abort_if($conversation->type !== null, 404);
+        abort_unless($conversation->is_group, 422, '그룹 채팅에만 초대할 수 있습니다.');
+        abort_unless($conversation->participants->contains('id', $user->id), 403);
+
+        $request->validate([
+            'member_ids'   => 'required|array|min:1',
+            'member_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $projectIds = $user->projects()->pluck('projects.id');
+        $allowedIds = User::whereHas('projects', fn($q) => $q->whereIn('projects.id', $projectIds))
+            ->where('id', '!=', $user->id)
+            ->pluck('id');
+
+        $existingIds = $conversation->participants->pluck('id');
+
+        $toAttach = collect($request->member_ids)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $allowedIds->contains($id))
+            ->reject(fn($id) => $existingIds->contains($id))
+            ->unique()
+            ->values();
+
+        if ($toAttach->isEmpty()) {
+            return response()->json([
+                'ok'      => false,
+                'message' => '초대할 수 있는 사용자가 없습니다. (이미 참여 중이거나 권한이 없는 사용자)',
+            ], 422);
+        }
+
+        $conversation->participants()->attach(
+            $toAttach->mapWithKeys(fn($id) => [$id => ['last_read_at' => null]])->all()
+        );
+
+        return response()->json([
+            'ok'      => true,
+            'added'   => $toAttach->count(),
+            'message' => $toAttach->count() . '명을 초대했습니다.',
+        ]);
+    }
+
+    public function emailFile(Message $message)
+    {
+        $user = auth()->user();
+        $conversation = $message->conversation;
+
+        abort_if($conversation->type !== null, 404);
+        abort_unless($conversation->participants->contains('id', $user->id), 403);
+        abort_unless($message->file_path && $message->file_name, 422, '파일이 첨부된 메시지에서만 사용할 수 있습니다.');
+
+        $absolutePath = Storage::disk('public')->path($message->file_path);
+        abort_unless(is_file($absolutePath), 410, '파일을 찾을 수 없습니다.');
+
+        $recipients = $conversation->participants
+            ->where('id', '!=', $user->id)
+            ->filter(fn($u) => filter_var($u->email, FILTER_VALIDATE_EMAIL))
+            ->values();
+
+        if ($recipients->isEmpty()) {
+            return response()->json([
+                'ok'      => false,
+                'message' => '이메일 주소를 가진 수신자가 없습니다.',
+            ], 422);
+        }
+
+        $convName = $conversation->is_group ? ($conversation->name ?: '그룹 채팅') : '1:1 대화';
+        $subject  = sprintf('[%s] 파일 공유 - %s', $convName, $message->file_name);
+
+        $sent = 0; $failed = 0;
+        foreach ($recipients as $recipient) {
+            try {
+                Mail::to($recipient->email, $recipient->name)
+                    ->send(new ChatFileShareMail(
+                        senderName:   $user->name ?? '',
+                        senderEmail:  $user->email ?? '',
+                        fileName:     $message->file_name,
+                        emailSubject: $subject,
+                        filePath:     $absolutePath,
+                    ));
+                $sent++;
+            } catch (\Throwable $e) {
+                $failed++;
+                Log::warning('[ChatFileShare] 발송 실패: ' . $e->getMessage(), [
+                    'to'      => $recipient->email,
+                    'message' => $message->id,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'ok'      => $sent > 0,
+            'sent'    => $sent,
+            'failed'  => $failed,
+            'message' => $failed === 0
+                ? "{$sent}명에게 메일을 발송했습니다."
+                : "{$sent}명 발송 성공, {$failed}명 실패",
+        ]);
     }
 
     public function leave(Conversation $conversation)

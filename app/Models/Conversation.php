@@ -71,13 +71,13 @@ class Conversation extends Model
         return $this->participants->firstWhere('id', '!=', $userId);
     }
 
-    public function memberNames(int $userId, int $limit = 3): string
+    public function memberNames(int $userId, ?int $limit = 3): string
     {
-        return $this->participants
-            ->where('id', '!=', $userId)
-            ->take($limit)
-            ->pluck('name')
-            ->join(', ');
+        $names = $this->participants->where('id', '!=', $userId);
+        if ($limit !== null) {
+            $names = $names->take($limit);
+        }
+        return $names->pluck('name')->join(', ');
     }
 
     public static function findBetween(int $userA, int $userB): ?self
