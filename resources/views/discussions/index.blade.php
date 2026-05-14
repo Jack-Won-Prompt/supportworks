@@ -46,6 +46,26 @@
 .dsc-date-filter-btn { padding:5px 11px;font-size:11px;font-weight:600;border-radius:7px;border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer;transition:all .12s; }
 .dsc-date-filter-btn.active { background:#ede9fe;color:#5b21b6;border-color:#c4b5fd; }
 
+/* 뷰 토글 */
+.dsc-view-btn { display:inline-flex;align-items:center;gap:4px;padding:5px 10px;font-size:11.5px;font-weight:600;background:none;border:none;color:#6b7280;border-radius:6px;cursor:pointer;transition:all .12s; }
+.dsc-view-btn.active { background:#fff;color:#5b21b6;box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.dsc-view-btn:hover:not(.active) { color:#374151; }
+
+/* 테이블뷰 */
+.dsc-table { width:100%;border-collapse:collapse;font-size:13px; }
+.dsc-table thead th { background:#fafafa;padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #f3f4f6; }
+.dsc-table tbody tr { border-bottom:1px solid #f9fafb;cursor:pointer;transition:background .1s; }
+.dsc-table tbody tr:last-child { border-bottom:none; }
+.dsc-table tbody tr:hover { background:#faf5ff; }
+.dsc-table td { padding:10px 14px;vertical-align:middle; }
+
+/* 페이지네이션 */
+.dsc-pagination { display:flex;justify-content:center;align-items:center;gap:8px;margin-top:18px; }
+.dsc-page-btn { display:inline-block;padding:7px 14px;font-size:12px;font-weight:600;color:#374151;background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;text-decoration:none;transition:all .12s; }
+.dsc-page-btn:hover { border-color:#a78bfa;color:#5b21b6;background:#faf5ff; }
+.dsc-page-btn.disabled { color:#d1d5db;background:#fafafa;cursor:not-allowed;border-color:#f3f4f6; }
+.dsc-page-info { font-size:12px;color:#6b7280;font-weight:600;padding:0 6px; }
+
 /* 상세 팝업 — 인라인 날짜 편집 (칩 모양 input) */
 .dsc-date-edit {
     display:inline-flex;align-items:center;gap:4px;
@@ -204,10 +224,10 @@
 
     {{-- 상태 필터 --}}
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <button class="dsc-status-filter-btn active" data-filter="all"         onclick="dscFilter('all', this)">전체 ({{ $discussions->count() }})</button>
-        <button class="dsc-status-filter-btn"        data-filter="open"        onclick="dscFilter('open', this)">진행 전 ({{ $discussions->where('status','open')->count() }})</button>
-        <button class="dsc-status-filter-btn"        data-filter="in_progress" onclick="dscFilter('in_progress', this)">진행 중 ({{ $discussions->where('status','in_progress')->count() }})</button>
-        <button class="dsc-status-filter-btn"        data-filter="resolved"    onclick="dscFilter('resolved', this)">완료 ({{ $discussions->where('status','resolved')->count() }})</button>
+        <button class="dsc-status-filter-btn active" data-filter="all"         onclick="dscFilter('all', this)">전체 ({{ $totalDiscussions }})</button>
+        <button class="dsc-status-filter-btn"        data-filter="open"        onclick="dscFilter('open', this)">진행 전 ({{ $statusCounts['open'] ?? 0 }})</button>
+        <button class="dsc-status-filter-btn"        data-filter="in_progress" onclick="dscFilter('in_progress', this)">진행 중 ({{ $statusCounts['in_progress'] ?? 0 }})</button>
+        <button class="dsc-status-filter-btn"        data-filter="resolved"    onclick="dscFilter('resolved', this)">완료 ({{ $statusCounts['resolved'] ?? 0 }})</button>
     </div>
 
     {{-- 일자 필터 --}}
@@ -224,9 +244,22 @@
         <span style="font-size:11px;color:#9ca3af;">~</span>
         <input type="date" id="dsc-date-to"   onchange="dscApplyFilters()" style="padding:5px 8px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:11px;color:#374151;outline:none;">
         <button onclick="dscClearDateRange()" style="padding:4px 10px;font-size:11px;color:#6b7280;background:none;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;">초기화</button>
+        <div style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:#9ca3af;">{{ $discussions->total() }}건 중 {{ $discussions->firstItem() ?? 0 }}–{{ $discussions->lastItem() ?? 0 }}</span>
+            <div id="dsc-view-toggle" style="display:inline-flex;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;padding:2px;">
+                <button type="button" id="dsc-view-card" onclick="dscSwitchView('card')" class="dsc-view-btn active" title="카드뷰">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    카드
+                </button>
+                <button type="button" id="dsc-view-table" onclick="dscSwitchView('table')" class="dsc-view-btn" title="테이블뷰">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M3 6h18M3 18h18"/></svg>
+                    테이블
+                </button>
+            </div>
+        </div>
     </div>
 
-    {{-- 목록 --}}
+    {{-- 목록 - 카드뷰 --}}
     <div id="dsc-list" style="display:flex;flex-direction:column;gap:10px;">
         @if($discussions->isEmpty())
         <div style="padding:48px 0;text-align:center;color:#9ca3af;font-size:13px;background:#fff;border-radius:12px;border:1px dashed #e5e7eb;">
@@ -255,6 +288,19 @@
             <div class="dsc-card-body">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
                 <span class="dsc-badge dsc-status-pill-{{ $d->status }}">{{ $d->status_label }}</span>
+                @if($d->reflection_status === 'reflected')
+                    <span class="dsc-badge" style="background:#dcfce7;color:#15803d;display:inline-flex;align-items:center;gap:3px;"
+                          title="{{ optional($d->reflectedPlanningDoc)->title ? '기획서: '.$d->reflectedPlanningDoc->title : '기획서 반영됨' }}">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
+                        기획서 반영
+                    </span>
+                @elseif($d->reflection_status === 'rejected')
+                    <span class="dsc-badge" style="background:#fee2e2;color:#b91c1c;display:inline-flex;align-items:center;gap:3px;"
+                          title="{{ $d->reflection_note ?: '반영하지 않기로 결정' }}">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        반영하지 않음
+                    </span>
+                @endif
                 <span style="font-size:11px;color:#9ca3af;">{{ $d->updated_at->diffForHumans() }} 업데이트</span>
             </div>
             <div style="font-size:15px;font-weight:600;color:#18181b;margin-bottom:6px;">{{ $d->title }}</div>
@@ -280,6 +326,80 @@
         @endforeach
         @endif
     </div>
+
+    {{-- 목록 - 테이블뷰 --}}
+    <div id="dsc-table-wrap" style="display:none;background:#fff;border:1px solid #f3f4f6;border-radius:12px;overflow:hidden;">
+        @if($discussions->isEmpty())
+        <div style="padding:48px 0;text-align:center;color:#9ca3af;font-size:13px;">
+            등록된 논의가 없습니다. 첫 논의를 등록해 보세요.
+        </div>
+        @else
+        <table class="dsc-table">
+            <thead>
+                <tr>
+                    <th style="width:104px;">논의 일정</th>
+                    <th>제목</th>
+                    <th style="width:90px;">상태</th>
+                    <th style="width:114px;">반영</th>
+                    <th style="width:96px;">작성자</th>
+                    <th style="width:60px;text-align:center;">의견</th>
+                    <th style="width:60px;text-align:center;">첨부</th>
+                    <th style="width:130px;">업데이트</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($discussions as $d)
+                <tr class="dsc-row" data-status="{{ $d->status }}" data-date="{{ $d->discussion_date?->format('Y-m-d') ?: '' }}" onclick="dscOpenDetail({{ $d->id }})">
+                    <td>{{ $d->discussion_date?->format('Y-m-d') ?: '—' }}</td>
+                    <td style="max-width:0;">
+                        <div style="font-weight:600;color:#18181b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $d->title }}</div>
+                        <div style="font-size:11px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ Str::limit(strip_tags($d->content), 120) }}</div>
+                    </td>
+                    <td><span class="dsc-badge dsc-status-pill-{{ $d->status }}">{{ $d->status_label }}</span></td>
+                    <td>
+                        @if($d->reflection_status === 'reflected')
+                            <span class="dsc-badge" style="background:#dcfce7;color:#15803d;display:inline-flex;align-items:center;gap:3px;"
+                                  title="{{ optional($d->reflectedPlanningDoc)->title ? '기획서: '.$d->reflectedPlanningDoc->title : '기획서 반영됨' }}">
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
+                                반영
+                            </span>
+                        @elseif($d->reflection_status === 'rejected')
+                            <span class="dsc-badge" style="background:#fee2e2;color:#b91c1c;display:inline-flex;align-items:center;gap:3px;"
+                                  title="{{ $d->reflection_note ?: '반영하지 않기로 결정' }}">
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                미반영
+                            </span>
+                        @else
+                            <span style="font-size:11px;color:#9ca3af;">미결정</span>
+                        @endif
+                    </td>
+                    <td style="color:#374151;font-size:12px;">{{ $d->author->name }}</td>
+                    <td style="text-align:center;color:#6b7280;">{{ $d->comments_count }}</td>
+                    <td style="text-align:center;color:#6b7280;">{{ $d->attachments_count > 0 ? $d->attachments_count : '—' }}</td>
+                    <td style="font-size:11px;color:#9ca3af;">{{ $d->updated_at->format('Y-m-d H:i') }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+        @endif
+    </div>
+
+    {{-- 페이지네이션 --}}
+    @if($discussions->hasPages())
+    <div class="dsc-pagination">
+        @if($discussions->onFirstPage())
+            <span class="dsc-page-btn disabled">‹ 이전</span>
+        @else
+            <a href="{{ $discussions->previousPageUrl() }}" class="dsc-page-btn">‹ 이전</a>
+        @endif
+        <span class="dsc-page-info">{{ $discussions->currentPage() }} / {{ $discussions->lastPage() }} 페이지</span>
+        @if($discussions->hasMorePages())
+            <a href="{{ $discussions->nextPageUrl() }}" class="dsc-page-btn">다음 ›</a>
+        @else
+            <span class="dsc-page-btn disabled">다음 ›</span>
+        @endif
+    </div>
+    @endif
 </div>
 
 {{-- ════ 등록/수정 모달 ════ --}}
@@ -380,6 +500,51 @@
         <div style="padding:14px 22px;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;background:#fafafa;">
             <button onclick="dscCloseCreate()" type="button" style="padding:9px 18px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
             <button id="dsc-create-submit" onclick="dscSubmit()" type="button" style="padding:9px 22px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">등록</button>
+        </div>
+    </div>
+</div>
+
+{{-- ════ 기획서 선택 다이얼로그 ════ --}}
+<div id="dsc-reflect-picker" onclick="if(event.target===this)dscCloseReflectPicker()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(15,12,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;width:520px;max-width:calc(100vw - 48px);max-height:80vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                기획서에 반영
+            </h3>
+            <button type="button" onclick="dscCloseReflectPicker()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
+        </div>
+        <div style="padding:14px 22px;font-size:12.5px;color:#6b7280;border-bottom:1px solid #f3f4f6;background:#fffefb;">
+            결정 후에는 변경할 수 없으며, 참여자 전원에게 결과 메일이 발송됩니다.
+        </div>
+        <div id="dsc-reflect-doc-list" style="padding:14px 22px;overflow-y:auto;flex:1;min-height:0;"></div>
+        <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
+            <button type="button" onclick="dscCloseReflectPicker()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
+            <button type="button" id="dsc-reflect-confirm-btn" onclick="dscDoReflect()" style="padding:7px 18px;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">반영</button>
+        </div>
+    </div>
+</div>
+
+{{-- ════ 반영하지 않음 사유 입력 다이얼로그 ════ --}}
+<div id="dsc-reject-modal" onclick="if(event.target===this)dscCloseRejectModal()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(15,12,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;width:480px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                반영하지 않음
+            </h3>
+            <button type="button" onclick="dscCloseRejectModal()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
+        </div>
+        <div style="padding:18px 22px;">
+            <p style="margin:0 0 10px;font-size:13px;color:#374151;">반영하지 않기로 결정한 사유를 입력해주세요. (필수)</p>
+            <textarea id="dsc-reject-note" rows="5" placeholder="예: 다음 분기로 보류 / 별도 진행 예정 / 범위 외 등"
+                      style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;line-height:1.55;resize:vertical;box-sizing:border-box;outline:none;"
+                      onfocus="this.style.borderColor='#a78bfa'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+            <p style="margin:10px 0 0;font-size:11.5px;color:#9ca3af;">결정 후에는 변경할 수 없으며, 참여자 전원에게 결과 메일이 발송됩니다.</p>
+        </div>
+        <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
+            <button type="button" onclick="dscCloseRejectModal()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
+            <button type="button" id="dsc-reject-confirm-btn" onclick="dscDoReject()" style="padding:7px 18px;background:#b91c1c;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">확정</button>
         </div>
     </div>
 </div>
@@ -769,20 +934,51 @@ function dscApplyFilters() {
         lo = from || ''; hi = to || '';
     }
 
-    document.querySelectorAll('#dsc-list .dsc-card').forEach(card => {
+    const items = document.querySelectorAll('#dsc-list .dsc-card, #dsc-table-wrap .dsc-row');
+    items.forEach(el => {
         let show = true;
-        if (_dscFilterStatus !== 'all' && card.dataset.status !== _dscFilterStatus) show = false;
+        if (_dscFilterStatus !== 'all' && el.dataset.status !== _dscFilterStatus) show = false;
         if (show && (lo || hi)) {
-            const date = card.dataset.date || '';
+            const date = el.dataset.date || '';
             if (!date) { show = false; }
             else {
                 if (lo && date < lo) show = false;
                 if (hi && date > hi) show = false;
             }
         }
-        card.style.display = show ? 'block' : 'none';
+        if (el.classList.contains('dsc-row')) {
+            el.style.display = show ? '' : 'none';
+        } else {
+            el.style.display = show ? 'block' : 'none';
+        }
     });
 }
+
+/* 뷰 전환 (카드/테이블) - localStorage 보존 */
+function dscSwitchView(mode) {
+    const card  = document.getElementById('dsc-list');
+    const table = document.getElementById('dsc-table-wrap');
+    const cBtn  = document.getElementById('dsc-view-card');
+    const tBtn  = document.getElementById('dsc-view-table');
+    if (!card || !table) return;
+    if (mode === 'table') {
+        card.style.display = 'none';
+        table.style.display = 'block';
+        cBtn.classList.remove('active');
+        tBtn.classList.add('active');
+    } else {
+        card.style.display = 'flex';
+        table.style.display = 'none';
+        cBtn.classList.add('active');
+        tBtn.classList.remove('active');
+    }
+    try { localStorage.setItem('dsc.viewMode', mode); } catch(_) {}
+}
+(function dscInitView() {
+    let saved = 'card';
+    try { saved = localStorage.getItem('dsc.viewMode') || 'card'; } catch(_) {}
+    if (saved === 'table') dscSwitchView('table');
+})();
 
 /* ════════ 상세 팝업 ════════ */
 let _dscDetail = null;
@@ -968,8 +1164,8 @@ function dscRenderDetail(d) {
 
         <!-- ═══ 탭 영역: 결론 ═══ -->
         <div id="dsc-pane-conclusion" class="dsc-main-pane" style="display:none;flex:1;overflow-y:auto;padding:14px 22px 18px;background:#fffefb;">
-            ${d.can_edit ? `
-            <div class="dsc-md-tabs" style="margin-bottom:8px;display:flex;">
+            <div class="dsc-md-tabs" style="margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                ${d.can_edit ? `
                 <button type="button" id="dsc-concldet-tab-view" class="dsc-md-tab active" onclick="dscSwitchDetailConclTab('view',${d.id})">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     보기
@@ -977,8 +1173,11 @@ function dscRenderDetail(d) {
                 <button type="button" id="dsc-concldet-tab-edit" class="dsc-md-tab" onclick="dscSwitchDetailConclTab('edit',${d.id})">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     편집
-                </button>
-            </div>` : ''}
+                </button>` : ''}
+                <div id="dsc-reflect-actions" style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+                    ${dscReflectActionsHtml(d)}
+                </div>
+            </div>
             <div id="dsc-detail-concl-view" class="dsc-md-rendered">${d.conclusion ? dscRenderMarkdown(d.conclusion) : '<p style="color:#9ca3af;font-size:13px;">(결론이 아직 작성되지 않았습니다)</p>'}</div>
             ${d.can_edit ? `
             <div id="dsc-detail-concl-edit" style="display:none;margin-top:8px;">
@@ -1378,6 +1577,174 @@ async function dscAiRefineDetailBody(discussionId) {
     btn.disabled = false; btn.innerHTML = orig;
 }
 
+/* ── 논의사항 → 기획서 반영 / 반영하지 않음 ────────────── */
+let _dscReflectCurrentId = null;
+
+function dscReflectActionsHtml(d) {
+    const r = d.reflection;
+    if (r && r.status === 'reflected') {
+        const tooltip = `반영 기획서: ${(r.planning_doc?.title || '')} · ${r.decided_by?.name || ''} · ${r.decided_at || ''}`;
+        const href = r.planning_doc?.url || '#';
+        return `<a href="${href}" target="_blank" title="${dscEscHtml(tooltip)}"
+                   style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#dcfce7;border:1px solid #bbf7d0;color:#15803d;border-radius:7px;font-size:11.5px;font-weight:700;text-decoration:none;cursor:pointer;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
+                    기획서에 반영됨
+                </a>`;
+    }
+    if (r && r.status === 'rejected') {
+        const tooltip = `사유: ${r.note || '(없음)'} · ${r.decided_by?.name || ''} · ${r.decided_at || ''}`;
+        return `<span title="${dscEscHtml(tooltip)}"
+                   style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:7px;font-size:11.5px;font-weight:700;cursor:help;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    반영하지 않음
+                </span>`;
+    }
+    const hasConclusion = !!(d.conclusion && d.conclusion.trim());
+    const titleHint = hasConclusion ? '' : '결론을 먼저 작성하세요';
+    return `
+        <button type="button" onclick="dscTryReflect(${d.id})" title="${titleHint || '기획서에 반영'}"
+                style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;${hasConclusion ? '' : 'opacity:.55;'}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            기획서에 반영
+        </button>
+        <button type="button" onclick="dscTryReject(${d.id})" title="${titleHint || '반영하지 않음'}"
+                style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#fff;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;${hasConclusion ? '' : 'opacity:.55;'}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            반영하지 않음
+        </button>
+    `;
+}
+
+function dscRefreshReflectActions() {
+    const box = document.getElementById('dsc-reflect-actions');
+    if (box && _dscDetail) box.innerHTML = dscReflectActionsHtml(_dscDetail);
+}
+
+function dscTryReflect(discussionId) {
+    const conclusion = (_dscDetail?.conclusion || '').trim();
+    if (!conclusion) { alert('결론을 먼저 작성한 후 반영해주세요.'); return; }
+    dscOpenReflectPicker(discussionId);
+}
+function dscTryReject(discussionId) {
+    const conclusion = (_dscDetail?.conclusion || '').trim();
+    if (!conclusion) { alert('결론을 먼저 작성한 후 결정해주세요.'); return; }
+    dscOpenRejectModal(discussionId);
+}
+
+function dscEscHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function dscOpenReflectPicker(discussionId) {
+    _dscReflectCurrentId = discussionId;
+    try {
+        const url = `${DSC_BASE}/${discussionId}/reflect-targets`;
+        const r = await fetch(url, { headers: {'Accept':'application/json'} });
+        const text = await r.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch (_) {
+            console.error('[reflectTargets] 비 JSON 응답', r.status, text.slice(0, 600));
+            alert(`서버 오류 (${r.status})\n${text.slice(0, 200)}\n자세한 내용은 콘솔 확인`);
+            return;
+        }
+        if (!r.ok) {
+            console.error('[reflectTargets] HTTP error', r.status, data);
+            alert(data.message || `기획서 목록 조회 실패 (HTTP ${r.status})`);
+            return;
+        }
+        if (!data.docs || data.docs.length === 0) {
+            alert('기획서가 없습니다. 먼저 프로젝트 기획서를 생성해주세요.');
+            return;
+        }
+        const list = document.getElementById('dsc-reflect-doc-list');
+        list.innerHTML = data.docs.map(doc => `
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;margin-bottom:6px;transition:border-color .12s;"
+                   onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='#e5e7eb'">
+                <input type="radio" name="reflect-doc" value="${doc.id}" style="margin:0;">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:600;color:#1f2937;">${dscEscHtml(doc.title)}</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">상태: ${dscEscHtml(doc.status)} · 수정: ${doc.updated_at || ''}</div>
+                </div>
+            </label>
+        `).join('');
+        if (data.docs.length === 1) list.querySelector('input[type=radio]').checked = true;
+        document.getElementById('dsc-reflect-picker').style.display = 'flex';
+    } catch (e) {
+        console.error('[reflectTargets] 예외', e);
+        alert('네트워크/스크립트 오류: ' + (e?.message || e));
+    }
+}
+
+function dscCloseReflectPicker() {
+    document.getElementById('dsc-reflect-picker').style.display = 'none';
+    _dscReflectCurrentId = null;
+}
+
+async function dscDoReflect() {
+    const did = _dscReflectCurrentId;
+    const chosen = document.querySelector('#dsc-reflect-doc-list input[name=reflect-doc]:checked');
+    if (!did || !chosen) { alert('반영할 기획서를 선택하세요.'); return; }
+    const btn = document.getElementById('dsc-reflect-confirm-btn');
+    btn.disabled = true; btn.textContent = '반영 중...';
+    try {
+        const fd = new FormData();
+        fd.append('_token', '{{ csrf_token() }}');
+        fd.append('planning_doc_id', chosen.value);
+        const r = await fetch(`${DSC_BASE}/${did}/reflect-to-planning`, {
+            method:'POST',
+            headers:{'Accept':'application/json'},
+            body: fd,
+        });
+        const data = await r.json();
+        if (!r.ok) { alert(data.message || '반영 실패'); btn.disabled = false; btn.textContent = '반영'; return; }
+        dscCloseReflectPicker();
+        alert(data.message + '\n참여자에게 결과 메일이 발송되었습니다.');
+        dscOpenDetail(did); // 상세 다시 로드해서 상태 갱신
+    } catch (e) {
+        alert('네트워크 오류가 발생했습니다.');
+        btn.disabled = false; btn.textContent = '반영';
+    }
+}
+
+function dscOpenRejectModal(discussionId) {
+    _dscReflectCurrentId = discussionId;
+    document.getElementById('dsc-reject-note').value = '';
+    document.getElementById('dsc-reject-modal').style.display = 'flex';
+    setTimeout(() => document.getElementById('dsc-reject-note').focus(), 50);
+}
+
+function dscCloseRejectModal() {
+    document.getElementById('dsc-reject-modal').style.display = 'none';
+    _dscReflectCurrentId = null;
+}
+
+async function dscDoReject() {
+    const did = _dscReflectCurrentId;
+    if (!did) return;
+    const note = document.getElementById('dsc-reject-note').value.trim();
+    if (!note) { alert('결정 사유를 입력하세요.'); return; }
+    const btn = document.getElementById('dsc-reject-confirm-btn');
+    btn.disabled = true; btn.textContent = '처리 중...';
+    try {
+        const fd = new FormData();
+        fd.append('_token', '{{ csrf_token() }}');
+        fd.append('note', note);
+        const r = await fetch(`${DSC_BASE}/${did}/reject-reflection`, {
+            method:'POST',
+            headers:{'Accept':'application/json'},
+            body: fd,
+        });
+        const data = await r.json();
+        if (!r.ok) { alert(data.message || '처리 실패'); btn.disabled = false; btn.textContent = '확정'; return; }
+        dscCloseRejectModal();
+        alert(data.message + '\n참여자에게 결과 메일이 발송되었습니다.');
+        dscOpenDetail(did);
+    } catch (e) {
+        alert('네트워크 오류가 발생했습니다.');
+        btn.disabled = false; btn.textContent = '확정';
+    }
+}
+
 /* 상세 팝업 — 결론 편집/보기 */
 let _dscDetailConclMDE = null;
 
@@ -1475,6 +1842,7 @@ async function dscSaveConclEdit(discussionId) {
         if (_dscDetail) _dscDetail.conclusion = conclusion;
         const viewArea = document.getElementById('dsc-detail-concl-view');
         if (viewArea) viewArea.innerHTML = conclusion ? dscRenderMarkdown(conclusion) : '<p style="color:#9ca3af;font-size:13px;">(결론이 아직 작성되지 않았습니다)</p>';
+        dscRefreshReflectActions();
         dscSwitchDetailConclTab('view');
     } catch (e) {
         alert('저장 실패: ' + e.message);

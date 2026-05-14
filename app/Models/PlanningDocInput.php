@@ -9,6 +9,7 @@ class PlanningDocInput extends Model
     protected $fillable = [
         'planning_doc_id', 'input_type', 'content',
         'file_path', 'file_name', 'status', 'created_by', 'processed_at',
+        'source_discussion_id',
     ];
 
     protected $casts = [
@@ -32,7 +33,13 @@ class PlanningDocInput extends Model
             'memo'        => '메모',
             'requirement' => '요구사항',
             'file'        => '파일',
+            'discussion'  => '논의사항 반영',
             default       => $this->input_type,
         };
+    }
+
+    public function sourceDiscussion()
+    {
+        return $this->belongsTo(Discussion::class, 'source_discussion_id');
     }
 }

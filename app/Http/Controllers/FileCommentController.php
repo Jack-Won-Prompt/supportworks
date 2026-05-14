@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\FileCommentDeleted;
 use App\Events\FileCommentPosted;
+use App\Models\Discussion;
 use App\Models\FileAnnotation;
 use App\Models\FileComment;
 use App\Models\Project;
@@ -164,16 +165,73 @@ class FileCommentController extends Controller
         });
 
         return response()->json([
-            'id'         => $comment->id,
-            'page'       => $comment->page,
-            'video_time' => $comment->video_time,
-            'content'    => $comment->content,
-            'user_name'  => $comment->user->name,
-            'user_id'    => $comment->user_id,
-            'parent_id'  => $comment->parent_id,
-            'created_at' => $comment->created_at->diffForHumans(),
-            'can_delete' => true,
-            'replies'    => [],
+            'id'            => $comment->id,
+            'page'          => $comment->page,
+            'video_time'    => $comment->video_time,
+            'content'       => $comment->content,
+            'user_name'     => $comment->user->name,
+            'user_id'       => $comment->user_id,
+            'parent_id'     => $comment->parent_id,
+            'created_at'    => $comment->created_at->diffForHumans(),
+            'can_delete'    => true,
+            'discussion_id' => null,
+            'replies'       => [],
+        ]);
+    }
+
+    public function convertToDiscussion(Project $project, ProjectFile $file, FileComment $comment, Request $request)
+    {
+        $this->authorizeProject($project);
+
+        abort_if($comment->project_file_id !== $file->id, 404);
+        abort_if($comment->parent_id !== null, 422, '답글은 논의사항으로 등록할 수 없습니다.');
+
+        $existing = Discussion::where('source_file_comment_id', $comment->id)->first();
+        if ($existing) {
+            return response()->json([
+                'ok'            => false,
+                'already'       => true,
+                'discussion_id' => $existing->id,
+                'message'       => '이미 논의사항으로 등록된 의견입니다.',
+            ], 409);
+        }
+
+        $request->validate([
+            'title'           => 'nullable|string|max:255',
+            'discussion_date' => 'nullable|date',
+        ]);
+
+        $comment->loadMissing('user');
+        $authorName = $comment->user?->name ?? $comment->guest_name ?? '외부 리뷰어';
+        $fileName   = $file->original_name;
+
+        $defaultTitle = mb_substr(sprintf('[%s] %s', $fileName, $authorName), 0, 255);
+        $title        = trim((string) $request->input('title')) ?: $defaultTitle;
+
+        $escapeMd = static fn(string $s): string => str_replace(['*','_','[',']','`','#','>'], ['\\*','\\_','\\[','\\]','\\`','\\#','\\>'], $s);
+
+        $content = sprintf(
+            "> *원본 의견 — 파일: %s · 작성자: %s · 등록일: %s*\n\n%s",
+            $escapeMd($fileName),
+            $escapeMd($authorName),
+            optional($comment->created_at)->format('Y-m-d H:i'),
+            $comment->content
+        );
+
+        $discussion = Discussion::create([
+            'project_id'             => $project->id,
+            'user_id'                => auth()->id(),
+            'source_file_comment_id' => $comment->id,
+            'title'                  => $title,
+            'content'                => $content,
+            'discussion_date'        => $request->input('discussion_date') ?: now()->toDateString(),
+            'status'                 => 'open',
+        ]);
+
+        return response()->json([
+            'ok'            => true,
+            'discussion_id' => $discussion->id,
+            'url'           => route('projects.discussions.index', $project) . '?open=' . $discussion->id,
         ]);
     }
 
@@ -297,17 +355,22 @@ class FileCommentController extends Controller
         $authId    = auth()->id();
         $authAdmin = auth()->check() && auth()->user()->isAdmin();
 
+        $discussionId = $c->parent_id === null
+            ? Discussion::where('source_file_comment_id', $c->id)->value('id')
+            : null;
+
         $data = [
-            'id'         => $c->id,
-            'page'       => $c->page,
-            'video_time' => $c->video_time !== null ? (float) $c->video_time : null,
-            'content'    => $c->content,
-            'user_name'  => $c->user?->name ?? $c->guest_name ?? '외부 리뷰어',
-            'user_id'    => $c->user_id,
-            'parent_id'  => $c->parent_id,
-            'created_at' => $c->created_at->diffForHumans(),
-            'can_delete' => $authId !== null && ($authId === $c->user_id || $authAdmin),
-            'replies'    => [],
+            'id'            => $c->id,
+            'page'          => $c->page,
+            'video_time'    => $c->video_time !== null ? (float) $c->video_time : null,
+            'content'       => $c->content,
+            'user_name'     => $c->user?->name ?? $c->guest_name ?? '외부 리뷰어',
+            'user_id'       => $c->user_id,
+            'parent_id'     => $c->parent_id,
+            'created_at'    => $c->created_at->diffForHumans(),
+            'can_delete'    => $authId !== null && ($authId === $c->user_id || $authAdmin),
+            'discussion_id' => $discussionId,
+            'replies'       => [],
         ];
 
         if ($c->relationLoaded('replies')) {

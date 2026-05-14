@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\DiscussionReflectionMail;
 use App\Mail\DiscussionShareMail;
 use App\Models\AiSetting;
 use App\Models\Discussion;
 use App\Models\DiscussionAttachment;
 use App\Models\DiscussionComment;
 use App\Models\PlanningDoc;
+use App\Models\PlanningDocInput;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\AiOrchestrator;
@@ -28,12 +30,22 @@ class DiscussionController extends Controller
     {
         $this->authorizeProject($project);
 
-        $discussions = Discussion::with(['author:id,name', 'participants:id,name'])
+        $discussions = Discussion::with([
+                'author:id,name',
+                'participants:id,name',
+                'reflectedPlanningDoc:id,title',
+            ])
             ->withCount(['comments', 'attachments'])
             ->where('project_id', $project->id)
             ->orderByRaw('discussion_date IS NULL, discussion_date DESC')
             ->orderByDesc('updated_at')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
+
+        $statusCounts = Discussion::where('project_id', $project->id)
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
 
         // 공유 대상: 해당 프로젝트의 멤버만 (본인 제외)
         $shareableUsers = $project->members()
@@ -41,7 +53,9 @@ class DiscussionController extends Controller
             ->orderBy('users.name')
             ->get(['users.id', 'users.name', 'users.email']);
 
-        return view('discussions.index', compact('project', 'discussions', 'shareableUsers'));
+        $totalDiscussions = Discussion::where('project_id', $project->id)->count();
+
+        return view('discussions.index', compact('project', 'discussions', 'shareableUsers', 'statusCounts', 'totalDiscussions'));
     }
 
     public function show(Project $project, Discussion $discussion): JsonResponse
@@ -56,13 +70,32 @@ class DiscussionController extends Controller
             'comments.attachments',
             'attachments' => fn($q) => $q->whereNull('discussion_comment_id'),
             'attachments.uploader:id,name',
+            'reflectedPlanningDoc:id,title,project_id',
+            'reflectionDecidedBy:id,name',
         ]);
+
+        $reflection = null;
+        if (in_array($discussion->reflection_status, ['reflected', 'rejected'])) {
+            $reflection = [
+                'status'       => $discussion->reflection_status,
+                'status_label' => $discussion->reflection_status_label,
+                'note'         => $discussion->reflection_note,
+                'decided_by'   => $discussion->reflectionDecidedBy ? ['id' => $discussion->reflectionDecidedBy->id, 'name' => $discussion->reflectionDecidedBy->name] : null,
+                'decided_at'   => $discussion->reflection_decided_at?->format('Y-m-d H:i'),
+                'planning_doc' => $discussion->reflectedPlanningDoc ? [
+                    'id'    => $discussion->reflectedPlanningDoc->id,
+                    'title' => $discussion->reflectedPlanningDoc->title,
+                    'url'   => route('projects.planning.show', [$project, $discussion->reflectedPlanningDoc]),
+                ] : null,
+            ];
+        }
 
         return response()->json([
             'id'                     => $discussion->id,
             'title'                  => $discussion->title,
             'content'                => $discussion->content,
             'conclusion'             => $discussion->conclusion,
+            'reflection'             => $reflection,
             'comments_summary'       => $discussion->comments_summary,
             'comments_summary_at'    => $discussion->comments_summary_at?->format('Y-m-d H:i'),
             'comments_summary_count' => $discussion->comments_summary_count,
@@ -192,6 +225,122 @@ class DiscussionController extends Controller
         }
 
         return response()->json(['ok' => true, 'notified' => count($toNotify)]);
+    }
+
+    public function reflectTargets(Project $project, Discussion $discussion): JsonResponse
+    {
+        $this->authorizeProject($project);
+        abort_if($discussion->project_id !== $project->id, 404);
+
+        $docs = PlanningDoc::where('project_id', $project->id)
+            ->orderByDesc('updated_at')
+            ->get(['id', 'title', 'status', 'updated_at']);
+
+        return response()->json([
+            'ok'                 => true,
+            'docs'               => $docs->map(fn($d) => [
+                'id'         => $d->id,
+                'title'      => $d->title,
+                'status'     => $d->status,
+                'updated_at' => $d->updated_at?->format('Y-m-d H:i'),
+            ])->values(),
+            'reflection_status'  => $discussion->reflection_status,
+            'has_conclusion'     => !empty(trim((string) $discussion->conclusion)),
+        ]);
+    }
+
+    public function reflectToPlanning(Request $request, Project $project, Discussion $discussion): JsonResponse
+    {
+        $this->authorizeProject($project);
+        abort_if($discussion->project_id !== $project->id, 404);
+        abort_unless(in_array($discussion->reflection_status, [null, 'pending']), 409, '이미 결정된 논의사항입니다.');
+        abort_if(empty(trim((string) $discussion->conclusion)), 422, '결론이 작성되지 않은 논의사항은 반영할 수 없습니다.');
+
+        $request->validate([
+            'planning_doc_id' => 'required|integer|exists:planning_docs,id',
+        ]);
+
+        $doc = PlanningDoc::where('id', $request->planning_doc_id)
+            ->where('project_id', $project->id)
+            ->firstOrFail();
+
+        $content = sprintf("## %s\n\n%s", $discussion->title, $discussion->conclusion);
+
+        $input = PlanningDocInput::create([
+            'planning_doc_id'      => $doc->id,
+            'input_type'           => 'discussion',
+            'content'              => $content,
+            'status'               => 'pending',
+            'created_by'           => Auth::id(),
+            'source_discussion_id' => $discussion->id,
+        ]);
+
+        $discussion->update([
+            'reflection_status'         => 'reflected',
+            'reflected_planning_doc_id' => $doc->id,
+            'reflection_decided_by'     => Auth::id(),
+            'reflection_decided_at'     => now(),
+            'reflection_note'           => null,
+        ]);
+
+        $this->notifyReflection($project, $discussion->fresh(['reflectedPlanningDoc']), 'reflected', $doc);
+
+        return response()->json([
+            'ok'              => true,
+            'planning_doc_id' => $doc->id,
+            'planning_url'    => route('projects.planning.show', [$project, $doc]),
+            'message'         => '기획서에 반영되었습니다.',
+        ]);
+    }
+
+    public function rejectReflection(Request $request, Project $project, Discussion $discussion): JsonResponse
+    {
+        $this->authorizeProject($project);
+        abort_if($discussion->project_id !== $project->id, 404);
+        abort_unless(in_array($discussion->reflection_status, [null, 'pending']), 409, '이미 결정된 논의사항입니다.');
+
+        $request->validate([
+            'note' => 'nullable|string|max:2000',
+        ]);
+
+        $discussion->update([
+            'reflection_status'         => 'rejected',
+            'reflected_planning_doc_id' => null,
+            'reflection_decided_by'     => Auth::id(),
+            'reflection_decided_at'     => now(),
+            'reflection_note'           => $request->input('note'),
+        ]);
+
+        $this->notifyReflection($project, $discussion->fresh(), 'rejected', null, $request->input('note'));
+
+        return response()->json([
+            'ok'      => true,
+            'message' => '반영하지 않기로 결정되었습니다.',
+        ]);
+    }
+
+    private function notifyReflection(Project $project, Discussion $discussion, string $decision, ?PlanningDoc $doc = null, ?string $note = null): void
+    {
+        $decidedBy = Auth::user();
+
+        $recipients = collect()
+            ->merge($discussion->participants)
+            ->push($discussion->author)
+            ->filter(fn($u) => $u && filter_var($u->email, FILTER_VALIDATE_EMAIL))
+            ->unique('id')
+            ->values();
+
+        foreach ($recipients as $u) {
+            try {
+                Mail::to($u->email, $u->name)
+                    ->send(new DiscussionReflectionMail($project, $discussion, $decidedBy, $decision, $doc, $note));
+            } catch (\Throwable $e) {
+                \Log::warning('[DiscussionReflection] 메일 발송 실패: ' . $e->getMessage(), [
+                    'to'         => $u->email,
+                    'discussion' => $discussion->id,
+                ]);
+            }
+        }
     }
 
     public function storeComment(Request $request, Project $project, Discussion $discussion): JsonResponse
