@@ -73,6 +73,15 @@
     </div>
 
     {{-- 상세 정보 그리드 --}}
+    @php
+        $ctx = $error->context ?? [];
+        $hasUserInfo = !empty($ctx['user_name']) || !empty($ctx['user_email']) || !empty($ctx['user_role']) || !empty($ctx['user_company']) || !empty($ctx['admin_user_id']) || isset($ctx['user_id']);
+        $roleLabels = [
+            'admin'  => __('admin.syserr_role_admin'),
+            'member' => __('admin.syserr_role_member'),
+            'guest'  => __('admin.syserr_role_guest'),
+        ];
+    @endphp
     <div class="grid grid-cols-2 gap-4 mb-4">
         {{-- 발생 위치 --}}
         <div class="bg-white border border-slate-200 rounded-xl p-4">
@@ -84,39 +93,45 @@
                     <dd class="font-mono text-slate-700 break-all text-xs">{{ $error->file }}@if($error->line):{{ $error->line }}@endif</dd>
                 </div>
                 @endif
+                @if(!empty($ctx['route_name']))
+                <div>
+                    <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_route_label') }}</dt>
+                    <dd class="font-mono text-slate-700 break-all text-xs">{{ $ctx['route_name'] }}</dd>
+                </div>
+                @endif
+                @if(!empty($ctx['route_action']))
+                <div>
+                    <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_action_label') }}</dt>
+                    <dd class="font-mono text-slate-700 break-all text-xs">{{ $ctx['route_action'] }}</dd>
+                </div>
+                @endif
             </dl>
         </div>
 
         {{-- 요청 컨텍스트 --}}
         <div class="bg-white border border-slate-200 rounded-xl p-4">
             <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{{ __('admin.syserr_col_request_context') }}</h3>
-            @if(!empty($error->context))
+            @if(!empty($ctx))
             <dl class="space-y-2 text-sm">
-                @if(!empty($error->context['url']))
+                @if(!empty($ctx['url']))
                 <div>
                     <dt class="text-xs text-slate-400 mb-0.5">URL</dt>
                     <dd class="text-slate-700 break-all text-xs">
-                        <span class="font-mono font-semibold text-indigo-500">{{ $error->context['method'] ?? '' }}</span>
-                        {{ $error->context['url'] }}
+                        <span class="font-mono font-semibold text-indigo-500">{{ $ctx['method'] ?? '' }}</span>
+                        {{ $ctx['url'] }}
                     </dd>
                 </div>
                 @endif
-                @if(!empty($error->context['ip']))
+                @if(!empty($ctx['ip']))
                 <div>
                     <dt class="text-xs text-slate-400 mb-0.5">IP</dt>
-                    <dd class="font-mono text-slate-700 text-xs">{{ $error->context['ip'] }}</dd>
+                    <dd class="font-mono text-slate-700 text-xs">{{ $ctx['ip'] }}</dd>
                 </div>
                 @endif
-                @if(isset($error->context['user_id']))
-                <div>
-                    <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_user_id_label') }}</dt>
-                    <dd class="font-mono text-slate-700 text-xs">{{ $error->context['user_id'] ?? __('admin.syserr_not_logged_in') }}</dd>
-                </div>
-                @endif
-                @if(!empty($error->context['source']))
+                @if(!empty($ctx['source']))
                 <div>
                     <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_source_label') }}</dt>
-                    <dd class="text-slate-700 text-xs">{{ $error->context['source'] }}</dd>
+                    <dd class="text-slate-700 text-xs">{{ $ctx['source'] }}</dd>
                 </div>
                 @endif
             </dl>
@@ -125,6 +140,97 @@
             @endif
         </div>
     </div>
+
+    {{-- 사용자 정보 --}}
+    @if($hasUserInfo)
+    <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4">
+        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{{ __('admin.syserr_user_info') }}</h3>
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            @if(!empty($ctx['user_name']) || isset($ctx['user_id']))
+            <div>
+                <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_user_label') }}</dt>
+                <dd class="text-slate-700 text-xs">
+                    @if(!empty($ctx['user_name']))
+                        {{ $ctx['user_name'] }}
+                        @if(isset($ctx['user_id']))<span class="text-slate-400 font-mono ml-1">#{{ $ctx['user_id'] }}</span>@endif
+                    @else
+                        @if($ctx['user_id'])<span class="font-mono">#{{ $ctx['user_id'] }}</span>@else{{ __('admin.syserr_not_logged_in') }}@endif
+                    @endif
+                </dd>
+            </div>
+            @endif
+            @if(!empty($ctx['user_email']))
+            <div>
+                <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_user_email_label') }}</dt>
+                <dd class="text-slate-700 text-xs break-all">{{ $ctx['user_email'] }}</dd>
+            </div>
+            @endif
+            @if(!empty($ctx['user_role']))
+            <div>
+                <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_user_role_label') }}</dt>
+                <dd class="text-slate-700 text-xs">{{ $roleLabels[$ctx['user_role']] ?? $ctx['user_role'] }}</dd>
+            </div>
+            @endif
+            @if(!empty($ctx['user_company']))
+            <div>
+                <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_user_company_label') }}</dt>
+                <dd class="text-slate-700 text-xs">{{ $ctx['user_company'] }}</dd>
+            </div>
+            @endif
+            @if(!empty($ctx['admin_user_id']))
+            <div class="col-span-2">
+                <dt class="text-xs text-slate-400 mb-0.5">{{ __('admin.syserr_admin_user_label') }}</dt>
+                <dd class="text-slate-700 text-xs">
+                    {{ $ctx['admin_user_name'] ?? '' }}
+                    <span class="text-slate-400 font-mono ml-1">#{{ $ctx['admin_user_id'] }}</span>
+                </dd>
+            </div>
+            @endif
+        </dl>
+    </div>
+    @endif
+
+    {{-- 요청 데이터 --}}
+    @php
+        $hasReqData = !empty($ctx['query']) || !empty($ctx['input']);
+    @endphp
+    @if($hasReqData)
+    <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4">
+        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{{ __('admin.syserr_request_data') }}</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs text-slate-400 mb-2">{{ __('admin.syserr_query_label') }}</p>
+                @if(!empty($ctx['query']))
+                <dl class="space-y-1 text-xs font-mono">
+                    @foreach($ctx['query'] as $k => $v)
+                    <div class="flex gap-2">
+                        <dt class="text-indigo-500 shrink-0">{{ $k }}:</dt>
+                        <dd class="text-slate-700 break-all">{{ $v }}</dd>
+                    </div>
+                    @endforeach
+                </dl>
+                @else
+                <p class="text-xs text-slate-400">—</p>
+                @endif
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 mb-2">{{ __('admin.syserr_input_label') }}</p>
+                @if(!empty($ctx['input']))
+                <dl class="space-y-1 text-xs font-mono">
+                    @foreach($ctx['input'] as $k => $v)
+                    <div class="flex gap-2">
+                        <dt class="text-indigo-500 shrink-0">{{ $k }}:</dt>
+                        <dd class="text-slate-700 break-all">{{ $v }}</dd>
+                    </div>
+                    @endforeach
+                </dl>
+                @else
+                <p class="text-xs text-slate-400">—</p>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- 스택 트레이스 --}}
     @if($error->trace)

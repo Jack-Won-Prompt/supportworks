@@ -21,7 +21,7 @@ return [
     'confirm_delete_ann'     => 'Delete this annotation?',
     'count_suffix'           => '',
     'download'               => 'Download',
-    'download_with_review'   => 'Download with Review',
+    'download_with_review'   => 'Download Document',
     'open_for_review'        => 'Open Document for Review',
     'submit_opinion'         => 'Submit Comment',
     'new_opinion_placeholder'=> 'Add a new comment... (Ctrl+Enter to submit)',

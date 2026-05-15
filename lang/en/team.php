@@ -216,7 +216,7 @@ return [
 
     // ── Shared file viewer (public_share.blade.php)
     'shared_file'               => 'Shared File',
-    'download_with_review'      => 'Download with Annotations',
+    'download_with_review'      => 'Download Document',
     'loading_label'             => 'Loading...',
     'embed_blocked_title'       => 'This URL cannot be embedded',
     'embed_blocked_desc'        => 'This URL does not allow embedding in external sites.<br>You can open it directly using the button below.',

@@ -216,7 +216,7 @@ return [
 
     // ── 공유 파일 뷰어 (public_share.blade.php)
     'shared_file'               => '공유된 파일',
-    'download_with_review'      => '리뷰 포함 다운로드',
+    'download_with_review'      => '문서 다운로드',
     'loading_label'             => '로딩 중...',
     'embed_blocked_title'       => '임베딩이 차단된 URL입니다',
     'embed_blocked_desc'        => '이 URL은 외부 사이트 임베딩을 허용하지 않습니다.<br>아래 버튼으로 직접 열 수 있습니다.',

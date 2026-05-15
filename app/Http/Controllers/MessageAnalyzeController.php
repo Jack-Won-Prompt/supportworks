@@ -30,7 +30,9 @@ class MessageAnalyzeController extends Controller
         // 캐시된 분석 결과 확인
         $cached = MessageAnalysis::where('message_id', $msg->id)->first();
         if ($cached) {
-            return response()->json(['ok' => true, 'result' => $cached->result]);
+            $result = $cached->result;
+            $result['action_items'] = $result['action_items'] ?? [];
+            return response()->json(['ok' => true, 'result' => $result]);
         }
 
         // 컨텍스트: 해당 메시지 이전/이후 각 6개
@@ -60,8 +62,20 @@ class MessageAnalyzeController extends Controller
   "intent": "작성자의 의도 또는 목적",
   "tone": "어조 (예: 요청, 답변, 불만, 감사, 확인, 질문 등)",
   "keywords": ["핵심", "키워드", "최대3개"],
-  "context_note": "앞뒤 문맥과의 관계 또는 특이사항 (없으면 null)"
+  "context_note": "Relationship to surrounding context or special note. Use null if none.",
+  "action_items": [
+    {
+      "title": "Action item title, ready to create, within 80 characters.",
+      "description": "Evidence, context, and completion criteria. Use null if none.",
+      "due_date": "YYYY-MM-DD only when an explicit date exists. Otherwise null.",
+      "assignee_name": "Detected assignee name. Use null if none.",
+      "confidence": 0.0
+    }
+  ]
 }
+
+Extract up to 3 action_items only when the message or surrounding context contains a real task, request, commitment, or follow-up.
+Return an empty array [] for greetings, opinions, or simple information sharing.
 PROMPT;
 
         $setting  = AiSetting::current();
@@ -88,6 +102,7 @@ PROMPT;
                 preg_match('/\{[\s\S]*\}/', $raw, $m2);
                 $data = $m2 ? json_decode($m2[0], true) : null;
                 if (!$data) { $lastErr = "{$name}: 응답 파싱 실패"; continue; }
+                $data['action_items'] = $data['action_items'] ?? [];
                 MessageAnalysis::create(['message_id' => $msg->id, 'result' => $data]);
                 return response()->json(['ok' => true, 'result' => $data]);
             } catch (\Throwable $e) {

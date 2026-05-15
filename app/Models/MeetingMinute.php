@@ -11,7 +11,7 @@ class MeetingMinute extends Model
 {
     use LogsActivity;
     protected $fillable = [
-        'title', 'type', 'project_id', 'project_code', 'weekly_department',
+        'title', 'status', 'type', 'project_id', 'project_code', 'weekly_department',
         'meeting_date', 'location', 'author_id', 'company_group_id',
         'agenda', 'discussion', 'decisions', 'ai_summary',
     ];
@@ -61,5 +61,15 @@ class MeetingMinute extends Model
     public function getTypeLabelAttribute(): string
     {
         return $this->type === 'project' ? '프로젝트' : '일반';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->status === 'scheduled' ? '예정' : '완료';
+    }
+
+    public function isScheduled(): bool
+    {
+        return $this->status === 'scheduled';
     }
 }

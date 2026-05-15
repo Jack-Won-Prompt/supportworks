@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Conversation extends Model
 {
-    protected $fillable = ['name', 'is_group', 'type', 'status', 'company_group_id', 'assigned_agent_id', 'assigned_admin_id'];
+    protected $fillable = ['name', 'is_group', 'type', 'status', 'company_group_id', 'assigned_agent_id', 'assigned_admin_id', 'guest_token'];
 
     protected $casts = ['is_group' => 'boolean'];
 

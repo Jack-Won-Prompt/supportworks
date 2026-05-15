@@ -10,6 +10,7 @@ use App\Models\FileComment;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Services\FileCommentNotificationService;
+use App\Services\FileCommentReport\ReportService;
 use App\Services\OfficeConverter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -124,16 +125,22 @@ class FileCommentController extends Controller
             }
         }
 
-        // 의견 필터: 현재 버전이면 unresolved, 이전 버전이면 resolved_at_version = 그 버전+1
+        // 의견 필터:
+        //  · 현재 버전 → 미해결 + 동결되지 않은 코멘트
+        //  · 이전 버전 V → 그 버전에서 해결되었거나(resolved_at_version=V+1) 동결된(frozen_at_version=V+1) 코멘트
         $commentsQuery = $file->comments()
             ->whereNull('parent_id')
             ->with(['user', 'replies.user'])
             ->orderBy('page')
             ->orderBy('created_at');
         if ($isCurrent) {
-            $commentsQuery->where('resolved', false);
+            $commentsQuery->where('resolved', false)
+                ->whereNull('frozen_at_version');
         } else {
-            $commentsQuery->where('resolved_at_version', $requestedVersion + 1);
+            $commentsQuery->where(function ($q) use ($requestedVersion) {
+                $q->where('resolved_at_version', $requestedVersion + 1)
+                  ->orWhere('frozen_at_version',  $requestedVersion + 1);
+            });
         }
         $comments = $commentsQuery->get()->map(fn($c) => $this->commentToArray($c));
 
@@ -393,6 +400,38 @@ class FileCommentController extends Controller
         $annotation->delete();
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * 의견(+답글) 보고서 다운로드.
+     * - PDF/이미지/기타: 별도 PDF 보고서
+     * - Word/Excel/PowerPoint: 원본 파일 끝에 "페이지별 의견" 섹션/시트/슬라이드 추가
+     */
+    public function downloadCommentsReport(Project $project, ProjectFile $file, Request $request, ReportService $reports)
+    {
+        $this->authorizeProject($project);
+        abort_if($file->project_id !== $project->id, 404);
+
+        $version = (int) $request->query('version', 0);
+
+        $built = $reports->build($file, $version);
+
+        // 한글/유니코드 파일명 보존 — Symfony 기본 makeDisposition 의 ASCII 음역 fallback 우회
+        $filename = $built['download_name'];
+        $encoded  = rawurlencode($filename);
+
+        $response = response()->download(
+            $built['path'],
+            $filename,
+            ['Content-Type' => $built['mime']],
+        )->deleteFileAfterSend(true);
+
+        $response->headers->set(
+            'Content-Disposition',
+            "attachment; filename*=UTF-8''{$encoded}"
+        );
+
+        return $response;
     }
 
     private function commentToArray(FileComment $c): array

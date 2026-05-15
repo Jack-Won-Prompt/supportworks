@@ -11,6 +11,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use App\Services\SmsService;
+use App\Services\SupportWorksAiAssistant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -86,6 +87,8 @@ class InquiryController extends Controller
         // 관리자에게 이메일 발송 후 성공 시 SMS 추가 발송 (내용 제외, 누가 등록했는지만)
         $this->notifyAdminsNewInquiry($user, $conv, $validated['message']);
 
+        (new SupportWorksAiAssistant())->scheduleReply($conv);
+
         return redirect()->route('inquiry.index')
             ->with('success', '문의가 등록됐습니다. 담당자가 확인 후 답변 드리겠습니다.')
             ->with('new_inquiry_id', $conv->id);
@@ -151,6 +154,8 @@ class InquiryController extends Controller
         broadcast(new MessageSent($msg))->toOthers();
 
         $conversation->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
+
+        (new SupportWorksAiAssistant())->scheduleReply($conversation);
 
         if ($request->wantsJson()) {
             return response()->json([

@@ -8,7 +8,7 @@ class FileComment extends Model
 {
     protected $fillable = [
         'project_file_id', 'user_id', 'guest_name', 'page', 'video_time', 'content', 'parent_id',
-        'resolved', 'resolved_at', 'resolved_by', 'resolved_at_version',
+        'resolved', 'resolved_at', 'resolved_by', 'resolved_at_version', 'frozen_at_version',
     ];
 
     protected $casts = [

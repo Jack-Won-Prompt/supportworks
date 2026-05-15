@@ -165,4 +165,13 @@ return [
     'emoji_cat_object'          => 'Objects & Symbols',
     'emoji_no_recent'           => 'No recently used emoji',
     'emoji_search_empty'        => 'No results',
+    'ai_action_heading'         => 'Action item candidates',
+    'ai_action_create'          => 'Create Action Item',
+    'ai_action_created'         => 'Created',
+    'ai_action_creating'        => 'Creating...',
+    'ai_action_empty'           => 'No actionable item was detected.',
+    'ai_action_due'             => 'Due',
+    'ai_action_assignee'        => 'Assignee',
+    'ai_action_promote_fail'    => 'Failed to create the Action Item.',
+    'action_source_message'     => 'Source message',
 ];

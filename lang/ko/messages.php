@@ -165,4 +165,13 @@ return [
     'emoji_cat_object'          => '사물 & 기호',
     'emoji_no_recent'           => '최근 사용한 이모지가 없습니다',
     'emoji_search_empty'        => '검색 결과 없음',
+    'ai_action_heading'         => '액션 아이템 후보',
+    'ai_action_create'          => 'Action Item 등록',
+    'ai_action_created'         => '등록 완료',
+    'ai_action_creating'        => '등록 중...',
+    'ai_action_empty'           => '등록할 만한 액션 아이템이 없습니다.',
+    'ai_action_due'             => '마감',
+    'ai_action_assignee'        => '담당',
+    'ai_action_promote_fail'    => 'Action Item 등록에 실패했습니다.',
+    'action_source_message'     => '원본 메시지',
 ];

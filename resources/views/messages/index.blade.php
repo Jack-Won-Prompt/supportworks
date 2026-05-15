@@ -506,6 +506,16 @@
 .ai-rc-value { color:#312e81; line-height:1.5; }
 .ai-rc-tags { display:flex; gap:4px; flex-wrap:wrap; }
 .ai-rc-tag { background:#ddd6fe; color:#6d28d9; padding:1px 7px; border-radius:5px; font-size:11px; font-weight:600; }
+.ai-action-list { display:flex; flex-direction:column; gap:7px; margin-top:10px; padding-top:9px; border-top:1px solid #ede9fe; }
+.ai-action-heading { font-size:11.5px; font-weight:800; color:#6d28d9; }
+.ai-action-card { border:1px solid #e9d5ff; background:#faf5ff; border-radius:10px; padding:8px 9px; display:flex; flex-direction:column; gap:5px; }
+.ai-action-title { font-size:12px; font-weight:700; color:#2e1065; line-height:1.4; }
+.ai-action-desc { font-size:11.5px; color:#6b21a8; line-height:1.45; }
+.ai-action-meta { display:flex; gap:5px; flex-wrap:wrap; font-size:10.5px; color:#7c3aed; }
+.ai-action-chip { background:#ede9fe; border-radius:999px; padding:1px 7px; }
+.ai-action-create { align-self:flex-start; display:inline-flex; align-items:center; gap:4px; height:24px; padding:0 9px; border:0; border-radius:7px; background:#7c3aed; color:#fff; font-size:11px; font-weight:700; cursor:pointer; }
+.ai-action-create:hover { background:#6d28d9; }
+.ai-action-create[disabled] { opacity:.55; cursor:default; }
 
 /* Modals */
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(30,27,46,.35); z-index:9999; backdrop-filter:blur(2px); }
@@ -810,7 +820,7 @@
                     @endif
 
                     @php $descendants = $getDescendants($msg->id); @endphp
-                    <div class="msg-row {{ $isMine ? 'mine' : '' }}" data-msg-id="{{ $msg->id }}" data-msg-at="{{ $msg->created_at->toIso8601String() }}">
+                    <div id="message-{{ $msg->id }}" class="msg-row {{ $isMine ? 'mine' : '' }}" data-msg-id="{{ $msg->id }}" data-msg-at="{{ $msg->created_at->toIso8601String() }}">
                         @if(!$isMine)
                             <div class="msg-avatar" style="background:{{ $senderColor }};">{{ mb_substr($msg->sender->name, 0, 1) }}</div>
                         @endif
@@ -826,7 +836,7 @@
                             @endphp
                             <div class="msg-bubble-wrap" data-msg-id="{{ $msg->id }}" data-msg-body="{{ $previewBody ?: ($msg->file_name ? '📎 '.$msg->file_name : '') }}" data-msg-sender="{{ $isMine ? __('messages.me') : $msg->sender->name }}">
                                 <div class="msg-bubble {{ $isMine ? 'mine' : 'theirs' }}">
-                                    @if($displayBody){!! preg_replace('/(https?:\/\/[^\s<>"\']+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;word-break:break-all;">$1</a>', e($displayBody)) !!}@endif
+                                    @if($displayBody)<div style="white-space:pre-wrap;word-break:break-word;">{!! preg_replace('/(https?:\/\/[^\s<>"\']+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;word-break:break-all;">$1</a>', e($displayBody)) !!}</div>@endif
                                     @if($hasTranslation && $isMine)
                                         <div class="msg-translated-badge">🌐{{ $langNames[$msg->translate_lang] ?? $msg->translate_lang }}</div>
                                     @elseif($hasTranslation && !$isMine && $msg->body && $msg->translate_lang !== app()->getLocale())
@@ -1309,6 +1319,14 @@ const MSG_STR = {
     aiLabelTone:          '{{ __("messages.ai_label_tone") }}',
     aiLabelKeywords:      '{{ __("messages.ai_label_keywords") }}',
     aiLabelContext:       '{{ __("messages.ai_label_context") }}',
+    aiActionHeading:      @js(__('messages.ai_action_heading')),
+    aiActionCreate:       @js(__('messages.ai_action_create')),
+    aiActionCreated:      @js(__('messages.ai_action_created')),
+    aiActionCreating:     @js(__('messages.ai_action_creating')),
+    aiActionEmpty:        @js(__('messages.ai_action_empty')),
+    aiActionDue:          @js(__('messages.ai_action_due')),
+    aiActionAssignee:     @js(__('messages.ai_action_assignee')),
+    aiActionPromoteFail:  @js(__('messages.ai_action_promote_fail')),
     lbLoading:            '{{ __("messages.lb_loading") }}',
     lbDeleteTitle:        '{{ __("messages.lb_delete_title") }}',
     lbCountSuffix:        '{{ __("messages.lb_count_suffix") }}',
@@ -1848,7 +1866,7 @@ async function renderMessage(data) {
     const shouldShowTranslation = !isMine && hasTranslation;
     const displayBody   = shouldShowTranslation ? data.translated_body : data.body;
     const msgPreview    = (shouldShowTranslation ? data.translated_body : data.body || (data.file_name ? '📎 '+data.file_name : '')).slice(0, 80);
-    const bodyHtml      = displayBody ? linkify(convertEmoticons(displayBody)) : '';
+    const bodyHtml      = displayBody ? `<div style="white-space:pre-wrap;word-break:break-word;">${linkify(convertEmoticons(displayBody))}</div>` : '';
 
     let translationHtml = '';
     if (hasTranslation) {
@@ -1865,6 +1883,7 @@ async function renderMessage(data) {
 
     const row = document.createElement('div');
     row.className     = `msg-row${isMine?' mine':''}`;
+    if (data.id) row.id = `message-${data.id}`;
     row.dataset.msgId = data.id || '';
     row.dataset.msgAt = data.created_at_iso || data.created_at || '';
     row.innerHTML = `${avatarHtml}<div style="max-width:70%;">${nameHtml}<div class="msg-bubble-wrap" ${wrapAttrs}><div class="msg-bubble ${isMine?'mine':'theirs'}">${bodyHtml}${translationHtml}${fileHtml}</div>${aiBtn}</div></div>${timeWrap}`;
@@ -2183,12 +2202,14 @@ async function analyzeMsg(msgId, btn) {
         const r = data.result;
         const kw  = Array.isArray(r.keywords) ? r.keywords.map(k => `<span class="ai-rc-tag">${escA(k)}</span>`).join('') : '';
         const ctx = r.context_note ? `<div class="ai-rc-row"><span class="ai-rc-label">${MSG_STR.aiLabelContext}</span><span class="ai-rc-value">${escA(r.context_note)}</span></div>` : '';
+        const actions = renderAiActionItems(msgId, r.action_items || []);
         body.innerHTML = `
             <div class="ai-rc-row"><span class="ai-rc-label">${MSG_STR.aiLabelSummary}</span><span class="ai-rc-value">${escA(r.summary||'-')}</span></div>
             <div class="ai-rc-row"><span class="ai-rc-label">${MSG_STR.aiLabelIntent}</span><span class="ai-rc-value">${escA(r.intent||'-')}</span></div>
             <div class="ai-rc-row"><span class="ai-rc-label">${MSG_STR.aiLabelTone}</span><span class="ai-rc-value">${escA(r.tone||'-')}</span></div>
             <div class="ai-rc-row"><span class="ai-rc-label">${MSG_STR.aiLabelKeywords}</span><div class="ai-rc-tags">${kw}</div></div>
-            ${ctx}`;
+            ${ctx}
+            ${actions}`;
     })
     .catch(() => {
         body.innerHTML = `<span style="color:#dc2626;font-size:12px;">${MSG_STR.aiNetworkError}</span>`;
@@ -2200,6 +2221,75 @@ async function closeAiPanel() {
     if (p) { p.classList.remove('visible'); p.dataset.forMsg = ''; }
 }
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return escA(s).replace(/"/g,'&quot;'); }
+
+function renderAiActionItems(msgId, items) {
+    if (!Array.isArray(items) || !items.length) {
+        return `<div class="ai-action-list"><div class="ai-action-heading">${MSG_STR.aiActionHeading}</div><div class="ai-action-desc">${MSG_STR.aiActionEmpty}</div></div>`;
+    }
+
+    const cards = items.slice(0, 3).map((item) => {
+        const title = item.title || item.summary || '';
+        if (!title) return '';
+
+        const desc = item.description || '';
+        const chips = [
+            item.due_date ? `<span class="ai-action-chip">${MSG_STR.aiActionDue} ${escA(item.due_date)}</span>` : '',
+            item.assignee_name ? `<span class="ai-action-chip">${MSG_STR.aiActionAssignee} ${escA(item.assignee_name)}</span>` : '',
+        ].filter(Boolean).join('');
+
+        return `<div class="ai-action-card">
+            <div class="ai-action-title">${escA(title)}</div>
+            ${desc ? `<div class="ai-action-desc">${escA(desc)}</div>` : ''}
+            ${chips ? `<div class="ai-action-meta">${chips}</div>` : ''}
+            <button type="button" class="ai-action-create"
+                data-msg-id="${msgId}"
+                data-title="${escAttr(title)}"
+                data-description="${escAttr(desc)}"
+                data-due-date="${escAttr(item.due_date || '')}"
+                onclick="promoteAiActionItem(this)">
+                ${MSG_STR.aiActionCreate}
+            </button>
+        </div>`;
+    }).join('');
+
+    return `<div class="ai-action-list"><div class="ai-action-heading">${MSG_STR.aiActionHeading}</div>${cards}</div>`;
+}
+
+async function promoteAiActionItem(btn) {
+    const msgId = btn.dataset.msgId;
+    if (!msgId) return;
+
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = MSG_STR.aiActionCreating;
+
+    try {
+        const res = await fetch(`${LB_BASE}/messages/${msgId}/action-items`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                title: btn.dataset.title || '',
+                description: btn.dataset.description || '',
+                due_date: btn.dataset.dueDate || null,
+            }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) throw new Error(data.message || 'failed');
+
+        btn.textContent = MSG_STR.aiActionCreated;
+        btn.style.background = '#16a34a';
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = original;
+        alert(MSG_STR.aiActionPromoteFail);
+    }
+}
 
 // ── 이미지 리뷰 라이트박스 ─────────────────────────────────
 let lbMsgId = null;

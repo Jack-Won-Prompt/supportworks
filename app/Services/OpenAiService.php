@@ -9,7 +9,8 @@ class OpenAiService
 {
     use ParsesAiResponse;
 
-    private const API      = 'https://api.openai.com/v1/chat/completions';
+    private const API           = 'https://api.openai.com/v1/chat/completions';
+    private const WHISPER_API   = 'https://api.openai.com/v1/audio/transcriptions';
     private string $model;
     private const MAX_TOKENS_CHAT      = 8000;
     private const MAX_TOKENS_BUILDER   = 16000;
@@ -169,5 +170,78 @@ class OpenAiService
         }
 
         return $res;
+    }
+
+    /**
+     * Whisper STT - 오디오 파일을 텍스트로 변환
+     */
+    public function transcribeAudio(string $absolutePath, string $language = 'ko', bool $verbose = false): array
+    {
+        if (!file_exists($absolutePath)) {
+            throw new \RuntimeException("녹음 파일을 찾을 수 없습니다: {$absolutePath}");
+        }
+
+        $res = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+            ])
+            ->timeout(600)
+            ->attach('file', file_get_contents($absolutePath), basename($absolutePath))
+            ->asMultipart()
+            ->post(self::WHISPER_API, [
+                'model'           => 'whisper-1',
+                'language'        => $language,
+                'response_format' => $verbose ? 'verbose_json' : 'json',
+                'temperature'     => '0',
+            ]);
+
+        if (!$res->successful()) {
+            throw new \RuntimeException('Whisper API 실패: ' . $res->status() . ' ' . $res->body());
+        }
+
+        $body = $res->json();
+        return [
+            'text'     => $body['text'] ?? '',
+            'segments' => $body['segments'] ?? null,
+        ];
+    }
+
+    /**
+     * 녹취록을 정리된 회의록(마크다운)으로 변환
+     */
+    public function generateMeetingMinutes(string $transcript, ?string $title = null): string
+    {
+        $system = <<<PROMPT
+당신은 한국어 비즈니스 회의록 작성 전문가입니다.
+아래 녹취록(STT 결과)을 바탕으로 깔끔한 회의록을 작성하세요.
+
+요구 형식 (마크다운):
+## 회의 요약
+- 핵심 요지를 3~5개 불릿으로
+
+## 주요 논의 사항
+1. 안건/주제별로 정리
+
+## 결정 사항
+- 명확하게 결정된 내용들
+
+## 액션 아이템
+- [ ] 누가 / 무엇을 / 언제까지
+
+## 다음 회의/후속 조치
+- (있을 경우)
+
+규칙:
+- 녹취록에 명시되지 않은 내용은 추측하지 말 것
+- 화자가 식별되지 않으면 일반적 서술로
+- 잡담/필러는 제거하고 핵심만
+- 한국어 존댓말 사용
+PROMPT;
+
+        $userMsg = ($title ? "회의 제목: {$title}\n\n" : '') . "녹취록:\n{$transcript}";
+
+        return $this->chatRawLarge(
+            [['role' => 'user', 'content' => $userMsg]],
+            $system,
+        );
     }
 }

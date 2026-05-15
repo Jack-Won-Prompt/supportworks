@@ -289,11 +289,28 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
                     <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{{ __('admin.syserr_col_occurrence') }}</h3>
-                    <p id="em-file" class="font-mono text-slate-700 text-xs break-all"></p>
+                    <dl id="em-occurrence" class="space-y-2 text-xs"></dl>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
                     <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{{ __('admin.syserr_col_request_context') }}</h3>
                     <dl id="em-context" class="space-y-2 text-xs"></dl>
+                </div>
+            </div>
+            <div id="em-user-wrap" class="bg-slate-50 border border-slate-200 rounded-xl p-4 hidden">
+                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{{ __('admin.syserr_user_info') }}</h3>
+                <dl id="em-user" class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs"></dl>
+            </div>
+            <div id="em-reqdata-wrap" class="bg-slate-50 border border-slate-200 rounded-xl p-4 hidden">
+                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{{ __('admin.syserr_request_data') }}</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-slate-400 mb-2">{{ __('admin.syserr_query_label') }}</p>
+                        <dl id="em-query" class="space-y-1 text-xs font-mono"></dl>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 mb-2">{{ __('admin.syserr_input_label') }}</p>
+                        <dl id="em-input" class="space-y-1 text-xs font-mono"></dl>
+                    </div>
                 </div>
             </div>
             <div id="em-trace-wrap" class="bg-slate-900 rounded-xl p-5 hidden">
@@ -315,10 +332,25 @@ const ADMIN_C_STR = {
     userIdLabel:    '{{ __("admin.syserr_user_id_label") }}',
     notLoggedIn:    '{{ __("admin.syserr_not_logged_in") }}',
     sourceLabel:    '{{ __("admin.syserr_source_label") }}',
+    fileLabel:      '{{ __("admin.syserr_file_label") }}',
+    routeLabel:     '{{ __("admin.syserr_route_label") }}',
+    actionLabel:    '{{ __("admin.syserr_action_label") }}',
+    userLabel:      '{{ __("admin.syserr_user_label") }}',
+    userEmailLabel: '{{ __("admin.syserr_user_email_label") }}',
+    userRoleLabel:  '{{ __("admin.syserr_user_role_label") }}',
+    userCompanyLabel: '{{ __("admin.syserr_user_company_label") }}',
+    adminUserLabel: '{{ __("admin.syserr_admin_user_label") }}',
+    roleAdmin:      '{{ __("admin.syserr_role_admin") }}',
+    roleMember:     '{{ __("admin.syserr_role_member") }}',
+    roleGuest:      '{{ __("admin.syserr_role_guest") }}',
     deleteConfirm:  '{{ __("admin.syserr_delete_confirm") }}',
     copy:           '{{ __("admin.syserr_copy") }}',
     copied:         '{{ __("admin.syserr_copied") }}',
 };
+
+function _roleLabel(role) {
+    return ({admin: ADMIN_C_STR.roleAdmin, member: ADMIN_C_STR.roleMember, guest: ADMIN_C_STR.roleGuest})[role] || role;
+}
 
 let _emId = null;
 const _emCsrf = '{{ csrf_token() }}';
@@ -340,18 +372,55 @@ async function openErrModal(el) {
     document.getElementById('em-exception').textContent = d.exception || '';
     document.getElementById('em-exception').style.display = d.exception ? '' : 'none';
 
-    // file
-    const fileEl = document.getElementById('em-file');
-    fileEl.textContent = d.file ? (d.file + (d.line ? ':' + d.line : '')) : ADMIN_C_STR.noInfo;
-
-    // context
     const ctx = d.context || {};
+
+    // 발생 위치 (file + route)
+    let occHtml = '';
+    if (d.file) occHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.fileLabel}</dt><dd class="font-mono text-slate-700 break-all">${escH(d.file + (d.line ? ':' + d.line : ''))}</dd></div>`;
+    if (ctx.route_name)   occHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.routeLabel}</dt><dd class="font-mono text-slate-700 break-all">${escH(ctx.route_name)}</dd></div>`;
+    if (ctx.route_action) occHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.actionLabel}</dt><dd class="font-mono text-slate-700 break-all">${escH(ctx.route_action)}</dd></div>`;
+    document.getElementById('em-occurrence').innerHTML = occHtml || `<p class="text-slate-400">${ADMIN_C_STR.noInfo}</p>`;
+
+    // context (URL/IP/source)
     let ctxHtml = '';
     if (ctx.url) ctxHtml += `<div><dt class="text-slate-400 mb-0.5">URL</dt><dd class="text-slate-700 break-all"><span class="font-mono font-semibold text-indigo-500">${escH(ctx.method||'')}</span> ${escH(ctx.url)}</dd></div>`;
     if (ctx.ip) ctxHtml += `<div><dt class="text-slate-400 mb-0.5">IP</dt><dd class="font-mono text-slate-700">${escH(ctx.ip)}</dd></div>`;
-    if (ctx.user_id !== undefined) ctxHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.userIdLabel}</dt><dd class="font-mono text-slate-700">${escH(String(ctx.user_id ?? ADMIN_C_STR.notLoggedIn))}</dd></div>`;
     if (ctx.source) ctxHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.sourceLabel}</dt><dd class="text-slate-700">${escH(ctx.source)}</dd></div>`;
     document.getElementById('em-context').innerHTML = ctxHtml || `<p class="text-slate-400">${ADMIN_C_STR.contextNoInfo}</p>`;
+
+    // 사용자 정보
+    const hasUser = ctx.user_name || ctx.user_email || ctx.user_role || ctx.user_company || ctx.admin_user_id || ctx.user_id !== undefined;
+    const userWrap = document.getElementById('em-user-wrap');
+    if (hasUser) {
+        let userHtml = '';
+        if (ctx.user_name || ctx.user_id !== undefined) {
+            const uname = ctx.user_name
+                ? `${escH(ctx.user_name)}${ctx.user_id ? ` <span class="text-slate-400 font-mono ml-1">#${escH(String(ctx.user_id))}</span>` : ''}`
+                : (ctx.user_id ? `<span class="font-mono">#${escH(String(ctx.user_id))}</span>` : ADMIN_C_STR.notLoggedIn);
+            userHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.userLabel}</dt><dd class="text-slate-700">${uname}</dd></div>`;
+        }
+        if (ctx.user_email)   userHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.userEmailLabel}</dt><dd class="text-slate-700 break-all">${escH(ctx.user_email)}</dd></div>`;
+        if (ctx.user_role)    userHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.userRoleLabel}</dt><dd class="text-slate-700">${escH(_roleLabel(ctx.user_role))}</dd></div>`;
+        if (ctx.user_company) userHtml += `<div><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.userCompanyLabel}</dt><dd class="text-slate-700">${escH(ctx.user_company)}</dd></div>`;
+        if (ctx.admin_user_id) {
+            userHtml += `<div class="col-span-2"><dt class="text-slate-400 mb-0.5">${ADMIN_C_STR.adminUserLabel}</dt><dd class="text-slate-700">${escH(ctx.admin_user_name || '')} <span class="text-slate-400 font-mono ml-1">#${escH(String(ctx.admin_user_id))}</span></dd></div>`;
+        }
+        document.getElementById('em-user').innerHTML = userHtml;
+        userWrap.classList.remove('hidden');
+    } else {
+        userWrap.classList.add('hidden');
+    }
+
+    // 요청 데이터 (query / input)
+    const hasReq = (ctx.query && Object.keys(ctx.query).length) || (ctx.input && Object.keys(ctx.input).length);
+    const reqWrap = document.getElementById('em-reqdata-wrap');
+    if (hasReq) {
+        document.getElementById('em-query').innerHTML = _kvList(ctx.query);
+        document.getElementById('em-input').innerHTML = _kvList(ctx.input);
+        reqWrap.classList.remove('hidden');
+    } else {
+        reqWrap.classList.add('hidden');
+    }
 
     // trace
     const traceWrap = document.getElementById('em-trace-wrap');
@@ -399,6 +468,13 @@ async function copyErrTrace() {
 
 function escH(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _kvList(obj) {
+    if (!obj || !Object.keys(obj).length) return `<p class="text-slate-400">—</p>`;
+    return Object.entries(obj).map(([k, v]) =>
+        `<div class="flex gap-2"><dt class="text-indigo-500 shrink-0">${escH(k)}:</dt><dd class="text-slate-700 break-all">${escH(String(v ?? ''))}</dd></div>`
+    ).join('');
 }
 </script>
 @endsection

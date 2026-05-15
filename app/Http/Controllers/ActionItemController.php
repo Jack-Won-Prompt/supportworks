@@ -18,7 +18,7 @@ class ActionItemController extends Controller
         $query = ActionItem::where(function ($q) use ($user) {
             $q->where('user_id', $user->id)
               ->orWhere('assigned_to', $user->id);
-        })->with(['creator', 'assignedUser', 'project']);
+        })->with(['creator', 'assignedUser', 'project', 'sourceMessage.conversation']);
 
         if ($projectId) {
             $query->where('project_id', $projectId);
@@ -49,7 +49,7 @@ class ActionItemController extends Controller
         $allItems = ActionItem::where(function ($q) use ($user) {
             $q->where('user_id', $user->id)->orWhere('assigned_to', $user->id);
         })->when($projectId, fn($q) => $q->where('project_id', $projectId))
-          ->with(['assignedUser', 'creator'])->get();
+          ->with(['assignedUser', 'creator', 'sourceMessage'])->get();
 
         $stats = [
             'total'     => $allItems->count(),

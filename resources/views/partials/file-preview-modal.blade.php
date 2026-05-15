@@ -53,6 +53,18 @@
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.download') }}
         </a>
+        <button type="button" id="preview-fs-btn" onclick="togglePreviewFullscreen()" class="preview-fs-btn" title="전체창 보기 (F11)">
+            <svg class="preview-fs-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            <svg class="preview-fs-icon-on" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 0H5m4 4L4 4m11 5h4m0 0V5m0 4l5-5M9 15v4m0 0H5m4 0l-5 5m11-5h4m0 0v4m0-4l5 5"/></svg>
+            전체창
+        </button>
+        <button id="modal-download-comments" type="button" onclick="downloadCommentsReport()"
+                title="현재 버전의 의견·답글을 원본 형식(또는 PDF 보고서)으로 다운로드"
+                style="display:inline-flex;align-items:center;gap:5px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
+                onmouseover="this.style.background='rgba(134,239,172,.1)'" onmouseout="this.style.background='none'">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            의견 포함 다운로드
+        </button>
         <button id="ann-dl-btn" onclick="downloadAnnotatedPdf()" style="display:none;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.download_with_review') }}
@@ -196,6 +208,22 @@
 
                     <span id="pdf-page-info" style="font-size:13px;font-weight:600;color:#e5e7eb;min-width:100px;text-align:center;">— / —</span>
 
+                    {{-- 페이지 번호 입력 + 이동 --}}
+                    <div style="display:inline-flex;align-items:center;gap:4px;margin-left:4px;">
+                        <input id="pdf-page-input" type="number" min="1" value="" placeholder="#"
+                               title="페이지 번호 입력 후 Enter"
+                               style="width:54px;padding:4px 6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e5e7eb;border-radius:6px;font-size:12px;text-align:center;outline:none;"
+                               onfocus="this.select();this.style.background='rgba(255,255,255,.13)';this.style.borderColor='rgba(196,181,253,.4)'"
+                               onblur="this.style.background='rgba(255,255,255,.07)';this.style.borderColor='rgba(255,255,255,.12)'"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault();pdfGoToInput();}">
+                        <button onclick="pdfGoToInput()" type="button"
+                                title="입력한 페이지로 이동"
+                                style="padding:5px 9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s;"
+                                onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
+                            이동
+                        </button>
+                    </div>
+
                     <button id="pdf-next-btn" onclick="pdfNextPage()"
                             style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
@@ -223,8 +251,11 @@
             의견 보기
         </button>
 
+        {{-- 의견 패널 좌측 리사이즈 핸들 --}}
+        <div class="cmt-resize-handle" data-target="comment-panel" title="드래그하여 의견 영역 폭 조절"></div>
+
         {{-- 의견 패널 --}}
-        <div id="comment-panel" style="width:260px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
+        <div id="comment-panel" style="width:340px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
 
             {{-- 패널 헤더 --}}
             <div style="padding:12px 16px 10px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
@@ -310,6 +341,18 @@
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.save_pdf') }}
         </button>
+        <button type="button" onclick="downloadUrlCommentsReport()"
+                title="현재 의견·답글을 PDF 보고서로 다운로드"
+                style="display:inline-flex;align-items:center;gap:5px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
+                onmouseover="this.style.background='rgba(134,239,172,.1)'" onmouseout="this.style.background='none'">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            문서 다운로드
+        </button>
+        <button type="button" id="url-preview-fs-btn" onclick="toggleUrlPreviewFullscreen()" class="preview-fs-btn" title="전체창 보기">
+            <svg class="preview-fs-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            <svg class="preview-fs-icon-on" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 0H5m4 4L4 4m11 5h4m0 0V5m0 4l5-5M9 15v4m0 0H5m4 0l-5 5m11-5h4m0 0v4m0-4l5 5"/></svg>
+            전체창
+        </button>
     </div>
 
     {{-- 본문 (iframe + 의견 패널) --}}
@@ -337,8 +380,11 @@
             </div>
         </div>
 
+        {{-- 의견 패널 좌측 리사이즈 핸들 --}}
+        <div class="cmt-resize-handle" data-target="url-comment-panel" title="드래그하여 의견 영역 폭 조절"></div>
+
         {{-- 의견 패널 --}}
-        <div style="width:260px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
+        <div id="url-comment-panel" style="width:340px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
             <div style="padding:12px 16px 10px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
                 <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:6px;">
                     <svg width="15" height="15" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -444,7 +490,11 @@
                 <span style="font-size:12px;color:#6b7280;">현재 등록된 의견들은 모두 <strong style="color:#15803d;">반영 완료</strong>로 처리됩니다.</span>
             </p>
             <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">새 파일 *</label>
-            <input type="file" id="upv-file" style="width:100%;padding:8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;background:#fafafa;">
+            <input type="file" id="upv-file" class="upv-file-native">
+            <label for="upv-file" id="upv-file-drop" class="upv-file-drop">
+                <svg width="22" height="22" fill="none" stroke="#a78bfa" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.9 5 5 0 019.9-1A5.5 5.5 0 0118 16h-1m-6-1l3-3m0 0l3 3m-3-3v8"/></svg>
+                <div class="upv-file-drop-main"><span id="upv-file-drop-cta">파일 선택</span><span class="upv-file-drop-hint">또는 이 영역으로 끌어다 놓기</span></div>
+            </label>
             <div id="upv-filename" style="margin-top:6px;font-size:12px;color:#7c3aed;font-weight:600;"></div>
 
             <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">변경 노트 (선택)</label>
@@ -472,6 +522,98 @@
 
 <style>
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* PDF 페이지 입력 + 의견 페이지 입력 — 기본 브라우저 number 스피너 화살표 숨김
+   각 입력은 자체 prev/next/+/- 버튼이 별도로 있어 네이티브 스피너는 중복·다크테마 부조화 유발 */
+#pdf-page-input::-webkit-outer-spin-button,
+#pdf-page-input::-webkit-inner-spin-button,
+#comment-page::-webkit-outer-spin-button,
+#comment-page::-webkit-inner-spin-button,
+#url-comment-page::-webkit-outer-spin-button,
+#url-comment-page::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+#pdf-page-input,
+#comment-page,
+#url-comment-page { -moz-appearance: textfield; appearance: textfield; }
+
+/* 수정본 업로드 — 네이티브 file input 숨기고 드래그/클릭 영역 */
+.upv-file-native { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden; }
+.upv-file-drop {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 16px;
+    border:1.5px dashed #d8d4e8; border-radius:10px;
+    background:#fafaff;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+    user-select:none;
+}
+.upv-file-drop:hover { border-color:#a78bfa; background:#f5f3ff; }
+.upv-file-drop.is-dragover { border-color:#7c3aed; background:#ede9fe; }
+.upv-file-drop.has-file    { border-color:#16a34a; background:#f0fdf4; }
+.upv-file-drop.has-file svg { stroke:#16a34a; }
+.upv-file-drop-main { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
+#upv-file-drop-cta  { font-size:13px; font-weight:700; color:#374151; }
+.upv-file-drop-hint { font-size:11.5px; color:#9ca3af; }
+.upv-file-drop:focus-within { outline:2px solid #c4b5fd; outline-offset:2px; }
+
+/* 전체창 보기 모드 — viewport 가득 채움 */
+#preview-modal.is-fullscreen, #url-viewer-modal.is-fullscreen { padding: 0 !important; }
+#preview-modal.is-fullscreen > div, #url-viewer-modal.is-fullscreen > div {
+    max-width: none !important;
+    max-height: none !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+}
+.preview-fs-btn { display:inline-flex; align-items:center; gap:5px; color:#c4b5fd; font-size:12px; font-weight:600; padding:5px 10px; border:1px solid rgba(196,181,253,.25); border-radius:7px; flex-shrink:0; background:none; cursor:pointer; transition:background .15s; }
+.preview-fs-btn:hover { background:rgba(196,181,253,.1); }
+.preview-fs-icon-on  { display:none; }
+.is-fullscreen .preview-fs-btn .preview-fs-icon-off { display:none; }
+.is-fullscreen .preview-fs-btn .preview-fs-icon-on  { display:inline; }
+
+/* 의견 패널 좌측 리사이즈 핸들 — 항상 보이는 그립 아이콘 */
+.cmt-resize-handle {
+    width: 6px;
+    flex-shrink: 0;
+    cursor: col-resize;
+    background: rgba(255,255,255,.06);
+    transition: background .15s;
+    position: relative;
+}
+.cmt-resize-handle::before {
+    /* 6개의 그립 점 (2열 × 3행) */
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px; height: 2px;
+    background: transparent;
+    border-radius: 50%;
+    box-shadow:
+        -3px -9px 0 1px #c4b5fd,
+         3px -9px 0 1px #c4b5fd,
+        -3px  0   0 1px #c4b5fd,
+         3px  0   0 1px #c4b5fd,
+        -3px  9px 0 1px #c4b5fd,
+         3px  9px 0 1px #c4b5fd;
+    opacity: .7;
+    transition: opacity .15s;
+    pointer-events: none;
+}
+.cmt-resize-handle:hover, .cmt-resize-handle.is-dragging { background: rgba(196,181,253,.45); }
+.cmt-resize-handle:hover::before, .cmt-resize-handle.is-dragging::before {
+    opacity: 1;
+    box-shadow:
+        -3px -9px 0 1px #fff,  3px -9px 0 1px #fff,
+        -3px  0   0 1px #fff,  3px  0   0 1px #fff,
+        -3px  9px 0 1px #fff,  3px  9px 0 1px #fff;
+}
+body.cmt-resizing { cursor: col-resize !important; user-select: none !important; }
+body.cmt-resizing iframe { pointer-events: none; }
 .comment-card { background:#f9fafb; border:1px solid #f3f4f6; border-radius:10px; padding:10px 12px; transition:background .15s; }
 .comment-card:hover { background:#f3f4f6; }
 .page-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; }
@@ -704,6 +846,7 @@ function openPreview(fileId, projectId, customPreviewDataUrl, customDownloadUrl)
 
         document.getElementById('modal-filename').textContent = data.fileName;
         renderVersionBar(data.versions || [], data.version || 1);
+        window._currentVersion = data.version || 1;
         const _annDlBtn = document.getElementById('ann-dl-btn');
         if (_annDlBtn) _annDlBtn.style.display = (data.previewType === 'pdf' || data.previewType === 'image') ? 'inline-flex' : 'none';
         const downloadHref = customDownloadUrl || `${BASE_URL}/projects/${currentProjectId}/files/${fileId}/download`;
@@ -813,6 +956,90 @@ function closePreview() {
     _maybeUnsubscribeFileComments();
 }
 
+// 파일 리뷰 팝업: 전체창 보기 토글
+function togglePreviewFullscreen() {
+    const m = document.getElementById('preview-modal');
+    if (!m) return;
+    m.classList.toggle('is-fullscreen');
+}
+function toggleUrlPreviewFullscreen() {
+    const m = document.getElementById('url-viewer-modal');
+    if (!m) return;
+    m.classList.toggle('is-fullscreen');
+}
+
+// ── 의견 패널 가로 사이즈 조절 (드래그 + localStorage 기억) ──
+(function() {
+    const MIN_W = 240, MAX_W_RATIO = 0.75;
+    const STORE_KEY = 'cmt-panel-width';
+    const saved = parseInt(localStorage.getItem(STORE_KEY) || '0', 10);
+
+    // 초기 폭 복원
+    function applyStoredWidth() {
+        if (!saved || saved < MIN_W) return;
+        ['comment-panel', 'url-comment-panel'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.width = saved + 'px';
+        });
+    }
+    applyStoredWidth();
+
+    function startDrag(handle, e) {
+        const targetId = handle.dataset.target;
+        const panel    = document.getElementById(targetId);
+        if (!panel) return;
+        e.preventDefault();
+        handle.classList.add('is-dragging');
+        document.body.classList.add('cmt-resizing');
+
+        const startX     = e.clientX;
+        const startWidth = panel.getBoundingClientRect().width;
+
+        function onMove(ev) {
+            // 의견 패널은 우측 — 마우스가 왼쪽으로 갈수록 폭이 넓어짐
+            const delta = startX - ev.clientX;
+            const maxW  = Math.floor(window.innerWidth * MAX_W_RATIO);
+            let next    = Math.max(MIN_W, Math.min(maxW, startWidth + delta));
+            panel.style.width = next + 'px';
+        }
+        function onUp() {
+            handle.classList.remove('is-dragging');
+            document.body.classList.remove('cmt-resizing');
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup',   onUp);
+            // 저장
+            const w = Math.round(panel.getBoundingClientRect().width);
+            localStorage.setItem(STORE_KEY, String(w));
+            // 두 패널 모두 동일 폭으로 동기화
+            ['comment-panel', 'url-comment-panel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el !== panel) el.style.width = w + 'px';
+            });
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup',   onUp);
+    }
+
+    document.querySelectorAll('.cmt-resize-handle').forEach(h => {
+        h.addEventListener('mousedown', e => startDrag(h, e));
+        // 더블 클릭 → 기본 폭(340)으로 리셋
+        h.addEventListener('dblclick', () => {
+            ['comment-panel', 'url-comment-panel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.width = '340px';
+            });
+            localStorage.removeItem(STORE_KEY);
+        });
+    });
+})();
+// ESC 로 전체창 해제 (모달 닫기는 별도 처리)
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        document.getElementById('preview-modal')?.classList.remove('is-fullscreen');
+        document.getElementById('url-viewer-modal')?.classList.remove('is-fullscreen');
+    }
+});
+
 // ── PDF.js 렌더링 ─────────────────────────────────
 const PDF_WORKER_URL = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
@@ -916,6 +1143,12 @@ async function renderPdfPage(num) {
         document.getElementById('pdf-zoom-label').textContent = Math.round(pdfScale * 100) + '%';
         document.getElementById('pdf-prev-btn').disabled = (num <= 1);
         document.getElementById('pdf-next-btn').disabled = (num >= pdfTotal);
+        // 페이지 번호 입력란 동기화 (포커스 상태에선 사용자가 입력 중이므로 갱신 X)
+        const pdfPgInp = document.getElementById('pdf-page-input');
+        if (pdfPgInp && document.activeElement !== pdfPgInp) {
+            pdfPgInp.value = num;
+            pdfPgInp.max   = pdfTotal;
+        }
     } finally {
         pdfRendering = false;
         if (pdfPending !== null) {
@@ -935,6 +1168,17 @@ function gotoPage(n) {
         if (n > pdfTotal) n = pdfTotal;
         if (n !== pdfPage) renderPdfPage(n);
     }
+}
+
+// 페이지 번호 입력란 → 이동
+function pdfGoToInput() {
+    const inp = document.getElementById('pdf-page-input');
+    if (!inp) return;
+    let n = parseInt(inp.value, 10);
+    if (!n || n < 1) { inp.value = pdfPage; return; }
+    if (typeof pdfTotal !== 'undefined' && n > pdfTotal) n = pdfTotal;
+    inp.value = n;
+    gotoPage(n);
 }
 
 function pdfZoom(delta) {
@@ -1219,12 +1463,27 @@ function switchToVersion(version) {
     openPreview(currentFileId, currentProjectId, url);
 }
 
+// 의견·답글을 원본 파일 형식 또는 PDF 보고서로 다운로드 (현재 선택된 버전 기준)
+function downloadCommentsReport() {
+    if (!currentProjectId || !currentFileId) return;
+    const v = window._currentVersion || 1;
+    const url = `${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/comments/download?version=${v}`;
+    // 새 탭으로 열어 진행 토스트가 사라지지 않게
+    const a = document.createElement('a');
+    a.href = url;
+    a.rel  = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+window.downloadCommentsReport = downloadCommentsReport;
+
 // ── 파일 수정본 업로드 (버전 관리) ──────────────────────────
 function openUploadVersionModal() {
     if (!currentProjectId || !currentFileId) { alert('파일 정보를 확인할 수 없습니다.'); return; }
     document.getElementById('upv-file').value = '';
     document.getElementById('upv-note').value = '';
-    document.getElementById('upv-filename').textContent = '';
+    if (typeof _updateUpvFileUi === 'function') _updateUpvFileUi(null);
     const btn = document.getElementById('upv-submit-btn');
     btn.disabled = false; btn.textContent = '업로드';
     document.getElementById('upv-modal').style.display = 'flex';
@@ -1234,15 +1493,64 @@ function closeUploadVersionModal() {
 }
 document.addEventListener('change', function(e) {
     if (e.target?.id === 'upv-file') {
-        const f = e.target.files?.[0];
-        document.getElementById('upv-filename').textContent = f ? `선택: ${f.name} (${(f.size/1024).toFixed(0)} KB)` : '';
+        _updateUpvFileUi(e.target.files?.[0] || null);
     }
 });
-function submitUploadVersion() {
+
+function _updateUpvFileUi(f) {
+    const drop = document.getElementById('upv-file-drop');
+    const cta  = document.getElementById('upv-file-drop-cta');
+    const fn   = document.getElementById('upv-filename');
+    if (!drop || !cta || !fn) return;
+    if (f) {
+        drop.classList.add('has-file');
+        cta.textContent = '✓ 파일 선택됨';
+        fn.textContent  = `${f.name} (${(f.size/1024).toFixed(0)} KB)`;
+    } else {
+        drop.classList.remove('has-file');
+        cta.textContent = '파일 선택';
+        fn.textContent  = '';
+    }
+}
+
+/* 드래그앤드롭 — 한 번만 등록 */
+(function setupUpvDnd() {
+    const drop = document.getElementById('upv-file-drop');
+    if (!drop || drop._dndBound) return;
+    drop._dndBound = true;
+
+    ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        drop.classList.add('is-dragover');
+    }));
+    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        drop.classList.remove('is-dragover');
+    }));
+    drop.addEventListener('drop', e => {
+        const f = e.dataTransfer?.files?.[0];
+        if (!f) return;
+        const inp = document.getElementById('upv-file');
+        if (!inp) return;
+        try {
+            const dt = new DataTransfer();
+            dt.items.add(f);
+            inp.files = dt.files;
+            _updateUpvFileUi(f);
+        } catch (_) {
+            // DataTransfer 미지원 브라우저: 파일 표시만 갱신 (제출 시엔 필요 시 사용자 다시 선택 안내)
+            _updateUpvFileUi(f);
+        }
+    });
+})();
+async function submitUploadVersion() {
     const fileInput = document.getElementById('upv-file');
     const note      = document.getElementById('upv-note').value.trim();
     if (!fileInput.files?.[0]) { alert('파일을 선택해주세요.'); return; }
-    if (!confirm('수정본을 업로드하면 기존 의견은 모두 "반영 완료"로 처리되고, 새 버전으로 미리보기가 갱신됩니다. 계속하시겠습니까?')) return;
+    const ok = (typeof window.__confirm === 'function')
+        ? await window.__confirm('수정본을 업로드하면 기존 의견은 모두 "반영 완료"로 처리되고, 새 버전으로 미리보기가 갱신됩니다. 계속하시겠습니까?')
+        : confirm('수정본을 업로드하면 기존 의견은 모두 "반영 완료"로 처리되고, 새 버전으로 미리보기가 갱신됩니다. 계속하시겠습니까?');
+    if (!ok) return;
     const btn = document.getElementById('upv-submit-btn');
     btn.disabled = true; btn.textContent = '업로드 중...';
 
@@ -2577,6 +2885,20 @@ function urlPrintPdf() {
     if (!win) { alert(FM_STR.popup_blocked); return; }
     win.addEventListener('load', () => setTimeout(() => { try { win.print(); } catch(e) {} }, 800));
 }
+
+// URL 뷰어: 의견·답글을 PDF 보고서로 다운로드 (원본 파일 없이 의견만)
+function downloadUrlCommentsReport() {
+    if (!urlProjectId || !urlFileId) return;
+    const url = `${BASE_URL}/projects/${urlProjectId}/files/${urlFileId}/comments/download`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+window.downloadUrlCommentsReport = downloadUrlCommentsReport;
 
 function urlRenderCmts(list) {
     _urlCmts = list;

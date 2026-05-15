@@ -21,7 +21,7 @@ return [
     'confirm_delete_ann'     => '이 주석을 삭제하시겠습니까?',
     'count_suffix'           => '개',
     'download'               => '다운로드',
-    'download_with_review'   => '리뷰 포함 다운로드',
+    'download_with_review'   => '문서 다운로드',
     'open_for_review'        => '문서 열어서 리뷰',
     'submit_opinion'         => '의견 등록',
     'new_opinion_placeholder'=> '새 의견을 입력하세요... (Ctrl+Enter 로 등록)',

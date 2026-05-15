@@ -319,7 +319,7 @@
                 <select name="owner_id" style="{{ $minp }}"
                         onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
                     <option value="">{{ __('maintenance.field_owner') }}</option>
-                    @foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}</option>@endforeach
+                    @foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}@if($tm->email) ({{ $tm->email }})@endif</option>@endforeach
                 </select>
                 <input type="text" name="owner_name" placeholder="{{ __('maintenance.field_owner_manual') }}" style="{{ $minp }}"
                        onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">

@@ -10,178 +10,179 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html,body{height:100%}
-        body{font-family:'Inter','Noto Sans KR',sans-serif;background:#0f0a1e;color:#fff;display:flex;height:100vh;overflow:hidden}
+        body{font-family:'Inter','Noto Sans KR',sans-serif;background:#ffffff;color:#0f172a;display:flex;height:100vh;overflow:hidden}
 
-        /* ── LEFT PANEL — 100vh 고정, 스크롤 없음 ── */
+        /* ── LEFT PANEL ── */
         .left-panel{
             position:relative;width:44%;height:100vh;
             display:flex;flex-direction:column;
             justify-content:space-between;
             padding:2.6rem 3rem;overflow:hidden;flex-shrink:0;
-            background:linear-gradient(150deg,#0f0a1e 0%,#1a0a4e 50%,#0d1a3a 100%);
+            background:linear-gradient(150deg,#f8fafc 0%,#eef2ff 60%,#e0e7ff 100%);
+            border-right:1px solid #e2e8f0;
         }
         #left-canvas{position:absolute;inset:0;z-index:0}
         .lp-glow1{position:absolute;top:-80px;right:-80px;width:380px;height:380px;border-radius:50%;
-            background:radial-gradient(circle,rgba(109,40,217,.35) 0%,transparent 70%);pointer-events:none;z-index:0}
+            background:radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%);pointer-events:none;z-index:0}
         .lp-glow2{position:absolute;bottom:-80px;left:-80px;width:280px;height:280px;border-radius:50%;
-            background:radial-gradient(circle,rgba(6,182,212,.2) 0%,transparent 70%);pointer-events:none;z-index:0}
+            background:radial-gradient(circle,rgba(6,182,212,.13) 0%,transparent 70%);pointer-events:none;z-index:0}
 
         .lp-logo{position:relative;z-index:1;display:flex;align-items:center;gap:1rem;flex-shrink:0}
-        .lp-logo-icon{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);
-            display:flex;align-items:center;justify-content:center;font-size:1.55rem;box-shadow:0 0 24px rgba(139,92,246,.5)}
-        .lp-logo-text{font-size:1.5rem;font-weight:900;
-            background:linear-gradient(90deg,#a78bfa,#67e8f9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+        .lp-logo-icon{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#4f46e5);
+            display:flex;align-items:center;justify-content:center;font-size:1.55rem;color:#fff;box-shadow:0 12px 28px -8px rgba(79,70,229,.4)}
+        .lp-logo-text{font-size:1.5rem;font-weight:900;color:#0f172a;letter-spacing:-.5px}
 
         /* 중앙 영역 */
         .lp-center{position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:1.3rem;padding:.65rem 0}
-        .lp-title{font-size:clamp(1.95rem,3.1vw,2.75rem);font-weight:900;letter-spacing:-2px;line-height:1.2}
-        .lp-title .grad{background:linear-gradient(90deg,#a78bfa,#67e8f9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
-        .lp-desc{font-size:1.15rem;color:rgba(255,255,255,.4);line-height:1.7;max-width:340px}
+        .lp-title{font-size:clamp(1.95rem,3.1vw,2.75rem);font-weight:900;letter-spacing:-2px;line-height:1.2;color:#0f172a}
+        .lp-title .grad{background:linear-gradient(90deg,#4f46e5,#0891b2);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+        .lp-desc{font-size:1.15rem;color:#475569;line-height:1.7;max-width:340px}
 
-        /* ── 웍스 이미지 3열 갤러리 — 높이 고정으로 SVG 크롭 ── */
+        /* ── 웍스 이미지 3열 갤러리 ── */
         .ai-gallery{display:flex;align-items:stretch;gap:.9rem;width:100%;height:228px}
 
         /* 사이드 카드 */
         .ai-side-card{
             flex:1;border-radius:11px;overflow:hidden;
-            border:1px solid rgba(255,255,255,.08);
+            border:1px solid #e2e8f0;
+            background:#ffffff;
+            box-shadow:0 8px 20px -8px rgba(15,23,42,.08);
             display:flex;align-items:center;justify-content:center;
         }
-        .ai-side-card:first-child{background:#0a0620;animation:floatA 4.5s ease-in-out infinite}
-        .ai-side-card:last-child {background:#0a1e10;animation:floatB 5s   ease-in-out infinite}
+        .ai-side-card:first-child{animation:floatA 4.5s ease-in-out infinite}
+        .ai-side-card:last-child {animation:floatB 5s   ease-in-out infinite}
         @keyframes floatA{0%,100%{transform:translateY(0)}  50%{transform:translateY(-6px)}}
         @keyframes floatB{0%,100%{transform:translateY(-4px)}50%{transform:translateY(3px)}}
-        /* SVG가 컨테이너를 꽉 채우며 잘려 보임 */
         .ai-side-card svg{display:block;width:100%;height:100%}
 
-        /* 중앙 오브 — 갤러리 높이에 맞춤 */
+        /* 중앙 오브 */
         .ai-orb-wrap{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:163px}
         .ai-orb{
             width:150px;height:150px;border-radius:50%;
-            background:radial-gradient(circle at 35% 35%,rgba(167,139,250,.25) 0%,rgba(109,40,217,.12) 40%,transparent 70%);
-            border:1px solid rgba(139,92,246,.25);
+            background:radial-gradient(circle at 35% 35%,rgba(129,140,248,.22) 0%,rgba(99,102,241,.08) 40%,transparent 70%);
+            border:1px solid rgba(99,102,241,.2);
             position:relative;display:flex;align-items:center;justify-content:center;
             animation:floatOrb 4s ease-in-out infinite;
         }
         @keyframes floatOrb{0%,100%{transform:translateY(-3px)}50%{transform:translateY(4px)}}
         .ai-orb::before{
             content:'';position:absolute;inset:-2px;border-radius:50%;
-            background:conic-gradient(from 0deg,transparent 0%,rgba(139,92,246,.55) 20%,transparent 40%,rgba(6,182,212,.35) 60%,transparent 80%,rgba(52,211,153,.35) 100%);
+            background:conic-gradient(from 0deg,transparent 0%,rgba(99,102,241,.55) 20%,transparent 40%,rgba(6,182,212,.4) 60%,transparent 80%,rgba(16,185,129,.4) 100%);
             animation:spin 8s linear infinite;z-index:-1;
             -webkit-mask:radial-gradient(circle,transparent 88%,black 100%);
             mask:radial-gradient(circle,transparent 88%,black 100%);
         }
         @keyframes spin{to{transform:rotate(360deg)}}
-        .orb-icon{font-size:3.1rem;filter:drop-shadow(0 0 24px rgba(139,92,246,.8))}
+        .orb-icon{font-size:3.1rem;filter:drop-shadow(0 6px 18px rgba(79,70,229,.45))}
 
         /* step list */
         .steps-list{display:flex;flex-direction:column;gap:.7rem}
         .step-item{display:flex;align-items:center;gap:1.1rem;padding:.9rem 1.3rem;border-radius:14px;
-            background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:all .2s}
-        .step-item.active{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3)}
+            background:#ffffff;border:1px solid #e2e8f0;transition:all .2s;
+            box-shadow:0 1px 2px rgba(15,23,42,.03)}
+        .step-item.active{background:#eef2ff;border-color:#c7d2fe}
         .step-num{width:36px;height:36px;border-radius:50%;flex-shrink:0;
             display:flex;align-items:center;justify-content:center;font-size:.975rem;font-weight:800;
-            background:rgba(255,255,255,.1);color:rgba(255,255,255,.5)}
-        .step-item.active .step-num{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 0 16px rgba(139,92,246,.5)}
+            background:#f1f5f9;color:#94a3b8}
+        .step-item.active .step-num{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;box-shadow:0 6px 16px -4px rgba(79,70,229,.45)}
         .step-text{flex:1}
-        .step-name{font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.75)}
-        .step-item.active .step-name{color:#e0d9ff}
-        .step-sub{font-size:.95rem;color:rgba(255,255,255,.35);margin-top:2px}
-        .step-check{font-size:1rem;color:#34d399}
+        .step-name{font-size:1.1rem;font-weight:700;color:#334155}
+        .step-item.active .step-name{color:#4338ca}
+        .step-sub{font-size:.95rem;color:#94a3b8;margin-top:2px}
+        .step-check{font-size:1rem;color:#10b981}
 
         .lp-features{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:.85rem;flex-shrink:0}
-        .lp-feat{display:inline-flex;align-items:center;gap:.5rem;font-size:.975rem;color:rgba(255,255,255,.45)}
-        .lp-feat::before{content:'✓';color:#34d399;font-weight:700}
+        .lp-feat{display:inline-flex;align-items:center;gap:.5rem;font-size:.975rem;color:#475569}
+        .lp-feat::before{content:'✓';color:#10b981;font-weight:700}
 
-        /* ── RIGHT PANEL — 오른쪽만 스크롤 ── */
+        /* ── RIGHT PANEL ── */
         .right-panel{
             flex:1;height:100vh;overflow-y:auto;
             display:flex;align-items:flex-start;justify-content:center;
             padding:2rem 2rem;
-            background:rgba(255,255,255,.015);border-left:1px solid rgba(255,255,255,.06);
+            background:#ffffff;
         }
         .form-box{width:100%;max-width:440px;padding:.5rem 0}
 
         .mobile-logo{display:none;align-items:center;gap:.65rem;justify-content:center;margin-bottom:2.5rem}
-        .mobile-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:1rem}
-        .mobile-logo-text{font-size:1rem;font-weight:900;background:linear-gradient(90deg,#a78bfa,#67e8f9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+        .mobile-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff}
+        .mobile-logo-text{font-size:1rem;font-weight:900;color:#0f172a}
 
         .form-head{margin-bottom:1.75rem}
-        .form-head h2{font-size:1.75rem;font-weight:900;letter-spacing:-1px;margin-bottom:.4rem;color:#f0eeff}
-        .form-head p{font-size:.875rem;color:rgba(255,255,255,.4)}
+        .form-head h2{font-size:1.75rem;font-weight:900;letter-spacing:-1px;margin-bottom:.4rem;color:#0f172a}
+        .form-head p{font-size:.875rem;color:#64748b}
 
         .alert{display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;border-radius:12px;font-size:.82rem;margin-bottom:1.25rem}
-        .alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+        .alert-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
 
         .form-row{display:grid;gap:1rem}
         .form-row.cols2{grid-template-columns:1fr 1fr}
         .form-group{margin-bottom:1rem}
-        .form-label{display:flex;align-items:center;gap:.3rem;font-size:.78rem;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:.45rem;letter-spacing:.2px}
-        .form-label .req{color:#a78bfa;font-weight:800}
-        .form-label .opt{font-weight:400;color:rgba(255,255,255,.25);font-size:.7rem}
+        .form-label{display:flex;align-items:center;gap:.3rem;font-size:.78rem;font-weight:600;color:#334155;margin-bottom:.45rem;letter-spacing:.2px}
+        .form-label .req{color:#4f46e5;font-weight:800}
+        .form-label .opt{font-weight:400;color:#94a3b8;font-size:.7rem}
 
         .input-wrap{position:relative}
-        .input-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.28);pointer-events:none;display:flex}
+        .input-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;display:flex}
         .form-input{
             width:100%;padding:.82rem 1rem .82rem 2.7rem;
-            background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-            border-radius:11px;font-size:.875rem;color:#f0eeff;outline:none;
+            background:#ffffff;border:1px solid #e2e8f0;
+            border-radius:11px;font-size:.875rem;color:#0f172a;outline:none;
             transition:all .2s;font-family:inherit;
         }
-        .form-input::placeholder{color:rgba(255,255,255,.22)}
+        .form-input::placeholder{color:#cbd5e1}
         .form-input:focus{
-            border-color:rgba(139,92,246,.55);background:rgba(139,92,246,.07);
-            box-shadow:0 0 0 3px rgba(139,92,246,.13);
+            border-color:#6366f1;
+            box-shadow:0 0 0 4px rgba(99,102,241,.12);
         }
-        .form-input.error-input{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.05)}
-        .field-error{font-size:.73rem;color:#f87171;margin-top:.35rem}
+        .form-input.error-input{border-color:#fca5a5;background:#fef2f2}
+        .field-error{font-size:.73rem;color:#dc2626;margin-top:.35rem}
 
         /* password strength */
         .pw-strength{margin-top:.5rem}
-        .pw-strength-bar{height:4px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;margin-bottom:.3rem}
+        .pw-strength-bar{height:4px;background:#f1f5f9;border-radius:999px;overflow:hidden;margin-bottom:.3rem}
         .pw-strength-fill{height:100%;width:0%;border-radius:999px;transition:width .3s,background .3s}
-        .pw-strength-text{font-size:.7rem;color:rgba(255,255,255,.35)}
+        .pw-strength-text{font-size:.7rem;color:#94a3b8}
 
         .btn-submit{
             width:100%;padding:.95rem;border:none;border-radius:12px;
-            background:linear-gradient(135deg,#8b5cf6,#6d28d9);
+            background:linear-gradient(135deg,#6366f1,#4f46e5);
             color:#fff;font-size:.925rem;font-weight:700;font-family:inherit;
             cursor:pointer;transition:all .25s;
-            box-shadow:0 0 25px rgba(139,92,246,.35),0 4px 15px rgba(0,0,0,.3);
+            box-shadow:0 10px 24px -8px rgba(79,70,229,.45),0 2px 4px rgba(15,23,42,.06);
             position:relative;overflow:hidden;margin-top:.5rem;
         }
         .btn-submit::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
-            background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
             animation:shimmer 2.4s infinite}
         @keyframes shimmer{0%{left:-100%}100%{left:160%}}
-        .btn-submit:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(139,92,246,.55),0 8px 25px rgba(0,0,0,.4)}
+        .btn-submit:hover{transform:translateY(-2px);box-shadow:0 14px 32px -8px rgba(79,70,229,.55),0 4px 8px rgba(15,23,42,.08)}
         .btn-inner{display:flex;align-items:center;justify-content:center;gap:.5rem}
 
         .divider{display:flex;align-items:center;gap:.9rem;margin:1.25rem 0}
-        .divider-line{flex:1;height:1px;background:rgba(255,255,255,.08)}
-        .divider-text{font-size:.72rem;color:rgba(255,255,255,.22);white-space:nowrap}
+        .divider-line{flex:1;height:1px;background:#e2e8f0}
+        .divider-text{font-size:.72rem;color:#94a3b8;white-space:nowrap}
 
         .btn-secondary{
             display:flex;align-items:center;justify-content:center;gap:.5rem;
             width:100%;padding:.85rem;border-radius:12px;
-            background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-            color:rgba(255,255,255,.55);font-size:.875rem;font-weight:600;font-family:inherit;
+            background:#ffffff;border:1px solid #e2e8f0;
+            color:#475569;font-size:.875rem;font-weight:600;font-family:inherit;
             text-decoration:none;cursor:pointer;transition:all .2s;
         }
-        .btn-secondary:hover{background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.3);color:#c4b5fd}
-        .btn-secondary .accent{color:#a78bfa}
+        .btn-secondary:hover{background:#eef2ff;border-color:#c7d2fe;color:#4338ca}
+        .btn-secondary .accent{color:#4f46e5}
 
-        .terms-note{font-size:.72rem;color:rgba(255,255,255,.25);text-align:center;line-height:1.6;margin-top:1rem}
-        .terms-note a{color:rgba(167,139,250,.6);text-decoration:none}
-        .terms-note a:hover{color:#a78bfa}
-        .form-footer{text-align:center;font-size:.72rem;color:rgba(255,255,255,.18);margin-top:1.75rem}
+        .terms-note{font-size:.72rem;color:#94a3b8;text-align:center;line-height:1.6;margin-top:1rem}
+        .terms-note a{color:#6366f1;text-decoration:none}
+        .terms-note a:hover{color:#4338ca;text-decoration:underline}
+        .form-footer{text-align:center;font-size:.72rem;color:#94a3b8;margin-top:1.75rem}
 
         /* 언어 스위처 */
         .lang-switch{display:flex;justify-content:flex-end;gap:4px;margin-bottom:1.5rem}
-        .lang-btn{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.15);cursor:pointer;font-family:inherit;transition:all .15s}
-        .lang-btn.active{background:rgba(139,92,246,.35);color:#c4b5fd;border-color:rgba(139,92,246,.4)}
-        .lang-btn:not(.active){background:rgba(255,255,255,.06);color:rgba(255,255,255,.3)}
-        .lang-btn:not(.active):hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6)}
+        .lang-btn{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;transition:all .15s;background:#ffffff;color:#64748b}
+        .lang-btn.active{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
+        .lang-btn:not(.active):hover{background:#f8fafc;color:#0f172a}
 
         /* ── 자동완성 콤보박스 ── */
         .combo-wrap{position:relative}
@@ -189,62 +190,62 @@
         .combo-input-row .input-icon{z-index:2}
         .combo-input{
             width:100%;padding:.82rem 2.6rem .82rem 2.7rem;
-            background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-            border-radius:11px;font-size:.875rem;color:#f0eeff;outline:none;
+            background:#ffffff;border:1px solid #e2e8f0;
+            border-radius:11px;font-size:.875rem;color:#0f172a;outline:none;
             transition:all .2s;font-family:inherit;
         }
-        .combo-input::placeholder{color:rgba(255,255,255,.22)}
+        .combo-input::placeholder{color:#cbd5e1}
         .combo-input:focus{
-            border-color:rgba(139,92,246,.55);background:rgba(139,92,246,.07);
-            box-shadow:0 0 0 3px rgba(139,92,246,.13);
+            border-color:#6366f1;
+            box-shadow:0 0 0 4px rgba(99,102,241,.12);
         }
         .combo-clear{
             position:absolute;right:.8rem;top:50%;transform:translateY(-50%);
-            background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;
+            background:none;border:none;color:#94a3b8;cursor:pointer;
             padding:.2rem;display:none;align-items:center;transition:color .2s;font-size:.9rem;line-height:1;
         }
-        .combo-clear:hover{color:rgba(255,255,255,.7)}
+        .combo-clear:hover{color:#475569}
         .combo-clear.visible{display:flex}
         .combo-dropdown{
             position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:100;
-            background:#1a1040;border:1px solid rgba(139,92,246,.35);border-radius:12px;
-            box-shadow:0 16px 40px rgba(0,0,0,.6),0 0 0 1px rgba(139,92,246,.1);
+            background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
+            box-shadow:0 18px 40px -12px rgba(15,23,42,.18),0 4px 8px rgba(15,23,42,.04);
             overflow:hidden;display:none;
         }
         .combo-dropdown.open{display:block}
         .combo-list{max-height:220px;overflow-y:auto;padding:.35rem}
         .combo-list::-webkit-scrollbar{width:4px}
         .combo-list::-webkit-scrollbar-track{background:transparent}
-        .combo-list::-webkit-scrollbar-thumb{background:rgba(139,92,246,.4);border-radius:999px}
+        .combo-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
         .combo-item{
             display:flex;align-items:center;gap:.65rem;
-            padding:.6rem .85rem;border-radius:8px;font-size:.84rem;color:rgba(255,255,255,.7);
+            padding:.6rem .85rem;border-radius:8px;font-size:.84rem;color:#334155;
             cursor:pointer;transition:all .15s;
         }
-        .combo-item:hover,.combo-item.focused{background:rgba(139,92,246,.2);color:#e0d9ff}
-        .combo-item-icon{font-size:.8rem;opacity:.6}
+        .combo-item:hover,.combo-item.focused{background:#eef2ff;color:#4338ca}
+        .combo-item-icon{font-size:.8rem;opacity:.7}
         .combo-item-text{flex:1}
-        .combo-item-text mark{background:none;color:#c4b5fd;font-weight:700}
+        .combo-item-text mark{background:none;color:#4f46e5;font-weight:700}
         .combo-item-badge{
             font-size:.65rem;font-weight:600;padding:.1rem .45rem;border-radius:999px;
-            background:rgba(139,92,246,.25);color:#a78bfa;
+            background:#eef2ff;color:#4f46e5;border:1px solid #e0e7ff;
         }
         .combo-new{
             display:flex;align-items:center;gap:.65rem;
-            padding:.65rem .85rem;border-top:1px solid rgba(255,255,255,.06);
-            font-size:.82rem;color:rgba(255,255,255,.5);cursor:pointer;transition:all .15s;
+            padding:.65rem .85rem;border-top:1px solid #f1f5f9;
+            font-size:.82rem;color:#64748b;cursor:pointer;transition:all .15s;
         }
-        .combo-new:hover,.combo-new.focused{background:rgba(52,211,153,.1);color:#6ee7b7}
+        .combo-new:hover,.combo-new.focused{background:#ecfdf5;color:#047857}
         .combo-new-icon{font-size:.85rem}
-        .combo-empty{padding:.85rem;text-align:center;font-size:.8rem;color:rgba(255,255,255,.3)}
-        .combo-loading{padding:.75rem;text-align:center;font-size:.78rem;color:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;gap:.5rem}
-        .combo-spinner{width:12px;height:12px;border:2px solid rgba(139,92,246,.3);border-top-color:#8b5cf6;border-radius:50%;animation:cspin .7s linear infinite}
+        .combo-empty{padding:.85rem;text-align:center;font-size:.8rem;color:#94a3b8}
+        .combo-loading{padding:.75rem;text-align:center;font-size:.78rem;color:#64748b;display:flex;align-items:center;justify-content:center;gap:.5rem}
+        .combo-spinner{width:12px;height:12px;border:2px solid #e0e7ff;border-top-color:#4f46e5;border-radius:50%;animation:cspin .7s linear infinite}
         @keyframes cspin{to{transform:rotate(360deg)}}
 
         @media(max-width:1000px){
             body{height:auto;overflow:auto}
             .left-panel{display:none}
-            .right-panel{width:100%;height:auto;min-height:100vh;border-left:none;align-items:center}
+            .right-panel{width:100%;height:auto;min-height:100vh;align-items:center}
             .mobile-logo{display:flex}
         }
         @media(max-width:480px){
@@ -279,54 +280,54 @@
                 <svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid meet" style="height:100%;width:100%" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#0a0620"/>
-                            <stop offset="100%" stop-color="#0d1830"/>
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="100%" stop-color="#eef2ff"/>
                         </linearGradient>
                         <radialGradient id="sg1g" cx="80%" cy="10%" r="60%">
-                            <stop offset="0%" stop-color="rgba(6,182,212,.25)"/>
+                            <stop offset="0%" stop-color="rgba(6,182,212,.18)"/>
                             <stop offset="100%" stop-color="transparent"/>
                         </radialGradient>
                     </defs>
                     <rect width="120" height="180" fill="url(#sg1)"/>
                     <rect width="120" height="180" fill="url(#sg1g)"/>
                     <!-- header -->
-                    <rect x="0" y="0" width="120" height="28" fill="rgba(255,255,255,.03)"/>
-                    <circle cx="12" cy="14" r="5" fill="rgba(139,92,246,.6)"/>
-                    <rect x="20" y="11" width="40" height="5" rx="2.5" fill="rgba(255,255,255,.15)"/>
-                    <circle cx="108" cy="14" r="4" fill="rgba(52,211,153,.5)"/>
+                    <rect x="0" y="0" width="120" height="28" fill="rgba(15,23,42,.03)"/>
+                    <circle cx="12" cy="14" r="5" fill="rgba(99,102,241,.6)"/>
+                    <rect x="20" y="11" width="40" height="5" rx="2.5" fill="rgba(15,23,42,.18)"/>
+                    <circle cx="108" cy="14" r="4" fill="rgba(16,185,129,.55)"/>
                     <!-- chat bubbles -->
-                    <rect x="8" y="35" width="72" height="22" rx="8" fill="rgba(139,92,246,.2)" stroke="rgba(139,92,246,.3)" stroke-width=".6"/>
-                    <rect x="12" y="41" width="50" height="4" rx="2" fill="rgba(255,255,255,.35)"/>
-                    <rect x="12" y="48" width="36" height="4" rx="2" fill="rgba(255,255,255,.2)"/>
+                    <rect x="8" y="35" width="72" height="22" rx="8" fill="rgba(99,102,241,.1)" stroke="rgba(99,102,241,.28)" stroke-width=".6"/>
+                    <rect x="12" y="41" width="50" height="4" rx="2" fill="rgba(15,23,42,.5)"/>
+                    <rect x="12" y="48" width="36" height="4" rx="2" fill="rgba(15,23,42,.3)"/>
 
-                    <rect x="28" y="65" width="84" height="22" rx="8" fill="rgba(6,182,212,.15)" stroke="rgba(6,182,212,.25)" stroke-width=".6"/>
-                    <rect x="32" y="71" width="55" height="4" rx="2" fill="rgba(255,255,255,.3)"/>
-                    <rect x="32" y="78" width="40" height="4" rx="2" fill="rgba(255,255,255,.18)"/>
+                    <rect x="28" y="65" width="84" height="22" rx="8" fill="rgba(6,182,212,.12)" stroke="rgba(6,182,212,.28)" stroke-width=".6"/>
+                    <rect x="32" y="71" width="55" height="4" rx="2" fill="rgba(15,23,42,.45)"/>
+                    <rect x="32" y="78" width="40" height="4" rx="2" fill="rgba(15,23,42,.28)"/>
 
-                    <rect x="8" y="95" width="88" height="36" rx="8" fill="rgba(139,92,246,.15)" stroke="rgba(139,92,246,.25)" stroke-width=".6"/>
-                    <rect x="13" y="101" width="30" height="4" rx="2" fill="rgba(167,139,250,.6)"/>
-                    <circle cx="13" cy="113" r="2.5" fill="#34d399"/>
-                    <rect x="19" y="111" width="45" height="3.5" rx="1.5" fill="rgba(255,255,255,.25)"/>
-                    <circle cx="13" cy="121" r="2.5" fill="#fbbf24"/>
-                    <rect x="19" y="119" width="38" height="3.5" rx="1.5" fill="rgba(255,255,255,.2)"/>
+                    <rect x="8" y="95" width="88" height="36" rx="8" fill="rgba(99,102,241,.08)" stroke="rgba(99,102,241,.25)" stroke-width=".6"/>
+                    <rect x="13" y="101" width="30" height="4" rx="2" fill="rgba(79,70,229,.65)"/>
+                    <circle cx="13" cy="113" r="2.5" fill="#10b981"/>
+                    <rect x="19" y="111" width="45" height="3.5" rx="1.5" fill="rgba(15,23,42,.35)"/>
+                    <circle cx="13" cy="121" r="2.5" fill="#f59e0b"/>
+                    <rect x="19" y="119" width="38" height="3.5" rx="1.5" fill="rgba(15,23,42,.3)"/>
 
                     <!-- typing indicator -->
-                    <rect x="28" y="140" width="42" height="18" rx="9" fill="rgba(139,92,246,.15)" stroke="rgba(139,92,246,.2)" stroke-width=".6"/>
-                    <circle cx="38" cy="149" r="2.5" fill="#a78bfa">
+                    <rect x="28" y="140" width="42" height="18" rx="9" fill="rgba(99,102,241,.1)" stroke="rgba(99,102,241,.22)" stroke-width=".6"/>
+                    <circle cx="38" cy="149" r="2.5" fill="#6366f1">
                         <animate attributeName="opacity" values="1;.3;1" dur="1.2s" repeatCount="indefinite" begin="0s"/>
                     </circle>
-                    <circle cx="47" cy="149" r="2.5" fill="#a78bfa">
+                    <circle cx="47" cy="149" r="2.5" fill="#6366f1">
                         <animate attributeName="opacity" values="1;.3;1" dur="1.2s" repeatCount="indefinite" begin=".3s"/>
                     </circle>
-                    <circle cx="56" cy="149" r="2.5" fill="#a78bfa">
+                    <circle cx="56" cy="149" r="2.5" fill="#6366f1">
                         <animate attributeName="opacity" values="1;.3;1" dur="1.2s" repeatCount="indefinite" begin=".6s"/>
                     </circle>
                     <!-- input bar -->
-                    <rect x="8" y="164" width="104" height="12" rx="6" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.1)" stroke-width=".6"/>
-                    <rect x="94" y="166" width="14" height="8" rx="4" fill="rgba(139,92,246,.5)"/>
-                    <rect x="14" y="167" width="35" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/>
+                    <rect x="8" y="164" width="104" height="12" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width=".6"/>
+                    <rect x="94" y="166" width="14" height="8" rx="4" fill="rgba(79,70,229,.6)"/>
+                    <rect x="14" y="167" width="35" height="3" rx="1.5" fill="rgba(15,23,42,.22)"/>
                     <!-- label -->
-                    <text x="60" y="177" fill="rgba(255,255,255,.25)" font-size="5.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_ai_chat') }}</text>
+                    <text x="60" y="177" fill="#94a3b8" font-size="5.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_ai_chat') }}</text>
                 </svg>
             </div>
 
@@ -342,65 +343,65 @@
                 <svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid meet" style="height:100%;width:100%" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="sg2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#0a1e10"/>
-                            <stop offset="100%" stop-color="#0f0a1e"/>
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="100%" stop-color="#ecfdf5"/>
                         </linearGradient>
                         <radialGradient id="sg2g" cx="20%" cy="80%" r="60%">
-                            <stop offset="0%" stop-color="rgba(52,211,153,.2)"/>
+                            <stop offset="0%" stop-color="rgba(16,185,129,.15)"/>
                             <stop offset="100%" stop-color="transparent"/>
                         </radialGradient>
                     </defs>
                     <rect width="120" height="180" fill="url(#sg2)"/>
                     <rect width="120" height="180" fill="url(#sg2g)"/>
                     <!-- header -->
-                    <rect x="0" y="0" width="120" height="28" fill="rgba(255,255,255,.03)"/>
-                    <rect x="8" y="10" width="45" height="6" rx="3" fill="rgba(255,255,255,.2)"/>
-                    <rect x="95" y="11" width="18" height="6" rx="3" fill="rgba(52,211,153,.4)"/>
+                    <rect x="0" y="0" width="120" height="28" fill="rgba(15,23,42,.03)"/>
+                    <rect x="8" y="10" width="45" height="6" rx="3" fill="rgba(15,23,42,.25)"/>
+                    <rect x="95" y="11" width="18" height="6" rx="3" fill="rgba(16,185,129,.45)"/>
                     <!-- stat chips -->
-                    <rect x="8" y="35" width="48" height="30" rx="8" fill="rgba(139,92,246,.12)" stroke="rgba(139,92,246,.25)" stroke-width=".7"/>
-                    <text x="32" y="52" fill="#c4b5fd" font-size="12" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">73%</text>
-                    <text x="32" y="60" fill="rgba(255,255,255,.3)" font-size="5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_productivity') }}</text>
+                    <rect x="8" y="35" width="48" height="30" rx="8" fill="rgba(99,102,241,.08)" stroke="rgba(99,102,241,.28)" stroke-width=".7"/>
+                    <text x="32" y="52" fill="#4f46e5" font-size="12" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">73%</text>
+                    <text x="32" y="60" fill="#64748b" font-size="5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_productivity') }}</text>
 
-                    <rect x="64" y="35" width="48" height="30" rx="8" fill="rgba(52,211,153,.1)" stroke="rgba(52,211,153,.2)" stroke-width=".7"/>
-                    <text x="88" y="52" fill="#34d399" font-size="12" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">48</text>
-                    <text x="88" y="60" fill="rgba(255,255,255,.3)" font-size="5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_done_tasks') }}</text>
+                    <rect x="64" y="35" width="48" height="30" rx="8" fill="rgba(16,185,129,.08)" stroke="rgba(16,185,129,.25)" stroke-width=".7"/>
+                    <text x="88" y="52" fill="#059669" font-size="12" font-weight="800" text-anchor="middle" font-family="Inter,sans-serif">48</text>
+                    <text x="88" y="60" fill="#64748b" font-size="5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_done_tasks') }}</text>
 
                     <!-- bar chart -->
-                    <rect x="8" y="74" width="104" height="58" rx="8" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.06)" stroke-width=".7"/>
-                    <text x="16" y="84" fill="rgba(255,255,255,.35)" font-size="5.5" font-family="Inter,sans-serif">{{ __('auth.register_svg_weekly') }}</text>
+                    <rect x="8" y="74" width="104" height="58" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width=".7"/>
+                    <text x="16" y="84" fill="#334155" font-size="5.5" font-family="Inter,sans-serif">{{ __('auth.register_svg_weekly') }}</text>
                     <!-- bars -->
-                    <rect x="16"  y="110" width="9" height="16" rx="2" fill="rgba(139,92,246,.45)"/>
-                    <rect x="29"  y="103" width="9" height="23" rx="2" fill="rgba(139,92,246,.6)"/>
-                    <rect x="42"  y="108" width="9" height="18" rx="2" fill="rgba(139,92,246,.45)"/>
-                    <rect x="55"  y="98"  width="9" height="28" rx="2" fill="rgba(6,182,212,.7)"/>
-                    <rect x="68"  y="105" width="9" height="21" rx="2" fill="rgba(139,92,246,.5)"/>
-                    <rect x="81"  y="93"  width="9" height="33" rx="2" fill="rgba(52,211,153,.8)"/>
-                    <rect x="94"  y="100" width="9" height="26" rx="2" fill="rgba(6,182,212,.6)"/>
+                    <rect x="16"  y="110" width="9" height="16" rx="2" fill="rgba(99,102,241,.5)"/>
+                    <rect x="29"  y="103" width="9" height="23" rx="2" fill="rgba(99,102,241,.7)"/>
+                    <rect x="42"  y="108" width="9" height="18" rx="2" fill="rgba(99,102,241,.5)"/>
+                    <rect x="55"  y="98"  width="9" height="28" rx="2" fill="rgba(6,182,212,.75)"/>
+                    <rect x="68"  y="105" width="9" height="21" rx="2" fill="rgba(99,102,241,.55)"/>
+                    <rect x="81"  y="93"  width="9" height="33" rx="2" fill="rgba(16,185,129,.85)"/>
+                    <rect x="94"  y="100" width="9" height="26" rx="2" fill="rgba(6,182,212,.65)"/>
                     <!-- x labels -->
-                    <text x="20"  y="132" fill="rgba(255,255,255,.25)" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_mon') }}</text>
-                    <text x="33"  y="132" fill="rgba(255,255,255,.25)" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_tue') }}</text>
-                    <text x="46"  y="132" fill="rgba(255,255,255,.25)" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_wed') }}</text>
-                    <text x="59"  y="132" fill="rgba(255,255,255,.25)" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_thu') }}</text>
-                    <text x="72"  y="132" fill="rgba(255,255,255,.25)" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_fri') }}</text>
-                    <text x="85"  y="132" fill="rgba(255,255,255,.25)" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_sat') }}</text>
-                    <text x="98"  y="132" fill="rgba(255,255,255,.25)" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_sun') }}</text>
+                    <text x="20"  y="132" fill="#94a3b8" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_mon') }}</text>
+                    <text x="33"  y="132" fill="#94a3b8" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_tue') }}</text>
+                    <text x="46"  y="132" fill="#94a3b8" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_wed') }}</text>
+                    <text x="59"  y="132" fill="#94a3b8" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_thu') }}</text>
+                    <text x="72"  y="132" fill="#94a3b8" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_fri') }}</text>
+                    <text x="85"  y="132" fill="#94a3b8" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_sat') }}</text>
+                    <text x="98"  y="132" fill="#94a3b8" font-size="4.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_sun') }}</text>
 
                     <!-- progress bars -->
-                    <rect x="8" y="142" width="104" height="28" rx="8" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.06)" stroke-width=".7"/>
-                    <text x="14" y="152" fill="rgba(255,255,255,.4)" font-size="5" font-family="Inter,sans-serif">{{ __('auth.register_svg_api') }}</text>
-                    <rect x="14" y="156" width="75" height="4" rx="2" fill="rgba(255,255,255,.08)"/>
+                    <rect x="8" y="142" width="104" height="28" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width=".7"/>
+                    <text x="14" y="152" fill="#475569" font-size="5" font-family="Inter,sans-serif">{{ __('auth.register_svg_api') }}</text>
+                    <rect x="14" y="156" width="75" height="4" rx="2" fill="#f1f5f9"/>
                     <rect x="14" y="156" width="64" height="4" rx="2" fill="url(#pg1)">
                         <defs>
                             <linearGradient id="pg1" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#8b5cf6"/>
+                                <stop offset="0%" stop-color="#6366f1"/>
                                 <stop offset="100%" stop-color="#06b6d4"/>
                             </linearGradient>
                         </defs>
                     </rect>
-                    <text x="92" y="160" fill="#67e8f9" font-size="5" font-weight="700" font-family="Inter,sans-serif">85%</text>
+                    <text x="92" y="160" fill="#0891b2" font-size="5" font-weight="700" font-family="Inter,sans-serif">85%</text>
 
                     <!-- label -->
-                    <text x="60" y="177" fill="rgba(255,255,255,.25)" font-size="5.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_ai_analysis') }}</text>
+                    <text x="60" y="177" fill="#94a3b8" font-size="5.5" text-anchor="middle" font-family="Inter,sans-serif">{{ __('auth.register_svg_ai_analysis') }}</text>
                 </svg>
             </div>
 
@@ -614,8 +615,8 @@ if (canvas) {
             this.vx = (Math.random() - 0.5) * 0.3;
             this.vy = (Math.random() - 0.5) * 0.3;
             this.r = Math.random() * 1.2 + 0.4;
-            this.alpha = Math.random() * 0.35 + 0.08;
-            const colors = ['#8b5cf6','#06b6d4','#34d399','#a78bfa'];
+            this.alpha = Math.random() * 0.32 + 0.08;
+            const colors = ['#6366f1','#06b6d4','#10b981','#818cf8'];
             this.color = colors[Math.floor(Math.random() * colors.length)];
         }
         update() {
@@ -643,8 +644,8 @@ if (canvas) {
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = '#8b5cf6';
-                    ctx.globalAlpha = (1 - dist / 80) * 0.09;
+                    ctx.strokeStyle = '#6366f1';
+                    ctx.globalAlpha = (1 - dist / 80) * 0.1;
                     ctx.lineWidth = 0.5;
                     ctx.stroke();
                 }
@@ -679,15 +680,15 @@ function checkStrength(val) {
         { pct: '0%',   color: 'transparent', label: REG_STR.strength_0 },
         { pct: '25%',  color: '#ef4444',      label: REG_STR.strength_1 },
         { pct: '50%',  color: '#f97316',      label: REG_STR.strength_2 },
-        { pct: '75%',  color: '#fbbf24',      label: REG_STR.strength_3 },
-        { pct: '90%',  color: '#34d399',      label: REG_STR.strength_4 },
-        { pct: '100%', color: '#10b981',      label: REG_STR.strength_5 },
+        { pct: '75%',  color: '#f59e0b',      label: REG_STR.strength_3 },
+        { pct: '90%',  color: '#10b981',      label: REG_STR.strength_4 },
+        { pct: '100%', color: '#059669',      label: REG_STR.strength_5 },
     ];
     const lvl = val.length === 0 ? levels[0] : levels[Math.min(score, 5)];
     bar.style.width = lvl.pct;
     bar.style.background = lvl.color;
     text.textContent = lvl.label;
-    text.style.color = lvl.color === 'transparent' ? 'rgba(255,255,255,.35)' : lvl.color;
+    text.style.color = lvl.color === 'transparent' ? '#94a3b8' : lvl.color;
 }
 
 // ── 회사 필드 필수 검증 ──
@@ -696,7 +697,7 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
     if (!company) {
         e.preventDefault();
         const input = document.getElementById('company-input');
-        input.style.borderColor = 'rgba(239,68,68,.6)';
+        input.style.borderColor = '#fca5a5';
         input.focus();
         input.placeholder = REG_STR.company_required;
         setTimeout(() => {
@@ -711,7 +712,7 @@ document.querySelectorAll('.form-input').forEach(function(input) {
     input.addEventListener('focus', function() {
         var wrap = input.closest('.input-wrap');
         var icon = wrap ? wrap.querySelector('.input-icon') : null;
-        if (icon) icon.style.color = 'rgba(167,139,250,.7)';
+        if (icon) icon.style.color = '#6366f1';
     });
     input.addEventListener('blur', function() {
         var wrap = input.closest('.input-wrap');
@@ -779,7 +780,7 @@ document.querySelectorAll('.form-input').forEach(function(input) {
             });
         }
 
-        // "직접 입력" 항목: 입력값이 기존 목록에 없을 때만 표시
+        // "직접 입력" 항목
         const trimmed = query.trim();
         const alreadyExact = items.some(c => c.toLowerCase() === trimmed.toLowerCase());
         if (trimmed && !alreadyExact) {
@@ -831,10 +832,9 @@ document.querySelectorAll('.form-input').forEach(function(input) {
         }
     }
 
-    // 입력 이벤트 (디바운스 250ms)
     searchInput.addEventListener('input', () => {
         const val = searchInput.value;
-        hiddenInput.value = val;           // 직접 입력값도 실시간 반영
+        hiddenInput.value = val;
         clearBtn.classList.toggle('visible', val.length > 0);
 
         clearTimeout(debounceTimer);
@@ -842,7 +842,6 @@ document.querySelectorAll('.form-input').forEach(function(input) {
         debounceTimer = setTimeout(() => fetchSuggestions(val.trim()), 250);
     });
 
-    // 포커스 시 기존 값 있으면 바로 검색
     searchInput.addEventListener('focus', () => {
         const val = searchInput.value.trim();
         if (val.length > 0 && !isOpen) {
@@ -851,7 +850,6 @@ document.querySelectorAll('.form-input').forEach(function(input) {
         }
     });
 
-    // 키보드 탐색
     searchInput.addEventListener('keydown', e => {
         if (!isOpen) return;
         const items = list.querySelectorAll('.combo-item,.combo-new');
@@ -878,7 +876,6 @@ document.querySelectorAll('.form-input').forEach(function(input) {
         if (focusIndex >= 0) items[focusIndex].scrollIntoView({ block: 'nearest' });
     }
 
-    // X 버튼
     clearBtn.addEventListener('click', () => {
         searchInput.value = '';
         hiddenInput.value = '';
@@ -888,7 +885,6 @@ document.querySelectorAll('.form-input').forEach(function(input) {
         searchInput.focus();
     });
 
-    // 바깥 클릭 시 닫기
     document.addEventListener('mousedown', e => {
         if (!searchInput.closest('.combo-wrap').contains(e.target)) closeDropdown();
     });

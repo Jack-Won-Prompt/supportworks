@@ -43,6 +43,27 @@ class Deliverable extends Model
         return $this->hasMany(DeliverableComment::class);
     }
 
+    public function stepVersions(): HasMany
+    {
+        return $this->hasMany(DeliverableStepVersion::class);
+    }
+
+    public function latestStepVersion(int $step): ?DeliverableStepVersion
+    {
+        return DeliverableStepVersion::where('deliverable_id', $this->id)
+            ->where('step_order', $step)
+            ->orderByDesc('version_no')
+            ->first();
+    }
+
+    public function nextStepVersionNo(int $step): int
+    {
+        $max = DeliverableStepVersion::where('deliverable_id', $this->id)
+            ->where('step_order', $step)
+            ->max('version_no');
+        return (int) ($max ?? 0) + 1;
+    }
+
     public function getStepValue(int $step, string $fieldKey): mixed
     {
         return $this->stepData

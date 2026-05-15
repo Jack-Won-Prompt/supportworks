@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\MemoController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MessageActionItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectFileController;
@@ -97,6 +98,13 @@ Route::post('/locale', function (\Illuminate\Http\Request $request) {
 
 // 관리자 사용자 가장(impersonate) 로그인 — 토큰 일회성, 60초 유효
 Route::get('/auth/impersonate/{token}', [\App\Http\Controllers\Auth\ImpersonateController::class, 'login'])->name('impersonate.login');
+
+// 방문자 상담 챗 (welcome 페이지, 인증 불필요)
+Route::prefix('guest-chat')->name('guest-chat.')->group(function () {
+    Route::post('/start',                       [\App\Http\Controllers\GuestChatController::class, 'start'])->name('start');
+    Route::get ('/{conversation}/messages',     [\App\Http\Controllers\GuestChatController::class, 'poll'])->name('poll');
+    Route::post('/{conversation}/send',         [\App\Http\Controllers\GuestChatController::class, 'send'])->name('send');
+});
 
 // 정책 페이지 (인증 불필요)
 Route::get('/terms',   fn() => view('policy.terms'))->name('policy.terms');
@@ -341,6 +349,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/messages/{conversation}/leave', [MessageController::class, 'leave'])->name('messages.leave');
     Route::post('/messages/{conversation}/invite', [MessageController::class, 'invite'])->name('messages.invite');
     Route::post('/messages/{message}/email-file', [MessageController::class, 'emailFile'])->name('messages.email-file');
+    Route::post('/messages/{message}/action-items', [MessageActionItemController::class, 'store'])->name('messages.action-items.store');
     Route::post('/messages/analyze', [MessageAnalyzeController::class, 'analyze'])->name('messages.analyze');
     Route::post('/translate', [TranslateController::class, 'translate'])->name('translate');
     Route::get ('/messages/{message}/image-comments',             [MessageImageCommentController::class, 'index'])->name('messages.image-comments.index');
@@ -619,6 +628,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{file}/comments', [FileCommentController::class, 'store'])->name('comments.store');
         Route::delete('/{file}/comments/{comment}', [FileCommentController::class, 'destroy'])->name('comments.destroy');
         Route::post('/{file}/comments/{comment}/convert-to-discussion', [FileCommentController::class, 'convertToDiscussion'])->name('comments.convert-to-discussion');
+        Route::get ('/{file}/comments/download',                       [FileCommentController::class, 'downloadCommentsReport'])->name('comments.download');
         Route::post('/{file}/upload-version', [ProjectFileController::class, 'uploadVersion'])->name('upload-version');
         Route::get('/{file}/versions', [ProjectFileController::class, 'versionList'])->name('versions');
         Route::get('/{file}/download', [ProjectFileController::class, 'download'])->name('download');
@@ -730,6 +740,14 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/{typeId}/toggle-share',      [DeliverableController::class, 'toggleShare'])->name('toggle-share');
                 // Word 내보내기
                 Route::get ('/{typeId}/export-word',       [DeliverableController::class, 'exportWord'])->name('export-word');
+                // STEP 버전 이력
+                Route::get ('/{typeId}/versions',                       [DeliverableController::class, 'versionIndex'])  ->name('versions.index');
+                Route::get ('/{typeId}/versions/{versionId}',           [DeliverableController::class, 'versionShow'])   ->name('versions.show');
+                Route::post('/{typeId}/versions/{versionId}/restore',   [DeliverableController::class, 'versionRestore'])->name('versions.restore');
+                // 산출물 → 파일 등록 (file_versions 자동 증가)
+                Route::get ('/{typeId}/registerable-files', [DeliverableController::class, 'registerableFiles'])->name('registerable-files');
+                Route::get ('/{typeId}/file-registrations', [DeliverableController::class, 'fileRegistrations'])->name('file-registrations');
+                Route::post('/{typeId}/register-as-file',   [DeliverableController::class, 'registerAsFile'])  ->name('register-as-file');
                 // 뷰어 의견
                 Route::get   ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsIndex'])  ->name('viewer-comments.index');
                 Route::post  ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsStore'])  ->name('viewer-comments.store');
@@ -1186,6 +1204,18 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/memos/{memo}/share', [MemoController::class, 'unshare'])->name('memos.unshare');
     Route::patch('/memo-shares/{share}/pin', [MemoController::class, 'toggleSharedPin'])->name('memo-shares.pin');
 
+    // 빠른 프롬프트 변환
+    Route::get   ('/quick-prompts',                [\App\Http\Controllers\QuickPromptController::class, 'index'])->name('quick-prompts.index');
+    Route::post  ('/quick-prompts',                [\App\Http\Controllers\QuickPromptController::class, 'store'])->name('quick-prompts.store');
+    Route::delete('/quick-prompts/{quickPrompt}',  [\App\Http\Controllers\QuickPromptController::class, 'destroy'])->name('quick-prompts.destroy');
+    Route::patch ('/quick-prompts/{quickPrompt}/toggle-suffix', [\App\Http\Controllers\QuickPromptController::class, 'toggleSuffix'])->name('quick-prompts.toggle-suffix');
+
+    // 프롬프트 추가 문구(접미사) 라이브러리
+    Route::get   ('/prompt-suffixes',                  [\App\Http\Controllers\PromptSuffixController::class, 'index'])->name('prompt-suffixes.index');
+    Route::post  ('/prompt-suffixes',                  [\App\Http\Controllers\PromptSuffixController::class, 'store'])->name('prompt-suffixes.store');
+    Route::patch ('/prompt-suffixes/{promptSuffix}',   [\App\Http\Controllers\PromptSuffixController::class, 'update'])->name('prompt-suffixes.update');
+    Route::delete('/prompt-suffixes/{promptSuffix}',   [\App\Http\Controllers\PromptSuffixController::class, 'destroy'])->name('prompt-suffixes.destroy');
+
     // 내업무 통합 대시보드
     Route::get('/my-work', [\App\Http\Controllers\MyWorkController::class, 'index'])->name('my-work.index');
 
@@ -1203,6 +1233,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',                      [MeetingMinuteController::class, 'index'])->name('index');
         Route::get('/create',                [MeetingMinuteController::class, 'create'])->name('create');
         Route::post('/',                     [MeetingMinuteController::class, 'store'])->name('store');
+        Route::post('/schedule',             [MeetingMinuteController::class, 'storeSchedule'])->name('schedule.store');
         Route::get('/{meetingMinute}',            [MeetingMinuteController::class, 'show'])->name('show');
         Route::get('/{meetingMinute}/popup',      [MeetingMinuteController::class, 'showPopup'])->name('popup');
         Route::get('/{meetingMinute}/download',   [MeetingMinuteController::class, 'downloadDocx'])->name('download');

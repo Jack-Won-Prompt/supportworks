@@ -11,6 +11,7 @@ class ActionItem extends Model
     use LogsActivity;
     protected $fillable = [
         'user_id', 'assigned_to', 'project_id',
+        'source_message_id', 'source_context',
         'title', 'description', 'due_date',
         'is_completed', 'completed_at',
     ];
@@ -19,6 +20,7 @@ class ActionItem extends Model
         'is_completed' => 'boolean',
         'due_date'     => 'date',
         'completed_at' => 'datetime',
+        'source_context' => 'array',
     ];
 
     public function creator()
@@ -34,6 +36,11 @@ class ActionItem extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function sourceMessage()
+    {
+        return $this->belongsTo(Message::class, 'source_message_id');
     }
 
     public function isDueSoon(): bool

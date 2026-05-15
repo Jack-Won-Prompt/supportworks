@@ -7,8 +7,13 @@ use App\Mail\DeliverableApprovalRespondMail;
 use App\Models\Agent\Deliverable;
 use App\Models\Agent\DeliverableApproval;
 use App\Models\Agent\DeliverableComment;
+use App\Models\Agent\DeliverableFileRegistration;
 use App\Models\Agent\DeliverableStepData;
+use App\Models\Agent\DeliverableStepVersion;
 use App\Models\Agent\DeliverableToolResult;
+use App\Models\FileComment;
+use App\Models\FileVersion;
+use App\Models\ProjectFile;
 use App\Models\AiSetting;
 use App\Models\PlanningDoc;
 use App\Models\Project;
@@ -142,15 +147,21 @@ class DeliverableController extends Controller
             ['current_step' => 1, 'status' => 'not_started', 'responsibility' => $typeDef['responsibility'], 'created_by' => Auth::id()]
         );
 
-        $stepNo = (int) $request->input('step', 1);
-        $fields = $request->input('fields', []);
+        $stepNo      = (int) $request->input('step', 1);
+        $fields      = $request->input('fields', []);
+        $versionMode = (string) $request->input('version_mode', 'auto'); // new | overwrite | auto | none
+        $changeNote  = (string) ($request->input('change_note') ?? '');
 
+        // 작업본 (deliverable_step_data) 갱신
         foreach ($fields as $key => $value) {
             DeliverableStepData::updateOrCreate(
                 ['deliverable_id' => $deliverable->id, 'step_order' => $stepNo, 'field_key' => $key],
                 ['value' => is_array($value) ? json_encode($value) : $value]
             );
         }
+
+        // 버전 스냅샷 처리
+        $versionInfo = $this->applyStepVersion($deliverable, $stepNo, $versionMode, $changeNote);
 
         // 진행 상태 갱신
         $totalSteps = count($typeDef['steps']);
@@ -165,7 +176,193 @@ class DeliverableController extends Controller
         }
         $deliverable->save();
 
-        return response()->json(['ok' => true, 'step' => $stepNo, 'status' => $deliverable->status]);
+        return response()->json([
+            'ok'      => true,
+            'step'    => $stepNo,
+            'status'  => $deliverable->status,
+            'version' => $versionInfo,
+        ]);
+    }
+
+    // STEP 작업본을 스냅샷으로 묶어 버전 레코드로 저장
+    // mode: new(차상위 version_no 추가) | overwrite(최신 버전 갱신) | auto(첫 저장이면 v1, 이후엔 작업본만) | none
+    private function applyStepVersion(Deliverable $deliverable, int $stepNo, string $mode, string $changeNote): ?array
+    {
+        if ($mode === 'none') return null;
+
+        $deliverable->load(['stepData', 'toolResults']);
+
+        $fieldsSnap = [];
+        foreach ($deliverable->stepData->where('step_order', $stepNo) as $row) {
+            $fieldsSnap[$row->field_key] = [
+                'value'    => $row->value,
+                'en_value' => $row->en_value ?? '',
+                'en_hash'  => $row->en_hash ?? '',
+            ];
+        }
+        $toolsSnap = [];
+        foreach ($deliverable->toolResults->where('step_order', $stepNo) as $row) {
+            $toolsSnap[$row->tool_id] = json_decode($row->result ?? 'null', true);
+        }
+
+        if ($mode === 'auto') {
+            // 해당 STEP에 버전이 하나도 없을 때만 v1 자동 생성
+            $exists = DeliverableStepVersion::where('deliverable_id', $deliverable->id)
+                ->where('step_order', $stepNo)
+                ->exists();
+            if ($exists) return null;
+            $mode = 'new';
+            if ($changeNote === '') $changeNote = '최초 저장';
+        }
+
+        if ($mode === 'overwrite') {
+            $latest = $deliverable->latestStepVersion($stepNo);
+            if (!$latest) {
+                $mode = 'new';
+            } else {
+                $latest->update([
+                    'snapshot_fields' => json_encode($fieldsSnap, JSON_UNESCAPED_UNICODE),
+                    'snapshot_tools'  => json_encode($toolsSnap, JSON_UNESCAPED_UNICODE),
+                    'change_note'     => $changeNote !== '' ? $changeNote : $latest->change_note,
+                    'created_by'      => Auth::id(),
+                ]);
+                return ['mode' => 'overwrite', 'version_no' => $latest->version_no, 'id' => $latest->id];
+            }
+        }
+
+        if ($mode === 'new') {
+            $versionNo = $deliverable->nextStepVersionNo($stepNo);
+            $row = DeliverableStepVersion::create([
+                'deliverable_id'  => $deliverable->id,
+                'step_order'      => $stepNo,
+                'version_no'      => $versionNo,
+                'snapshot_fields' => json_encode($fieldsSnap, JSON_UNESCAPED_UNICODE),
+                'snapshot_tools'  => json_encode($toolsSnap, JSON_UNESCAPED_UNICODE),
+                'change_note'     => $changeNote,
+                'created_by'      => Auth::id(),
+            ]);
+            return ['mode' => 'new', 'version_no' => $versionNo, 'id' => $row->id];
+        }
+
+        return null;
+    }
+
+    // ── STEP 버전 이력 ─────────────────────────────────────────
+    public function versionIndex(Project $project, string $typeId, Request $request): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->first();
+        if (!$deliverable) return response()->json(['ok' => true, 'versions' => []]);
+
+        $stepNo = (int) $request->input('step', 0);
+        $query  = DeliverableStepVersion::where('deliverable_id', $deliverable->id);
+        if ($stepNo > 0) $query->where('step_order', $stepNo);
+
+        $rows = $query->with('creator:id,name')
+            ->orderBy('step_order')
+            ->orderByDesc('version_no')
+            ->get()
+            ->map(fn ($v) => [
+                'id'          => $v->id,
+                'step_order'  => $v->step_order,
+                'version_no'  => $v->version_no,
+                'change_note' => $v->change_note,
+                'creator'     => $v->creator?->name,
+                'created_at'  => $v->created_at?->format('Y-m-d H:i'),
+            ]);
+
+        return response()->json(['ok' => true, 'versions' => $rows]);
+    }
+
+    public function versionShow(Project $project, string $typeId, int $versionId): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->firstOrFail();
+
+        $version = DeliverableStepVersion::where('deliverable_id', $deliverable->id)
+            ->where('id', $versionId)
+            ->firstOrFail();
+
+        return response()->json([
+            'ok'         => true,
+            'id'         => $version->id,
+            'step_order' => $version->step_order,
+            'version_no' => $version->version_no,
+            'change_note'=> $version->change_note,
+            'fields'     => $version->fieldsArray(),
+            'tools'      => $version->toolsArray(),
+            'created_at' => $version->created_at?->format('Y-m-d H:i'),
+        ]);
+    }
+
+    public function versionRestore(Project $project, string $typeId, int $versionId, Request $request): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->firstOrFail();
+
+        $version = DeliverableStepVersion::where('deliverable_id', $deliverable->id)
+            ->where('id', $versionId)
+            ->firstOrFail();
+
+        $stepNo = $version->step_order;
+        $fields = $version->fieldsArray();
+        $tools  = $version->toolsArray();
+
+        // 작업본을 해당 버전 내용으로 덮어쓰기
+        DeliverableStepData::where('deliverable_id', $deliverable->id)
+            ->where('step_order', $stepNo)
+            ->delete();
+        foreach ($fields as $key => $payload) {
+            DeliverableStepData::create([
+                'deliverable_id' => $deliverable->id,
+                'step_order'     => $stepNo,
+                'field_key'      => $key,
+                'value'          => is_array($payload) ? ($payload['value'] ?? null) : $payload,
+                'en_value'       => is_array($payload) ? ($payload['en_value'] ?? null) : null,
+                'en_hash'        => is_array($payload) ? ($payload['en_hash'] ?? null) : null,
+            ]);
+        }
+
+        DeliverableToolResult::where('deliverable_id', $deliverable->id)
+            ->where('step_order', $stepNo)
+            ->delete();
+        foreach ($tools as $toolId => $result) {
+            DeliverableToolResult::create([
+                'deliverable_id' => $deliverable->id,
+                'step_order'     => $stepNo,
+                'tool_id'        => $toolId,
+                'result'         => json_encode($result, JSON_UNESCAPED_UNICODE),
+            ]);
+        }
+
+        // 복원 결과를 새 버전으로 기록 (이력 보존)
+        $newVersionNo = $deliverable->nextStepVersionNo($stepNo);
+        $note         = sprintf('v%d 에서 복원', $version->version_no);
+        DeliverableStepVersion::create([
+            'deliverable_id'  => $deliverable->id,
+            'step_order'      => $stepNo,
+            'version_no'      => $newVersionNo,
+            'snapshot_fields' => $version->snapshot_fields,
+            'snapshot_tools'  => $version->snapshot_tools,
+            'change_note'     => $note,
+            'created_by'      => Auth::id(),
+        ]);
+
+        return response()->json([
+            'ok'         => true,
+            'step_order' => $stepNo,
+            'version_no' => $newVersionNo,
+            'message'    => "{$stepNo}단계를 v{$version->version_no} 내용으로 복원하고 v{$newVersionNo} 으로 기록했습니다.",
+        ]);
     }
 
     // 번역 캐시 저장
@@ -962,6 +1159,12 @@ class DeliverableController extends Controller
             ->with(['stepData', 'toolResults'])
             ->firstOrFail();
 
+        // STEP 별 최신 버전 스냅샷이 있으면 우선 사용 (없으면 작업본 fallback)
+        $versionSnapshots = $this->buildVersionSnapshots($deliverable);
+        $stepValueGetter  = $this->stepValueResolver($deliverable, $versionSnapshots);
+        $stepEnGetter     = $this->stepEnResolver($deliverable, $versionSnapshots);
+        $toolResultGetter = $this->toolResultResolver($deliverable, $versionSnapshots);
+
         $phpWord = new PhpWord();
         $phpWord->setDefaultFontName($font);
         $phpWord->setDefaultFontSize(11);
@@ -1003,12 +1206,12 @@ class DeliverableController extends Controller
 
             foreach ($step['fields'] ?? [] as $field) {
                 if ($isEn) {
-                    $enData = $deliverable->getStepEnData($step['order'], $field['key']);
+                    $enData = $stepEnGetter($step['order'], $field['key']);
                     // 영문 번역이 없으면 해당 필드 제외 (한글 원문 폴백 없음)
                     if (!$enData['valid'] || !$enData['en_value']) continue;
                     $val = $enData['en_value'];
                 } else {
-                    $val = $deliverable->getStepValue($step['order'], $field['key']);
+                    $val = $stepValueGetter($step['order'], $field['key']);
                 }
                 if (!$val) continue;
 
@@ -1022,7 +1225,7 @@ class DeliverableController extends Controller
                 $toolDef = $this->config['tools'][$tb['toolId']] ?? null;
                 if (($toolDef['category'] ?? '') !== 'diagram') continue;
 
-                $toolResult = $deliverable->getToolResult($step['order'], $tb['toolId']);
+                $toolResult = $toolResultGetter($step['order'], $tb['toolId']);
                 if (empty($toolResult['png'])) continue;
 
                 $pngData = base64_decode($toolResult['png']);
@@ -1081,9 +1284,13 @@ class DeliverableController extends Controller
             @unlink($tmp);
         }
 
-        return response()->download($tmpPath, $fileName, [
+        // 한글 파일명 보존 — Symfony 기본 makeDisposition 의 ASCII 음역 fallback 우회
+        $encoded  = rawurlencode($fileName);
+        $response = response()->download($tmpPath, $fileName, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ])->deleteFileAfterSend(true);
+        $response->headers->set('Content-Disposition', "attachment; filename*=UTF-8''{$encoded}");
+        return $response;
     }
 
     // ── 뷰어 의견 ────────────────────────────────────────────
@@ -1343,6 +1550,260 @@ class DeliverableController extends Controller
     private function wordEsc(string $text): string
     {
         return htmlspecialchars($text, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    }
+
+    // STEP 별 최신 버전 스냅샷 모음 → [stepOrder => ['fields' => [...], 'tools' => [...]]]
+    private function buildVersionSnapshots(Deliverable $deliverable): array
+    {
+        $snapshots = [];
+        $versions  = DeliverableStepVersion::where('deliverable_id', $deliverable->id)
+            ->orderBy('step_order')
+            ->orderByDesc('version_no')
+            ->get();
+
+        foreach ($versions as $v) {
+            if (isset($snapshots[$v->step_order])) continue; // 가장 최신만
+            $snapshots[$v->step_order] = [
+                'fields' => $v->fieldsArray(),
+                'tools'  => $v->toolsArray(),
+            ];
+        }
+        return $snapshots;
+    }
+
+    // 버전 스냅샷이 있으면 거기서, 없으면 작업본에서 값을 꺼내는 클로저
+    private function stepValueResolver(Deliverable $deliverable, array $snapshots): \Closure
+    {
+        return function (int $step, string $key) use ($deliverable, $snapshots) {
+            if (isset($snapshots[$step]['fields'][$key])) {
+                $payload = $snapshots[$step]['fields'][$key];
+                return is_array($payload) ? ($payload['value'] ?? null) : $payload;
+            }
+            return $deliverable->getStepValue($step, $key);
+        };
+    }
+
+    private function stepEnResolver(Deliverable $deliverable, array $snapshots): \Closure
+    {
+        return function (int $step, string $key) use ($deliverable, $snapshots) {
+            if (isset($snapshots[$step]['fields'][$key]) && is_array($snapshots[$step]['fields'][$key])) {
+                $p     = $snapshots[$step]['fields'][$key];
+                $value = $p['value']    ?? '';
+                $en    = $p['en_value'] ?? '';
+                $hash  = $p['en_hash']  ?? '';
+                $valid = $hash !== '' && $hash === md5((string) $value);
+                return ['en_value' => $en, 'valid' => $valid];
+            }
+            return $deliverable->getStepEnData($step, $key);
+        };
+    }
+
+    private function toolResultResolver(Deliverable $deliverable, array $snapshots): \Closure
+    {
+        return function (int $step, string $toolId) use ($deliverable, $snapshots) {
+            if (isset($snapshots[$step]['tools'][$toolId])) {
+                return $snapshots[$step]['tools'][$toolId];
+            }
+            return $deliverable->getToolResult($step, $toolId);
+        };
+    }
+
+    // 파일 등록 대상 후보 목록 (다이얼로그용)
+    public function registerableFiles(Project $project, string $typeId): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $files = ProjectFile::where('project_id', $project->id)
+            ->where(function ($q) {
+                $q->whereNull('file_type')->orWhere('file_type', 'file');
+            })
+            ->with('category:id,name,color')
+            ->orderByDesc('updated_at')
+            ->limit(200)
+            ->get(['id', 'category_id', 'original_name', 'mime_type', 'size', 'updated_at']);
+
+        $rows = $files->map(function ($f) {
+            $maxVer = (int) ($f->versions()->max('version') ?? 1);
+            return [
+                'id'             => $f->id,
+                'original_name'  => $f->original_name,
+                'mime_type'      => $f->mime_type,
+                'size'           => $f->size,
+                'next_version'   => $maxVer + 1,
+                'updated_at'     => $f->updated_at?->format('Y-m-d H:i'),
+                'category_id'    => $f->category_id,
+                'category_name'  => $f->category?->name,
+                'category_color' => $f->category?->color,
+            ];
+        });
+
+        return response()->json(['ok' => true, 'files' => $rows]);
+    }
+
+    // 산출물 통합 Word 를 project_files 로 등록
+    // target_file_id 가 지정되면 해당 파일에 새 버전 추가, 없으면 신규 파일로 최초 등록
+    public function registerAsFile(Project $project, string $typeId, Request $request): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $typeDef = $this->config['deliverables'][$typeId] ?? null;
+        abort_if(!$typeDef, 404);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->firstOrFail();
+
+        $changeNote   = (string) ($request->input('change_note') ?? '');
+        $lang         = $request->input('lang', 'ko');
+        $targetFileId = $request->input('target_file_id');
+
+        // 대상 파일 선결정 (지정된 경우 같은 프로젝트 소속인지 검증)
+        $projectFile = null;
+        if (!empty($targetFileId)) {
+            $projectFile = ProjectFile::where('id', $targetFileId)
+                ->where('project_id', $project->id)
+                ->first();
+            if (!$projectFile) {
+                return response()->json(['ok' => false, 'message' => '선택한 파일을 찾을 수 없습니다.'], 404);
+            }
+        }
+
+        // 1) Word 파일 생성
+        $exportRequest = Request::create('', 'GET', ['lang' => $lang]);
+        $response      = $this->exportWord($project, $typeId, $exportRequest);
+        $tmpPath       = $response->getFile()->getPathname();
+
+        // 2) 'local' 디스크(storage/app/)에 저장 — ProjectFile 모듈과 동일한 경로 컨벤션
+        //    (미리보기/다운로드/Office→PDF 변환 모두 이 경로 기준으로 동작)
+        $storedName = uniqid('dlv_', true) . '.docx';
+        $finalPath  = \Illuminate\Support\Facades\Storage::disk('local')
+            ->putFileAs('project_files', new \Illuminate\Http\File($tmpPath), $storedName);
+        @unlink($tmpPath);
+
+        $size = \Illuminate\Support\Facades\Storage::disk('local')->size($finalPath) ?: 0;
+        $mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+        // 신규 등록일 때 사용할 파일명 (기존 파일에 버전업할 때는 그 파일명 기반)
+        $baseName = $projectFile?->original_name
+            ?? sprintf('%s_%s.docx',
+                preg_replace('/[^A-Za-z0-9가-힣_\-]/', '_', $project->name),
+                $typeDef['shortName']);
+
+        if (!$projectFile) {
+            // ── 최초 등록 ─────────────────────────────────────────
+            $projectFile = ProjectFile::create([
+                'project_id'    => $project->id,
+                'uploaded_by'   => Auth::id(),
+                'original_name' => $baseName,
+                'stored_name'   => $storedName,
+                'path'          => $finalPath,
+                'mime_type'     => $mime,
+                'size'          => $size,
+                'description'   => "{$typeDef['name']} 산출물",
+                'file_type'     => 'file',
+            ]);
+            $versionNo = 1;
+            $isNew     = true;
+        } else {
+            // ── 기존 파일에 버전 추가 ────────────────────────────
+            $versionNo = (int) ($projectFile->versions()->max('version') ?? 1) + 1;
+            $projectFile->update([
+                'stored_name' => $storedName,
+                'path'        => $finalPath,
+                'mime_type'   => $mime,
+                'size'        => $size,
+            ]);
+            $isNew = false;
+        }
+
+        // file_versions 기록 — 최초인데 비어 있으면 v1 도 함께 기록
+        if ($versionNo === 1 && $projectFile->versions()->count() === 0) {
+            FileVersion::create([
+                'project_file_id' => $projectFile->id,
+                'version'         => 1,
+                'original_name'   => $baseName,
+                'stored_name'     => $storedName,
+                'path'            => $finalPath,
+                'mime_type'       => $mime,
+                'size'            => $size,
+                'uploaded_by'     => Auth::id(),
+                'change_note'     => $changeNote !== '' ? $changeNote : '최초 등록',
+            ]);
+        } else {
+            FileVersion::create([
+                'project_file_id' => $projectFile->id,
+                'version'         => $versionNo,
+                'original_name'   => $baseName,
+                'stored_name'     => $storedName,
+                'path'            => $finalPath,
+                'mime_type'       => $mime,
+                'size'            => $size,
+                'uploaded_by'     => Auth::id(),
+                'change_note'     => $changeNote !== '' ? $changeNote : "산출물 v{$versionNo} 등록",
+            ]);
+        }
+
+        // 기존 파일에 새 버전을 추가한 경우, 그 시점에 활성(아직 frozen 안 된)이던 코멘트를
+        // 이전 버전(v(versionNo-1))으로 동결 — resolved 상태/내용은 보존, 새 버전에서는 보이지 않음
+        if (!$isNew && $versionNo > 1) {
+            FileComment::where('project_file_id', $projectFile->id)
+                ->whereNull('frozen_at_version')
+                ->update(['frozen_at_version' => $versionNo]);
+        }
+
+        // 산출물 ↔ 파일 등록 이력 기록
+        DeliverableFileRegistration::create([
+            'deliverable_id'  => $deliverable->id,
+            'project_file_id' => $projectFile->id,
+            'file_version'    => $versionNo,
+            'lang'            => $lang,
+            'change_note'     => $changeNote !== '' ? $changeNote : null,
+            'created_by'      => Auth::id(),
+        ]);
+
+        $msg = $isNew
+            ? "새 파일로 등록했습니다 (v1)."
+            : "'{$projectFile->original_name}' 에 v{$versionNo} 버전을 추가했습니다.";
+
+        return response()->json([
+            'ok'              => true,
+            'project_file_id' => $projectFile->id,
+            'version'         => $versionNo,
+            'is_new'          => $isNew,
+            'message'         => $msg,
+        ]);
+    }
+
+    // 산출물의 파일 등록 이력 (다이얼로그용)
+    public function fileRegistrations(Project $project, string $typeId): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->first();
+
+        if (!$deliverable) {
+            return response()->json(['ok' => true, 'registrations' => []]);
+        }
+
+        $rows = DeliverableFileRegistration::where('deliverable_id', $deliverable->id)
+            ->with(['projectFile:id,original_name', 'creator:id,name'])
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get()
+            ->map(fn ($r) => [
+                'id'              => $r->id,
+                'project_file_id' => $r->project_file_id,
+                'file_name'       => $r->projectFile?->original_name,
+                'file_version'    => $r->file_version,
+                'lang'            => $r->lang,
+                'change_note'     => $r->change_note,
+                'creator'         => $r->creator?->name,
+                'created_at'      => $r->created_at?->format('Y-m-d H:i'),
+            ]);
+
+        return response()->json(['ok' => true, 'registrations' => $rows]);
     }
 
     private function authorizeProject(Project $project): void

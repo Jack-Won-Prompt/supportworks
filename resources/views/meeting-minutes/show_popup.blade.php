@@ -17,7 +17,7 @@
     {{ __('maintenance.word_download') }}
 </a>
 @if(auth()->id() === $meetingMinute->author_id || auth()->user()->isAdmin())
-<button onclick="window.top.location.href='{{ route('meeting-minutes.edit', $meetingMinute) }}'"
+<button onclick="if(window.parent&&window.parent.editMinuteFromPopup){window.parent.editMinuteFromPopup({{ $meetingMinute->id }})}else{window.top.location.href='{{ route('meeting-minutes.edit', $meetingMinute) }}'}"
    style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid #e8e3ff;border-radius:7px;font-size:12px;font-weight:600;color:#64748b;background:#fff;cursor:pointer;"
    onmouseover="this.style.background='#f8f5ff'" onmouseout="this.style.background='#fff'">
     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -316,7 +316,7 @@
                 <select name="owner_id" style="{{ $minp }}"
                         onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
                     <option value="">{{ __('maintenance.field_owner') }}</option>
-                    @foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}</option>@endforeach
+                    @foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}@if($tm->email) ({{ $tm->email }})@endif</option>@endforeach
                 </select>
                 <input type="text" name="owner_name" placeholder="{{ __('maintenance.field_owner_manual') }}" style="{{ $minp }}"
                        onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">

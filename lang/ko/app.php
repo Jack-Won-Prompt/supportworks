@@ -39,6 +39,8 @@ return [
     'theme_teal'             => '청록',
     'theme_green'            => '녹색',
     'theme_amber'            => '황금',
+    'theme_gray'             => '그레이',
+    'theme_white'            => '화이트',
     'lang_ko'                => '한국어',
     'lang_en'                => 'English',
 

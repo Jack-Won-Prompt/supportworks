@@ -8,7 +8,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { background: #f5f3ff; }
+        body { background: #f8fafc; }
         .input-wrap { position: relative; }
         .input-wrap input {
             width: 100%; padding: 13px 44px 13px 46px;
@@ -18,7 +18,7 @@
             box-sizing: border-box;
         }
         .input-wrap input:focus {
-            border-color: #c4b5fd;
+            border-color: #a5b4fc;
             box-shadow: 0 0 0 3px rgba(196,181,253,.15);
         }
         .input-wrap input.readonly-input {
@@ -26,21 +26,21 @@
         }
         .input-icon {
             position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-            color: #c4b5fd; pointer-events: none;
+            color: #a5b4fc; pointer-events: none;
         }
         .toggle-pw {
             position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
             color: #d1d5db; cursor: pointer; background: none; border: none; padding: 2px;
             transition: color .15s;
         }
-        .toggle-pw:hover { color: #9b8afb; }
+        .toggle-pw:hover { color: #818cf8; }
         .btn-submit {
             width: 100%; padding: 14px;
-            background: linear-gradient(135deg, #9b8afb 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
             color: #fff; border: none; border-radius: 12px;
             font-size: 15px; font-weight: 700; cursor: pointer;
             transition: opacity .15s, transform .15s;
-            box-shadow: 0 6px 20px rgba(124,58,237,.3);
+            box-shadow: 0 6px 20px rgba(79,70,229,.3);
         }
         .btn-submit:hover { opacity: .9; transform: translateY(-1px); }
         .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
@@ -54,16 +54,16 @@
     {{-- 로고 --}}
     <div style="text-align:center; margin-bottom: 32px;">
         <a href="{{ url('/') }}" style="display:inline-flex; align-items:center; gap:10px; text-decoration:none;">
-            <div style="width:40px;height:40px;background:linear-gradient(135deg,#c4b5fd,#9b8afb);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;box-shadow:0 4px 14px rgba(155,138,251,.4);">S</div>
-            <span style="font-size:20px;font-weight:800;color:#1e1b4b;letter-spacing:-.5px;">SupportWorks</span>
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#a5b4fc,#818cf8);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.4);">S</div>
+            <span style="font-size:20px;font-weight:800;color:#0f172a;letter-spacing:-.5px;">SupportWorks</span>
         </a>
     </div>
 
     {{-- 카드 --}}
-    <div style="background:#fff;border-radius:20px;border:1px solid #ede9fe;box-shadow:0 8px 40px rgba(139,122,240,.1);overflow:hidden;">
+    <div style="background:#fff;border-radius:20px;border:1px solid #e0e7ff;box-shadow:0 8px 40px rgba(99,102,241,.1);overflow:hidden;">
 
         {{-- 상단 배너 --}}
-        <div style="background:linear-gradient(135deg,#7c3aed,#9b8afb,#6ee7b7);padding:32px 32px 40px;text-align:center;position:relative;">
+        <div style="background:linear-gradient(135deg,#4f46e5,#818cf8,#6ee7b7);padding:32px 32px 40px;text-align:center;position:relative;">
             <div style="width:64px;height:64px;background:rgba(255,255,255,.15);border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px;backdrop-filter:blur(8px);">
                 🎉
             </div>
@@ -72,15 +72,15 @@
         </div>
 
         {{-- 이메일 배지 --}}
-        <div style="margin:-18px 28px 0;background:#fff;border:1.5px solid #ede9fe;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(139,122,240,.1);position:relative;z-index:1;">
-            <div style="width:36px;height:36px;background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg width="16" height="16" fill="none" stroke="#9b8afb" viewBox="0 0 24 24">
+        <div style="margin:-18px 28px 0;background:#fff;border:1.5px solid #e0e7ff;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(99,102,241,.1);position:relative;z-index:1;">
+            <div style="width:36px;height:36px;background:linear-gradient(135deg,#e0e7ff,#c7d2fe);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" fill="none" stroke="#818cf8" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
             </div>
             <div style="min-width:0;">
-                <div style="font-size:10px;color:#a5b4fc;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">{{ __('auth.invite_email_label') }}</div>
-                <div style="font-size:14px;font-weight:700;color:#1e1b4b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $invitation->email }}</div>
+                <div style="font-size:10px;color:#6366f1;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">{{ __('auth.invite_email_label') }}</div>
+                <div style="font-size:14px;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $invitation->email }}</div>
             </div>
             <div style="flex-shrink:0;margin-left:auto;">
                 <span style="font-size:10px;padding:3px 8px;background:#dcfce7;color:#16a34a;border-radius:5px;font-weight:700;">{{ __('auth.invite_email_verified') }}</span>
@@ -89,13 +89,13 @@
 
         {{-- 초대자 정보 --}}
         @if($inviterName)
-        <div style="margin:16px 28px 0;padding:11px 16px;background:#faf5ff;border:1.5px solid #ede9fe;border-radius:12px;display:flex;align-items:center;gap:10px;">
-            <div style="width:32px;height:32px;background:linear-gradient(135deg,#c4b5fd,#9b8afb);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">
+        <div style="margin:16px 28px 0;padding:11px 16px;background:#eef2ff;border:1.5px solid #e0e7ff;border-radius:12px;display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#a5b4fc,#818cf8);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">
                 {{ mb_substr($inviterName, 0, 1) }}
             </div>
             <div>
-                <div style="font-size:10px;color:#a5b4fc;font-weight:600;letter-spacing:.4px;text-transform:uppercase;">초대한 사람</div>
-                <div style="font-size:13px;font-weight:700;color:#1e1b4b;">{{ $inviterName }}</div>
+                <div style="font-size:10px;color:#6366f1;font-weight:600;letter-spacing:.4px;text-transform:uppercase;">초대한 사람</div>
+                <div style="font-size:13px;font-weight:700;color:#0f172a;">{{ $inviterName }}</div>
             </div>
         </div>
         @endif
@@ -154,7 +154,7 @@
                     {{-- 이름 --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            {{ __('auth.invite_label_name') }} <span style="color:#9b8afb;">*</span>
+                            {{ __('auth.invite_label_name') }} <span style="color:#818cf8;">*</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,7 +181,7 @@
                     {{-- 비밀번호 --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            {{ __('auth.invite_label_password') }} <span style="color:#9b8afb;">*</span>
+                            {{ __('auth.invite_label_password') }} <span style="color:#818cf8;">*</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,7 +205,7 @@
                     {{-- 비밀번호 확인 --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            {{ __('auth.invite_label_pw_confirm') }} <span style="color:#9b8afb;">*</span>
+                            {{ __('auth.invite_label_pw_confirm') }} <span style="color:#818cf8;">*</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +234,7 @@
     </div>
 
     {{-- 하단 텍스트 --}}
-    <p style="text-align:center;font-size:12px;color:#c4b5fd;margin-top:20px;">
+    <p style="text-align:center;font-size:12px;color:#a5b4fc;margin-top:20px;">
         © {{ date('Y') }} SupportWorks. All rights reserved.
     </p>
 

@@ -14,7 +14,13 @@
     @endif
 
     {{-- 액션 바 --}}
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;">
+        <button onclick="openScheduleModal()"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;color:var(--t600);border:1.5px solid var(--t300);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;"
+            onmouseover="this.style.background='var(--t50)';this.style.borderColor='var(--t500)'" onmouseout="this.style.background='#fff';this.style.borderColor='var(--t300)'">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            회의 일정 등록
+        </button>
         <button onclick="openMeetingModal()"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--t600);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:background .15s;"
             onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
@@ -24,12 +30,13 @@
     </div>
 
     {{-- 통계 카드 --}}
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;">
         @foreach([
-            ['label'=>__('maintenance.stat_total'),      'value'=>$stats['total'],   'color'=>'var(--t600)'],
-            ['label'=>__('maintenance.stat_this_month'), 'value'=>$stats['month'],   'color'=>'#3b82f6'],
-            ['label'=>__('maintenance.stat_general'),    'value'=>$stats['general'], 'color'=>'#10b981'],
-            ['label'=>__('maintenance.stat_project'),    'value'=>$stats['project'], 'color'=>'#f59e0b'],
+            ['label'=>__('maintenance.stat_total'),      'value'=>$stats['total'],     'color'=>'var(--t600)'],
+            ['label'=>__('maintenance.stat_this_month'), 'value'=>$stats['month'],     'color'=>'#3b82f6'],
+            ['label'=>'예정 회의',                       'value'=>$stats['scheduled'] ?? 0, 'color'=>'#f97316'],
+            ['label'=>__('maintenance.stat_general'),    'value'=>$stats['general'],   'color'=>'#10b981'],
+            ['label'=>__('maintenance.stat_project'),    'value'=>$stats['project'],   'color'=>'#f59e0b'],
         ] as $s)
         <div style="background:#fff;border:1px solid #f0eeff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 6px rgba(109,92,231,.06);">
             <div style="font-size:22px;font-weight:800;color:{{ $s['color'] }};">{{ $s['value'] }}</div>
@@ -40,6 +47,11 @@
 
     {{-- 필터 --}}
     <form method="GET" style="background:#fff;border:1px solid #f0eeff;border-radius:12px;padding:14px 16px;margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <select name="status" onchange="this.form.submit()" style="padding:7px 10px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#1e1b2e;">
+            <option value="">전체 상태</option>
+            <option value="scheduled" {{ request('status')==='scheduled'?'selected':'' }}>예정</option>
+            <option value="completed" {{ request('status')==='completed'?'selected':'' }}>완료</option>
+        </select>
         <select name="type" onchange="this.form.submit()" style="padding:7px 10px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#1e1b2e;">
             <option value="">{{ __('maintenance.filter_all_types') }}</option>
             <option value="general" {{ request('type')==='general'?'selected':'' }}>{{ __('maintenance.filter_general') }}</option>
@@ -59,7 +71,7 @@
         <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('maintenance.search_title') }}"
                style="flex:1;min-width:150px;padding:7px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#1e1b2e;">
         <button type="submit" style="padding:7px 16px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.search') }}</button>
-        @if(request()->anyFilled(['type','project_id','date_from','date_to','search']))
+        @if(request()->anyFilled(['status','type','project_id','date_from','date_to','search']))
         <a href="{{ route('meeting-minutes.index') }}" style="padding:7px 12px;font-size:13px;color:#94a3b8;text-decoration:none;">{{ __('common.reset') }}</a>
         @endif
     </form>
@@ -71,6 +83,12 @@
         <div style="display:flex;align-items:flex-start;gap:14px;">
             <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                    @if($minute->isScheduled())
+                    <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#ffedd5;color:#c2410c;display:inline-flex;align-items:center;gap:4px;">
+                        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3M3 12a9 9 0 1018 0 9 9 0 00-18 0z"/></svg>
+                        예정
+                    </span>
+                    @endif
                     <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;
                         {{ $minute->type==='project' ? 'background:#ede9fe;color:#7c3aed;' : 'background:#dcfce7;color:#16a34a;' }}">
                         {{ $minute->type_label }}
@@ -100,6 +118,14 @@
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                @if($minute->isScheduled() && (auth()->id() === $minute->author_id || auth()->user()->isAdmin()))
+                <button onclick="openEditModal({{ $minute->id }})"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;"
+                        title="회의록 작성하기">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    회의록 작성
+                </button>
+                @endif
                 @if(auth()->id() === $minute->author_id || auth()->user()->isAdmin())
                 <button onclick="openEditModal({{ $minute->id }})"
                         style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;border:1.5px solid #e8e3ff;background:#fff;color:#94a3b8;cursor:pointer;transition:all .12s;"
@@ -140,7 +166,7 @@
 <div id="meeting-modal-overlay"
      style="display:none;position:fixed;inset:0;background:rgba(15,10,40,.55);z-index:1000;padding:32px 16px;align-items:flex-start;justify-content:center;overflow-y:auto;"
      onclick="if(event.target===this)closeMeetingModal()">
-    <div style="background:#fff;border-radius:16px;max-width:860px;width:100%;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.2);display:flex;flex-direction:column;max-height:calc(100vh - 64px);">
+    <div style="background:#fff;border-radius:16px;max-width:1080px;width:100%;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.2);display:flex;flex-direction:column;max-height:calc(100vh - 64px);">
 
         {{-- 헤더 --}}
         <div style="padding:20px 24px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -163,8 +189,13 @@
                     <ul id="modal-errors-list" style="margin:0;padding:0 0 0 16px;font-size:13px;color:#dc2626;"></ul>
                 </div>
 
+                {{-- 2열 레이아웃: 좌(기본 정보) / 우(참석자 + 회의 내용) --}}
+                <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;">
+
+                {{-- 좌측 컬럼 --}}
+                <div style="flex:1;min-width:300px;">
                 {{-- 기본 정보 --}}
-                <div style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;margin-bottom:14px;">
+                <div style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;">
                     <div style="font-size:13px;font-weight:700;color:#1e1b2e;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0eeff;">{{ __('maintenance.form_basic_info') }}</div>
 
                     <div style="margin-bottom:14px;">
@@ -175,36 +206,31 @@
                                onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-                        <div>
-                            <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.form_meeting_type') }} <span style="color:#ef4444;">*</span></label>
-                            <div style="display:flex;gap:16px;padding:8px 0;">
-                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-                                    <input type="radio" name="type" value="general" checked onchange="modalToggleProject(this.value)"> {{ __('maintenance.filter_general') }}
-                                </label>
-                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-                                    <input type="radio" name="type" value="project" onchange="modalToggleProject(this.value)"> {{ __('maintenance.filter_project') }}
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.form_meeting_date') }} <span style="color:#ef4444;">*</span></label>
-                            <input type="datetime-local" name="meeting_date" id="modal-meeting-date" required
-                                   style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;box-sizing:border-box;"
-                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
-                        </div>
-                    </div>
-
-                    <div id="modal-project-fields" style="display:none;margin-bottom:14px;">
+                    <div style="margin-bottom:14px;">
                         <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.form_project') }}</label>
                         <select name="project_id" id="modal-project-id"
-                                style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;"
+                                style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;box-sizing:border-box;"
                                 onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
-                            <option value="">{{ __('maintenance.form_project_select') }}</option>
+                            <option value="">프로젝트 없음 (일반 회의)</option>
                             @foreach($projects as $proj)
                             <option value="{{ $proj->id }}">{{ $proj->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.form_meeting_date') }} <span style="color:#ef4444;">*</span></label>
+                        <input type="hidden" name="meeting_date" id="modal-meeting-date">
+                        <div style="display:flex;gap:8px;">
+                            <input type="date" id="modal-meeting-date-d" required
+                                   style="flex:1;min-width:0;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;box-sizing:border-box;"
+                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'"
+                                   oninput="syncMeetingDate()">
+                            <input type="time" id="modal-meeting-date-t" required step="60"
+                                   style="flex:1;min-width:0;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;box-sizing:border-box;"
+                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'"
+                                   oninput="syncMeetingDate()">
+                        </div>
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
@@ -233,18 +259,32 @@
                     </div>
                 </div>
 
-                {{-- 참석자 --}}
-                <div style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;margin-bottom:14px;">
+                </div>{{-- /좌측 컬럼 --}}
+
+                {{-- 우측 컬럼 --}}
+                <div style="flex:1;min-width:300px;display:flex;flex-direction:column;gap:14px;">
+                {{-- 참석자 (자동완성 멀티선택) --}}
+                <div style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;">
                     <div style="font-size:13px;font-weight:700;color:#1e1b2e;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0eeff;">{{ __('maintenance.form_attendees') }}</div>
-                    <div id="modal-attendee-list"></div>
-                    <button type="button" onclick="modalAddAttendee()"
-                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1.5px dashed #c4b5fd;border-radius:8px;background:transparent;color:var(--t600);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;">
-                        {{ __('maintenance.form_add_attendee') }}
-                    </button>
+
+                    <div id="modal-attendee-wrap" style="position:relative;">
+                        <div id="modal-attendee-control"
+                             style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 9px;border:1.5px solid #e8e3ff;border-radius:9px;background:#fff;min-height:42px;cursor:text;"
+                             onclick="document.getElementById('modal-attendee-input').focus()">
+                            <div id="modal-attendee-chips" style="display:contents;"></div>
+                            <input id="modal-attendee-input" type="text" autocomplete="off"
+                                   placeholder="이름·이메일로 검색하거나 입력 후 Enter"
+                                   style="flex:1;min-width:140px;border:none;outline:none;background:transparent;font-size:13px;color:#1e1b2e;padding:4px;"
+                                   oninput="onAttendeeSearch()" onfocus="onAttendeeSearch()" onkeydown="onAttendeeKeydown(event)">
+                        </div>
+                        <div id="modal-attendee-dropdown"
+                             style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e8e3ff;border-radius:9px;box-shadow:0 8px 24px rgba(15,23,42,.08);max-height:220px;overflow-y:auto;z-index:50;"></div>
+                    </div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:6px;">팀원이 아닌 외부 참석자는 이름을 입력하고 Enter 키를 눌러 추가하세요.</div>
                 </div>
 
                 {{-- 회의 내용 --}}
-                <div style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;">
+                <div id="modal-content-section" style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;">
                     <div style="font-size:13px;font-weight:700;color:#1e1b2e;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0eeff;">{{ __('maintenance.form_meeting_content') }}</div>
                     <div style="margin-bottom:14px;">
                         <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.agenda') }} (Agenda)</label>
@@ -253,14 +293,14 @@
                                   placeholder="{{ __('maintenance.form_agenda_ph') }}"
                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'"></textarea>
                     </div>
-                    <div style="margin-bottom:14px;">
+                    <div class="modal-discussion-block" style="margin-bottom:14px;">
                         <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.discussion') }} (Discussion)</label>
                         <textarea name="discussion" id="modal-discussion" rows="5"
                                   style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;resize:vertical;font-family:inherit;box-sizing:border-box;"
                                   placeholder="{{ __('maintenance.form_discussion_ph') }}"
                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'"></textarea>
                     </div>
-                    <div>
+                    <div class="modal-discussion-block">
                         <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.decisions') }} (Decisions)</label>
                         <textarea name="decisions" id="modal-decisions" rows="3"
                                   style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;resize:vertical;font-family:inherit;box-sizing:border-box;"
@@ -268,6 +308,19 @@
                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'"></textarea>
                     </div>
                 </div>
+
+                {{-- Action Items --}}
+                <div id="modal-actionitem-section" style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;">
+                    <div style="font-size:13px;font-weight:700;color:#1e1b2e;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0eeff;">Action Items</div>
+                    <div id="modal-actionitem-list"></div>
+                    <button type="button" onclick="modalAddActionItem()"
+                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1.5px dashed #c4b5fd;border-radius:8px;background:transparent;color:var(--t600);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;">
+                        + Action Item 추가
+                    </button>
+                </div>
+                </div>{{-- /우측 컬럼 --}}
+
+                </div>{{-- /2열 레이아웃 --}}
 
             </div>{{-- /스크롤 영역 --}}
 
@@ -284,26 +337,270 @@
 </div>
 
 <script>
-const STORE_URL  = '{{ route('meeting-minutes.store') }}';
-const JSON_URL   = '{{ url('meeting-minutes') }}';
+const STORE_URL    = '{{ route('meeting-minutes.store') }}';
+const SCHEDULE_URL = '{{ route('meeting-minutes.schedule.store') }}';
+const JSON_URL     = '{{ url('meeting-minutes') }}';
 const INP_STYLE  = 'width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;box-sizing:border-box;';
 const STR_DIRECT = '{{ __('maintenance.form_attendee_direct') }}';
 const STR_NAME   = '{{ __('maintenance.form_attendee_name_ph') }}';
 
 const TM_OPTIONS = `<option value="">${STR_DIRECT}</option>` +
+    `@foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}@if($tm->email) ({{ $tm->email }})@endif</option>@endforeach`;
+
+const TEAMMATE_DATA = @json($teammates->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'email' => $t->email]));
+
+const OWNER_OPTIONS = `<option value="">담당자 미지정</option>` +
     `@foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}</option>@endforeach`;
 
-let modalAttendeeIdx = 0;
+// Action Item 행 상태
+let actionItemIdx = 0;
 
-function openMeetingModal() {
-    document.getElementById('modal-title').textContent = '{{ __('maintenance.meeting_create') }}';
-    document.getElementById('modal-method').value = '';
-    document.getElementById('meeting-modal-form').action = STORE_URL;
+function modalAddActionItem(data) {
+    data = data || {};
+    const i = actionItemIdx++;
+    const row = document.createElement('div');
+    row.className = 'modal-actionitem-row';
+    row.style.cssText = 'border:1px solid #e8e3ff;border-radius:9px;padding:10px;margin-bottom:8px;background:#fff;';
+    const inp = 'padding:7px 9px;border:1.5px solid #e8e3ff;border-radius:7px;font-size:12px;color:#1e1b2e;outline:none;background:#fff;box-sizing:border-box;';
+    row.innerHTML = `
+        <input type="hidden" name="action_items[${i}][id]" value="${data.id || ''}">
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+            <input type="text" name="action_items[${i}][title]" placeholder="할 일 (Action Item)"
+                   value="${escAttHtml(data.title || '')}" style="flex:1;min-width:0;${inp}">
+            <button type="button" onclick="this.closest('.modal-actionitem-row').remove()"
+                    style="width:28px;flex-shrink:0;border:1.5px solid #fecaca;background:#fff;border-radius:7px;color:#ef4444;cursor:pointer;font-size:15px;">&times;</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+            <select name="action_items[${i}][owner_id]" class="ai-owner" style="flex:1;min-width:0;${inp}">${OWNER_OPTIONS}</select>
+            <input type="date" name="action_items[${i}][due_date]" value="${data.due_date || ''}" style="flex:1;min-width:0;${inp}">
+            <select name="action_items[${i}][priority]" class="ai-priority" style="width:74px;flex-shrink:0;${inp}">
+                <option value="high">높음</option>
+                <option value="medium">보통</option>
+                <option value="low">낮음</option>
+            </select>
+        </div>
+    `;
+    document.getElementById('modal-actionitem-list').appendChild(row);
+    if (data.owner_id) row.querySelector('.ai-owner').value = data.owner_id;
+    row.querySelector('.ai-priority').value = data.priority || 'medium';
+}
 
+function clearActionItems() {
+    document.getElementById('modal-actionitem-list').innerHTML = '';
+    actionItemIdx = 0;
+}
+
+// 참석자 자동완성 멀티선택 상태
+let selectedAttendees = [];  // [{ user_id, name, email }, ...]
+let attendeeHighlightIdx = -1;
+
+function escAttHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderAttendeeChips() {
+    const box = document.getElementById('modal-attendee-chips');
+    box.innerHTML = '';
+    selectedAttendees.forEach((a, idx) => {
+        const chip = document.createElement('span');
+        chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 9px;background:var(--t50);border:1px solid var(--t200);border-radius:8px;font-size:12px;color:var(--t700);max-width:100%;';
+        const isManual = !a.user_id;
+        const meta = a.email ? ` (${a.email})` : (isManual ? ' · 직접 입력' : '');
+        chip.innerHTML = `
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">${escAttHtml(a.name)}</span>
+            <span style="color:#94a3b8;font-weight:500;">${escAttHtml(meta)}</span>
+            <button type="button" data-att-idx="${idx}" aria-label="제거"
+                style="border:none;background:transparent;color:var(--t600);cursor:pointer;font-size:14px;line-height:1;padding:0 4px;">×</button>
+        `;
+        chip.querySelector('button').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeAttendee(idx);
+        });
+        box.appendChild(chip);
+    });
+}
+
+function removeAttendee(idx) {
+    selectedAttendees.splice(idx, 1);
+    renderAttendeeChips();
+    onAttendeeSearch();
+}
+
+function clearAttendees() {
+    selectedAttendees = [];
+    renderAttendeeChips();
+    const inp = document.getElementById('modal-attendee-input');
+    if (inp) inp.value = '';
+    const dd = document.getElementById('modal-attendee-dropdown');
+    if (dd) dd.style.display = 'none';
+}
+
+function attendeeMatches(query) {
+    const q = query.trim().toLowerCase();
+    return TEAMMATE_DATA
+        .filter(t => !selectedAttendees.some(a => a.user_id === t.id))
+        .filter(t => !q
+            || t.name.toLowerCase().includes(q)
+            || (t.email || '').toLowerCase().includes(q))
+        .slice(0, 12);
+}
+
+function renderAttendeeDropdown() {
+    const dd = document.getElementById('modal-attendee-dropdown');
+    const input = document.getElementById('modal-attendee-input');
+    const q = input.value;
+    const matches = attendeeMatches(q);
+
+    dd.innerHTML = '';
+    attendeeHighlightIdx = matches.length ? 0 : -1;
+
+    if (matches.length === 0 && q.trim()) {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding:8px 12px;font-size:13px;color:var(--t700);cursor:pointer;';
+        item.textContent = `"${q.trim()}" 직접 추가`;
+        item.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); addAttendeeManual(q.trim()); });
+        dd.appendChild(item);
+        dd.style.display = 'block';
+        return;
+    }
+
+    if (matches.length === 0) {
+        dd.style.display = 'none';
+        return;
+    }
+
+    matches.forEach((t, i) => {
+        const item = document.createElement('div');
+        item.dataset.userId = t.id;
+        item.style.cssText = `padding:8px 12px;font-size:13px;color:#1e1b2e;cursor:pointer;background:${i===0?'var(--t50)':'#fff'};`;
+        item.innerHTML = `<span style="font-weight:600;">${escAttHtml(t.name)}</span>${t.email ? ` <span style="color:#94a3b8;font-size:11.5px;">${escAttHtml(t.email)}</span>` : ''}`;
+        item.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); addAttendeeFromTeam(t.id); });
+        item.addEventListener('mouseenter', () => setHighlight(i));
+        dd.appendChild(item);
+    });
+    dd.style.display = 'block';
+}
+
+function setHighlight(idx) {
+    const dd = document.getElementById('modal-attendee-dropdown');
+    [...dd.children].forEach((el, i) => el.style.background = i === idx ? 'var(--t50)' : '#fff');
+    attendeeHighlightIdx = idx;
+}
+
+function onAttendeeSearch() {
+    renderAttendeeDropdown();
+}
+
+function onAttendeeKeydown(e) {
+    const dd = document.getElementById('modal-attendee-dropdown');
+    const input = e.target;
+    const items = dd ? [...dd.children] : [];
+
+    if (e.key === 'Backspace' && !input.value && selectedAttendees.length) {
+        e.preventDefault();
+        removeAttendee(selectedAttendees.length - 1);
+        return;
+    }
+    if (e.key === 'ArrowDown' && items.length) {
+        e.preventDefault();
+        setHighlight(Math.min(attendeeHighlightIdx + 1, items.length - 1));
+        items[attendeeHighlightIdx]?.scrollIntoView({ block: 'nearest' });
+        return;
+    }
+    if (e.key === 'ArrowUp' && items.length) {
+        e.preventDefault();
+        setHighlight(Math.max(attendeeHighlightIdx - 1, 0));
+        items[attendeeHighlightIdx]?.scrollIntoView({ block: 'nearest' });
+        return;
+    }
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const q = input.value.trim();
+        if (items.length && attendeeHighlightIdx >= 0 && items[attendeeHighlightIdx]?.dataset.userId) {
+            addAttendeeFromTeam(parseInt(items[attendeeHighlightIdx].dataset.userId, 10));
+        } else if (q) {
+            addAttendeeManual(q);
+        }
+        return;
+    }
+    if (e.key === 'Escape') {
+        dd.style.display = 'none';
+    }
+}
+
+function addAttendeeFromTeam(userId) {
+    const t = TEAMMATE_DATA.find(t => t.id === userId);
+    if (!t) return;
+    if (selectedAttendees.some(a => a.user_id === t.id)) return;
+    selectedAttendees.push({ user_id: t.id, name: t.name, email: t.email });
+    finishAttendeeAdd();
+}
+
+function addAttendeeManual(name) {
+    if (!name) return;
+    if (selectedAttendees.some(a => !a.user_id && a.name === name)) return;
+    selectedAttendees.push({ user_id: null, name, email: null });
+    finishAttendeeAdd();
+}
+
+function finishAttendeeAdd() {
+    document.getElementById('modal-attendee-input').value = '';
+    renderAttendeeChips();
+    renderAttendeeDropdown();
+    document.getElementById('modal-attendee-input').focus();
+}
+
+// 외부 클릭 시 드롭다운 닫기
+document.addEventListener('mousedown', (e) => {
+    const wrap = document.getElementById('modal-attendee-wrap');
+    if (!wrap) return;
+    if (!wrap.contains(e.target)) {
+        const dd = document.getElementById('modal-attendee-dropdown');
+        if (dd) dd.style.display = 'none';
+    }
+});
+
+function buildAttendeeHiddenInputs(form) {
+    form.querySelectorAll('.att-hidden-input').forEach(el => el.remove());
+    selectedAttendees.forEach((a, i) => {
+        const hidU = document.createElement('input');
+        hidU.type = 'hidden';
+        hidU.className = 'att-hidden-input';
+        hidU.name = `attendees[${i}][user_id]`;
+        hidU.value = a.user_id ?? '';
+        const hidN = document.createElement('input');
+        hidN.type = 'hidden';
+        hidN.className = 'att-hidden-input';
+        hidN.name = `attendees[${i}][name]`;
+        hidN.value = a.name ?? '';
+        form.appendChild(hidU);
+        form.appendChild(hidN);
+    });
+}
+
+function syncMeetingDate() {
+    const d = document.getElementById('modal-meeting-date-d').value;
+    const t = document.getElementById('modal-meeting-date-t').value;
+    document.getElementById('modal-meeting-date').value = (d && t) ? `${d}T${t}` : '';
+}
+
+function setMeetingDateFromIso(iso) {
+    if (!iso) {
+        document.getElementById('modal-meeting-date-d').value = '';
+        document.getElementById('modal-meeting-date-t').value = '';
+        document.getElementById('modal-meeting-date').value  = '';
+        return;
+    }
+    const [d, t] = String(iso).split('T');
+    const timePart = (t || '').slice(0, 5); // HH:MM
+    document.getElementById('modal-meeting-date-d').value = d || '';
+    document.getElementById('modal-meeting-date-t').value = timePart;
+    document.getElementById('modal-meeting-date').value  = (d && timePart) ? `${d}T${timePart}` : '';
+}
+
+function resetMeetingModal() {
     document.getElementById('modal-title-input').value = '';
-    document.querySelector('[name="type"][value="general"]').checked = true;
-    document.getElementById('modal-meeting-date').value = '{{ now()->format('Y-m-d\TH:i') }}';
-    document.getElementById('modal-project-fields').style.display = 'none';
+    setMeetingDateFromIso('{{ now()->format('Y-m-d\TH:i') }}');
     document.getElementById('modal-project-id').value = '';
     document.getElementById('modal-project-code').value = '';
     document.getElementById('modal-weekly-dept').value = '';
@@ -311,10 +608,43 @@ function openMeetingModal() {
     document.getElementById('modal-agenda').value = '';
     document.getElementById('modal-discussion').value = '';
     document.getElementById('modal-decisions').value = '';
-    document.getElementById('modal-attendee-list').innerHTML = '';
     document.getElementById('modal-errors').style.display = 'none';
-    modalAttendeeIdx = 0;
-    modalAddAttendee();
+    clearAttendees();
+    clearActionItems();
+}
+
+function setDiscussionBlocksVisible(visible) {
+    document.querySelectorAll('.modal-discussion-block').forEach(el => el.style.display = visible ? '' : 'none');
+    const aiSection = document.getElementById('modal-actionitem-section');
+    if (aiSection) aiSection.style.display = visible ? '' : 'none';
+}
+
+function openMeetingModal() {
+    document.getElementById('modal-title').textContent = '{{ __('maintenance.meeting_create') }}';
+    document.getElementById('modal-method').value = '';
+    document.getElementById('meeting-modal-form').action = STORE_URL;
+
+    setDiscussionBlocksVisible(true);
+    resetMeetingModal();
+
+    document.getElementById('meeting-modal-overlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function openScheduleModal() {
+    document.getElementById('modal-title').textContent = '회의 일정 등록';
+    document.getElementById('modal-method').value = '';
+    document.getElementById('meeting-modal-form').action = SCHEDULE_URL;
+
+    setDiscussionBlocksVisible(false);
+    resetMeetingModal();
+
+    // 예정 회의 기본값: 1시간 뒤로 설정
+    const now = new Date(Date.now() + 60 * 60 * 1000);
+    const pad = n => String(n).padStart(2, '0');
+    setMeetingDateFromIso(
+        `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`
+    );
 
     document.getElementById('meeting-modal-overlay').style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -333,10 +663,11 @@ async function openEditModal(minuteId) {
     document.getElementById('modal-method').value = 'PATCH';
     document.getElementById('meeting-modal-form').action = `${JSON_URL}/${minuteId}`;
 
+    // edit 모드에서는 항상 회의 내용 영역 표시 (예정 회의를 회의록으로 전환)
+    setDiscussionBlocksVisible(true);
+
     document.getElementById('modal-title-input').value = d.title || '';
-    document.querySelector(`[name="type"][value="${d.type || 'general'}"]`).checked = true;
-    modalToggleProject(d.type || 'general');
-    document.getElementById('modal-meeting-date').value = d.meeting_date || '';
+    setMeetingDateFromIso(d.meeting_date || '');
     document.getElementById('modal-project-id').value = d.project_id || '';
     document.getElementById('modal-project-code').value = d.project_code || '';
     document.getElementById('modal-weekly-dept').value = d.weekly_department || '';
@@ -345,15 +676,27 @@ async function openEditModal(minuteId) {
     document.getElementById('modal-discussion').value = d.discussion || '';
     document.getElementById('modal-decisions').value = d.decisions || '';
 
-    document.getElementById('modal-attendee-list').innerHTML = '';
-    modalAttendeeIdx = 0;
+    // 참석자 칩 복원
+    selectedAttendees = [];
     if (d.attendees && d.attendees.length) {
-        d.attendees.forEach(a => modalAddAttendee(a.user_id, a.name));
-    } else {
-        modalAddAttendee();
+        d.attendees.forEach(a => {
+            const t = a.user_id ? TEAMMATE_DATA.find(t => t.id === a.user_id) : null;
+            selectedAttendees.push({
+                user_id: a.user_id || null,
+                name:    a.name || t?.name || '',
+                email:   t?.email || null,
+            });
+        });
+    }
+    renderAttendeeChips();
+
+    // Action Item 복원
+    clearActionItems();
+    if (d.action_items && d.action_items.length) {
+        d.action_items.forEach(ai => modalAddActionItem(ai));
     }
 
-    document.getElementById('meeting-modal-overlay').style.display = 'block';
+    document.getElementById('meeting-modal-overlay').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
@@ -362,48 +705,14 @@ function closeMeetingModal() {
     document.body.style.overflow = '';
 }
 
-function modalToggleProject(type) {
-    document.getElementById('modal-project-fields').style.display = type === 'project' ? '' : 'none';
-}
-
-function modalAddAttendee(userId, name) {
-    const i = modalAttendeeIdx++;
-    const row = document.createElement('div');
-    row.className = 'modal-attendee-row';
-    row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
-
-    const selEl = document.createElement('select');
-    selEl.name = `attendees[${i}][user_id]`;
-    selEl.style.cssText = `flex:1;${INP_STYLE}`;
-    selEl.innerHTML = TM_OPTIONS;
-    selEl.addEventListener('focus', () => selEl.style.borderColor = 'var(--t500)');
-    selEl.addEventListener('blur',  () => selEl.style.borderColor = '#e8e3ff');
-    if (userId) selEl.value = userId;
-
-    const inpEl = document.createElement('input');
-    inpEl.type = 'text';
-    inpEl.name = `attendees[${i}][name]`;
-    inpEl.placeholder = STR_NAME;
-    inpEl.style.cssText = `flex:1;${INP_STYLE}`;
-    inpEl.addEventListener('focus', () => inpEl.style.borderColor = 'var(--t500)');
-    inpEl.addEventListener('blur',  () => inpEl.style.borderColor = '#e8e3ff');
-    if (name) inpEl.value = name;
-
-    const delBtn = document.createElement('button');
-    delBtn.type = 'button';
-    delBtn.innerHTML = '×';
-    delBtn.style.cssText = 'width:30px;height:30px;border:1.5px solid #fecaca;background:#fff;border-radius:7px;color:#ef4444;cursor:pointer;font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
-    delBtn.onclick = () => row.remove();
-
-    row.append(selEl, inpEl, delBtn);
-    document.getElementById('modal-attendee-list').appendChild(row);
-}
 
 async function submitMeetingForm(e) {
     e.preventDefault();
     const form = document.getElementById('meeting-modal-form');
     const btn  = document.getElementById('modal-submit-btn');
     const origText = btn.textContent;
+
+    buildAttendeeHiddenInputs(form);
 
     btn.disabled = true;
     btn.textContent = '...';
@@ -476,6 +785,12 @@ function closeMinutePopup(reload) {
     document.getElementById('minute-popup-frame').src = '';
     document.body.style.overflow = '';
     if (reload) window.location.reload();
+}
+
+// 상세 팝업(iframe) 내부의 '수정' 버튼 → 상세 팝업을 닫고 동일 페이지의 수정 모달을 연다
+function editMinuteFromPopup(id) {
+    closeMinutePopup(false);
+    openEditModal(id);
 }
 </script>
 @endsection

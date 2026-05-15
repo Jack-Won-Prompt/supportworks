@@ -14,15 +14,24 @@
 
 @push('styles')
 <style>
-/* 산출물 작성 화면에서 main 패딩 제거 후 workspace 전체 채움 */
-main { padding: 0 !important; overflow: hidden !important; }
-.dlv-pn-wrap { padding: 20px 24px 0; }
+/* 산출물 작성 화면: 페이지 자체 스크롤 차단 → 항상 viewport 내부에 layout 유지 */
+html, body { overflow: hidden !important; height: 100% !important; }
+/* main 을 flex column 으로 — pn-wrap(고정 높이) + workspace(나머지 채움) 가 안전하게 분할 */
+main { padding: 0 !important; overflow: hidden !important; min-height: 0 !important; display: flex !important; flex-direction: column !important; }
+.dlv-pn-wrap { padding: 20px 24px 0; flex-shrink: 0; }
 
-/* ── 산출물 작성 화면 (3분할) ───────────────────── */
-.dlv-workspace { display:flex; height:calc(100vh - 84px); overflow:hidden; }
+/* ── 산출물 작성 화면 (3분할) ─────────────────────
+   workspace 는 main 의 남은 공간 전체를 차지 → footer 항상 viewport 내부 */
+.dlv-workspace { display:flex; flex:1 1 0; min-height:0; overflow:hidden; }
 
-/* 좌: 사이드바 */
-.dlv-left { width:200px; flex-shrink:0; background:#faf5ff; border-right:1.5px solid #ede8ff; overflow-y:auto; display:flex; flex-direction:column; border-top:1.5px solid #ede8ff; }
+/* 좌: 사이드바 — 펼침/닫힘 토글, 기본은 닫힘 */
+.dlv-left { width:200px; flex-shrink:0; background:#faf5ff; border-right:1.5px solid #ede8ff; overflow-y:auto; display:flex; flex-direction:column; border-top:1.5px solid #ede8ff; transition: width .22s ease; }
+.dlv-left.is-collapsed { width:0; min-width:0; border-right:none; overflow:hidden; }
+.dlv-left.is-collapsed > * { display:none; }
+
+/* 좌측 패널 토글 버튼 (중앙 헤더 좌측에 배치) */
+.dlv-left-toggle { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:7px; border:1.5px solid #e2e8f0; background:#fff; color:#64748b; cursor:pointer; transition: all .12s; flex-shrink:0; }
+.dlv-left-toggle:hover { border-color:var(--t400); color:var(--t600); background:#faf5ff; }
 .dlv-left-back { display:flex; align-items:center; gap:6px; padding:12px 14px; font-size:11.5px; font-weight:700; color:#7c3aed; text-decoration:none; border-bottom:1px solid #ede8ff; transition:background .12s; }
 .dlv-left-back:hover { background:#f3eeff; }
 
@@ -35,7 +44,8 @@ main { padding: 0 !important; overflow: hidden !important; }
 .dlv-sidebar-item .dlv-dot.completed   { background:#16a34a; }
 .dlv-sidebar-item .dlv-dot.in_progress { background:var(--t500); }
 .dlv-sidebar-item .dlv-dot.not_started { background:#e2e8f0; }
-.dlv-sidebar-add { display:flex; align-items:center; gap:6px; padding:10px 14px; font-size:11.5px; color:var(--t600); font-weight:600; cursor:pointer; border-top:1px solid #ede8ff; margin-top:auto; transition:background .12s; }
+/* 좌측 사이드바 하단 "+ 산출물" 버튼 — 사이드바가 스크롤돼도 항상 보이도록 sticky */
+.dlv-sidebar-add { display:flex; align-items:center; gap:6px; padding:10px 14px; font-size:11.5px; color:var(--t600); font-weight:600; cursor:pointer; border-top:1px solid #ede8ff; margin-top:auto; transition:background .12s; position:sticky; bottom:0; background:#faf5ff; flex-shrink:0; z-index:5; }
 .dlv-sidebar-add:hover { background:#f3eeff; }
 
 /* 중: 도구 작업 영역 */
@@ -74,8 +84,22 @@ main { padding: 0 !important; overflow: hidden !important; }
 .dlv-upload-box { background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:10px; padding:24px; text-align:center; cursor:pointer; transition:all .15s; }
 .dlv-upload-box:hover { border-color:var(--t400); background:#faf5ff; }
 
-/* 하단 액션 바 */
-.dlv-center-footer { padding:12px 20px; background:#fff; border-top:1.5px solid #ede8ff; flex-shrink:0; display:flex; align-items:center; gap:8px; }
+/* 하단 액션 바 — STEP 콘텐츠 위에 항상 고정, 버튼 많을 때 자동 줄바꿈 */
+.dlv-center-footer {
+    padding:10px 20px;
+    background:#fff;
+    border-top:1.5px solid #ede8ff;
+    flex-shrink:0;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px 6px;
+    position:sticky;
+    bottom:0;
+    z-index:20;
+    box-shadow:0 -2px 6px rgba(15,23,42,.04);
+}
+.dlv-center-footer > .dlv-spacer { flex:1 1 0; min-width:0; }
 .dlv-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 16px; border-radius:8px; font-size:12.5px; font-weight:700; border:none; cursor:pointer; transition:all .15s; }
 .dlv-btn-primary { background:var(--t600); color:#fff; }
 .dlv-btn-primary:hover { background:var(--t700); }
@@ -86,7 +110,7 @@ main { padding: 0 !important; overflow: hidden !important; }
 
 /* 우: 웍스 패널 */
 .dlv-right { width:260px; flex-shrink:0; background:#fff; border-left:1.5px solid #ede8ff; border-top:1.5px solid #ede8ff; display:flex; flex-direction:column; overflow:hidden; }
-.dlv-ai-header { padding:12px 14px; border-bottom:1px solid #ede8ff; display:flex; align-items:center; gap:7px; }
+.dlv-ai-header { padding:12px 14px; border-bottom:1px solid #ede8ff; display:flex; align-items:center; gap:7px; flex-shrink:0; }
 .dlv-ai-header-title { font-size:12px; font-weight:800; color:#1e1b2e; flex:1; }
 .dlv-ai-badge { background:var(--t100); color:var(--t700); font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; }
 .dlv-ai-body { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
@@ -95,7 +119,8 @@ main { padding: 0 !important; overflow: hidden !important; }
 .dlv-ai-action-btn svg { flex-shrink:0; }
 .dlv-ai-divider { border:none; border-top:1px solid #f3eeff; margin:4px 0; }
 .dlv-ai-msg { font-size:11.5px; color:#64748b; line-height:1.6; padding:10px 12px; background:#f8fafc; border-radius:8px; }
-.dlv-ai-input-area { padding:10px 12px; border-top:1px solid #ede8ff; }
+/* 우측 AI 입력 영역 — 위 본문이 길어도 항상 viewport 내부에 고정 */
+.dlv-ai-input-area { padding:10px 12px; border-top:1px solid #ede8ff; flex-shrink:0; background:#fff; position:sticky; bottom:0; z-index:5; }
 .dlv-ai-input { width:100%; padding:8px 10px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:12px; resize:none; min-height:60px; box-sizing:border-box; transition:border-color .15s; }
 .dlv-ai-input:focus { outline:none; border-color:var(--t400); }
 .dlv-ai-send { width:100%; margin-top:6px; padding:7px; background:var(--t600); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; transition:background .15s; }
@@ -232,6 +257,49 @@ main { padding: 0 !important; overflow: hidden !important; }
 .dlv-word-pop-item { display:flex; align-items:center; gap:8px; padding:9px 14px; font-size:12.5px; font-weight:600; color:#374151; cursor:pointer; transition:background .1s; white-space:nowrap; }
 .dlv-word-pop-item:hover { background:#f5f3ff; color:#7c3aed; }
 .dlv-word-pop-item + .dlv-word-pop-item { border-top:1px solid #f1f5f9; }
+
+/* ── 산출물 → 파일 등록 다이얼로그: 좌우 2열 (이력 사이드) ── */
+#dlv-reg-modal .dlv-reg-box { width:720px !important; max-width:96vw; height:auto; max-height:90vh; display:flex; flex-direction:column; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.25); }
+#dlv-reg-modal .dlv-reg-head { padding:16px 22px 12px; border-bottom:1px solid #f1f5f9; flex-shrink:0; }
+#dlv-reg-modal .dlv-reg-body { flex:1 1 auto; min-height:0; display:flex !important; flex-direction:row !important; }
+#dlv-reg-modal .dlv-reg-side { width:260px; flex-shrink:0; background:#fafafa; border-right:1px solid #f1f5f9; display:flex; flex-direction:column; min-height:0; }
+#dlv-reg-modal .dlv-reg-side-head { padding:10px 14px; font-size:11.5px; font-weight:700; color:#475569; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+#dlv-reg-modal .dlv-reg-side-list { flex:1 1 0; min-height:0; overflow-y:auto; padding:4px 0; }
+#dlv-reg-modal .dlv-reg-main { flex:1; min-width:0; overflow:visible; padding:14px 20px 16px; }
+#dlv-reg-modal .dlv-reg-foot { padding:11px 22px 14px; border-top:1px solid #f1f5f9; flex-shrink:0; display:flex; justify-content:flex-end; gap:8px; background:#fff; }
+#dlv-reg-modal .dlv-reg-field { margin-bottom:14px; }
+#dlv-reg-modal .dlv-reg-field-label { display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px; }
+#dlv-reg-modal .dlv-reg-lang-row { display:flex; gap:6px; }
+#dlv-reg-modal .dlv-reg-lang-opt { flex:1; display:flex; align-items:center; gap:6px; padding:7px 10px; border:1.5px solid #e2e8f0; border-radius:7px; cursor:pointer; font-size:12.5px; }
+#dlv-reg-modal .dlv-reg-textarea { width:100%; padding:8px 10px; font-size:13px; border:1.5px solid #e2e8f0; border-radius:8px; resize:vertical; box-sizing:border-box; line-height:1.5; outline:none; }
+#dlv-reg-modal .dlv-reg-textarea:focus { border-color:#a78bfa; }
+#dlv-reg-modal .dlv-reg-search { width:100%; padding:7px 10px 7px 28px; font-size:12.5px; border:1.5px solid #e2e8f0; border-radius:7px; box-sizing:border-box; outline:none; }
+#dlv-reg-modal .dlv-reg-search-wrap { position:relative; }
+#dlv-reg-modal .dlv-reg-search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); pointer-events:none; }
+/* 파일 목록 = 드롭다운 (검색창 focus 시 표시, 선택/외부클릭 시 닫힘) */
+#dlv-reg-modal .dlv-reg-filelist {
+    position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:50;
+    border:1.5px solid #c4b5fd; border-radius:8px; max-height:240px; overflow-y:auto;
+    background:#fff; box-shadow:0 10px 28px rgba(15,23,42,.16); display:none;
+}
+#dlv-reg-modal .dlv-reg-filelist.is-open { display:block; }
+#dlv-reg-modal .dlv-reg-selected { margin-top:6px; display:none; align-items:center; gap:6px; padding:7px 10px; background:#f5f3ff; border:1.5px solid #ddd6fe; border-radius:7px; font-size:12.5px; color:#0f172a; }
+#dlv-reg-modal .dlv-reg-selected.is-shown { display:flex; }
+#dlv-reg-modal .dlv-reg-selected-clear { margin-left:auto; background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer; padding:0 4px; line-height:1; }
+
+/* row 공통 (사이드 이력 / 메인 파일 목록 / 등록 대상 옵션) */
+#dlv-reg-modal .dlv-reg-row { display:flex !important; flex-direction:row !important; align-items:flex-start; gap:8px; padding:8px 10px; border-bottom:1px solid #f1f5f9; cursor:pointer; }
+#dlv-reg-modal .dlv-reg-row:hover { background:#f5f3ff; }
+#dlv-reg-modal .dlv-reg-row > .dlv-reg-row-lead { flex:0 0 auto; display:flex; align-items:flex-start; }
+#dlv-reg-modal .dlv-reg-row > .dlv-reg-row-body { flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:2px; }
+#dlv-reg-modal .dlv-reg-row-title { display:flex; align-items:center; gap:6px; min-width:0; color:#0f172a; font-weight:600; font-size:13px; }
+#dlv-reg-modal .dlv-reg-row-title-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+#dlv-reg-modal .dlv-reg-row-meta { color:#94a3b8; font-size:11px; }
+#dlv-reg-modal .dlv-reg-row-vbadge { font-weight:700; color:#7c3aed; font-size:11px; min-width:24px; padding-top:1px; }
+#dlv-reg-modal .dlv-reg-target-opt { display:flex !important; flex-direction:row !important; align-items:flex-start; gap:8px; padding:10px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:8px; cursor:pointer; }
+#dlv-reg-modal .dlv-reg-target-opt > input[type="radio"] { flex-shrink:0; margin-top:3px; }
+#dlv-reg-modal .dlv-reg-target-opt > .dlv-reg-row-body { flex:1 1 0; min-width:0; }
+#dlv-reg-modal .dlv-reg-cat-badge { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; flex-shrink:0; }
 </style>
 @endpush
 
@@ -243,8 +311,8 @@ main { padding: 0 !important; overflow: hidden !important; }
 
 <div class="dlv-workspace">
 
-    {{-- ── 좌: 사이드바 ──────────────────────────────── --}}
-    <div class="dlv-left">
+    {{-- ── 좌: 사이드바 (기본 닫힘, 토글 버튼으로 펼침) ──────── --}}
+    <div class="dlv-left is-collapsed" id="dlv-left">
         <a href="{{ route('ai-agent.projects.deliverables.index', $project) }}" class="dlv-left-back">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             {{ __('deliverables.back_dashboard') }}
@@ -282,6 +350,9 @@ main { padding: 0 !important; overflow: hidden !important; }
         {{-- 헤더 --}}
         <div class="dlv-center-header">
             <div class="dlv-center-header-top">
+                <button class="dlv-left-toggle" type="button" onclick="dlvToggleLeft()" title="산출물 목록 펼치기/접기" aria-label="toggle deliverable list">
+                    <svg id="dlv-left-toggle-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
                 <div class="dlv-center-title">
                     <span style="font-size:11px;color:#94a3b8;display:block;margin-bottom:1px;">{{ $typeDef['shortName'] }}</span>
                     {{ $typeDef['name'] }}
@@ -456,7 +527,7 @@ main { padding: 0 !important; overflow: hidden !important; }
                 {{ __('deliverables.btn_save') }}
             </button>
 
-            <div style="flex:1;"></div>
+            <div class="dlv-spacer"></div>
 
             @if($stepNo < $totalSteps)
             <button class="dlv-btn dlv-btn-primary" onclick="saveStep(true)">
@@ -480,10 +551,22 @@ main { padding: 0 !important; overflow: hidden !important; }
 
             <button class="dlv-btn dlv-btn-ghost" title="{{ __('deliverables.btn_skip') }}" onclick="skipStep()">{{ __('deliverables.btn_skip') }}</button>
 
+            {{-- 버전 이력 --}}
+            <button onclick="dlvOpenVersions()" title="STEP 버전 이력" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                버전 이력
+            </button>
+
             {{-- Word 다운로드 팝오버 --}}
             <button id="word-dl-btn2" onclick="dlvWordPopover(this)" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Word 다운로드
+            </button>
+
+            {{-- 파일로 등록 --}}
+            <button onclick="dlvRegisterAsFile()" title="현재 산출물을 프로젝트 파일로 등록 (재등록 시 파일 버전 자동 증가)" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                파일로 등록
             </button>
         </div>
     </div>
@@ -771,6 +854,12 @@ const ANALYZE_URL       = '{{ route("ai-agent.projects.deliverables.analyze-step
 const SAVE_TOOL_URL       = '{{ route("ai-agent.projects.deliverables.save-tool",             [$project, $typeId]) }}';
 const ALL_STEP_FIELDS_URL = '{{ route("ai-agent.projects.deliverables.all-step-fields",       [$project, $typeId]) }}';
 const TRANSLATE_URL       = '{{ route("translate") }}';
+const VERSIONS_INDEX_URL  = '{{ route("ai-agent.projects.deliverables.versions.index",       [$project, $typeId]) }}';
+const VERSIONS_SHOW_URL   = '{{ route("ai-agent.projects.deliverables.versions.show",        [$project, $typeId, "__ID__"]) }}';
+const VERSIONS_RESTORE_URL= '{{ route("ai-agent.projects.deliverables.versions.restore",     [$project, $typeId, "__ID__"]) }}';
+const REGISTER_FILE_URL   = '{{ route("ai-agent.projects.deliverables.register-as-file",     [$project, $typeId]) }}';
+const REGISTERABLE_FILES_URL = '{{ route("ai-agent.projects.deliverables.registerable-files", [$project, $typeId]) }}';
+const FILE_REGISTRATIONS_URL = '{{ route("ai-agent.projects.deliverables.file-registrations", [$project, $typeId]) }}';
 
 const LANG = {
     toast_saved:      '{{ addslashes(__('deliverables.toast_saved')) }}',
@@ -821,6 +910,22 @@ async function mdInitPreviews() {
 }
 mdInitPreviews();
 
+// ── 좌측 패널 펼침/닫힘 (localStorage 기억, 기본 닫힘) ──
+(function() {
+    const left = document.getElementById('dlv-left');
+    if (!left) return;
+    const open = localStorage.getItem('dlv-left-open') === '1';
+    if (open) left.classList.remove('is-collapsed');
+})();
+
+function dlvToggleLeft() {
+    const left = document.getElementById('dlv-left');
+    if (!left) return;
+    left.classList.toggle('is-collapsed');
+    const isOpen = !left.classList.contains('is-collapsed');
+    localStorage.setItem('dlv-left-open', isOpen ? '1' : '0');
+}
+
 function getFormData() {
     const form = document.getElementById('step-form');
     const data = { step: STEP_NO, fields: {} };
@@ -832,34 +937,442 @@ function getFormData() {
     return data;
 }
 
-async function saveStep(moveNext) {
-    const payload = getFormData();
-    try {
-        const res = await fetch(SAVE_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
-            body: JSON.stringify(payload),
-        });
-        if (res.ok) showToast(LANG.toast_saved);
-    } catch(e) { console.error(e); }
-}
-
-async function saveAndNext() {
-    await saveStep(true);
-    if (STEP_NO < TOTAL_STEPS) {
-        goStep(STEP_NO + 1);
-    }
-}
-
-async function completeDeliverable() {
-    const payload = { ...getFormData(), complete: true };
-    await fetch(SAVE_URL, {
+// 내부 저장 호출 — version_mode/change_note 를 받아 SAVE_URL 로 POST
+async function _postSaveStep(extra = {}) {
+    const payload = { ...getFormData(), ...extra };
+    const res = await fetch(SAVE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
         body: JSON.stringify(payload),
     });
+    if (!res.ok) throw new Error('save failed');
+    return res.json();
+}
+
+// 명시적 저장 버튼: 버전 선택 모달
+async function saveStep(moveNext) {
+    if (moveNext) {
+        // moveNext 호환: 도구 보기 등 진행성 호출은 auto 모드로 즉시 저장
+        try { await _postSaveStep({ version_mode: 'auto' }); showToast(LANG.toast_saved); } catch(e){ console.error(e); }
+        return;
+    }
+    showVersionModal(async ({ mode, note }) => {
+        try {
+            const r = await _postSaveStep({ version_mode: mode, change_note: note });
+            const v = r.version;
+            if (v && v.version_no) {
+                showToast(LANG.toast_saved + ' (v' + v.version_no + ')');
+            } else {
+                showToast(LANG.toast_saved);
+            }
+        } catch(e) { console.error(e); }
+    });
+}
+
+async function saveAndNext() {
+    try { await _postSaveStep({ version_mode: 'auto' }); } catch(e){ console.error(e); }
+    if (STEP_NO < TOTAL_STEPS) goStep(STEP_NO + 1);
+}
+
+async function completeDeliverable() {
+    try { await _postSaveStep({ version_mode: 'auto', complete: true }); } catch(e) { console.error(e); }
     showToast(LANG.toast_completed);
     setTimeout(() => location.href = '{{ route("ai-agent.projects.deliverables.index", $project) }}', 1200);
+}
+
+// ── 버전 선택 모달 ───────────────────────────────
+function showVersionModal(onConfirm) {
+    document.getElementById('dlv-ver-modal')?.remove();
+    const wrap = document.createElement('div');
+    wrap.id = 'dlv-ver-modal';
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    wrap.innerHTML = `
+      <div style="background:#fff;border-radius:12px;width:420px;max-width:92vw;padding:22px 22px 18px;box-shadow:0 20px 50px rgba(0,0,0,.25);">
+        <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px;">STEP ${STEP_NO} 저장 방식 선택</div>
+        <label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;cursor:pointer;">
+          <input type="radio" name="dlv-ver-mode" value="new" checked style="margin-top:3px;">
+          <span><strong style="color:#0f172a;">새 버전으로 저장</strong><div style="font-size:12px;color:#64748b;margin-top:2px;">이전 버전 보존 + 새 스냅샷 생성</div></span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px;cursor:pointer;">
+          <input type="radio" name="dlv-ver-mode" value="overwrite" style="margin-top:3px;">
+          <span><strong style="color:#0f172a;">현재 버전 덮어쓰기</strong><div style="font-size:12px;color:#64748b;margin-top:2px;">가장 최근 버전 스냅샷만 갱신</div></span>
+        </label>
+        <textarea id="dlv-ver-note" rows="2" placeholder="변경 메모 (선택)" style="width:100%;padding:8px;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+          <button id="dlv-ver-cancel" style="padding:7px 14px;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;">취소</button>
+          <button id="dlv-ver-ok" style="padding:7px 14px;font-size:13px;border:none;border-radius:8px;background:var(--t600,#4f46e5);color:#fff;font-weight:600;cursor:pointer;">저장</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.addEventListener('click', e => { if (e.target === wrap) wrap.remove(); });
+    wrap.querySelector('#dlv-ver-cancel').addEventListener('click', () => wrap.remove());
+    wrap.querySelector('#dlv-ver-ok').addEventListener('click', async () => {
+        const mode = wrap.querySelector('input[name="dlv-ver-mode"]:checked').value;
+        const note = wrap.querySelector('#dlv-ver-note').value.trim();
+        wrap.remove();
+        await onConfirm({ mode, note });
+    });
+}
+
+// ── 버전 이력 패널 ───────────────────────────────
+async function dlvOpenVersions() {
+    document.getElementById('dlv-ver-panel')?.remove();
+    const wrap = document.createElement('div');
+    wrap.id = 'dlv-ver-panel';
+    wrap.style.cssText = 'position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.15);z-index:9998;display:flex;flex-direction:column;';
+    wrap.innerHTML = `
+      <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;">STEP ${STEP_NO} 버전 이력</div>
+        <button id="dlv-ver-close" style="background:none;border:none;font-size:18px;cursor:pointer;color:#64748b;">×</button>
+      </div>
+      <div id="dlv-ver-list" style="flex:1;overflow:auto;padding:10px 14px;font-size:13px;color:#334155;">불러오는 중…</div>`;
+    document.body.appendChild(wrap);
+    wrap.querySelector('#dlv-ver-close').addEventListener('click', () => wrap.remove());
+
+    try {
+        const res = await fetch(VERSIONS_INDEX_URL + '?step=' + STEP_NO, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        const list = wrap.querySelector('#dlv-ver-list');
+        if (!data.versions?.length) {
+            list.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:30px 0;">저장된 버전이 없습니다.</div>';
+            return;
+        }
+        list.innerHTML = data.versions.map(v => `
+          <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <strong style="color:#0f172a;">v${v.version_no}</strong>
+              <span style="font-size:11px;color:#94a3b8;">${v.created_at ?? ''}</span>
+            </div>
+            <div style="font-size:12px;color:#475569;margin-bottom:6px;">${(v.creator || '-') + (v.change_note ? ' · ' + v.change_note : '')}</div>
+            <button onclick="dlvRestoreVersion(${v.id}, ${v.version_no})" style="font-size:12px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;">이 버전으로 복원</button>
+          </div>`).join('');
+    } catch(e) {
+        wrap.querySelector('#dlv-ver-list').textContent = '오류: ' + e.message;
+    }
+}
+
+async function dlvRestoreVersion(id, vno) {
+    if (!confirm('v' + vno + ' 내용으로 현재 작업본을 복원하시겠습니까?')) return;
+    const url = VERSIONS_RESTORE_URL.replace('__ID__', id);
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+        });
+        const data = await res.json();
+        if (data.ok) {
+            showToast(data.message || '복원 완료');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            alert(data.message || '복원 실패');
+        }
+    } catch(e) { alert('복원 실패: ' + e.message); }
+}
+
+// ── 산출물 → 파일로 등록 (커스텀 다이얼로그 + 파일 선택) ──────────────
+async function dlvRegisterAsFile() {
+    document.getElementById('dlv-reg-modal')?.remove();
+    const wrap = document.createElement('div');
+    wrap.id = 'dlv-reg-modal';
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    wrap.innerHTML = `
+      <div class="dlv-reg-box">
+        {{-- 헤더 --}}
+        <div class="dlv-reg-head">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <svg width="18" height="18" fill="none" stroke="var(--t600,#4f46e5)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div style="font-size:15px;font-weight:700;color:#0f172a;">산출물을 파일로 등록</div>
+          </div>
+          <div style="font-size:12px;color:#64748b;line-height:1.55;">
+            왼쪽 이력의 항목을 누르면 그 파일에 새 버전이 추가됩니다.
+          </div>
+        </div>
+
+        {{-- 본문: 좌(이력) + 우(폼) --}}
+        <div class="dlv-reg-body">
+          {{-- ① 좌: 등록 이력 --}}
+          <aside class="dlv-reg-side">
+            <div class="dlv-reg-side-head">
+              <span>최근 등록 이력</span>
+              <span id="dlv-reg-hist-count" style="font-size:10px;color:#94a3b8;font-weight:600;"></span>
+            </div>
+            <div id="dlv-reg-history" class="dlv-reg-side-list">
+              <div style="padding:18px 10px;text-align:center;color:#94a3b8;font-size:12px;">불러오는 중…</div>
+            </div>
+          </aside>
+
+          {{-- ② 우: 등록 폼 --}}
+          <section class="dlv-reg-main">
+            <div class="dlv-reg-field">
+              <span class="dlv-reg-field-label">등록 대상</span>
+              <label class="dlv-reg-target-opt">
+                <input type="radio" name="dlv-reg-target" value="new" checked>
+                <div class="dlv-reg-row-body">
+                  <strong style="color:#0f172a;font-size:13px;">새 파일로 등록 (v1)</strong>
+                  <div style="font-size:11.5px;color:#64748b;margin-top:2px;">프로젝트 파일에 새 항목으로 추가합니다.</div>
+                </div>
+              </label>
+              <label class="dlv-reg-target-opt">
+                <input type="radio" name="dlv-reg-target" value="existing">
+                <div class="dlv-reg-row-body">
+                  <strong style="color:#0f172a;font-size:13px;">기존 파일에 버전 추가</strong>
+                  <div style="font-size:11.5px;color:#64748b;margin-top:2px;">대상 파일을 검색해서 선택하세요.</div>
+                </div>
+              </label>
+            </div>
+
+            {{-- 기존 파일 선택 시에만 표시 --}}
+            <div id="dlv-reg-filelist-wrap" class="dlv-reg-field" style="display:none;">
+              <span class="dlv-reg-field-label">대상 파일</span>
+              <div class="dlv-reg-search-wrap">
+                <svg class="dlv-reg-search-icon" width="13" height="13" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.3-4.3M11 17a6 6 0 1 1 0-12 6 6 0 0 1 0 12Z"/></svg>
+                <input id="dlv-reg-filesearch" type="text" class="dlv-reg-search" placeholder="대상 파일 검색 — 클릭하여 목록 열기" autocomplete="off">
+                <button type="button" id="dlv-reg-filesearch-clear" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;font-size:14px;cursor:pointer;padding:2px 6px;line-height:1;">×</button>
+                <div id="dlv-reg-filelist" class="dlv-reg-filelist">
+                  <div style="padding:14px;text-align:center;color:#94a3b8;font-size:12.5px;">파일 목록을 불러오는 중…</div>
+                </div>
+                <div id="dlv-reg-filelist-empty" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:50;padding:12px;text-align:center;color:#94a3b8;font-size:12px;background:#fff;border:1.5px solid #c4b5fd;border-radius:8px;box-shadow:0 10px 28px rgba(15,23,42,.16);">검색 결과가 없습니다.</div>
+              </div>
+              {{-- 선택된 파일 표시 --}}
+              <div id="dlv-reg-selected" class="dlv-reg-selected">
+                <svg width="13" height="13" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span id="dlv-reg-selected-name" style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;"></span>
+                <button type="button" id="dlv-reg-selected-clear" class="dlv-reg-selected-clear" title="선택 해제">×</button>
+              </div>
+            </div>
+
+            <div class="dlv-reg-field">
+              <span class="dlv-reg-field-label">변경 메모 <span style="color:#94a3b8;font-weight:400;">(선택)</span></span>
+              <textarea id="dlv-reg-note" rows="3" class="dlv-reg-textarea" placeholder="이번 버전에 포함된 주요 변경 내용을 적어주세요."></textarea>
+            </div>
+
+            <div class="dlv-reg-field" style="margin-bottom:0;">
+              <span class="dlv-reg-field-label">출력 언어</span>
+              <div class="dlv-reg-lang-row">
+                <label class="dlv-reg-lang-opt"><input type="radio" name="dlv-reg-lang" value="ko" checked> 한글</label>
+                <label class="dlv-reg-lang-opt"><input type="radio" name="dlv-reg-lang" value="en"> English</label>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {{-- 푸터 --}}
+        <div class="dlv-reg-foot">
+          <button id="dlv-reg-cancel" style="padding:7px 14px;font-size:13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;color:#64748b;font-weight:600;cursor:pointer;">취소</button>
+          <button id="dlv-reg-ok" style="padding:7px 16px;font-size:13px;border:none;border-radius:8px;background:var(--t600,#4f46e5);color:#fff;font-weight:700;cursor:pointer;">파일로 등록</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+
+    const close = () => wrap.remove();
+    wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+    wrap.querySelector('#dlv-reg-cancel').addEventListener('click', close);
+
+    const fileListWrap  = wrap.querySelector('#dlv-reg-filelist-wrap');
+    const fileListEl    = wrap.querySelector('#dlv-reg-filelist');
+    const fileEmptyEl   = wrap.querySelector('#dlv-reg-filelist-empty');
+    const fileSearchEl  = wrap.querySelector('#dlv-reg-filesearch');
+    const fileSearchClr = wrap.querySelector('#dlv-reg-filesearch-clear');
+    const fileSearchWrap= wrap.querySelector('.dlv-reg-search-wrap');
+    const selectedBox   = wrap.querySelector('#dlv-reg-selected');
+    const selectedName  = wrap.querySelector('#dlv-reg-selected-name');
+    const targetRadios  = wrap.querySelectorAll('input[name="dlv-reg-target"]');
+    let selectedFileId  = null;
+    let filesLoaded     = false;
+
+    // ── 파일 목록 드롭다운 열기/닫기 ──
+    function openFileDropdown() {
+        if (!filesLoaded) return;
+        fileListEl.classList.add('is-open');
+        dlvApplyFileSearch();
+    }
+    function closeFileDropdown() {
+        fileListEl.classList.remove('is-open');
+        fileEmptyEl.style.display = 'none';
+    }
+
+    // 파일 이름 검색 + 빈 결과 처리 (드롭다운 열려있을 때만 empty 표시)
+    function dlvApplyFileSearch() {
+        const q = fileSearchEl.value.trim().toLowerCase();
+        fileSearchClr.style.display = q ? 'block' : 'none';
+        const rows = fileListEl.querySelectorAll('[data-fname]');
+        let visible = 0;
+        rows.forEach(r => {
+            const name = (r.dataset.fname || '').toLowerCase();
+            const show = !q || name.includes(q);
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        const isOpen = fileListEl.classList.contains('is-open');
+        fileEmptyEl.style.display = (isOpen && rows.length && visible === 0) ? 'block' : 'none';
+    }
+
+    // 선택된 파일 표시
+    function setSelectedFile(id, name) {
+        selectedFileId = id;
+        if (id) {
+            selectedName.textContent = name || '';
+            selectedBox.classList.add('is-shown');
+        } else {
+            selectedBox.classList.remove('is-shown');
+        }
+    }
+
+    fileSearchEl.addEventListener('input', () => { openFileDropdown(); dlvApplyFileSearch(); });
+    fileSearchEl.addEventListener('focus', openFileDropdown);
+    fileSearchClr.addEventListener('click', () => { fileSearchEl.value = ''; openFileDropdown(); dlvApplyFileSearch(); fileSearchEl.focus(); });
+    wrap.querySelector('#dlv-reg-selected-clear').addEventListener('click', () => {
+        setSelectedFile(null);
+        wrap.querySelectorAll('input[name="dlv-reg-file"]').forEach(fr => fr.checked = false);
+    });
+    // 검색창/드롭다운 바깥 클릭 시 닫기
+    document.addEventListener('mousedown', e => {
+        if (fileSearchWrap && !fileSearchWrap.contains(e.target)) closeFileDropdown();
+    });
+
+    // 파일 등록 이력 로드 (좌측 사이드)
+    const historyEl    = wrap.querySelector('#dlv-reg-history');
+    const historyCount = wrap.querySelector('#dlv-reg-hist-count');
+    (async () => {
+        try {
+            const res = await fetch(FILE_REGISTRATIONS_URL, { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+            if (!data.registrations?.length) {
+                historyEl.innerHTML = '<div style="padding:18px 10px;text-align:center;color:#94a3b8;font-size:12px;">아직 등록 이력이 없습니다.</div>';
+                if (historyCount) historyCount.textContent = '';
+                return;
+            }
+            if (historyCount) historyCount.textContent = data.registrations.length + '건';
+            historyEl.innerHTML = data.registrations.map(r => {
+                const note = r.change_note ? `<span style="color:#475569;"> · ${String(r.change_note).replace(/[<>"']/g,'')}</span>` : '';
+                const fname = String(r.file_name || '(삭제됨)').replace(/[<>"']/g,'');
+                const langTag = r.lang === 'en' ? '<span style="font-size:10px;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:3px;margin-left:4px;">EN</span>' : '';
+                return `
+                  <div data-pf="${r.project_file_id}" class="dlv-reg-row dlv-reg-hist-row">
+                    <span class="dlv-reg-row-lead dlv-reg-row-vbadge">v${r.file_version}</span>
+                    <div class="dlv-reg-row-body">
+                      <div class="dlv-reg-row-title"><span class="dlv-reg-row-title-name">${fname}</span>${langTag}</div>
+                      <div class="dlv-reg-row-meta">${r.creator ?? '-'} · ${r.created_at ?? ''}${note}</div>
+                    </div>
+                  </div>`;
+            }).join('');
+            historyEl.querySelectorAll('.dlv-reg-hist-row').forEach(row => {
+                row.addEventListener('mouseenter', () => row.style.background = '#f5f3ff');
+                row.addEventListener('mouseleave', () => row.style.background = '');
+                row.addEventListener('click', async () => {
+                    // 이력 클릭 시 → 같은 파일에 새 버전 추가 모드로 자동 선택
+                    const pfId = row.dataset.pf;
+                    const existingRadio = wrap.querySelector('input[name="dlv-reg-target"][value="existing"]');
+                    existingRadio.checked = true;
+                    existingRadio.dispatchEvent(new Event('change'));
+                    // 파일 목록 로드 완료까지 잠시 대기 후 해당 파일 선택
+                    const trySelect = () => {
+                        const fileRadio = wrap.querySelector(`input[name="dlv-reg-file"][value="${pfId}"]`);
+                        if (fileRadio) {
+                            fileRadio.checked = true;
+                            fileRadio.dispatchEvent(new Event('change'));
+                            fileRadio.scrollIntoView({ block: 'nearest' });
+                        } else {
+                            setTimeout(trySelect, 80);
+                        }
+                    };
+                    setTimeout(trySelect, 80);
+                });
+            });
+        } catch (e) {
+            historyEl.innerHTML = '<div style="padding:14px;color:#dc2626;">이력 조회 실패: ' + e.message + '</div>';
+        }
+    })();
+
+    // 등록 대상 선택 토글
+    targetRadios.forEach(r => r.addEventListener('change', async () => {
+        if (r.value === 'existing' && r.checked) {
+            fileListWrap.style.display = 'block';
+            if (!filesLoaded) {
+                filesLoaded = true;
+                try {
+                    const res = await fetch(REGISTERABLE_FILES_URL, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (!data.files?.length) {
+                        fileListEl.innerHTML = '<div style="padding:14px;text-align:center;color:#94a3b8;font-size:12.5px;">등록된 파일이 없습니다.</div>';
+                        return;
+                    }
+                    fileListEl.innerHTML = data.files.map(f => {
+                        const sizeKb = f.size ? Math.round(f.size / 1024) : 0;
+                        const sizeText = sizeKb >= 1024 ? (Math.round(sizeKb / 102.4) / 10) + ' MB' : sizeKb + ' KB';
+                        const rawName  = String(f.original_name || '');
+                        const safeName = rawName.replace(/[<>"']/g, '');
+                        const safeAttr = rawName.replace(/"/g, '&quot;');
+                        let catBadge = '';
+                        if (f.category_name) {
+                            const c    = String(f.category_color || '#7c3aed').replace(/[^#0-9a-fA-F]/g, '') || '#7c3aed';
+                            const name = String(f.category_name).replace(/[<>"']/g, '');
+                            catBadge = `<span class="dlv-reg-cat-badge" style="color:${c};background:${c}1a;">${name}</span>`;
+                        }
+                        return `
+                          <label class="dlv-reg-row" data-fname="${safeAttr}">
+                            <input type="radio" name="dlv-reg-file" value="${f.id}" class="dlv-reg-row-lead" style="margin-top:3px;">
+                            <div class="dlv-reg-row-body">
+                              <div class="dlv-reg-row-title">${catBadge}<span class="dlv-reg-row-title-name">${safeName}</span></div>
+                              <div class="dlv-reg-row-meta">다음 버전 v${f.next_version} · ${sizeText} · ${f.updated_at ?? ''}</div>
+                            </div>
+                          </label>`;
+                    }).join('');
+                    fileListEl.querySelectorAll('input[name="dlv-reg-file"]').forEach(fr => {
+                        fr.addEventListener('change', () => {
+                            const label = fr.closest('label');
+                            setSelectedFile(fr.value, label?.dataset.fname || '');
+                            fileSearchEl.value = '';
+                            closeFileDropdown();
+                        });
+                    });
+                    dlvApplyFileSearch();
+                    fileSearchEl.focus();
+                } catch (e) {
+                    fileListEl.innerHTML = '<div style="padding:14px;color:#dc2626;font-size:12.5px;">목록 조회 실패: ' + e.message + '</div>';
+                }
+            } else {
+                fileSearchEl.focus();
+            }
+        } else {
+            fileListWrap.style.display = 'none';
+            closeFileDropdown();
+            setSelectedFile(null);
+        }
+    }));
+
+    wrap.querySelector('#dlv-reg-ok').addEventListener('click', async () => {
+        const targetMode = wrap.querySelector('input[name="dlv-reg-target"]:checked').value;
+        if (targetMode === 'existing' && !selectedFileId) {
+            alert('대상 파일을 선택하세요.');
+            return;
+        }
+        const note = wrap.querySelector('#dlv-reg-note').value.trim();
+        const lang = wrap.querySelector('input[name="dlv-reg-lang"]:checked').value;
+        const payload = { change_note: note, lang };
+        if (targetMode === 'existing') payload.target_file_id = selectedFileId;
+
+        const okBtn = wrap.querySelector('#dlv-reg-ok');
+        okBtn.disabled = true;
+        okBtn.textContent = '등록 중…';
+        try {
+            const res = await fetch(REGISTER_FILE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            close();
+            if (data.ok) {
+                showToast(data.message);
+            } else {
+                alert(data.message || '파일 등록 실패');
+            }
+        } catch(e) {
+            close();
+            alert('파일 등록 실패: ' + e.message);
+        }
+    });
 }
 
 async function goStep(n) {

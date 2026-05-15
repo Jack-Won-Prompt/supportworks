@@ -32,6 +32,13 @@
         <p style="font-size:12px;color:#6b7280;margin-bottom:5px;word-break:break-word;">{{ $item->description }}</p>
         @endif
 
+        @if($item->sourceMessage?->conversation)
+        <a href="{{ route('messages.show', $item->sourceMessage->conversation) }}#message-{{ $item->source_message_id }}"
+           style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#7c3aed;background:#f5f3ff;border-radius:10px;padding:2px 7px;text-decoration:none;margin-bottom:5px;">
+            {{ __('messages.action_source_message') }}
+        </a>
+        @endif
+
         <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;">
             {{-- 마감일 --}}
             @if($item->due_date)

@@ -98,7 +98,42 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
         .zoom-label { font-size:12px;color:#9ca3af;min-width:40px;text-align:center; }
 
         /* Comment panel */
-        #comment-panel { width:260px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column; }
+        #comment-panel { width:260px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;min-width:200px;max-width:720px; }
+
+        /* Comment panel resizer (가로 드래그) — 항상 보이는 6점 그립 아이콘 */
+        #cp-resizer {
+            width:6px; flex-shrink:0; background:#e5e7eb; cursor:col-resize;
+            transition:background .12s; position:relative;
+        }
+        #cp-resizer::before {
+            content:''; position:absolute; top:50%; left:50%;
+            transform:translate(-50%, -50%);
+            width:2px; height:2px; background:transparent; border-radius:50%;
+            box-shadow:
+                -3px -9px 0 1px #6b7280,  3px -9px 0 1px #6b7280,
+                -3px  0   0 1px #6b7280,  3px  0   0 1px #6b7280,
+                -3px  9px 0 1px #6b7280,  3px  9px 0 1px #6b7280;
+            opacity:.7;
+            transition:opacity .15s;
+            pointer-events:none;
+        }
+        #cp-resizer:hover, #cp-resizer.dragging { background:#a78bfa; }
+        #cp-resizer:hover::before, #cp-resizer.dragging::before {
+            opacity:1;
+            box-shadow:
+                -3px -9px 0 1px #fff,  3px -9px 0 1px #fff,
+                -3px  0   0 1px #fff,  3px  0   0 1px #fff,
+                -3px  9px 0 1px #fff,  3px  9px 0 1px #fff;
+        }
+        body.cp-resizing { cursor:col-resize !important; user-select:none !important; }
+        body.cp-resizing iframe { pointer-events:none !important; }   /* 드래그 중 iframe 이벤트 가로채기 방지 */
+
+        /* 의견 페이지 입력 — 기본 브라우저 number 스피너 화살표 숨김 (자체 +/- 버튼 사용) */
+        #comment-page::-webkit-outer-spin-button,
+        #comment-page::-webkit-inner-spin-button {
+            -webkit-appearance: none; appearance: none; margin: 0;
+        }
+        #comment-page { -moz-appearance: textfield; appearance: textfield; }
         .cp-header  { padding:12px 16px 10px;border-bottom:1px solid #f3f4f6;flex-shrink:0; }
         .cp-title   { font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:6px; }
         #comment-count { font-size:11px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-weight:700; }
@@ -161,6 +196,15 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
             onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         <span id="share-copy-label">공유 링크 복사</span>
+    </button>
+
+    {{-- 전체창 토글 --}}
+    <button id="fs-toggle-btn" type="button" onclick="toggleFullscreen()" title="전체창 보기"
+            style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
+            onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
+        <svg id="fs-icon-on"  width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5H5m14 4V5h-4M9 15v4H5m14-4v4h-4"/></svg>
+        <svg id="fs-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4m12-4v4h-4"/></svg>
+        <span id="fs-toggle-label">전체창</span>
     </button>
 
     {{-- SupportWorks 가입하기 (비로그인 시) --}}
@@ -275,6 +319,9 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transform:rotate(-90deg);margin-bottom:8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
         의견 보기
     </button>
+
+    {{-- 가로 리사이저 (의견 영역 폭 조절) --}}
+    <div id="cp-resizer" title="드래그하여 의견 영역 폭 조절"></div>
 
     <div id="comment-panel">
         <div class="cp-header">
@@ -1312,15 +1359,109 @@ function toggleCommentPanel() {
 (function applyInitialPanelState() {
     let collapsed = '0';
     try { collapsed = localStorage.getItem('sw-share-cp-collapsed') || '0'; } catch (_) {}
-    if (collapsed === '1') {
-        const panel  = document.getElementById('comment-panel');
-        const handle = document.getElementById('comment-panel-handle');
-        if (panel && handle) {
-            panel.style.display = 'none';
-            handle.style.display = 'flex';
-        }
+    const panel    = document.getElementById('comment-panel');
+    const handle   = document.getElementById('comment-panel-handle');
+    const resizer  = document.getElementById('cp-resizer');
+
+    if (collapsed === '1' && panel && handle) {
+        panel.style.display = 'none';
+        handle.style.display = 'flex';
+        if (resizer) resizer.style.display = 'none';
+    } else if (panel) {
+        // 저장된 폭 복원
+        try {
+            const w = parseInt(localStorage.getItem('sw-share-cp-width') || '', 10);
+            if (w >= 200 && w <= 720) panel.style.width = w + 'px';
+        } catch (_) {}
     }
 })();
+
+/* ── 의견 영역 가로 리사이저 ─────────────────────────── */
+(function setupCpResizer() {
+    const resizer = document.getElementById('cp-resizer');
+    const panel   = document.getElementById('comment-panel');
+    if (!resizer || !panel) return;
+
+    let dragging = false;
+    let startX = 0, startWidth = 0;
+
+    resizer.addEventListener('mousedown', function(e) {
+        dragging = true;
+        startX = e.clientX;
+        startWidth = panel.getBoundingClientRect().width;
+        resizer.classList.add('dragging');
+        document.body.classList.add('cp-resizing');
+        e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', function(e) {
+        if (!dragging) return;
+        // 오른쪽으로 드래그 → 패널 좁아짐, 왼쪽 → 넓어짐
+        const delta  = e.clientX - startX;
+        let newWidth = startWidth - delta;
+        if (newWidth < 200) newWidth = 200;
+        if (newWidth > 720) newWidth = 720;
+        panel.style.width = newWidth + 'px';
+    });
+
+    window.addEventListener('mouseup', function() {
+        if (!dragging) return;
+        dragging = false;
+        resizer.classList.remove('dragging');
+        document.body.classList.remove('cp-resizing');
+        try {
+            localStorage.setItem('sw-share-cp-width', String(parseInt(panel.style.width, 10) || 260));
+        } catch (_) {}
+    });
+})();
+
+/* 패널 토글에 리사이저 표시도 함께 갱신 */
+const _origToggleCommentPanel = window.toggleCommentPanel;
+window.toggleCommentPanel = function() {
+    if (typeof _origToggleCommentPanel === 'function') _origToggleCommentPanel();
+    const panel   = document.getElementById('comment-panel');
+    const resizer = document.getElementById('cp-resizer');
+    if (panel && resizer) {
+        resizer.style.display = (panel.style.display === 'none') ? 'none' : '';
+    }
+};
+
+/* ── 전체창 토글 (브라우저 Fullscreen API) ──────────── */
+function toggleFullscreen() {
+    const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (inFs) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exit) exit.call(document);
+    } else {
+        const root = document.documentElement;
+        const req  = root.requestFullscreen || root.webkitRequestFullscreen;
+        if (req) req.call(root);
+    }
+}
+window.toggleFullscreen = toggleFullscreen;
+
+/* fullscreenchange → 아이콘/라벨 토글 */
+function _updateFsBtnState() {
+    const inFs    = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    const iconOn  = document.getElementById('fs-icon-on');
+    const iconOff = document.getElementById('fs-icon-off');
+    const label   = document.getElementById('fs-toggle-label');
+    const btn     = document.getElementById('fs-toggle-btn');
+    if (iconOn)  iconOn.style.display  = inFs ? 'inline' : 'none';
+    if (iconOff) iconOff.style.display = inFs ? 'none'   : 'inline';
+    if (label)   label.textContent     = inFs ? '전체창 종료' : '전체창';
+    if (btn)     btn.title             = inFs ? '전체창 종료 (Esc)' : '전체창 보기 (F11)';
+}
+document.addEventListener('fullscreenchange',       _updateFsBtnState);
+document.addEventListener('webkitfullscreenchange', _updateFsBtnState);
+
+/* F11 단축키 → 우리 핸들러로 위임 (브라우저 기본 fullscreen 도 가능하나 일관성 위해) */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'F11') {
+        e.preventDefault();
+        toggleFullscreen();
+    }
+});
 
 /* 공유 링크 복사 */
 function copyShareLink() {

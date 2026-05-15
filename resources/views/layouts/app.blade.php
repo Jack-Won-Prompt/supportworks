@@ -937,6 +937,8 @@
                                     <button class="theme-swatch" data-theme="teal"   title="{{ __('app.theme_teal') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#5eead4,#14b8a6);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
                                     <button class="theme-swatch" data-theme="green"  title="{{ __('app.theme_green') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#86efac,#22c55e);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
                                     <button class="theme-swatch" data-theme="amber"  title="{{ __('app.theme_amber') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                    <button class="theme-swatch" data-theme="gray"   title="{{ __('app.theme_gray') }}"  style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#d1d5db,#4b5563);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                    <button class="theme-swatch" data-theme="white"  title="{{ __('app.theme_white') }}" style="width:26px;height:26px;border-radius:50%;background:#ffffff;border:1.5px solid #d4d4d8;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
                                 </div>
                             </div>
                         </div>
@@ -952,6 +954,17 @@
                             <span>메모</span>
                         </button>
                         @endif {{-- memos feature --}}
+
+                        {{-- 프롬프트 변환 버튼 --}}
+                        <button id="quick-prompt-btn" onclick="qpPopupToggle()" title="프롬프트 변환"
+                            style="display:flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
+                            onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
+                            onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span>프롬프트</span>
+                        </button>
 
                         @include('partials.collab-widget')
                         @yield('header-actions')
@@ -1076,6 +1089,94 @@
 
             {{-- 메모 목록 --}}
             <div id="memo-list" style="overflow-y:auto;flex:1;padding:12px 14px;"></div>
+        </div>
+
+        {{-- ===== 프롬프트 변환 팝업 ===== --}}
+        <div id="qp-popup" style="display:none;position:fixed;top:60px;right:20px;z-index:9995;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:420px;max-height:calc(100vh - 80px);flex-direction:column;overflow:hidden;border:1px solid #ede8ff;">
+            {{-- 헤더 --}}
+            <div style="padding:14px 16px 12px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fff;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" fill="none" stroke="var(--tText)" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span style="font-size:14px;font-weight:700;color:#18181b;">프롬프트 변환</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <button onclick="qpSuffixManageOpen()" id="qp-suffix-manage-btn" type="button" title="추가 문구 관리"
+                        style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .12s;"
+                        onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'" onmouseout="this.style.background='none';this.style.color='#a1a1aa'">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </button>
+                    <button onclick="qpPopupClose()"
+                        style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:6px;"
+                        onmouseover="this.style.background='#f3f0ff'" onmouseout="this.style.background='none'">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- 입력 영역 --}}
+            <div style="padding:12px 14px;border-bottom:1px solid #f0eeff;background:#fafaff;flex-shrink:0;">
+                <textarea id="qp-input" placeholder="변환하고 싶은 내용을 입력하세요..." rows="5"
+                    style="width:100%;padding:9px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#18181b;resize:vertical;margin-bottom:10px;box-sizing:border-box;line-height:1.55;font-family:inherit;"
+                    onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span id="qp-status" style="font-size:11.5px;color:#94a3b8;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                    <button id="qp-submit-btn" onclick="qpSubmit()"
+                        style="height:30px;padding:0 14px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .12s;"
+                        onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        프롬프트 변환
+                    </button>
+                </div>
+            </div>
+
+            {{-- 결과/이력 목록 --}}
+            <div id="qp-list" style="overflow-y:auto;flex:1;padding:12px 14px;"></div>
+        </div>
+
+        {{-- ===== 추가 문구 관리 팝오버 ===== --}}
+        <div id="qp-suffix-manage-popup" style="display:none;position:fixed;top:60px;right:450px;z-index:9996;background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.18);width:340px;max-height:calc(100vh - 80px);flex-direction:column;overflow:hidden;border:1px solid #ede8ff;">
+            <div style="padding:13px 14px 11px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <span style="font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;gap:7px;">
+                    <svg width="13" height="13" fill="none" stroke="var(--tText)" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    추가 문구 관리
+                </span>
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <button onclick="qpSuffixManageNew()" id="qp-suffix-new-btn" type="button"
+                        style="display:flex;align-items:center;gap:4px;height:26px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .12s;"
+                        onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
+                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        새 문구
+                    </button>
+                    <button onclick="qpSuffixManageClose()" type="button"
+                        style="width:26px;height:26px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:5px;"
+                        onmouseover="this.style.background='#f3f0ff'" onmouseout="this.style.background='none'">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- 폼 (토글) --}}
+            <div id="qp-suffix-form" style="display:none;padding:11px 12px;background:#fafaff;border-bottom:1px solid #f0eeff;flex-shrink:0;">
+                <input id="qp-suffix-form-id" type="hidden" value="">
+                <input id="qp-suffix-form-label" type="text" maxlength="100" placeholder="라벨 (예: 단계별 설명 포함)"
+                    style="width:100%;padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;outline:none;background:#fff;color:#18181b;margin-bottom:7px;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
+                <textarea id="qp-suffix-form-body" rows="4" maxlength="2000" placeholder="프롬프트 끝에 추가할 문구"
+                    style="width:100%;padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;outline:none;background:#fff;color:#18181b;resize:vertical;box-sizing:border-box;line-height:1.55;font-family:inherit;margin-bottom:8px;"
+                    onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                <div style="display:flex;justify-content:flex-end;gap:5px;">
+                    <button onclick="qpSuffixHideForm()" type="button"
+                        style="height:26px;padding:0 11px;border:1.5px solid #e5e7eb;background:#fff;border-radius:6px;font-size:11.5px;color:#6b7280;cursor:pointer;">취소</button>
+                    <button onclick="qpSuffixSave()" id="qp-suffix-save-btn" type="button"
+                        style="height:26px;padding:0 12px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">저장</button>
+                </div>
+            </div>
+
+            {{-- 관리 리스트 --}}
+            <div id="qp-suffix-manage-list" style="overflow-y:auto;flex:1;padding:8px 10px;"></div>
         </div>
 
         {{-- ===== 메모 드래그 드롭 힌트 ===== --}}
@@ -1396,6 +1497,8 @@
             teal:  { t50:'#f0fdfa',t100:'#ccfbf1',t200:'#99f6e4',t300:'#5eead4',t400:'#2dd4bf',t500:'#14b8a6',t600:'#0d9488',t700:'#0f766e',tText:'#0d9488',tBg:'#f0fdfa' },
             green: { t50:'#f0fdf4',t100:'#dcfce7',t200:'#bbf7d0',t300:'#86efac',t400:'#4ade80',t500:'#22c55e',t600:'#16a34a',t700:'#15803d',tText:'#16a34a',tBg:'#f0fdf4' },
             amber: { t50:'#fffbeb',t100:'#fef3c7',t200:'#fde68a',t300:'#fcd34d',t400:'#fbbf24',t500:'#f59e0b',t600:'#d97706',t700:'#b45309',tText:'#d97706',tBg:'#fffbeb' },
+            gray:  { t50:'#f9fafb',t100:'#f3f4f6',t200:'#e5e7eb',t300:'#d1d5db',t400:'#9ca3af',t500:'#6b7280',t600:'#4b5563',t700:'#374151',tText:'#4b5563',tBg:'#f9fafb' },
+            white: { t50:'#ffffff',t100:'#fafafa',t200:'#f4f4f5',t300:'#e4e4e7',t400:'#a1a1aa',t500:'#71717a',t600:'#52525b',t700:'#3f3f46',tText:'#27272a',tBg:'#ffffff' },
         };
         window.applyTheme = async function(name) {
             const t = THEMES[name]; if (!t) return;
@@ -2619,6 +2722,457 @@
             });
         })();
         </script>
+
+        {{-- ===== 프롬프트 변환 JS ===== --}}
+        <script>
+        (function() {
+            var QP_URL  = '{{ url("/quick-prompts") }}';
+            var SFX_URL = '{{ url("/prompt-suffixes") }}';
+            var CSRF    = '{{ csrf_token() }}';
+
+            // 마지막으로 받은 suffix 목록 캐시 (id → 객체) — 결과 카드 칩 렌더링에 사용
+            var qpSuffixCache = {};
+
+            function qpEsc(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            function qpToast(msg) {
+                if (typeof window.showToast === 'function') {
+                    try { window.showToast(msg); return; } catch (e) {}
+                }
+                var s = document.getElementById('qp-status');
+                if (s) {
+                    s.style.color = '#15803d';
+                    s.textContent = msg;
+                    setTimeout(function() { if (s.textContent === msg) s.textContent = ''; }, 2000);
+                }
+            }
+
+            window.qpPopupToggle = function() {
+                var p = document.getElementById('qp-popup');
+                if (!p) return;
+                if (p.style.display === 'flex') { qpPopupClose(); return; }
+                p.style.display = 'flex';
+                qpLoadSuffixes();
+                qpLoadList();
+                setTimeout(function() {
+                    var ta = document.getElementById('qp-input');
+                    if (ta) ta.focus();
+                }, 50);
+            };
+
+            window.qpPopupClose = function() {
+                var p = document.getElementById('qp-popup');
+                if (p) p.style.display = 'none';
+                if (typeof window.qpSuffixManageClose === 'function') qpSuffixManageClose();
+            };
+
+            window.qpSubmit = async function() {
+                var ta     = document.getElementById('qp-input');
+                var btn    = document.getElementById('qp-submit-btn');
+                var status = document.getElementById('qp-status');
+                var text   = (ta.value || '').trim();
+                if (!text) {
+                    ta.style.borderColor = '#ef4444';
+                    ta.focus();
+                    return;
+                }
+                ta.style.borderColor = '#e5e7eb';
+
+                btn.disabled = true;
+                var origHTML = btn.innerHTML;
+                btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="9" stroke-opacity=".3"/><path d="M12 3a9 9 0 019 9" stroke-linecap="round"/></svg> 변환 중...';
+                status.style.color = '#6b7280';
+                status.textContent = '웍스가 프롬프트를 정리하고 있습니다...';
+
+                try {
+                    var r = await fetch(QP_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify({ original_input: text })
+                    });
+                    var d = await r.json();
+                    if (!r.ok || !d.ok) throw new Error(d.message || '변환 실패');
+
+                    ta.value = '';
+                    status.style.color = '#15803d';
+                    status.textContent = '✓ 웍스 변환 완료';
+                    qpLoadList();
+
+                    setTimeout(function() {
+                        if (status.textContent.indexOf('변환 완료') === 0) status.textContent = '';
+                    }, 2500);
+                } catch (e) {
+                    status.style.color = '#dc2626';
+                    status.textContent = e.message || '변환에 실패했습니다.';
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = origHTML;
+                }
+            };
+
+            // ── 추가 문구 라이브러리 (관리 팝오버 + 결과 카드 칩) ─────────
+            async function qpLoadSuffixes() {
+                try {
+                    var r = await fetch(SFX_URL, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
+                    var arr = await r.json();
+                    if (!Array.isArray(arr)) arr = [];
+                    qpSuffixCache = {};
+                    arr.forEach(function(s) { qpSuffixCache[s.id] = s; });
+                    qpRenderManageList();
+                } catch (e) { /* 캐시는 빈 채로 유지 */ }
+            }
+            window.qpLoadSuffixes = qpLoadSuffixes;
+
+            function qpSortedSuffixes() {
+                var arr = Object.keys(qpSuffixCache).map(function(k) { return qpSuffixCache[k]; });
+                arr.sort(function(a, b) {
+                    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+                    return a.id - b.id;
+                });
+                return arr;
+            }
+
+            // ── 관리 팝오버 ────────────────────────────────────
+            window.qpSuffixManageOpen = function() {
+                var p = document.getElementById('qp-suffix-manage-popup');
+                if (!p) return;
+                p.style.display = 'flex';
+                qpSuffixHideForm();
+                qpRenderManageList();
+            };
+            window.qpSuffixManageClose = function() {
+                var p = document.getElementById('qp-suffix-manage-popup');
+                if (p) p.style.display = 'none';
+                qpSuffixHideForm();
+            };
+            window.qpSuffixManageNew = function() {
+                document.getElementById('qp-suffix-form-id').value    = '';
+                document.getElementById('qp-suffix-form-label').value = '';
+                document.getElementById('qp-suffix-form-body').value  = '';
+                document.getElementById('qp-suffix-form').style.display = 'block';
+                setTimeout(function() { document.getElementById('qp-suffix-form-label').focus(); }, 30);
+            };
+
+            function qpRenderManageList() {
+                var box = document.getElementById('qp-suffix-manage-list');
+                if (!box) return;
+                var arr = qpSortedSuffixes();
+                if (arr.length === 0) {
+                    box.innerHTML = '<div style="text-align:center;padding:28px 14px;color:#a1a1aa;font-size:12px;line-height:1.7;">등록된 추가 문구가 없습니다.<br><span style="font-size:11.5px;">상단 “새 문구” 버튼으로 등록하세요.</span></div>';
+                    return;
+                }
+                box.innerHTML = arr.map(qpRenderManageRow).join('');
+            }
+
+            function qpRenderManageRow(s) {
+                var preview = (s.body || '').replace(/\s+/g, ' ').trim();
+                if (preview.length > 90) preview = preview.slice(0, 90) + '…';
+                return ''
+                    + '<div data-id="' + s.id + '" style="padding:9px 10px;border:1px solid #f0eeff;border-radius:8px;background:#fff;margin-bottom:6px;">'
+                    +   '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">'
+                    +     '<div style="font-size:12.5px;font-weight:700;color:#18181b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + qpEsc(s.label) + '</div>'
+                    +     '<div style="display:flex;gap:3px;flex-shrink:0;">'
+                    +       '<button type="button" onclick="qpSuffixEdit(' + s.id + ')" title="수정" '
+                    +         'style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;color:#9ca3af;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:all .12s;" '
+                    +         'onmouseover="this.style.background=\'var(--t50)\';this.style.color=\'var(--t700)\';this.style.borderColor=\'var(--t300)\'" '
+                    +         'onmouseout="this.style.background=\'#fff\';this.style.color=\'#9ca3af\';this.style.borderColor=\'#e5e7eb\'">'
+                    +         '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
+                    +       '</button>'
+                    +       '<button type="button" onclick="qpSuffixDelete(' + s.id + ')" title="삭제" '
+                    +         'style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;color:#9ca3af;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:all .12s;" '
+                    +         'onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\';this.style.borderColor=\'#fecaca\'" '
+                    +         'onmouseout="this.style.background=\'#fff\';this.style.color=\'#9ca3af\';this.style.borderColor=\'#e5e7eb\'">'
+                    +         '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V3a1 1 0 011-1h4a1 1 0 011 1v4"/></svg>'
+                    +       '</button>'
+                    +     '</div>'
+                    +   '</div>'
+                    +   '<div style="font-size:11.5px;color:#6b7280;line-height:1.5;white-space:pre-wrap;word-break:break-word;">' + qpEsc(preview) + '</div>'
+                    + '</div>';
+            }
+
+            window.qpSuffixHideForm = function() {
+                var f = document.getElementById('qp-suffix-form');
+                if (f) f.style.display = 'none';
+            };
+
+            window.qpSuffixEdit = function(id) {
+                var s = qpSuffixCache[id];
+                if (!s) return;
+                document.getElementById('qp-suffix-form-id').value    = s.id;
+                document.getElementById('qp-suffix-form-label').value = s.label || '';
+                document.getElementById('qp-suffix-form-body').value  = s.body || '';
+                document.getElementById('qp-suffix-form').style.display = 'block';
+                setTimeout(function() { document.getElementById('qp-suffix-form-label').focus(); }, 30);
+            };
+
+            window.qpSuffixSave = async function() {
+                var id    = document.getElementById('qp-suffix-form-id').value;
+                var label = document.getElementById('qp-suffix-form-label').value.trim();
+                var body  = document.getElementById('qp-suffix-form-body').value.trim();
+                if (!label || !body) {
+                    if (!label) document.getElementById('qp-suffix-form-label').focus();
+                    else        document.getElementById('qp-suffix-form-body').focus();
+                    return;
+                }
+
+                var btn  = document.getElementById('qp-suffix-save-btn');
+                btn.disabled = true;
+                var orig = btn.textContent;
+                btn.textContent = '저장 중…';
+
+                try {
+                    var url    = id ? (SFX_URL + '/' + id) : SFX_URL;
+                    var method = id ? 'PATCH' : 'POST';
+                    var r = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify({ label: label, body: body })
+                    });
+                    var d = await r.json();
+                    if (!r.ok || !d.ok) throw new Error(d.message || '저장 실패');
+
+                    qpSuffixHideForm();
+                    await qpLoadSuffixes();
+                    // 신규/수정된 suffix 가 결과 카드 칩에도 반영되도록 목록 새로고침
+                    if (typeof qpLoadList === 'function') qpLoadList();
+                } catch (e) {
+                    qpToast(e.message || '저장에 실패했습니다.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = orig;
+                }
+            };
+
+            window.qpSuffixDelete = async function(id) {
+                var ok = (typeof window.__confirm === 'function')
+                    ? await window.__confirm('이 추가 문구를 삭제하시겠습니까?')
+                    : confirm('이 추가 문구를 삭제하시겠습니까?');
+                if (!ok) return;
+                try {
+                    var r = await fetch(SFX_URL + '/' + id, {
+                        method: 'DELETE',
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                    });
+                    if (r.ok) {
+                        await qpLoadSuffixes();
+                        // 삭제된 suffix 가 적용돼 있던 카드들도 서버측에서 자동 정리됨
+                        if (typeof qpLoadList === 'function') qpLoadList();
+                    }
+                } catch (e) {}
+            };
+
+            async function qpLoadList() {
+                var list = document.getElementById('qp-list');
+                if (!list) return;
+                try {
+                    var r = await fetch(QP_URL, {
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                    });
+                    var arr = await r.json();
+                    if (!Array.isArray(arr) || arr.length === 0) {
+                        list.innerHTML = '<div style="text-align:center;padding:34px 20px;color:#a1a1aa;font-size:13px;line-height:1.7;">변환된 프롬프트가 없습니다.<br><span style="font-size:12px;">위에 내용을 입력하고 변환해보세요.</span></div>';
+                        return;
+                    }
+                    list.innerHTML = arr.map(qpRenderItem).join('');
+                } catch (e) {
+                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#dc2626;font-size:12px;">목록을 불러오지 못했습니다.</div>';
+                }
+            }
+            window.qpLoadList = qpLoadList;
+
+            function qpRenderItem(it) {
+                var providerBadge = it.provider_used
+                    ? '<span style="display:inline-block;padding:1px 6px;background:#ede9fe;color:#6d28d9;font-size:10px;font-weight:700;border-radius:4px;letter-spacing:.02em;">웍스</span>'
+                    : '';
+                var fbBadge = it.fallback_reason
+                    ? '<span title="웍스 폴백 사용됨" style="display:inline-block;padding:1px 6px;background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;border-radius:4px;margin-left:4px;">FB</span>'
+                    : '';
+
+                // 결과 카드별 추가 문구 칩 (클릭으로 즉시 토글)
+                var allSuffixes = qpSortedSuffixes();
+                var appliedSet  = new Set((it.applied_suffix_ids || []).map(Number));
+                var chipsHtml   = '';
+                if (allSuffixes.length > 0) {
+                    chipsHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;align-items:center;">'
+                        + '<span style="font-size:10.5px;color:#9ca3af;font-weight:600;margin-right:2px;">+추가:</span>'
+                        + allSuffixes.map(function(s) {
+                            var on   = appliedSet.has(s.id);
+                            var bg   = on ? 'var(--t600, #7c3aed)' : '#fff';
+                            var bd   = on ? 'var(--t600, #7c3aed)' : '#ddd6fe';
+                            var fg   = on ? '#fff' : 'var(--t700, #6d28d9)';
+                            var icon = on
+                                ? '<svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+                                : '<svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>';
+                            return '<button type="button" onclick="event.stopPropagation();qpToggleCardSuffix(' + it.id + ',' + s.id + ', this)" '
+                                + 'data-card-id="' + it.id + '" data-suffix-id="' + s.id + '" '
+                                + 'title="' + qpEsc(s.body) + '" '
+                                + 'style="display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 8px;background:' + bg + ';color:' + fg + ';border:1.5px solid ' + bd + ';border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;max-width:200px;">'
+                                +    icon
+                                +    '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + qpEsc(s.label) + '</span>'
+                                + '</button>';
+                        }).join('')
+                        + '</div>';
+                }
+
+                return ''
+                    + '<div class="qp-item" data-id="' + it.id + '" style="background:#fff;border:1.5px solid #ede8ff;border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
+                    +   '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;font-size:11px;color:#9ca3af;">'
+                    +     providerBadge + fbBadge
+                    +     '<span style="flex:1;text-align:right;">' + qpEsc(it.created_at || '') + '</span>'
+                    +   '</div>'
+                    +   '<details style="margin-bottom:7px;">'
+                    +     '<summary style="font-size:11px;color:#6b7280;cursor:pointer;outline:none;list-style:none;display:flex;align-items:center;gap:4px;user-select:none;">'
+                    +       '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>'
+                    +       '원본 입력 보기'
+                    +     '</summary>'
+                    +     '<div style="margin-top:6px;padding:8px 10px;background:#f9fafb;border:1px solid #f0eeff;border-radius:7px;font-size:12px;color:#4b5563;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:140px;overflow-y:auto;">' + qpEsc(it.original_input) + '</div>'
+                    +   '</details>'
+                    +   '<div id="qp-refined-' + it.id + '" style="padding:9px 10px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:7px;font-size:12.5px;color:#1f2937;line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow-y:auto;">' + qpEsc(it.refined_prompt || '') + '</div>'
+                    +   chipsHtml
+                    +   '<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px;">'
+                    +     '<button onclick="qpCopy(' + it.id + ', this)" '
+                    +       'style="display:flex;align-items:center;gap:4px;height:26px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .12s;" '
+                    +       'onmouseover="this.style.background=\'var(--t700)\'" onmouseout="this.style.background=\'var(--t600)\'">'
+                    +       '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>'
+                    +       'Copy'
+                    +     '</button>'
+                    +     '<button onclick="qpDelete(' + it.id + ')" title="삭제" '
+                    +       'style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fff;color:#9ca3af;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:all .12s;" '
+                    +       'onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\';this.style.borderColor=\'#fecaca\'" '
+                    +       'onmouseout="this.style.background=\'#fff\';this.style.color=\'#9ca3af\';this.style.borderColor=\'#e5e7eb\'">'
+                    +       '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V3a1 1 0 011-1h4a1 1 0 011 1v4"/></svg>'
+                    +     '</button>'
+                    +   '</div>'
+                    + '</div>';
+            }
+
+            // 결과 카드의 추가 문구 토글 (서버 멱등 처리)
+            window.qpToggleCardSuffix = async function(promptId, suffixId, btn) {
+                if (!btn || btn.disabled) return;
+                btn.disabled = true;
+                var origBg = btn.style.background;
+                btn.style.opacity = '0.6';
+                try {
+                    var r = await fetch(QP_URL + '/' + promptId + '/toggle-suffix', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify({ suffix_id: suffixId })
+                    });
+                    var d = await r.json();
+                    if (!r.ok || !d.ok) throw new Error(d.message || '토글 실패');
+
+                    // 해당 카드만 in-place 교체
+                    var card = document.querySelector('.qp-item[data-id="' + promptId + '"]');
+                    if (card) {
+                        var temp = document.createElement('div');
+                        temp.innerHTML = qpRenderItem(d.item);
+                        card.replaceWith(temp.firstChild);
+                    } else {
+                        qpLoadList();
+                    }
+                } catch (e) {
+                    btn.style.opacity = '';
+                    btn.disabled = false;
+                    qpToast(e.message || '토글에 실패했습니다.');
+                }
+            };
+
+            window.qpCopy = async function(id, btn) {
+                var box = document.getElementById('qp-refined-' + id);
+                if (!box) return;
+                var text = box.innerText;
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(text);
+                    } else {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.cssText = 'position:fixed;top:-9999px;left:0;';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                    }
+                    var orig = btn.innerHTML;
+                    btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> 복사됨';
+                    btn.style.background = '#16a34a';
+                    setTimeout(function() {
+                        btn.innerHTML = orig;
+                        btn.style.background = 'var(--t600)';
+                    }, 1500);
+                } catch (e) {
+                    qpToast('복사에 실패했습니다.');
+                }
+            };
+
+            window.qpDelete = async function(id) {
+                var ok = (typeof window.__confirm === 'function')
+                    ? await window.__confirm('이 프롬프트를 삭제하시겠습니까?')
+                    : confirm('이 프롬프트를 삭제하시겠습니까?');
+                if (!ok) return;
+                try {
+                    var r = await fetch(QP_URL + '/' + id, {
+                        method: 'DELETE',
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+                    });
+                    if (r.ok) qpLoadList();
+                } catch (e) {}
+            };
+
+            // Ctrl/Cmd+Enter 로 빠르게 변환
+            document.addEventListener('keydown', function(e) {
+                var pop = document.getElementById('qp-popup');
+                if (!pop || pop.style.display !== 'flex') return;
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    qpSubmit();
+                }
+            });
+
+            // 외부 클릭 시 닫기 (관리 팝오버는 그 자체로 한 번 더 클릭이 일어나야 닫힘)
+            document.addEventListener('click', function(e) {
+                var popup   = document.getElementById('qp-popup');
+                var btn     = document.getElementById('quick-prompt-btn');
+                var managePop = document.getElementById('qp-suffix-manage-popup');
+
+                // 관리 팝오버가 열려있을 때: 관리 팝오버 외부 클릭 시 관리만 닫기 (메인은 유지)
+                if (managePop && managePop.style.display === 'flex') {
+                    if (!managePop.contains(e.target)) {
+                        // 단, 메인 팝업 내부의 “관리” 버튼 클릭은 통과
+                        var mgmtBtn = document.getElementById('qp-suffix-manage-btn');
+                        if (!mgmtBtn || !mgmtBtn.contains(e.target)) {
+                            qpSuffixManageClose();
+                        }
+                    }
+                    return; // 관리 팝오버가 열려있는 동안엔 메인 닫기 로직 실행 안 함
+                }
+
+                // 메인 팝업 외부 클릭 시 메인 닫기
+                if (popup && btn && popup.style.display === 'flex') {
+                    if (!popup.contains(e.target) && !btn.contains(e.target)) {
+                        qpPopupClose();
+                    }
+                }
+            });
+        })();
+        </script>
+        <style>@keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }</style>
 
     @include('partials.custom-dialog')
     </body>

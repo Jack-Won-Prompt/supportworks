@@ -85,7 +85,7 @@
                         onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
                     <option value="">{{ __('maintenance.form_attendee_direct') }}</option>
                     @foreach($teammates as $tm)
-                    <option value="{{ $tm->id }}" {{ $att->user_id == $tm->id ? 'selected' : '' }}>{{ $tm->name }}</option>
+                    <option value="{{ $tm->id }}" {{ $att->user_id == $tm->id ? 'selected' : '' }}>{{ $tm->name }}@if($tm->email) ({{ $tm->email }})@endif</option>
                     @endforeach
                 </select>
                 <input type="text" name="attendees[{{ $i }}][name]" value="{{ $att->name }}" placeholder="{{ __('maintenance.form_attendee_name_ph') }}"
@@ -100,7 +100,7 @@
             <select name="attendees[0][user_id]" style="flex:1;{{ $inp }}"
                     onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
                 <option value="">{{ __('maintenance.form_attendee_direct') }}</option>
-                @foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}</option>@endforeach
+                @foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}@if($tm->email) ({{ $tm->email }})@endif</option>@endforeach
             </select>
             <input type="text" name="attendees[0][name]" placeholder="{{ __('maintenance.form_attendee_name_ph') }}"
                    style="flex:1;{{ $inp }}"
@@ -141,7 +141,7 @@
 
 <script>
 let attendeeIdx = {{ $isEdit ? ($minute->attendees->count() ?: 1) : 1 }};
-const tmOptions = `@foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}</option>@endforeach`;
+const tmOptions = `@foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}@if($tm->email) ({{ $tm->email }})@endif</option>@endforeach`;
 const inpStyle = '{{ addslashes($inp) }}';
 const STR_DIRECT_INPUT = '{{ __('maintenance.form_attendee_direct') }}';
 const STR_NAME_PH      = '{{ __('maintenance.form_attendee_name_ph') }}';

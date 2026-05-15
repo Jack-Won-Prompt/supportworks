@@ -18,7 +18,9 @@ use App\Http\Controllers\Api\Mobile\CalendarController as MobileCalendarControll
 use App\Http\Controllers\Api\Mobile\CommunityController as MobileCommunityController;
 use App\Http\Controllers\Api\Mobile\DashboardController as MobileDashboardController;
 use App\Http\Controllers\Api\Mobile\InquiryController as MobileInquiryController;
+use App\Http\Controllers\Api\Mobile\IssueController as MobileIssueController;
 use App\Http\Controllers\Api\Mobile\MeetingMinuteController as MobileMeetingMinuteController;
+use App\Http\Controllers\Api\Mobile\MeetingRecordingController as MobileMeetingRecordingController;
 use App\Http\Controllers\Api\Mobile\MemoController as MobileMemoController;
 use App\Http\Controllers\Api\Mobile\MessageController as MobileMessageController;
 use App\Http\Controllers\Api\Mobile\ProjectController as MobileProjectController;
@@ -26,6 +28,7 @@ use App\Http\Controllers\Api\Mobile\QuestionController as MobileQuestionControll
 use App\Http\Controllers\Api\Mobile\ScheduleController as MobileScheduleController;
 use App\Http\Controllers\Api\Mobile\TaskController as MobileTaskController;
 use App\Http\Controllers\Api\Mobile\TeamController as MobileTeamController;
+use App\Http\Controllers\Api\Mobile\WeeklyReportController as MobileWeeklyReportController;
 use App\Http\Middleware\DesktopTokenMiddleware;
 use App\Http\Middleware\MobileTokenMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -269,5 +272,33 @@ Route::prefix('mobile')->group(function () {
 
         // 캘린더
         Route::get('calendar', [MobileCalendarController::class, 'index']);
+
+        // 이슈
+        Route::get   ('projects/{project}/issues',                 [MobileIssueController::class, 'index']);
+        Route::post  ('projects/{project}/issues',                 [MobileIssueController::class, 'store']);
+        Route::get   ('projects/{project}/issues/{issue}',         [MobileIssueController::class, 'show']);
+        Route::put   ('projects/{project}/issues/{issue}',         [MobileIssueController::class, 'update']);
+        Route::delete('projects/{project}/issues/{issue}',         [MobileIssueController::class, 'destroy']);
+        Route::post  ('projects/{project}/issues/{issue}/resolve', [MobileIssueController::class, 'resolve']);
+        Route::post  ('projects/{project}/issues/{issue}/comments',[MobileIssueController::class, 'storeComment']);
+
+        // 회의 녹음
+        Route::get   ('meeting-recordings',                       [MobileMeetingRecordingController::class, 'index']);
+        Route::post  ('meeting-recordings',                       [MobileMeetingRecordingController::class, 'store']);
+        Route::get   ('meeting-recordings/{recording}',           [MobileMeetingRecordingController::class, 'show']);
+        Route::patch ('meeting-recordings/{recording}',           [MobileMeetingRecordingController::class, 'update']);
+        Route::delete('meeting-recordings/{recording}',           [MobileMeetingRecordingController::class, 'destroy']);
+        Route::get   ('meeting-recordings/{recording}/download',  [MobileMeetingRecordingController::class, 'download']);
+        Route::post  ('meeting-recordings/{recording}/retry-transcription', [MobileMeetingRecordingController::class, 'retryTranscription']);
+        Route::patch ('meeting-recordings/{recording}/content',             [MobileMeetingRecordingController::class, 'updateContent']);
+        Route::post  ('meeting-recordings/{recording}/convert-to-minute',   [MobileMeetingRecordingController::class, 'convertToMinute']);
+
+        // 내 주간 보고
+        Route::get   ('weekly-reports',           [MobileWeeklyReportController::class, 'index']);
+        Route::get   ('weekly-reports/projects',  [MobileWeeklyReportController::class, 'projects']);
+        Route::post  ('weekly-reports',           [MobileWeeklyReportController::class, 'store']);
+        Route::get   ('weekly-reports/{report}',  [MobileWeeklyReportController::class, 'show']);
+        Route::put   ('weekly-reports/{report}',  [MobileWeeklyReportController::class, 'update']);
+        Route::delete('weekly-reports/{report}',  [MobileWeeklyReportController::class, 'destroy']);
     });
 });

@@ -39,6 +39,8 @@ return [
     'theme_teal'             => 'Teal',
     'theme_green'            => 'Green',
     'theme_amber'            => 'Amber',
+    'theme_gray'             => 'Gray',
+    'theme_white'            => 'White',
     'lang_ko'                => '한국어',
     'lang_en'                => 'English',
 
