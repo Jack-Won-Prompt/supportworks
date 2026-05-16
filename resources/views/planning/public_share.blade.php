@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
     <link rel="shortcut icon" href="{{ asset('favicon.png') }}" type="image/png">
-    <title>{{ $doc->title }} — 기획서 공유</title>
+    <title>{{ __('planning.share_page_title', ['title' => $doc->title]) }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; background: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -73,7 +73,7 @@
     <span class="topbar-title">{{ $doc->title }}</span>
     <span class="topbar-badge">
         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-        공유 링크
+        {{ __('planning.share_link_badge') }}
     </span>
 </div>
 
@@ -88,7 +88,7 @@
             <div class="doc-meta-project" style="margin-top:4px;">
                 {{ $doc->project->name }} · v{{ $doc->version }}
                 @if($doc->approved_at)
-                · 승인 {{ $doc->approved_at->format('Y.m.d') }}
+                · {{ __('planning.meta_approved_short', ['date' => $doc->approved_at->format('Y.m.d')]) }}
                 @endif
             </div>
         </div>
@@ -101,7 +101,7 @@
            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;font-size:12px;font-weight:600;color:#dc2626;border:1.5px solid #fca5a5;border-radius:8px;background:#fff;cursor:pointer;flex-shrink:0;font-family:inherit;"
            onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            PDF 다운로드
+            {{ __('planning.pdf_download') }}
         </button>
     </div>
 
@@ -110,11 +110,11 @@
     <div class="md-render" id="md-render"></div>
     @else
     <div class="md-render">
-        <p class="empty-msg">기획서 내용이 없습니다.</p>
+        <p class="empty-msg">{{ __('planning.empty_content') }}</p>
     </div>
     @endif
 
-    <div class="footer">SupportWorks · 이 링크는 프로젝트 멤버가 외부 공유용으로 생성했습니다.</div>
+    <div class="footer">{{ __('planning.share_footer') }}</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -131,10 +131,10 @@ async function downloadPlanningPdf() {
     const origHtml = btn.innerHTML;
     btn.disabled = true;
     btn.style.opacity = '0.65';
-    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin .8s linear infinite"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> 생성 중...';
+    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin .8s linear infinite"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> {{ __('planning.pdf_generating') }}';
     try {
         const resp = await fetch('{{ route("planning.public-print", $token) }}');
-        if (!resp.ok) throw new Error('서버 오류 (' + resp.status + ')');
+        if (!resp.ok) throw new Error(@json(__('planning.server_error')).replace(':status', resp.status));
         const blob = await resp.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -145,7 +145,7 @@ async function downloadPlanningPdf() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     } catch (err) {
-        alert('PDF 다운로드에 실패했습니다: ' + err.message);
+        alert(@json(__('planning.pdf_download_failed')).replace(':message', err.message));
     } finally {
         btn.disabled = false;
         btn.style.opacity = '1';

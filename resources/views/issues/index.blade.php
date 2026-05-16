@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', $project->name . ' - 이슈')
+@section('title', $project->name . ' - ' . __('issues.issues'))
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">이슈</span>
+<span style="color:#374151;font-weight:500;">{{ __('issues.breadcrumb_issue') }}</span>
 @endsection
 
 @section('header-actions')@endsection
@@ -15,10 +15,10 @@
 @section('page-actions')
     <a href="{{ route('projects.issues.export', $project) }}"
        style="padding:6px 13px;font-size:12px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;text-decoration:none;background:#fff;"
-       onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">CSV 내보내기</a>
+       onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('issues.csv_export') }}</a>
     <button onclick="openCreateModal()"
             style="padding:6px 14px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;"
-            onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">+ 새 이슈</button>
+            onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">{{ __('issues.new_issue') }}</button>
 @endsection
 
 @section('content')
@@ -29,13 +29,13 @@
       style="background:#fff;border:1px solid #f3f4f6;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
     <input type="hidden" name="view" value="{{ $view }}">
 
-    <input type="text" name="search" value="{{ request('search') }}" placeholder="제목 검색..."
+    <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('issues.search_placeholder') }}"
            style="flex:1;min-width:160px;padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;outline:none;"
            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
 
     <select name="status" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 상태</option>
+        <option value="">{{ __('issues.filter_all_status') }}</option>
         @foreach(\App\Models\Issue::STATUS_LABELS as $val => $label)
             <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
@@ -43,7 +43,7 @@
 
     <select name="priority" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 우선순위</option>
+        <option value="">{{ __('issues.filter_all_priority') }}</option>
         @foreach(\App\Models\Issue::PRIORITY_LABELS as $val => $label)
             <option value="{{ $val }}" {{ request('priority') === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
@@ -51,7 +51,7 @@
 
     <select name="category" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 분류</option>
+        <option value="">{{ __('issues.filter_all_category') }}</option>
         @foreach(\App\Models\Issue::CATEGORY_LABELS as $val => $label)
             <option value="{{ $val }}" {{ request('category') === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
@@ -59,7 +59,7 @@
 
     <select name="assignee" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 담당자</option>
+        <option value="">{{ __('issues.filter_all_assignee') }}</option>
         @foreach($members as $m)
             <option value="{{ $m->id }}" {{ request('assignee') == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
         @endforeach
@@ -67,17 +67,17 @@
 
     @if(request()->hasAny(['status','priority','category','assignee','search']))
     <a href="{{ route('projects.issues.index', $project) }}"
-       style="padding:6px 10px;font-size:12px;color:#6b7280;border:1.5px solid #e4e4e7;border-radius:7px;text-decoration:none;">초기화</a>
+       style="padding:6px 10px;font-size:12px;color:#6b7280;border:1.5px solid #e4e4e7;border-radius:7px;text-decoration:none;">{{ __('common.reset') }}</a>
     @endif
 
     {{-- 뷰 토글 --}}
     <div style="margin-left:auto;display:flex;gap:4px;">
         <a href="?{{ http_build_query(array_merge(request()->except(['view','page']), ['view'=>'table'])) }}"
            style="padding:5px 10px;font-size:12px;border-radius:6px;text-decoration:none;border:1.5px solid;
-                  {{ $view==='table' ? 'background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;font-weight:600;' : 'background:#fff;color:#6b7280;border-color:#e5e7eb;' }}">표</a>
+                  {{ $view==='table' ? 'background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;font-weight:600;' : 'background:#fff;color:#6b7280;border-color:#e5e7eb;' }}">{{ __('issues.view_table') }}</a>
         <a href="?{{ http_build_query(array_merge(request()->except(['view','page']), ['view'=>'kanban'])) }}"
            style="padding:5px 10px;font-size:12px;border-radius:6px;text-decoration:none;border:1.5px solid;
-                  {{ $view==='kanban' ? 'background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;font-weight:600;' : 'background:#fff;color:#6b7280;border-color:#e5e7eb;' }}">칸반</a>
+                  {{ $view==='kanban' ? 'background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;font-weight:600;' : 'background:#fff;color:#6b7280;border-color:#e5e7eb;' }}">{{ __('issues.view_kanban') }}</a>
     </div>
 </form>
 
@@ -110,7 +110,7 @@
                 </div>
             </a>
             @empty
-            <p style="font-size:11px;color:#d1d5db;text-align:center;padding:12px 0;">없음</p>
+            <p style="font-size:11px;color:#d1d5db;text-align:center;padding:12px 0;">{{ __('issues.kanban_empty') }}</p>
             @endforelse
         </div>
     </div>
@@ -122,12 +122,12 @@
 <div style="background:#fff;border:1px solid #f3f4f6;border-radius:10px;overflow:hidden;">
     <div style="display:grid;grid-template-columns:60px 80px 1fr 70px 80px 90px 90px;font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;padding:0 16px;background:#f9fafb;border-bottom:1px solid #f3f4f6;">
         <div style="padding:10px 0;">#</div>
-        <div style="padding:10px 0;">분류</div>
-        <div style="padding:10px 0;">제목</div>
-        <div style="padding:10px 0;">우선순위</div>
-        <div style="padding:10px 0;">상태</div>
-        <div style="padding:10px 0;">담당자</div>
-        <div style="padding:10px 0;">등록일</div>
+        <div style="padding:10px 0;">{{ __('issues.col_category') }}</div>
+        <div style="padding:10px 0;">{{ __('issues.col_title') }}</div>
+        <div style="padding:10px 0;">{{ __('issues.col_priority') }}</div>
+        <div style="padding:10px 0;">{{ __('issues.col_status') }}</div>
+        <div style="padding:10px 0;">{{ __('issues.col_assignee') }}</div>
+        <div style="padding:10px 0;">{{ __('issues.col_created_at') }}</div>
     </div>
 
     @forelse($issues as $issue)
@@ -144,7 +144,7 @@
                style="font-size:13px;font-weight:500;color:#111827;text-decoration:none;"
                onmouseover="this.style.color='var(--t600)'" onmouseout="this.style.color='#111827'">{{ $issue->title }}</a>
             @if($issue->linkedRequirement)
-            <span style="margin-left:6px;font-size:10px;color:#6b7280;background:#f3f4f6;padding:1px 6px;border-radius:4px;">요구사항 연결</span>
+            <span style="margin-left:6px;font-size:10px;color:#6b7280;background:#f3f4f6;padding:1px 6px;border-radius:4px;">{{ __('issues.requirement_linked') }}</span>
             @endif
             @if($issue->tags)
             <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">
@@ -165,7 +165,7 @@
     </div>
     @empty
     <div style="padding:48px;text-align:center;">
-        <p style="font-size:14px;color:#9ca3af;">등록된 이슈가 없습니다.</p>
+        <p style="font-size:14px;color:#9ca3af;">{{ __('issues.no_issues') }}</p>
     </div>
     @endforelse
 </div>
@@ -177,22 +177,22 @@
 <div id="create-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:14px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;">
         <button onclick="closeCreateModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;">✕</button>
-        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">새 이슈 등록</h3>
+        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">{{ __('issues.create_modal_title') }}</h3>
         <form id="create-form" onsubmit="submitCreate(event)">
             <div style="display:flex;flex-direction:column;gap:14px;">
                 <div>
-                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">제목 *</label>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_title') }}</label>
                     <input name="title" required style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
                 </div>
                 <div>
-                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">설명</label>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_description') }}</label>
                     <textarea name="description" rows="3" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;"
                               onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">분류 *</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_category') }}</label>
                         <select name="category" required style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             @foreach(\App\Models\Issue::CATEGORY_LABELS as $v => $l)
                             <option value="{{ $v }}">{{ $l }}</option>
@@ -200,7 +200,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">우선순위 *</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_priority') }}</label>
                         <select name="priority" required style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             @foreach(\App\Models\Issue::PRIORITY_LABELS as $v => $l)
                             <option value="{{ $v }}" {{ $v==='medium' ? 'selected' : '' }}>{{ $l }}</option>
@@ -210,7 +210,7 @@
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">심각도</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_severity') }}</label>
                         <select name="severity" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             <option value="">-</option>
                             @foreach(\App\Models\Issue::SEVERITY_LABELS as $v => $l)
@@ -219,7 +219,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">환경</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_environment') }}</label>
                         <select name="environment" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             <option value="">-</option>
                             @foreach(\App\Models\Issue::ENVIRONMENT_LABELS as $v => $l)
@@ -229,25 +229,25 @@
                     </div>
                 </div>
                 <div>
-                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">담당자</label>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_assignee') }}</label>
                     <select name="assignee_id" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
-                        <option value="">미배정</option>
+                        <option value="">{{ __('issues.unassigned') }}</option>
                         @foreach($members as $m)
                         <option value="{{ $m->id }}">{{ $m->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">태그 (쉼표 구분)</label>
-                    <input name="tags" placeholder="예: 긴급, 프론트엔드" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_tags') }}</label>
+                    <input name="tags" placeholder="{{ __('issues.tags_placeholder') }}" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
                 </div>
             </div>
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
                 <button type="button" onclick="closeCreateModal()"
-                        style="padding:8px 18px;font-size:13px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;">취소</button>
+                        style="padding:8px 18px;font-size:13px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button type="submit" id="create-btn"
-                        style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;">등록</button>
+                        style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;">{{ __('issues.create_submit') }}</button>
             </div>
         </form>
     </div>
@@ -265,7 +265,7 @@ function closeCreateModal() {
 async function submitCreate(e) {
     e.preventDefault();
     const btn = document.getElementById('create-btn');
-    btn.disabled = true; btn.textContent = '등록 중...';
+    btn.disabled = true; btn.textContent = @json(__('issues.creating'));
     const fd = new FormData(e.target);
     const res = await fetch('{{ route('projects.issues.store', $project) }}', {
         method: 'POST',
@@ -276,8 +276,8 @@ async function submitCreate(e) {
     if (data.ok) {
         window.location.href = '{{ route('projects.issues.index', $project) }}';
     } else {
-        alert('등록 실패');
-        btn.disabled = false; btn.textContent = '등록';
+        alert(@json(__('issues.create_failed')));
+        btn.disabled = false; btn.textContent = @json(__('issues.create_submit'));
     }
 }
 document.getElementById('create-modal').addEventListener('click', function(e) {

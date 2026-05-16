@@ -154,7 +154,7 @@
                         </div>
                         <div style="flex:1;min-width:0;">
                             <div class="pl-card-title">{{ $p->name }}</div>
-                            <div class="pl-card-meta">{{ $catLabel }}{{ $p->type ? ' · '.$p->type : '' }} · {{ $p->created_at->format('Y.m.d') }}</div>
+                            <div class="pl-card-meta">{{ $catLabel }}{{ $p->type ? ' · '.$p->type : '' }} · {{ $p->created_at->format(__('ai.php_date_short')) }}</div>
                         </div>
                     </div>
                     <div class="pl-card-prompt">{{ $p->final_prompt }}</div>

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', '웍스 Agent')
+@section('title', __('ai.ai_agent'))
 
 @push('styles')
 <style>

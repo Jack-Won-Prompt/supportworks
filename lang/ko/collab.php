@@ -35,4 +35,23 @@ return [
     'screen_share_declined' => '님이 화면 공유 요청을 거절했습니다.',
     'screen_popup_waiting'  => '상대방의 수락을 기다리는 중...',
     'screen_popup_blocked'  => '팝업이 차단되었습니다. 주소 표시줄에서 팝업을 허용한 뒤 다시 시도해 주세요.',
+
+    // 세션 만료 안내
+    'session_expired'       => '로그인 세션이 만료되었습니다.',
+    'csrf_expired'          => 'CSRF 토큰이 만료되었습니다.',
+    'reload_page'           => '페이지 새로고침 →',
+
+    // WebRTC 상태 메시지
+    'screen_no_signal'      => '⚠ 상대방으로부터 신호가 없습니다 — 상대방 콘솔을 확인하세요.',
+    'webrtc_sharer_ready'   => '① sharer 준비됨 — offer 생성 중...',
+    'webrtc_offer_sent'     => '② offer 전송됨 — answer 대기 중...',
+    'webrtc_ice_connecting' => '④ ICE 연결 중...',
+    'webrtc_connected'      => '⑤ 연결됨 — 영상 수신 대기 중...',
+    'webrtc_failed'         => ' — 다시 시도해 주세요.',
+    'webrtc_error'          => '오류: ',
+
+    // 화면 공유 팝업
+    'popup_title_suffix'    => ' 화면 공유',
+    'remote_control'        => '원격 조작',
+    'remote_control_toggle' => '원격 조작 모드 on/off',
 ];

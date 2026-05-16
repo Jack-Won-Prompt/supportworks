@@ -120,19 +120,19 @@
             <button onclick="openWriteModal()"
                 style="display:flex;align-items:center;gap:4px;padding:4px 11px;font-size:12px;font-weight:600;color:#4f46e5;border:1px solid #c7d2fe;border-radius:6px;background:#eef2ff;cursor:pointer;white-space:nowrap;"
                 onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>기획서 작성
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>{{ __('planning.write_doc') }}
             </button>
             <button onclick="openPlanEmailModal()"
                style="display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;color:#4f46e5;border:1px solid #c7d2fe;border-radius:6px;background:#eef2ff;cursor:pointer;white-space:nowrap;"
                onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>이메일 발송
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>{{ __('planning.send_email') }}
             </button>
             <button id="btn-plan-share" onclick="openShareModal()"
                style="display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;font-weight:600;border:1.5px solid {{ $doc->share_token ? '#059669' : '#d1d5db' }};border-radius:6px;background:{{ $doc->share_token ? '#d1fae5' : '#fff' }};color:{{ $doc->share_token ? '#065f46' : '#6b7280' }};cursor:pointer;white-space:nowrap;transition:all .15s;"
                data-active="{{ $doc->share_token ? 'true' : 'false' }}"
                data-url="{{ $doc->share_token ? route('planning.public-share', $doc->share_token) : '' }}">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                <span id="btn-plan-share-txt">{{ $doc->share_token ? '공유 중' : '링크 공유' }}</span>
+                <span id="btn-plan-share-txt">{{ $doc->share_token ? __('planning.sharing') : __('planning.share_link') }}</span>
             </button>
             <a href="{{ route('projects.planning.download', [$project, $doc]) }}"
                style="display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;color:#52525b;border:1px solid #e4e4e7;border-radius:6px;text-decoration:none;background:#fff;white-space:nowrap;"
@@ -143,7 +143,7 @@
             <button onclick="openResetModal()"
                style="display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;color:#b91c1c;border:1px solid #fca5a5;border-radius:6px;background:#fff;cursor:pointer;white-space:nowrap;"
                onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>리셋
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>{{ __('planning.reset') }}
             </button>
             @endif
         </div>
@@ -185,12 +185,12 @@
         <div style="padding:14px 20px;background:#f5f3ff;border-bottom:1px solid #ede9fe;">
             <div style="font-size:13px;font-weight:700;color:#5b21b6;margin-bottom:2px;display:flex;align-items:center;gap:6px;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                웍스 기획서 작성
+                {{ __('planning.ai_write_heading') }}
             </div>
-            <p style="font-size:12px;color:#7c3aed;margin:4px 0 0;">프로젝트 개요나 수정 요청을 입력하면 표준 기획서 구조로 생성·수정합니다.</p>
+            <p style="font-size:12px;color:#7c3aed;margin:4px 0 0;">{{ __('planning.ai_write_desc') }}</p>
             @if($doc->content)
             <div style="margin-top:8px;padding:6px 10px;background:#ede9fe;border-radius:6px;font-size:12px;color:#5b21b6;line-height:1.5;">
-                💡 기존 기획서 내용이 있습니다. <strong>내용 수정</strong> 모드를 사용하면 현재 기획서를 기반으로 보완합니다.
+                {!! __('planning.ai_write_existing_hint') !!}
             </div>
             @endif
         </div>
@@ -199,13 +199,13 @@
         <div style="padding:16px 20px;border-bottom:1px solid #f4f4f5;">
             <div style="display:flex;gap:8px;margin-bottom:12px;">
                 <button id="mode-btn-enhance" onclick="setWriteMode('enhance')"
-                    style="padding:5px 14px;font-size:12px;font-weight:600;border-radius:20px;border:1.5px solid {{ $doc->content ? '#7c3aed' : '#e4e4e7' }};background:{{ $doc->content ? '#7c3aed' : '#fff' }};color:{{ $doc->content ? '#fff' : '#6b7280' }};cursor:pointer;">내용 수정/보완</button>
+                    style="padding:5px 14px;font-size:12px;font-weight:600;border-radius:20px;border:1.5px solid {{ $doc->content ? '#7c3aed' : '#e4e4e7' }};background:{{ $doc->content ? '#7c3aed' : '#fff' }};color:{{ $doc->content ? '#fff' : '#6b7280' }};cursor:pointer;">{{ __('planning.mode_enhance') }}</button>
                 <button id="mode-btn-new" onclick="setWriteMode('new')"
-                    style="padding:5px 14px;font-size:12px;font-weight:600;border-radius:20px;border:1.5px solid {{ $doc->content ? '#e4e4e7' : '#7c3aed' }};background:{{ $doc->content ? '#fff' : '#7c3aed' }};color:{{ $doc->content ? '#6b7280' : '#fff' }};cursor:pointer;">신규 작성</button>
+                    style="padding:5px 14px;font-size:12px;font-weight:600;border-radius:20px;border:1.5px solid {{ $doc->content ? '#e4e4e7' : '#7c3aed' }};background:{{ $doc->content ? '#fff' : '#7c3aed' }};color:{{ $doc->content ? '#6b7280' : '#fff' }};cursor:pointer;">{{ __('planning.mode_new') }}</button>
             </div>
 
             <textarea id="ai-write-prompt" rows="5"
-                placeholder="{{ $doc->content ? '수정하거나 추가할 내용을 입력하세요. (예: 상세 일정 섹션 추가, 목표 구체화, 리스크 항목 보완)' : '프로젝트 개요, 목표, 주요 기능 등을 간략히 설명해 주세요. (예: 쇼핑몰 앱 개발, 회원관리·상품관리·주문관리 기능 포함)' }}"
+                placeholder="{{ $doc->content ? __('planning.ai_write_placeholder_enhance') : __('planning.ai_write_placeholder_new') }}"
                 style="width:100%;padding:10px 13px;border:1.5px solid #e4e4e7;border-radius:10px;font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6;font-family:inherit;"
                 onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
 
@@ -363,14 +363,14 @@
         <div style="padding:10px 14px;border-bottom:1px solid #f4f4f5;display:flex;align-items:center;justify-content:space-between;gap:8px;">
             <div style="display:flex;align-items:center;gap:6px;">
                 <svg width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                <span style="font-size:13px;font-weight:700;color:#18181b;">웍스 기능 추천</span>
+                <span style="font-size:13px;font-weight:700;color:#18181b;">{{ __('planning.feature_suggest') }}</span>
                 <span id="fs-count-badge" style="font-size:11px;font-weight:600;padding:1px 6px;border-radius:10px;background:#ede9fe;color:#7c3aed;">{{ $fsActiveCount }}/5</span>
             </div>
             <button id="btn-suggest" onclick="runSuggestFeatures()"
                 style="display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;color:#fff;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:6px;cursor:pointer;"
                 {{ $fsActiveCount >= 5 ? 'disabled style="opacity:.5;cursor:not-allowed;"' : '' }}>
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                {{ $fsActiveCount > 0 ? '다시 추천' : '추천하기' }}
+                {{ $fsActiveCount > 0 ? __('planning.re_suggest') : __('planning.do_suggest') }}
             </button>
         </div>
 
@@ -378,7 +378,7 @@
         <div id="fs-loading" style="display:none;padding:16px;text-align:center;">
             <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:#f5f3ff;border-radius:10px;border:1px solid #ddd6fe;">
                 <svg style="animation:spin 1s linear infinite;" width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span style="font-size:12px;font-weight:600;color:#5b21b6;">웍스 분석 중...</span>
+                <span style="font-size:12px;font-weight:600;color:#5b21b6;">{{ __('planning.ai_analyzing') }}</span>
             </div>
         </div>
 
@@ -386,12 +386,12 @@
         <div style="display:flex;border-bottom:1px solid #f4f4f5;padding:0 10px;gap:2px;">
             <button id="fs-tab-ai" onclick="switchFsTab('ai')"
                 style="padding:8px 10px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #7c3aed;color:#7c3aed;display:flex;align-items:center;gap:4px;">
-                웍스 추천
+                {{ __('planning.fs_tab_ai') }}
                 <span id="fs-tab-ai-cnt" style="padding:1px 5px;border-radius:8px;background:#ede9fe;color:#7c3aed;font-size:10px;">{{ $fsActive->count() }}</span>
             </button>
             <button id="fs-tab-applied" onclick="switchFsTab('applied')"
                 style="padding:8px 10px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#6b7280;display:flex;align-items:center;gap:4px;">
-                추천 반영
+                {{ __('planning.fs_tab_applied') }}
                 <span id="fs-tab-applied-cnt" style="padding:1px 5px;border-radius:8px;background:#f3f4f6;color:#6b7280;font-size:10px;">{{ $fsApplied->count() }}</span>
             </button>
         </div>
@@ -403,7 +403,7 @@
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;">
                     <span class="fs-title" style="font-size:13px;font-weight:700;color:#1e1b4b;flex:1;">{{ $fs->title }}</span>
                     <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;">
-                        <button onclick="deleteSuggestion({{ $fs->id }})" style="background:none;border:none;cursor:pointer;color:#d1d5db;padding:1px;" title="삭제">
+                        <button onclick="deleteSuggestion({{ $fs->id }})" style="background:none;border:none;cursor:pointer;color:#d1d5db;padding:1px;" title="{{ __('planning.delete') }}">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
@@ -415,11 +415,11 @@
                 <button onclick="applyFeature({{ $fs->id }}, '{{ addslashes($fs->title) }}')"
                     style="font-size:11px;font-weight:600;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:3px 10px;cursor:pointer;"
                     onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
-                    + 기획서에 반영
+                    {{ __('planning.apply_to_doc') }}
                 </button>
             </div>
             @empty
-            <div id="fs-ai-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">추천하기 버튼을 눌러 웍스 기능 추천을 받아보세요.</div>
+            <div id="fs-ai-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">{{ __('planning.fs_empty') }}</div>
             @endforelse
         </div>
 
@@ -430,20 +430,20 @@
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;">
                     <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
                         <span style="font-size:13px;font-weight:700;color:#065f46;flex:1;">{{ $fs->title }}</span>
-                        <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 6px;">✓ 반영됨</span>
+                        <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 6px;">{{ __('planning.applied_badge') }}</span>
                     </div>
                     <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
                         <button onclick="scrollToReqInDoc(this)"
                                 style="padding:3px 8px;font-size:11px;color:#059669;border:1px solid #a7f3d0;border-radius:5px;background:#f0fdf4;cursor:pointer;font-weight:600;"
-                                onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">위치</button>
-                        <button onclick="deleteSuggestion({{ $fs->id }})" style="background:#fff0f0;border:1px solid #fca5a5;color:#dc2626;font-size:11px;font-weight:600;cursor:pointer;padding:3px 8px;border-radius:5px;white-space:nowrap;" title="반영 취소">반영 취소</button>
+                                onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">{{ __('planning.location') }}</button>
+                        <button onclick="deleteSuggestion({{ $fs->id }})" style="background:#fff0f0;border:1px solid #fca5a5;color:#dc2626;font-size:11px;font-weight:600;cursor:pointer;padding:3px 8px;border-radius:5px;white-space:nowrap;" title="{{ __('planning.revert_apply') }}">{{ __('planning.revert_apply') }}</button>
                     </div>
                 </div>
                 <p style="font-size:12px;color:#374151;margin:0 0 4px;line-height:1.5;">{{ $fs->description }}</p>
-                <span style="font-size:11px;color:#6b7280;">반영 · {{ $fs->applied_at?->format('m.d H:i') }}</span>
+                <span style="font-size:11px;color:#6b7280;">{{ __('planning.applied_at', ['time' => $fs->applied_at?->format('m.d H:i')]) }}</span>
             </div>
             @empty
-            <div style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">아직 반영된 추천이 없습니다.</div>
+            <div style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">{{ __('planning.fs_applied_empty') }}</div>
             @endforelse
         </div>
 
@@ -459,7 +459,7 @@
     <div class="plan-card" id="pa-card" style="flex-shrink:0;">
         {{-- 헤더 --}}
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f4f4f5;">
-            <span style="font-size:13px;font-weight:700;color:#18181b;">기획서 적용 요구사항</span>
+            <span style="font-size:13px;font-weight:700;color:#18181b;">{{ __('planning.plan_applied_reqs') }}</span>
             <span style="font-size:12px;font-weight:600;color:#7c3aed;background:#f5f3ff;padding:2px 8px;border-radius:10px;">{{ $planApps->count() }}</span>
         </div>
 
@@ -467,12 +467,12 @@
         <div style="display:flex;border-bottom:1px solid #f4f4f5;padding:0 10px;gap:2px;">
             <button id="pa-tab-active" onclick="switchPaTab('active')"
                 style="padding:8px 10px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #7c3aed;color:#7c3aed;display:flex;align-items:center;gap:4px;">
-                적용 대상
+                {{ __('planning.pa_tab_active') }}
                 <span id="pa-tab-active-cnt" style="padding:1px 5px;border-radius:8px;background:#ede9fe;color:#7c3aed;font-size:10px;">{{ $planAppsActive->count() }}</span>
             </button>
             <button id="pa-tab-completed" onclick="switchPaTab('completed')"
                 style="padding:8px 10px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#6b7280;display:flex;align-items:center;gap:4px;">
-                적용 완료
+                {{ __('planning.pa_tab_completed') }}
                 <span id="pa-tab-completed-cnt" style="padding:1px 5px;border-radius:8px;background:#f3f4f6;color:#6b7280;font-size:10px;">{{ $planAppsCompleted->count() }}</span>
             </button>
         </div>
@@ -507,17 +507,17 @@
                 <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
                     <button onclick="event.stopPropagation(); scrollToReqInDoc(this)"
                             style="padding:2px 7px;font-size:10px;color:#059669;border:1px solid #a7f3d0;border-radius:5px;background:#f0fdf4;cursor:pointer;"
-                            onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">적용 대상</button>
+                            onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">{{ __('planning.pa_tab_active') }}</button>
                     <button onclick="event.stopPropagation(); openSchModal({{ json_encode(['title'=>$app->requirement?->title??'','description'=>$app->requirement?->description??'','assignee_id'=>$app->requirement?->assignee_id]) }}, this)"
                             style="padding:2px 7px;font-size:10px;color:#7c3aed;border:1px solid #ddd6fe;border-radius:5px;background:#faf5ff;cursor:pointer;"
-                            onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">일정+</button>
+                            onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">{{ __('planning.schedule_add') }}</button>
                     <button onclick="event.stopPropagation(); revertPlanApp({{ $app->id }}, this)"
                             style="padding:2px 7px;font-size:10px;color:#ef4444;border:1px solid #fecaca;border-radius:5px;background:#fff;cursor:pointer;"
-                            onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">취소</button>
+                            onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">{{ __('planning.cancel_apply') }}</button>
                 </div>
             </div>
             @empty
-            <div id="pa-active-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">적용 대상 요구사항이 없습니다.</div>
+            <div id="pa-active-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">{{ __('planning.pa_active_empty') }}</div>
             @endforelse
         </div>
 
@@ -548,21 +548,21 @@
                         <span style="font-size:12px;font-weight:600;color:#065f46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                             {{ $app->requirement?->title ?? '#' . $app->requirement_id }}
                         </span>
-                        <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 5px;">✓ 완료</span>
+                        <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 5px;">{{ __('planning.completed_badge') }}</span>
                     </div>
-                    <p style="font-size:11px;color:#6b7280;margin:2px 0 0;">완료 · {{ $app->completed_at?->format('m.d H:i') }}</p>
+                    <p style="font-size:11px;color:#6b7280;margin:2px 0 0;">{{ __('planning.completed_at', ['time' => $app->completed_at?->format('m.d H:i')]) }}</p>
                 </div>
                 <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
                     <button onclick="event.stopPropagation(); scrollToReqInDoc(this)"
                             style="padding:2px 7px;font-size:10px;color:#059669;border:1px solid #a7f3d0;border-radius:5px;background:#f0fdf4;cursor:pointer;"
-                            onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">위치</button>
+                            onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">{{ __('planning.location') }}</button>
                     <button onclick="event.stopPropagation(); completePlanApp({{ $app->id }}, this)"
                             style="padding:2px 7px;font-size:10px;color:#6b7280;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;"
-                            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">되돌리기</button>
+                            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('planning.revert') }}</button>
                 </div>
             </div>
             @empty
-            <div id="pa-completed-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">완료된 요구사항이 없습니다.</div>
+            <div id="pa-completed-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">{{ __('planning.pa_completed_empty') }}</div>
             @endforelse
         </div>
     </div>
@@ -609,32 +609,31 @@
             background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden;">
     <div style="padding:20px 24px 16px;border-bottom:1px solid #fee2e2;background:#fef2f2;display:flex;align-items:center;gap:10px;">
         <svg width="20" height="20" fill="none" stroke="#b91c1c" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-        <span style="font-size:15px;font-weight:700;color:#b91c1c;">기획서 초기화</span>
+        <span style="font-size:15px;font-weight:700;color:#b91c1c;">{{ __('planning.reset_modal_title') }}</span>
     </div>
     <div style="padding:20px 24px;">
         <p style="font-size:13px;color:#374151;line-height:1.6;margin:0 0 14px;">
-            기획서의 <strong>기본 내용(직접 작성한 본문)은 유지</strong>되며,<br>
-            아래 항목이 모두 초기화됩니다.
+            {!! __('planning.reset_modal_desc') !!}
         </p>
         <ul style="font-size:12px;color:#6b7280;line-height:1.9;margin:0 0 18px;padding-left:18px;">
-            <li>기획서에 반영된 요구사항 내용 (웍스 추천 포함)</li>
-            <li>요구사항 적용 상태 초기화</li>
-            <li>웍스 기능 추천 전체 삭제</li>
-            <li>기획서 적용 요구사항 내역 초기화</li>
-            <li>이 기획서 기반 일정(SubTask) 삭제</li>
-            <li>간트 차트 초기화</li>
+            <li>{{ __('planning.reset_item_reqs') }}</li>
+            <li>{{ __('planning.reset_item_req_status') }}</li>
+            <li>{{ __('planning.reset_item_features') }}</li>
+            <li>{{ __('planning.reset_item_applied_reqs') }}</li>
+            <li>{{ __('planning.reset_item_subtasks') }}</li>
+            <li>{{ __('planning.reset_item_gantt') }}</li>
         </ul>
-        <p style="font-size:12px;color:#dc2626;font-weight:600;margin:0 0 18px;">이 작업은 되돌릴 수 없습니다.</p>
+        <p style="font-size:12px;color:#dc2626;font-weight:600;margin:0 0 18px;">{{ __('planning.reset_irreversible') }}</p>
         <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button onclick="closeResetModal()"
                 style="padding:8px 18px;font-size:13px;color:#6b7280;border:1px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;"
                 onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">
-                취소
+                {{ __('common.cancel') }}
             </button>
             <button id="btn-reset-confirm" onclick="confirmReset()"
                 style="padding:8px 20px;font-size:13px;font-weight:700;color:#fff;background:#dc2626;border:none;border-radius:8px;cursor:pointer;"
                 onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
-                초기화 실행
+                {{ __('planning.reset_run') }}
             </button>
         </div>
     </div>
@@ -653,7 +652,7 @@
     {{-- 헤더 --}}
     <div style="display:flex;align-items:center;gap:10px;padding:0 20px;height:52px;border-bottom:1px solid #f4f4f5;background:#fff;">
         <svg width="16" height="16" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-        <span style="font-size:14px;font-weight:700;color:#111827;flex:1;">기획서 외부 공유</span>
+        <span style="font-size:14px;font-weight:700;color:#111827;flex:1;">{{ __('planning.share_modal_title') }}</span>
         <button onclick="closeShareModal()" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid #e4e4e7;border-radius:7px;background:#fff;cursor:pointer;color:#6b7280;font-size:16px;"
             onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">✕</button>
     </div>
@@ -664,14 +663,13 @@
         {{-- 비공유 상태 --}}
         <div id="share-state-off" style="display:none;">
             <p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:16px;">
-                외부 공유 링크를 생성하면 <strong>로그인 없이</strong> 누구나 기획서를 열람할 수 있습니다.<br>
-                링크는 언제든 취소할 수 있습니다.
+                {!! __('planning.share_off_desc') !!}
             </p>
             <button id="btn-share-create" onclick="createShareLink()"
                 style="width:100%;padding:10px;font-size:13px;font-weight:700;color:#fff;background:#059669;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"
                 onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                공유 링크 생성
+                {{ __('planning.create_share_link') }}
             </button>
         </div>
 
@@ -679,7 +677,7 @@
         <div id="share-state-on" style="display:none;">
             <div style="margin-bottom:14px;padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;display:flex;align-items:center;gap:6px;">
                 <svg width="13" height="13" fill="#059669" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" opacity=".15"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                <span style="font-size:12px;font-weight:600;color:#065f46;">공유 링크가 활성화되어 있습니다</span>
+                <span style="font-size:12px;font-weight:600;color:#065f46;">{{ __('planning.share_active') }}</span>
             </div>
 
             {{-- URL 입력+복사 --}}
@@ -690,7 +688,7 @@
                 <button onclick="copyShareLink()"
                     style="padding:8px 14px;font-size:12px;font-weight:700;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;"
                     onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
-                    링크 복사
+                    {{ __('planning.copy_link') }}
                 </button>
             </div>
 
@@ -700,23 +698,23 @@
                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;font-size:12px;color:#4f46e5;border:1px solid #c7d2fe;border-radius:8px;text-decoration:none;background:#eef2ff;"
                    onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    미리보기
+                    {{ __('planning.open_preview') }}
                 </a>
                 <a id="share-pdf-link" href="#" target="_blank"
                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;font-size:12px;font-weight:600;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;text-decoration:none;background:#fff;"
                    onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    PDF 다운로드
+                    {{ __('planning.pdf_download') }}
                 </a>
             </div>
 
             {{-- 공유 취소 --}}
             <div style="border-top:1px solid #f4f4f5;padding-top:14px;">
-                <p style="font-size:12px;color:#9ca3af;margin-bottom:10px;">공유를 취소하면 기존 링크로 접근이 불가능해집니다.</p>
+                <p style="font-size:12px;color:#9ca3af;margin-bottom:10px;">{{ __('planning.share_cancel_desc') }}</p>
                 <button onclick="cancelShareLink()"
                     style="width:100%;padding:8px;font-size:12px;font-weight:600;color:#dc2626;background:#fff;border:1.5px solid #fca5a5;border-radius:8px;cursor:pointer;"
                     onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
-                    공유 링크 취소
+                    {{ __('planning.cancel_share_link') }}
                 </button>
             </div>
         </div>
@@ -739,16 +737,16 @@
     {{-- 헤더 --}}
     <div style="display:flex;align-items:center;gap:10px;padding:0 20px;height:54px;border-bottom:1px solid #e4e4e7;flex-shrink:0;background:#fff;border-radius:16px 16px 0 0;">
         <svg width="16" height="16" fill="none" stroke="#4f46e5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        <span style="font-size:14px;font-weight:700;color:#1e1b4b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">기획서 작성 — {{ $doc->title }}</span>
+        <span style="font-size:14px;font-weight:700;color:#1e1b4b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ __('planning.write_modal_title', ['title' => $doc->title]) }}</span>
 
         {{-- 뷰 모드 토글 --}}
         <div style="display:flex;gap:2px;padding:3px;background:#f4f4f5;border-radius:8px;flex-shrink:0;">
             <button id="wm-btn-split"   onclick="setWriteView('split')"
-                style="padding:4px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:#4f46e5;color:#fff;transition:all .1s;">나누기</button>
+                style="padding:4px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:#4f46e5;color:#fff;transition:all .1s;">{{ __('planning.view_split') }}</button>
             <button id="wm-btn-editor"  onclick="setWriteView('editor')"
-                style="padding:4px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#6b7280;transition:all .1s;">편집</button>
+                style="padding:4px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#6b7280;transition:all .1s;">{{ __('planning.view_editor') }}</button>
             <button id="wm-btn-preview" onclick="setWriteView('preview')"
-                style="padding:4px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#6b7280;transition:all .1s;">미리보기</button>
+                style="padding:4px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#6b7280;transition:all .1s;">{{ __('planning.view_preview') }}</button>
         </div>
 
         <span style="font-size:11px;color:#9ca3af;flex-shrink:0;">Ctrl+S</span>
@@ -756,32 +754,32 @@
         <button id="wm-save-btn" onclick="saveWriteModal()"
             style="display:flex;align-items:center;gap:5px;padding:7px 18px;font-size:13px;font-weight:700;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;flex-shrink:0;white-space:nowrap;"
             onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{{ __('common.save') }}
         </button>
         <button onclick="closeWriteModal()"
             style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;color:#6b7280;font-size:16px;flex-shrink:0;"
-            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'" title="닫기 (ESC)">✕</button>
+            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'" title="{{ __('planning.close_esc') }}">✕</button>
     </div>
 
     {{-- 툴바 --}}
     <div style="display:flex;align-items:center;gap:2px;padding:6px 14px;border-bottom:1px solid #f0f0f0;background:#fafafa;flex-shrink:0;flex-wrap:wrap;row-gap:4px;">
-        <button onclick="wmTool('# ','')"              title="제목 1"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#1e1b4b;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H1</button>
-        <button onclick="wmTool('## ','')"             title="제목 2"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H2</button>
-        <button onclick="wmTool('### ','')"            title="제목 3"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#6b7280;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H3</button>
+        <button onclick="wmTool('# ','')"              title="{{ __('planning.tool_h1') }}"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#1e1b4b;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H1</button>
+        <button onclick="wmTool('## ','')"             title="{{ __('planning.tool_h2') }}"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H2</button>
+        <button onclick="wmTool('### ','')"            title="{{ __('planning.tool_h3') }}"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#6b7280;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H3</button>
         <div style="width:1px;height:18px;background:#e4e4e7;margin:0 3px;"></div>
-        <button onclick="wmTool('**','**')"            title="굵게 (선택 후 클릭)" style="padding:3px 8px;font-size:12px;font-weight:800;color:#111827;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;font-family:serif;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">B</button>
-        <button onclick="wmTool('*','*')"              title="기울임"      style="padding:3px 8px;font-size:12px;font-weight:600;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;font-style:italic;font-family:serif;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">I</button>
-        <button onclick="wmTool('~~','~~')"            title="취소선"      style="padding:3px 8px;font-size:11px;font-weight:600;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;text-decoration:line-through;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">S</button>
+        <button onclick="wmTool('**','**')"            title="{{ __('planning.tool_bold') }}" style="padding:3px 8px;font-size:12px;font-weight:800;color:#111827;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;font-family:serif;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">B</button>
+        <button onclick="wmTool('*','*')"              title="{{ __('planning.tool_italic') }}"      style="padding:3px 8px;font-size:12px;font-weight:600;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;font-style:italic;font-family:serif;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">I</button>
+        <button onclick="wmTool('~~','~~')"            title="{{ __('planning.tool_strike') }}"      style="padding:3px 8px;font-size:11px;font-weight:600;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;text-decoration:line-through;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">S</button>
         <div style="width:1px;height:18px;background:#e4e4e7;margin:0 3px;"></div>
-        <button onclick="wmTool('[','](url)')"         title="링크"        style="padding:3px 8px;font-size:11px;color:#4f46e5;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">링크</button>
-        <button onclick="wmTool('\`','\`')"            title="인라인 코드" style="padding:3px 8px;font-size:11px;color:#0369a1;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">code</button>
-        <button onclick="wmTool('> ','')"              title="인용문"      style="padding:3px 8px;font-size:11px;color:#6d28d9;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">" 인용</button>
+        <button onclick="wmTool('[','](url)')"         title="{{ __('planning.tool_link') }}"        style="padding:3px 8px;font-size:11px;color:#4f46e5;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('planning.tool_link_label') }}</button>
+        <button onclick="wmTool('\`','\`')"            title="{{ __('planning.tool_code') }}" style="padding:3px 8px;font-size:11px;color:#0369a1;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">code</button>
+        <button onclick="wmTool('> ','')"              title="{{ __('planning.tool_quote') }}"      style="padding:3px 8px;font-size:11px;color:#6d28d9;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('planning.tool_quote_label') }}</button>
         <div style="width:1px;height:18px;background:#e4e4e7;margin:0 3px;"></div>
-        <button onclick="wmTool('- ','')"              title="글머리 기호" style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">• 목록</button>
-        <button onclick="wmTool('1. ','')"             title="번호 목록"   style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">1. 번호</button>
-        <button onclick="wmInsertTable()"              title="표 삽입"     style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">⊞ 표</button>
-        <button onclick="wmTool('\n\n---\n\n','')"     title="수평선"      style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">― 구분선</button>
-        <div style="margin-left:auto;font-size:11px;color:#9ca3af;white-space:nowrap;" id="wm-charcount">0자</div>
+        <button onclick="wmTool('- ','')"              title="{{ __('planning.tool_ul') }}" style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('planning.tool_ul_label') }}</button>
+        <button onclick="wmTool('1. ','')"             title="{{ __('planning.tool_ol') }}"   style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('planning.tool_ol_label') }}</button>
+        <button onclick="wmInsertTable()"              title="{{ __('planning.tool_table') }}"     style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('planning.tool_table_label') }}</button>
+        <button onclick="wmTool('\n\n---\n\n','')"     title="{{ __('planning.tool_hr') }}"      style="padding:3px 8px;font-size:11px;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('planning.tool_hr_label') }}</button>
+        <div style="margin-left:auto;font-size:11px;color:#9ca3af;white-space:nowrap;" id="wm-charcount">{{ __('planning.char_count', ['count' => 0]) }}</div>
     </div>
 
     {{-- 본문 영역 --}}
@@ -789,16 +787,16 @@
 
         {{-- 에디터 --}}
         <div id="wm-editor-pane" style="display:flex;flex-direction:column;border-right:1px solid #e8e8ed;min-height:0;background:#fff;">
-            <div style="padding:6px 16px 4px;background:#f8f8fb;border-bottom:1px solid #f0f0f0;font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.05em;">MARKDOWN 편집</div>
+            <div style="padding:6px 16px 4px;background:#f8f8fb;border-bottom:1px solid #f0f0f0;font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.05em;">{{ __('planning.markdown_edit') }}</div>
             <textarea id="wm-editor"
                 oninput="wmUpdatePreview();wmUpdateCount();"
                 style="flex:1;border:none;outline:none;resize:none;font-size:14px;font-family:'D2Coding','Consolas','Courier New',monospace;line-height:1.8;padding:20px 24px;color:#1f2937;background:#fff;box-sizing:border-box;"
-                placeholder="# 기획서 제목&#10;&#10;## 1. 개요&#10;&#10;프로젝트의 배경과 목적을 작성합니다.&#10;&#10;## 2. 주요 기능"></textarea>
+                placeholder="{{ __('planning.editor_placeholder') }}"></textarea>
         </div>
 
         {{-- 미리보기 --}}
         <div id="wm-preview-pane" style="display:flex;flex-direction:column;overflow:hidden;background:#fafbff;">
-            <div style="padding:6px 16px 4px;background:#f0f4ff;border-bottom:1px solid #e0e7ff;font-size:10px;font-weight:600;color:#6366f1;letter-spacing:.05em;">미리보기</div>
+            <div style="padding:6px 16px 4px;background:#f0f4ff;border-bottom:1px solid #e0e7ff;font-size:10px;font-weight:600;color:#6366f1;letter-spacing:.05em;">{{ __('planning.view_preview') }}</div>
             <div style="overflow-y:auto;flex:1;">
                 <div id="wm-preview" class="md-render" style="padding:20px 28px;"></div>
             </div>
@@ -807,7 +805,7 @@
 
     {{-- 하단 상태바 --}}
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 20px;border-top:1px solid #f0f0f0;background:#fafafa;flex-shrink:0;font-size:11px;color:#9ca3af;border-radius:0 0 16px 16px;">
-        <span>Markdown 형식으로 저장됩니다 · 오버레이 클릭 또는 ESC로 닫기</span>
+        <span>{{ __('planning.write_modal_footer') }}</span>
         <span id="wm-status" style="font-weight:600;"></span>
     </div>
 </div>
@@ -858,6 +856,90 @@ const _PLAN_STR = {
     fileSelect:      '{{ __("work.planning_file_select") }}',
     aiWriteStart:    '{{ __("work.planning_ai_write_start") }}',
     aiIntegrate:     '{{ __("work.planning_ai_integrate") }}',
+};
+
+const _PLAN_T = {
+    previewEmpty:        @json(__('planning.preview_empty')),
+    saving:              @json(__('planning.saving')),
+    saveComplete:        @json(__('planning.save_complete')),
+    saveFailed:          @json(__('planning.save_failed')),
+    toolSampleText:      @json(__('planning.tool_sample_text')),
+    tableTemplate:       @json(__('planning.table_template')),
+    charCount:           @json(__('planning.char_count')),
+    featureSuggested:    @json(__('planning.feature_suggested')),
+    featuresSuggested:   @json(__('planning.features_suggested')),
+    suggestError:        @json(__('planning.suggest_error')),
+    confirmRevertFeature:@json(__('planning.confirm_revert_feature')),
+    revertFeatureFailed: @json(__('planning.revert_feature_failed')),
+    featureReverted:     @json(__('planning.feature_reverted')),
+    revertFeatureError:  @json(__('planning.revert_feature_error')),
+    applyFeatureFailed:  @json(__('planning.apply_feature_failed')),
+    featureApplied:      @json(__('planning.feature_applied')),
+    applyFeatureError:   @json(__('planning.apply_feature_error')),
+    fsEmpty:             @json(__('planning.fs_empty')),
+    appliedBadge:        @json(__('planning.applied_badge')),
+    revertApply:         @json(__('planning.revert_apply')),
+    location:            @json(__('planning.location')),
+    appliedAt:           @json(__('planning.applied_at')),
+    noLocationInfo:      @json(__('planning.no_location_info')),
+    locationNotFound:    @json(__('planning.location_not_found')),
+    processError:        @json(__('planning.process_error')),
+    movedToCompleted:    @json(__('planning.moved_to_completed')),
+    movedToActive:       @json(__('planning.moved_to_active')),
+    completedBadge:      @json(__('planning.completed_badge')),
+    completedAt:         @json(__('planning.completed_at')),
+    revert:              @json(__('planning.revert')),
+    paTabActive:         @json(__('planning.pa_tab_active')),
+    cancelApply:         @json(__('planning.cancel_apply')),
+    paActiveEmpty:       @json(__('planning.pa_active_empty')),
+    paCompletedEmpty:    @json(__('planning.pa_completed_empty')),
+    paModalCompleted:    @json(__('planning.pa_modal_completed')),
+    paModalApplying:     @json(__('planning.pa_modal_applying')),
+    paMetaAppliedBy:     @json(__('planning.pa_meta_applied_by')),
+    paMetaApplied:       @json(__('planning.pa_meta_applied')),
+    paMetaCompleted:     @json(__('planning.pa_meta_completed')),
+    confirmRevertPa:     @json(__('planning.confirm_revert_pa')),
+    revertPaFailed:      @json(__('planning.revert_pa_failed')),
+    paReverted:          @json(__('planning.pa_reverted')),
+    paRevertBtn:         @json(__('planning.pa_revert_btn')),
+    paCloseBtn:          @json(__('planning.pa_close_btn')),
+    schLoading:          @json(__('planning.sch_loading')),
+    schSelectGroup:      @json(__('planning.sch_select_group')),
+    schNoGroups:         @json(__('planning.sch_no_groups')),
+    schGroupLoadFailed:  @json(__('planning.sch_group_load_failed')),
+    schNoAssignee:       @json(__('planning.sch_no_assignee')),
+    schSelectGroupAlert: @json(__('planning.sch_select_group_alert')),
+    schEnterTitle:       @json(__('planning.sch_enter_title')),
+    schSelectStart:      @json(__('planning.sch_select_start')),
+    schSelectEnd:        @json(__('planning.sch_select_end')),
+    schRegistering:      @json(__('planning.sch_registering')),
+    schRegisterFailed:   @json(__('planning.sch_register_failed')),
+    schRegistered:       @json(__('planning.sch_registered')),
+    schRegister:         @json(__('planning.sch_register')),
+    schAdded:            @json(__('planning.sch_added')),
+    emailNoContent:      @json(__('planning.email_no_content')),
+    emailSelectRecipient:@json(__('planning.email_select_recipient_alert')),
+    emailSending:        @json(__('planning.email_sending')),
+    emailSend:           @json(__('planning.email_send')),
+    emailSendFailed:     @json(__('planning.email_send_failed')),
+    emailSent:           @json(__('planning.email_sent')),
+    emailNetworkError:   @json(__('planning.email_network_error')),
+    shareCreateFailed:   @json(__('planning.share_create_failed')),
+    shareError:          @json(__('planning.share_error')),
+    shareLinkCopied:     @json(__('planning.share_link_copied')),
+    confirmCancelShare:  @json(__('planning.confirm_cancel_share')),
+    shareCancelFailed:   @json(__('planning.share_cancel_failed')),
+    shareCancelled:      @json(__('planning.share_cancelled')),
+    creating:            @json(__('planning.creating')),
+    createShareLink:     @json(__('planning.create_share_link')),
+    sharing:             @json(__('planning.sharing')),
+    shareLink:           @json(__('planning.share_link')),
+    resetting:           @json(__('planning.resetting')),
+    resetRun:            @json(__('planning.reset_run')),
+    resetFailed:         @json(__('planning.reset_failed')),
+    autoApplyMessage:    @json(__('planning.auto_apply_message')),
+    applyToDoc:          @json(__('planning.apply_to_doc')),
+    delete:              @json(__('planning.delete')),
 };
 
 let activeInputType = 'text';
@@ -1238,7 +1320,7 @@ async function closeResetModal() {
 async function confirmReset() {
     const btn = document.getElementById('btn-reset-confirm');
     btn.disabled    = true;
-    btn.textContent = '초기화 중...';
+    btn.textContent = _PLAN_T.resetting;
 
     try {
         const res = await fetch(RESET_URL, {
@@ -1251,8 +1333,8 @@ async function confirmReset() {
         location.reload();
     } catch (e) {
         btn.disabled    = false;
-        btn.textContent = '초기화 실행';
-        alert('초기화 중 오류가 발생했습니다: ' + e.message);
+        btn.textContent = _PLAN_T.resetRun;
+        alert(_PLAN_T.resetFailed.replace(':message', e.message));
     }
 }
 document.addEventListener('keydown', e => {
@@ -1290,7 +1372,7 @@ async function closeShareModal() {
 async function createShareLink() {
     const createBtn = document.getElementById('btn-share-create');
     createBtn.disabled    = true;
-    createBtn.textContent = '생성 중...';
+    createBtn.textContent = _PLAN_T.creating;
 
     fetch(TOGGLE_SHARE_URL, {
         method: 'POST',
@@ -1298,7 +1380,7 @@ async function createShareLink() {
     })
     .then(r => r.json())
     .then(d => {
-        if (!d.ok) { showStatus('링크 생성 실패', '#dc2626'); return; }
+        if (!d.ok) { showStatus(_PLAN_T.shareCreateFailed, '#dc2626'); return; }
 
         const btn = document.getElementById('btn-plan-share');
         btn.dataset.active   = 'true';
@@ -1306,7 +1388,7 @@ async function createShareLink() {
         btn.style.border     = '1.5px solid #059669';
         btn.style.background = '#d1fae5';
         btn.style.color      = '#065f46';
-        document.getElementById('btn-plan-share-txt').textContent = '공유 중';
+        document.getElementById('btn-plan-share-txt').textContent = _PLAN_T.sharing;
 
         document.getElementById('share-url-input').value = d.url;
         document.getElementById('share-open-link').href  = d.url;
@@ -1314,20 +1396,20 @@ async function createShareLink() {
         document.getElementById('share-state-off').style.display = 'none';
         document.getElementById('share-state-on').style.display  = 'block';
     })
-    .catch(() => showStatus('오류가 발생했습니다', '#dc2626'))
+    .catch(() => showStatus(_PLAN_T.shareError, '#dc2626'))
     .finally(() => {
         createBtn.disabled    = false;
-        createBtn.innerHTML   = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg> 공유 링크 생성';
+        createBtn.innerHTML   = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg> ' + _PLAN_T.createShareLink;
     });
 }
 
 async function copyShareLink() {
     const url = document.getElementById('share-url-input').value;
-    navigator.clipboard.writeText(url).then(() => showStatus('링크가 복사되었습니다', '#059669'));
+    navigator.clipboard.writeText(url).then(() => showStatus(_PLAN_T.shareLinkCopied, '#059669'));
 }
 
 async function cancelShareLink() {
-    if (!await __confirm('공유 링크를 취소하면 기존 링크로 접근이 불가능해집니다. 계속하시겠습니까?')) return;
+    if (!await __confirm(_PLAN_T.confirmCancelShare)) return;
 
     fetch(TOGGLE_SHARE_URL, {
         method: 'POST',
@@ -1335,7 +1417,7 @@ async function cancelShareLink() {
     })
     .then(r => r.json())
     .then(d => {
-        if (!d.ok) { showStatus('취소 실패', '#dc2626'); return; }
+        if (!d.ok) { showStatus(_PLAN_T.shareCancelFailed, '#dc2626'); return; }
 
         const btn = document.getElementById('btn-plan-share');
         btn.dataset.active   = 'false';
@@ -1343,12 +1425,12 @@ async function cancelShareLink() {
         btn.style.border     = '1.5px solid #d1d5db';
         btn.style.background = '#fff';
         btn.style.color      = '#6b7280';
-        document.getElementById('btn-plan-share-txt').textContent = '링크 공유';
+        document.getElementById('btn-plan-share-txt').textContent = _PLAN_T.shareLink;
 
         closeShareModal();
-        showStatus('공유 링크가 취소되었습니다', '#6b7280');
+        showStatus(_PLAN_T.shareCancelled, '#6b7280');
     })
-    .catch(() => showStatus('오류가 발생했습니다', '#dc2626'));
+    .catch(() => showStatus(_PLAN_T.shareError, '#dc2626'));
 }
 
 // Ctrl+S 저장
@@ -1427,19 +1509,19 @@ async function wmUpdatePreview() {
     const pv = document.getElementById('wm-preview');
     pv.innerHTML = content
         ? _sanitizeHtml(marked.parse(content))
-        : '<p style="color:#9ca3af;font-style:italic;">내용을 입력하면 미리보기가 표시됩니다.</p>';
+        : `<p style="color:#9ca3af;font-style:italic;">${_PLAN_T.previewEmpty}</p>`;
 }
 
 async function wmUpdateCount() {
     const len = document.getElementById('wm-editor').value.length;
-    document.getElementById('wm-charcount').textContent = len.toLocaleString() + '자';
+    document.getElementById('wm-charcount').textContent = _PLAN_T.charCount.replace(':count', len.toLocaleString());
 }
 
 async function wmTool(before, after) {
     const ta = document.getElementById('wm-editor');
     const s  = ta.selectionStart;
     const e  = ta.selectionEnd;
-    const sel = ta.value.substring(s, e) || '텍스트';
+    const sel = ta.value.substring(s, e) || _PLAN_T.toolSampleText;
     const ins = before + sel + after;
     ta.value = ta.value.substring(0, s) + ins + ta.value.substring(e);
     ta.focus();
@@ -1449,7 +1531,7 @@ async function wmTool(before, after) {
 }
 
 async function wmInsertTable() {
-    const tpl = '\n| 제목1 | 제목2 | 제목3 |\n|---|---|---|\n| 내용 | 내용 | 내용 |\n| 내용 | 내용 | 내용 |\n';
+    const tpl = _PLAN_T.tableTemplate;
     const ta  = document.getElementById('wm-editor');
     const s   = ta.selectionStart;
     ta.value  = ta.value.substring(0, s) + tpl + ta.value.substring(ta.selectionEnd);
@@ -1464,7 +1546,7 @@ async function saveWriteModal() {
     const btn     = document.getElementById('wm-save-btn');
     const status  = document.getElementById('wm-status');
     btn.disabled  = true;
-    btn.textContent = '저장 중...';
+    btn.textContent = _PLAN_T.saving;
     status.textContent = '';
 
     try {
@@ -1477,21 +1559,21 @@ async function saveWriteModal() {
         if (data.ok) {
             document.getElementById('doc-editor').value = content;
             updatePreview();
-            status.textContent = '저장 완료 ✓';
+            status.textContent = _PLAN_T.saveComplete;
             status.style.color = '#059669';
             showStatus(_PLAN_STR.toastSaved, '#059669');
             setTimeout(() => { status.textContent = ''; }, 3000);
         } else {
-            status.textContent = '저장 실패';
+            status.textContent = _PLAN_T.saveFailed;
             status.style.color = '#dc2626';
         }
     } catch {
-        status.textContent = '저장 실패';
+        status.textContent = _PLAN_T.saveFailed;
         status.style.color = '#dc2626';
     }
 
     btn.disabled = false;
-    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>저장';
+    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' + @json(__('common.save'));
 }
 
 updatePreview();
@@ -1531,7 +1613,7 @@ async function _renderSuggestionItem(item) {
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
             <span class="fs-title" style="font-size:13px;font-weight:700;color:#1e1b4b;flex:1;">${escHtml(item.title)}</span>
             <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;">
-                <button onclick="deleteSuggestion(${item.id})" style="background:none;border:none;cursor:pointer;color:#d1d5db;padding:1px;" title="삭제">
+                <button onclick="deleteSuggestion(${item.id})" style="background:none;border:none;cursor:pointer;color:#d1d5db;padding:1px;" title="${escAttr(_PLAN_T.delete)}">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -1541,7 +1623,7 @@ async function _renderSuggestionItem(item) {
         <button onclick="applyFeature(${item.id}, '${escAttr(item.title)}')"
             style="font-size:11px;font-weight:600;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:3px 10px;cursor:pointer;"
             onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
-            + 기획서에 반영
+            ${escHtml(_PLAN_T.applyToDoc)}
         </button>`;
     aiPanel.prepend(el);
 
@@ -1591,7 +1673,7 @@ async function runSuggestFeatures() {
                 if (data.item) {
                     _renderSuggestionItem(data.item);
                     addedCount++;
-                    showStatus('✓ "' + data.item.title + '" 추천됨', '#7c3aed');
+                    showStatus(_PLAN_T.featureSuggested.replace(':title', data.item.title), '#7c3aed');
                 }
 
                 if (data.done) {
@@ -1599,26 +1681,26 @@ async function runSuggestFeatures() {
                     badge.textContent = data.total + '/5';
                     btn.disabled = data.total >= 5;
                     btn.style.opacity = data.total >= 5 ? '.5' : '';
-                    if (addedCount > 0) showStatus('✓ ' + addedCount + '개 기능 추천 완료', '#7c3aed');
+                    if (addedCount > 0) showStatus(_PLAN_T.featuresSuggested.replace(':count', addedCount), '#7c3aed');
                 }
             }
         }
     } catch (e) {
         loading.style.display = 'none';
         btn.disabled = false;
-        showStatus('추천 중 오류가 발생했습니다', '#ef4444');
+        showStatus(_PLAN_T.suggestError, '#ef4444');
     }
 }
 
 async function deleteSuggestion(id) {
-    if (!await __confirm('반영을 취소하면 기획서 내용과 요구사항에서 제거됩니다.\n미시작 일정 Task도 함께 삭제됩니다.\n※ 진행중이거나 완료된 Task가 있으면 취소가 차단됩니다.\n\n계속하시겠습니까?')) return;
+    if (!await __confirm(_PLAN_T.confirmRevertFeature)) return;
     fetch(FEAT_DEL_BASE + '/' + id, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
     })
     .then(r => r.json())
     .then(d => {
-        if (!d.ok) { showStatus(d.error || '반영 취소 실패', '#ef4444'); return; }
+        if (!d.ok) { showStatus(d.error || _PLAN_T.revertFeatureFailed, '#ef4444'); return; }
 
         if (d.content != null) {
             const editor = document.getElementById('doc-editor');
@@ -1641,12 +1723,12 @@ async function deleteSuggestion(id) {
 
         const aiPanel = document.getElementById('fs-panel-ai');
         if (!aiPanel.querySelector('.fs-ai-item')) {
-            aiPanel.innerHTML = '<div id="fs-ai-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">추천하기 버튼을 눌러 웍스 기능 추천을 받아보세요.</div>';
+            aiPanel.innerHTML = `<div id="fs-ai-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">${escHtml(_PLAN_T.fsEmpty)}</div>`;
         }
 
-        showStatus('취소되었습니다. 요구사항 및 미진행 Task가 제거되었습니다.', '#f59e0b');
+        showStatus(_PLAN_T.featureReverted, '#f59e0b');
     })
-    .catch(() => showStatus('반영 취소 중 오류가 발생했습니다', '#ef4444'));
+    .catch(() => showStatus(_PLAN_T.revertFeatureError, '#ef4444'));
 }
 
 async function applyFeature(id, title) {
@@ -1656,7 +1738,7 @@ async function applyFeature(id, title) {
     })
     .then(r => r.json())
     .then(d => {
-        if (!d.ok) { showStatus(d.error || '반영 실패', '#ef4444'); return; }
+        if (!d.ok) { showStatus(d.error || _PLAN_T.applyFeatureFailed, '#ef4444'); return; }
 
         const editor = document.getElementById('doc-editor');
         if (editor) { editor.value = d.content; updatePreview(); }
@@ -1673,7 +1755,7 @@ async function applyFeature(id, title) {
             // Show empty state if 웍스 panel is now empty
             const aiPanel = document.getElementById('fs-panel-ai');
             if (!aiPanel.querySelector('.fs-ai-item')) {
-                aiPanel.innerHTML = '<div id="fs-ai-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">추천하기 버튼을 눌러 웍스 기능 추천을 받아보세요.</div>';
+                aiPanel.innerHTML = `<div id="fs-ai-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">${escHtml(_PLAN_T.fsEmpty)}</div>`;
             }
 
             // Add to Applied panel
@@ -1690,22 +1772,22 @@ async function applyFeature(id, title) {
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;">
                     <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
                         <span style="font-size:13px;font-weight:700;color:#065f46;flex:1;">${escHtml(itemTitle)}</span>
-                        <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 6px;">✓ 반영됨</span>
+                        <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 6px;">${escHtml(_PLAN_T.appliedBadge)}</span>
                     </div>
                     <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
-                        <button onclick="scrollToReqInDoc(this)" style="padding:3px 8px;font-size:11px;color:#059669;border:1px solid #a7f3d0;border-radius:5px;background:#f0fdf4;cursor:pointer;font-weight:600;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">위치</button>
-                        <button onclick="deleteSuggestion(${id})" style="background:#fff0f0;border:1px solid #fca5a5;color:#dc2626;font-size:11px;font-weight:600;cursor:pointer;padding:3px 8px;border-radius:5px;white-space:nowrap;" title="반영 취소">반영 취소</button>
+                        <button onclick="scrollToReqInDoc(this)" style="padding:3px 8px;font-size:11px;color:#059669;border:1px solid #a7f3d0;border-radius:5px;background:#f0fdf4;cursor:pointer;font-weight:600;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">${escHtml(_PLAN_T.location)}</button>
+                        <button onclick="deleteSuggestion(${id})" style="background:#fff0f0;border:1px solid #fca5a5;color:#dc2626;font-size:11px;font-weight:600;cursor:pointer;padding:3px 8px;border-radius:5px;white-space:nowrap;" title="${escAttr(_PLAN_T.revertApply)}">${escHtml(_PLAN_T.revertApply)}</button>
                     </div>
                 </div>
                 <p style="font-size:12px;color:#374151;margin:0 0 4px;line-height:1.5;">${escHtml(itemDesc)}</p>
-                <span style="font-size:11px;color:#6b7280;">반영 · ${nowStr}</span>`;
+                <span style="font-size:11px;color:#6b7280;">${escHtml(_PLAN_T.appliedAt.replace(':time', nowStr))}</span>`;
             apPanel.prepend(apEl);
             _fsUpdateCnt('fs-tab-applied-cnt', 1);
         }
 
-        showStatus('✓ "' + title + '" 기능이 기획서에 반영되었습니다', '#059669');
+        showStatus(_PLAN_T.featureApplied.replace(':title', title), '#059669');
     })
-    .catch(() => showStatus('반영 중 오류가 발생했습니다', '#ef4444'));
+    .catch(() => showStatus(_PLAN_T.applyFeatureError, '#ef4444'));
 }
 
 function escHtml(str) {
@@ -1735,7 +1817,7 @@ async function switchPaTab(tab) {
 
 async function scrollToReqInDoc(btn) {
     const heading = btn.closest('[data-heading]')?.dataset.heading?.trim();
-    if (!heading) { showStatus('적용 위치 정보가 없습니다', '#ef4444'); return; }
+    if (!heading) { showStatus(_PLAN_T.noLocationInfo, '#ef4444'); return; }
 
     // 보기 탭으로 전환
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1758,7 +1840,7 @@ async function scrollToReqInDoc(btn) {
         }
     }
 
-    if (!targetEl) { showStatus('문서에서 적용 위치를 찾을 수 없습니다', '#ef4444'); return; }
+    if (!targetEl) { showStatus(_PLAN_T.locationNotFound, '#ef4444'); return; }
 
     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     targetEl.classList.remove('req-highlight');
@@ -1772,7 +1854,7 @@ async function completePlanApp(appId, btn) {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json' },
     });
-    if (!res.ok) { showStatus('처리 중 오류가 발생했습니다', '#ef4444'); return; }
+    if (!res.ok) { showStatus(_PLAN_T.processError, '#ef4444'); return; }
     const d = await res.json();
 
     const item           = document.getElementById('pa-' + appId);
@@ -1805,17 +1887,17 @@ async function completePlanApp(appId, btn) {
             <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:12px;font-weight:600;color:#065f46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(titleText)}</span>
-                    <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 5px;">✓ 완료</span>
+                    <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 5px;">${escHtml(_PLAN_T.completedBadge)}</span>
                 </div>
-                <p style="font-size:11px;color:#6b7280;margin:2px 0 0;">완료 · ${nowStr}</p>
+                <p style="font-size:11px;color:#6b7280;margin:2px 0 0;">${escHtml(_PLAN_T.completedAt.replace(':time', nowStr))}</p>
             </div>
             <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
                 <button onclick="event.stopPropagation(); scrollToReqInDoc(this)"
                         style="padding:2px 7px;font-size:10px;color:#059669;border:1px solid #a7f3d0;border-radius:5px;background:#f0fdf4;cursor:pointer;"
-                        onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">위치</button>
+                        onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">${escHtml(_PLAN_T.location)}</button>
                 <button onclick="event.stopPropagation(); completePlanApp(${appId}, this)"
                         style="padding:2px 7px;font-size:10px;color:#6b7280;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;"
-                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">되돌리기</button>
+                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">${escHtml(_PLAN_T.revert)}</button>
             </div>`;
         newEl.addEventListener('mouseenter', () => { newEl.style.background = '#dcfce7'; });
         newEl.addEventListener('mouseleave', () => { newEl.style.background = '#f0fdf4'; });
@@ -1827,9 +1909,9 @@ async function completePlanApp(appId, btn) {
         activeCnt.textContent    = Math.max(0, (parseInt(activeCnt.textContent)   || 0) - 1);
         completedCnt.textContent = (parseInt(completedCnt.textContent) || 0) + 1;
         if (!activePanel.querySelector('[id^="pa-"]')) {
-            activePanel.innerHTML = '<div id="pa-active-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">적용 대상 요구사항이 없습니다.</div>';
+            activePanel.innerHTML = `<div id="pa-active-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">${escHtml(_PLAN_T.paActiveEmpty)}</div>`;
         }
-        showStatus('✓ 적용 완료로 이동했습니다', '#059669');
+        showStatus(_PLAN_T.movedToCompleted, '#059669');
     } else {
         // 적용 완료 → 적용 대상
         const oldData   = JSON.parse(item.dataset.app || '{}');
@@ -1852,10 +1934,10 @@ async function completePlanApp(appId, btn) {
             <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
                 <button onclick="event.stopPropagation(); scrollToReqInDoc(this)"
                         style="padding:2px 7px;font-size:10px;color:#059669;border:1px solid #a7f3d0;border-radius:5px;background:#f0fdf4;cursor:pointer;"
-                        onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">적용 대상</button>
+                        onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">${escHtml(_PLAN_T.paTabActive)}</button>
                 <button onclick="event.stopPropagation(); revertPlanApp(${appId}, this)"
                         style="padding:2px 7px;font-size:10px;color:#ef4444;border:1px solid #fecaca;border-radius:5px;background:#fff;cursor:pointer;"
-                        onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">취소</button>
+                        onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">${escHtml(_PLAN_T.cancelApply)}</button>
             </div>`;
         newEl.addEventListener('mouseenter', () => { newEl.style.background = '#f5f3ff'; });
         newEl.addEventListener('mouseleave', () => { newEl.style.background = ''; });
@@ -1867,9 +1949,9 @@ async function completePlanApp(appId, btn) {
         completedCnt.textContent = Math.max(0, (parseInt(completedCnt.textContent) || 0) - 1);
         activeCnt.textContent    = (parseInt(activeCnt.textContent) || 0) + 1;
         if (!completedPanel.querySelector('[id^="pa-"]')) {
-            completedPanel.innerHTML = '<div id="pa-completed-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">완료된 요구사항이 없습니다.</div>';
+            completedPanel.innerHTML = `<div id="pa-completed-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">${escHtml(_PLAN_T.paCompletedEmpty)}</div>`;
         }
-        showStatus('적용 대상으로 이동했습니다', '#6b7280');
+        showStatus(_PLAN_T.movedToActive, '#6b7280');
     }
 }
 
@@ -1881,13 +1963,13 @@ async function openPaDetailModal(data) {
 
     const badge = document.getElementById('pa-modal-badge');
     badge.innerHTML = isCompleted
-        ? '<span style="font-size:11px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:2px 7px;">✓ 완료</span>'
-        : '<span style="font-size:11px;font-weight:600;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:4px;padding:2px 7px;">적용 중</span>';
+        ? `<span style="font-size:11px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:2px 7px;">${escHtml(_PLAN_T.paModalCompleted)}</span>`
+        : `<span style="font-size:11px;font-weight:600;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:4px;padding:2px 7px;">${escHtml(_PLAN_T.paModalApplying)}</span>`;
 
     let meta = '';
-    if (data.applied_by) meta += '적용자: ' + data.applied_by;
-    if (data.applied_at) meta += (meta ? ' · ' : '') + '적용: ' + data.applied_at;
-    if (isCompleted && data.completed_at) meta += ' · 완료: ' + data.completed_at;
+    if (data.applied_by) meta += _PLAN_T.paMetaAppliedBy.replace(':name', data.applied_by);
+    if (data.applied_at) meta += (meta ? ' · ' : '') + _PLAN_T.paMetaApplied.replace(':time', data.applied_at);
+    if (isCompleted && data.completed_at) meta += ' · ' + _PLAN_T.paMetaCompleted.replace(':time', data.completed_at);
     document.getElementById('pa-modal-meta').textContent = meta;
 
     const descWrap = document.getElementById('pa-modal-desc-wrap');
@@ -1913,11 +1995,11 @@ async function openPaDetailModal(data) {
     if (isCompleted) {
         html += `<button onclick="closePaDetailModal(); completePlanApp(${data.id}, null)"
             style="padding:7px 14px;font-size:12px;font-weight:600;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
-            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">되돌리기</button>`;
+            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">${escHtml(_PLAN_T.paRevertBtn)}</button>`;
     }
     html += `<button onclick="closePaDetailModal()"
         style="padding:7px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;"
-        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">닫기</button>`;
+        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">${escHtml(_PLAN_T.paCloseBtn)}</button>`;
     actEl.innerHTML = html;
 
     document.getElementById('pa-detail-overlay').style.display = 'block';
@@ -1934,13 +2016,13 @@ async function closePaDetailModal() {
 }
 
 async function revertPlanApp(appId, btn) {
-    if (!await __confirm('이 요구사항 적용을 취소하시겠습니까?\n기획서 내용에서 제거되고, 미시작 일정 Task도 함께 삭제됩니다.\n※ 진행중이거나 완료된 Task가 있으면 취소가 차단됩니다.')) return;
+    if (!await __confirm(_PLAN_T.confirmRevertPa)) return;
     const res = await fetch(PA_BASE + '/' + appId, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json' },
     });
     const d = await res.json();
-    if (!d.ok) { showStatus(d.error || '취소 실패', '#ef4444'); return; }
+    if (!d.ok) { showStatus(d.error || _PLAN_T.revertPaFailed, '#ef4444'); return; }
 
     if (d.content != null) {
         const editor = document.getElementById('doc-editor');
@@ -1954,10 +2036,10 @@ async function revertPlanApp(appId, btn) {
         if (cnt) cnt.textContent = Math.max(0, (parseInt(cnt.textContent) || 0) - 1);
         const panel = document.getElementById('pa-panel-active');
         if (!panel.querySelector('[id^="pa-"]')) {
-            panel.innerHTML = '<div id="pa-active-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">적용 대상 요구사항이 없습니다.</div>';
+            panel.innerHTML = `<div id="pa-active-empty" style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">${escHtml(_PLAN_T.paActiveEmpty)}</div>`;
         }
     }
-    showStatus('기획서 적용이 취소되었습니다. 미시작 Task도 제거되었습니다.', '#f59e0b');
+    showStatus(_PLAN_T.paReverted, '#f59e0b');
 }
 
 // ── 간트 일정 등록 모달 ────────────────────────────────────────
@@ -1976,13 +2058,13 @@ async function openSchModal(req, btn) {
     document.getElementById('sch-error').style.display = 'none';
 
     const assigneeSel = document.getElementById('sch-assignee');
-    assigneeSel.innerHTML = '<option value="">없음</option>' +
+    assigneeSel.innerHTML = `<option value="">${escHtml(_PLAN_T.schNoAssignee)}</option>` +
         SCH_MEMBERS.map(m =>
             `<option value="${m.id}" ${m.id == req.assignee_id ? 'selected' : ''}>${m.name}</option>`
         ).join('');
 
     const groupSel = document.getElementById('sch-group');
-    groupSel.innerHTML = '<option value="">불러오는 중...</option>';
+    groupSel.innerHTML = `<option value="">${escHtml(_PLAN_T.schLoading)}</option>`;
     try {
         const res  = await fetch(SCH_TREE, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
         const tree = await res.json();
@@ -1996,10 +2078,10 @@ async function openSchModal(req, btn) {
             opts.push(`<option value="${g.id}">${g.title}</option>`);
         });
         groupSel.innerHTML = opts.length
-            ? '<option value="">그룹 선택...</option>' + opts.join('')
-            : '<option value="">등록된 작업 그룹이 없습니다</option>';
+            ? `<option value="">${escHtml(_PLAN_T.schSelectGroup)}</option>` + opts.join('')
+            : `<option value="">${escHtml(_PLAN_T.schNoGroups)}</option>`;
     } catch {
-        groupSel.innerHTML = '<option value="">그룹 로드 실패</option>';
+        groupSel.innerHTML = `<option value="">${escHtml(_PLAN_T.schGroupLoadFailed)}</option>`;
     }
 
     document.getElementById('sch-overlay').style.display = 'block';
@@ -2019,13 +2101,13 @@ async function submitSchModal() {
     const errEl   = document.getElementById('sch-error');
     errEl.style.display = 'none';
 
-    if (!groupId) { errEl.textContent = '작업 그룹을 선택해주세요.'; errEl.style.display = 'block'; return; }
-    if (!title)   { errEl.textContent = '제목을 입력해주세요.';       errEl.style.display = 'block'; return; }
-    if (!start)   { errEl.textContent = '시작일을 선택해주세요.';     errEl.style.display = 'block'; return; }
-    if (!end)     { errEl.textContent = '종료일을 선택해주세요.';     errEl.style.display = 'block'; return; }
+    if (!groupId) { errEl.textContent = _PLAN_T.schSelectGroupAlert; errEl.style.display = 'block'; return; }
+    if (!title)   { errEl.textContent = _PLAN_T.schEnterTitle;       errEl.style.display = 'block'; return; }
+    if (!start)   { errEl.textContent = _PLAN_T.schSelectStart;      errEl.style.display = 'block'; return; }
+    if (!end)     { errEl.textContent = _PLAN_T.schSelectEnd;        errEl.style.display = 'block'; return; }
 
     const btn = document.getElementById('sch-submit-btn');
-    btn.disabled = true; btn.textContent = '등록 중...';
+    btn.disabled = true; btn.textContent = _PLAN_T.schRegistering;
 
     try {
         const body = new FormData();
@@ -2039,12 +2121,12 @@ async function submitSchModal() {
 
         const res  = await fetch(SCH_STORE, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }, body });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || '등록에 실패했습니다.');
+        if (!res.ok) throw new Error(data.message || _PLAN_T.schRegisterFailed);
 
         closeSchModal();
-        alert('일정에 등록되었습니다.');
+        alert(_PLAN_T.schAdded);
         if (_schBtn) {
-            _schBtn.textContent = '일정등록';
+            _schBtn.textContent = _PLAN_T.schRegistered;
             _schBtn.style.cssText = 'padding:2px 7px;font-size:10px;color:#16a34a;border:1px solid #bbf7d0;border-radius:5px;background:#f0fdf4;cursor:default;';
             _schBtn.disabled = true;
             _schBtn.onmouseover = null;
@@ -2054,7 +2136,7 @@ async function submitSchModal() {
         errEl.textContent = e.message;
         errEl.style.display = 'block';
     }
-    btn.disabled = false; btn.textContent = '일정 등록';
+    btn.disabled = false; btn.textContent = _PLAN_T.schRegister;
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSchModal(); });
@@ -2063,7 +2145,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSchModa
 async function openPlanEmailModal() {
     const hasContent = @json((bool)$doc->content);
     if (!hasContent) {
-        showStatus('기획서 내용이 없습니다.', '#ef4444');
+        showStatus(_PLAN_T.emailNoContent, '#ef4444');
         return;
     }
     document.getElementById('plan-email-error').style.display = 'none';
@@ -2079,14 +2161,14 @@ async function closePlanEmailModal() {
 async function submitPlanEmail() {
     const checkedBoxes = document.querySelectorAll('input[name="plan_email_recipients[]"]:checked');
     if (checkedBoxes.length === 0) {
-        document.getElementById('plan-email-error').textContent = '수신자를 1명 이상 선택하세요.';
+        document.getElementById('plan-email-error').textContent = _PLAN_T.emailSelectRecipient;
         document.getElementById('plan-email-error').style.display = 'block';
         return;
     }
     const recipients = [...checkedBoxes].map(cb => cb.value);
     const message    = document.getElementById('plan-email-message').value.trim();
     const btn        = document.getElementById('plan-email-submit');
-    btn.disabled = true; btn.textContent = '발송 중...';
+    btn.disabled = true; btn.textContent = _PLAN_T.emailSending;
     document.getElementById('plan-email-error').style.display = 'none';
     try {
         const res  = await fetch(SEND_EMAIL_URL, {
@@ -2097,16 +2179,16 @@ async function submitPlanEmail() {
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.ok) {
             closePlanEmailModal();
-            showStatus('이메일이 발송되었습니다', '#059669');
+            showStatus(_PLAN_T.emailSent, '#059669');
         } else {
-            document.getElementById('plan-email-error').textContent = data.message || '발송 실패';
+            document.getElementById('plan-email-error').textContent = data.message || _PLAN_T.emailSendFailed;
             document.getElementById('plan-email-error').style.display = 'block';
         }
     } catch {
-        document.getElementById('plan-email-error').textContent = '네트워크 오류가 발생했습니다.';
+        document.getElementById('plan-email-error').textContent = _PLAN_T.emailNetworkError;
         document.getElementById('plan-email-error').style.display = 'block';
     } finally {
-        btn.disabled = false; btn.textContent = '발송';
+        btn.disabled = false; btn.textContent = _PLAN_T.emailSend;
     }
 }
 </script>
@@ -2116,22 +2198,22 @@ async function submitPlanEmail() {
 <div id="plan-email-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10201;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);width:500px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;">
     <div style="padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
         <div>
-            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">기획서 공유</p>
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">이메일로 기획서 발송</h3>
+            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ __('planning.email_modal_eyebrow') }}</p>
+            <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('planning.email_modal_title') }}</h3>
         </div>
         <button onclick="closePlanEmailModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
     </div>
     <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
         {{-- 문서 정보 --}}
         <div style="padding:10px 14px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;">
-            <p style="font-size:11px;color:#7c3aed;font-weight:600;margin:0 0 2px;">첨부 문서</p>
+            <p style="font-size:11px;color:#7c3aed;font-weight:600;margin:0 0 2px;">{{ __('planning.email_attached_doc') }}</p>
             <p style="font-size:13px;font-weight:700;color:#1e1b4b;margin:0;">{{ $doc->title }}</p>
             <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">{{ $project->name }} · v{{ $doc->version }}</p>
         </div>
 
         {{-- 수신자 선택 --}}
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">수신자 선택 <span style="color:#ef4444;">*</span></label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">{{ __('planning.email_select_recipients') }} <span style="color:#ef4444;">*</span></label>
             <div style="border:1.5px solid #e4e4e7;border-radius:8px;max-height:160px;overflow-y:auto;">
                 @forelse($members as $m)
                 <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid #f4f4f5;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
@@ -2143,15 +2225,15 @@ async function submitPlanEmail() {
                     </div>
                 </label>
                 @empty
-                <div style="padding:12px;font-size:12px;color:#9ca3af;text-align:center;">프로젝트 멤버가 없습니다.</div>
+                <div style="padding:12px;font-size:12px;color:#9ca3af;text-align:center;">{{ __('planning.email_no_members') }}</div>
                 @endforelse
             </div>
         </div>
 
         {{-- 추가 메시지 --}}
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">추가 메시지 (선택)</label>
-            <textarea id="plan-email-message" rows="3" placeholder="수신자에게 전달할 메시지를 입력하세요."
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.email_extra_message') }}</label>
+            <textarea id="plan-email-message" rows="3" placeholder="{{ __('planning.email_message_placeholder') }}"
                 style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;resize:none;outline:none;box-sizing:border-box;font-family:inherit;"
                 onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
         </div>
@@ -2161,10 +2243,10 @@ async function submitPlanEmail() {
         <div style="display:flex;gap:8px;padding-top:4px;">
             <button id="plan-email-submit" onclick="submitPlanEmail()"
                 style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:9px;cursor:pointer;"
-                onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">발송</button>
+                onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">{{ __('planning.email_send') }}</button>
             <button onclick="closePlanEmailModal()"
                 style="padding:9px 20px;font-size:13px;font-weight:600;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;"
-                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         </div>
     </div>
 </div>
@@ -2173,51 +2255,51 @@ async function submitPlanEmail() {
 <div id="sch-overlay" onclick="closeSchModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10300;"></div>
 <div id="sch-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10301;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);width:480px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;">
     <div style="padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
-        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">간트 일정에 추가</h3>
+        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('planning.sch_modal_title') }}</h3>
         <button onclick="closeSchModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:2px;line-height:1;">&times;</button>
     </div>
     <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
         <div id="sch-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:13px;color:#dc2626;"></div>
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">작업 그룹 <span style="color:#ef4444;">*</span></label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.sch_group') }} <span style="color:#ef4444;">*</span></label>
             <select id="sch-group" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
-                <option value="">불러오는 중...</option>
+                <option value="">{{ __('planning.sch_loading') }}</option>
             </select>
         </div>
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">제목 <span style="color:#ef4444;">*</span></label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.sch_title') }} <span style="color:#ef4444;">*</span></label>
             <input id="sch-title" type="text" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                    onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">시작일 <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.sch_start') }} <span style="color:#ef4444;">*</span></label>
                 <input id="sch-start" type="date" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                        onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">종료일 <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.sch_end') }} <span style="color:#ef4444;">*</span></label>
                 <input id="sch-end" type="date" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                        onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
             </div>
         </div>
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">담당자</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.sch_assignee') }}</label>
             <select id="sch-assignee" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
-                <option value="">없음</option>
+                <option value="">{{ __('planning.sch_no_assignee') }}</option>
             </select>
         </div>
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">설명</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.sch_desc') }}</label>
             <textarea id="sch-desc" rows="3" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;"
                       onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
         </div>
     </div>
     <div style="padding:0 22px 20px;display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="closeSchModal()" style="padding:8px 18px;font-size:13px;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
-                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         <button onclick="submitSchModal()" id="sch-submit-btn" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;"
-                onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">일정 등록</button>
+                onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">{{ __('planning.sch_register') }}</button>
     </div>
 </div>
 
@@ -2245,11 +2327,11 @@ async function submitPlanEmail() {
     {{-- 본문 --}}
     <div style="overflow-y:auto;flex:1;padding:16px 20px;">
         <div id="pa-modal-desc-wrap" style="display:none;margin-bottom:14px;">
-            <div style="font-size:11px;font-weight:600;color:#374151;letter-spacing:.05em;margin-bottom:5px;">요구사항 내용</div>
+            <div style="font-size:11px;font-weight:600;color:#374151;letter-spacing:.05em;margin-bottom:5px;">{{ __('planning.pa_req_content') }}</div>
             <div id="pa-modal-desc" style="font-size:13px;color:#374151;line-height:1.6;white-space:pre-wrap;padding:10px 14px;background:#f8fafc;border:1px solid #e4e4e7;border-radius:8px;"></div>
         </div>
         <div id="pa-modal-md-wrap" style="display:none;">
-            <div style="font-size:11px;font-weight:600;color:#7c3aed;letter-spacing:.05em;margin-bottom:6px;">기획서 삽입 내용</div>
+            <div style="font-size:11px;font-weight:600;color:#7c3aed;letter-spacing:.05em;margin-bottom:6px;">{{ __('planning.pa_inserted_content') }}</div>
             <div id="pa-modal-md" class="md-render"
                  style="border:1px solid #e4e4e7;border-radius:8px;padding:12px 16px;font-size:12px;background:#fafafa;max-height:260px;overflow-y:auto;"></div>
         </div>
@@ -2269,7 +2351,7 @@ async function submitPlanEmail() {
     switchPaTab('active');
 
     // 2) 완료 메시지 표시
-    showStatus('요구사항이 기획서에 반영되었습니다. 웍스 기능 추천을 실행합니다.', '#059669');
+    showStatus(_PLAN_T.autoApplyMessage, '#059669');
 
     // 3) 웍스 기능 추천 카드로 스크롤 후 자동 실행
     setTimeout(async function () {

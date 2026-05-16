@@ -158,6 +158,61 @@
             </div>
             @endif
 
+            {{-- 회의 녹음 (모바일 앱 업로드) --}}
+            @if($meetingMinute->recordings->count())
+            <div style="background:#fff;border:1px solid #e0e7ff;border-radius:14px;padding:22px;margin-bottom:16px;">
+                <div style="font-size:13px;font-weight:700;color:#1e1b2e;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+                    <span style="width:4px;height:16px;background:#4f46e5;border-radius:2px;display:inline-block;"></span>
+                    {{ __('maintenance.recordings_section', ['count' => $meetingMinute->recordings->count()]) }}
+                </div>
+
+                @foreach($meetingMinute->recordings as $rec)
+                <div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:{{ !$loop->last ? '12px' : '0' }};">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">🎙️</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ $rec->title ?? __('maintenance.recording_default') }}</div>
+                            <div style="font-size:11px;color:#94a3b8;">
+                                {{ $rec->formatted_duration }} · {{ $rec->formatted_size }}
+                                @if($rec->user) · {{ $rec->user->name }} @endif
+                                @if($rec->recorded_at) · {{ \Carbon\Carbon::parse($rec->recorded_at)->format('Y-m-d H:i') }} @endif
+                            </div>
+                        </div>
+                        <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;
+                            @if($rec->status==='completed') background:#d1fae5;color:#059669;
+                            @elseif($rec->status==='failed') background:#fee2e2;color:#dc2626;
+                            @elseif(in_array($rec->status,['transcribing','summarizing'])) background:#fef3c7;color:#d97706;
+                            @else background:#e0e7ff;color:#4f46e5; @endif">
+                            {{ $rec->status_label }}
+                        </span>
+                    </div>
+
+                    {{-- 오디오 플레이어 --}}
+                    <audio controls preload="none" style="width:100%;height:38px;margin-bottom:8px;">
+                        <source src="{{ route('meeting-minutes.recordings.audio', [$meetingMinute, $rec]) }}" type="{{ $rec->mime_type ?? 'audio/mp4' }}">
+                    </audio>
+
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <a href="{{ route('meeting-minutes.recordings.download', [$meetingMinute, $rec]) }}"
+                           style="font-size:11px;font-weight:600;color:#4f46e5;text-decoration:none;padding:5px 10px;border:1px solid #c7d2fe;border-radius:8px;">
+                            ⬇ {{ __('maintenance.recording_download') }}
+                        </a>
+                        @if($rec->transcription)
+                        <button type="button" onclick="var e=document.getElementById('rec-tr-{{ $rec->id }}');e.style.display=e.style.display==='none'?'block':'none';"
+                           style="font-size:11px;font-weight:600;color:#0284c7;background:none;cursor:pointer;padding:5px 10px;border:1px solid #bae6fd;border-radius:8px;">
+                            📝 {{ __('maintenance.recording_transcript') }}
+                        </button>
+                        @endif
+                    </div>
+
+                    @if($rec->transcription)
+                    <div id="rec-tr-{{ $rec->id }}" style="display:none;margin-top:10px;padding:12px;background:#f8fafc;border-radius:10px;font-size:12px;color:#374151;line-height:1.7;white-space:pre-wrap;max-height:280px;overflow-y:auto;">{{ $rec->transcription }}</div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+            @endif
+
             {{-- 메모 섹션 --}}
             <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:22px;margin-bottom:16px;">
                 <div style="font-size:13px;font-weight:700;color:#1e1b2e;margin-bottom:16px;display:flex;align-items:center;gap:6px;">

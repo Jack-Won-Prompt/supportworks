@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '웍스 분석 결과')
+@section('title', __('requirements.analysis_result'))
 
 @section('content')
 <div class="max-w-4xl mx-auto px-4 py-8">
@@ -9,8 +9,8 @@
     <div class="mb-6 flex items-center justify-between">
         <div>
             <a href="{{ route('projects.requirements.index', $project) }}"
-               class="text-sm text-blue-600 hover:underline">&larr; 요구사항 목록</a>
-            <h1 class="text-xl font-bold mt-1">웍스 분석 결과</h1>
+               class="text-sm text-blue-600 hover:underline">&larr; {{ __('requirements.requirements_list') }}</a>
+            <h1 class="text-xl font-bold mt-1">{{ __('requirements.analysis_result') }}</h1>
         </div>
         <div class="flex items-center gap-2">
             @php
@@ -39,15 +39,15 @@
     {{-- 메타 정보 --}}
     <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
         <div>
-            <p class="text-xs text-gray-400 mb-0.5">생성자</p>
+            <p class="text-xs text-gray-400 mb-0.5">{{ __('requirements.analysis_creator') }}</p>
             <p class="font-medium">{{ $session->createdBy?->name ?? '-' }}</p>
         </div>
         <div>
-            <p class="text-xs text-gray-400 mb-0.5">모델</p>
+            <p class="text-xs text-gray-400 mb-0.5">{{ __('requirements.analysis_model') }}</p>
             <p class="font-medium">{{ $session->llm_model ?? '-' }}</p>
         </div>
         <div>
-            <p class="text-xs text-gray-400 mb-0.5">토큰</p>
+            <p class="text-xs text-gray-400 mb-0.5">{{ __('requirements.analysis_token') }}</p>
             <p class="font-medium">
                 @if($session->token_input)
                     {{ number_format($session->token_input + $session->token_output) }}
@@ -57,7 +57,7 @@
             </p>
         </div>
         <div>
-            <p class="text-xs text-gray-400 mb-0.5">예상 비용</p>
+            <p class="text-xs text-gray-400 mb-0.5">{{ __('requirements.analysis_cost') }}</p>
             <p class="font-medium">{{ $session->cost_estimated ? '$' . $session->cost_estimated : '-' }}</p>
         </div>
     </div>
@@ -65,7 +65,7 @@
     {{-- 업로드 파일 목록 --}}
     @if($session->files->isNotEmpty())
     <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-        <p class="text-sm font-medium text-gray-700 mb-2">업로드 파일</p>
+        <p class="text-sm font-medium text-gray-700 mb-2">{{ __('requirements.analysis_uploaded_files') }}</p>
         <ul class="space-y-1">
             @foreach($session->files as $file)
             <li class="flex items-center gap-2 text-xs text-gray-600">
@@ -84,7 +84,7 @@
                 <span class="flex-1">{{ $file->original_filename }}</span>
                 <span class="text-gray-400">{{ $file->size_human }}</span>
                 <span class="{{ $eColor }} font-medium">
-                    {{ match($file->extraction_status) { 'done'=>'추출완료', 'failed'=>'추출실패', 'pending'=>'대기중', default=>'처리중' } }}
+                    {{ match($file->extraction_status) { 'done'=>__('requirements.extraction_done'), 'failed'=>__('requirements.extraction_failed'), 'pending'=>__('requirements.extraction_pending'), default=>__('requirements.extraction_processing') } }}
                 </span>
                 @if($file->extraction_error)
                     <span class="text-red-400 truncate max-w-xs" title="{{ $file->extraction_error }}">
@@ -109,8 +109,8 @@
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
         </div>
-        <p class="text-lg font-semibold text-gray-700">웍스가 문서를 분석하고 있습니다</p>
-        <p class="text-sm text-gray-400 mt-1">잠시 기다려 주세요. 완료되면 자동으로 결과가 표시됩니다.</p>
+        <p class="text-lg font-semibold text-gray-700">{{ __('requirements.analysis_processing_title') }}</p>
+        <p class="text-sm text-gray-400 mt-1">{{ __('requirements.analysis_processing_hint') }}</p>
     </div>
     @endif
 
@@ -119,14 +119,14 @@
     <div id="review-panel">
         @if($session->summary)
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p class="text-xs font-medium text-blue-700 mb-1">웍스 요약</p>
+            <p class="text-xs font-medium text-blue-700 mb-1">{{ __('requirements.analysis_summary') }}</p>
             <p class="text-sm text-gray-700">{{ $session->summary }}</p>
         </div>
         @endif
 
         @if($session->warnings)
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <p class="text-xs font-medium text-yellow-700 mb-1">경고</p>
+            <p class="text-xs font-medium text-yellow-700 mb-1">{{ __('requirements.analysis_warnings') }}</p>
             <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
                 @foreach($session->warnings as $w)
                     <li>{{ $w }}</li>
@@ -142,19 +142,19 @@
 
             <div class="flex items-center justify-between mb-3">
                 <p class="text-sm font-medium text-gray-700">
-                    추출된 요구사항 후보 <span class="text-blue-600 font-bold">{{ count($candidates) }}</span>개
+                    {{ __('requirements.analysis_candidates_count') }} <span class="text-blue-600 font-bold">{{ count($candidates) }}</span>{{ __('requirements.analysis_candidates_unit') }}
                 </p>
                 <label class="flex items-center gap-1.5 text-sm cursor-pointer">
                     <input type="checkbox" id="select-all" class="rounded">
-                    <span class="text-gray-600">전체 선택</span>
+                    <span class="text-gray-600">{{ __('requirements.analysis_select_all') }}</span>
                 </label>
             </div>
 
             <div class="space-y-3 mb-6">
                 @foreach($candidates as $idx => $c)
                 @php
-                    $catLabels = ['functional'=>'기능', 'non_functional'=>'비기능', 'constraint'=>'제약', 'ui_ux'=>'UI/UX',
-                                  'integration'=>'연동', 'performance'=>'성능', 'security'=>'보안', 'other'=>'기타'];
+                    $catLabels = ['functional'=>__('requirements.cat_functional'), 'non_functional'=>__('requirements.cat_non_functional'), 'constraint'=>__('requirements.cat_constraint'), 'ui_ux'=>__('requirements.cat_ui_ux'),
+                                  'integration'=>__('requirements.cat_integration'), 'performance'=>__('requirements.cat_performance'), 'security'=>__('requirements.cat_security'), 'other'=>__('requirements.cat_other')];
                     $priColors = ['critical'=>'red', 'high'=>'orange', 'medium'=>'yellow', 'low'=>'green'];
                     $priColor  = $priColors[$c['priority'] ?? 'medium'] ?? 'gray';
                     $confidence = round(($c['confidence'] ?? 0.8) * 100);
@@ -170,11 +170,11 @@
                                     {{ ucfirst($c['priority'] ?? 'medium') }}
                                 </span>
                                 <span class="px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
-                                    {{ $catLabels[$c['category'] ?? 'other'] ?? '기타' }}
+                                    {{ $catLabels[$c['category'] ?? 'other'] ?? __('requirements.cat_other') }}
                                 </span>
-                                <span class="text-xs text-gray-400">신뢰도 {{ $confidence }}%</span>
+                                <span class="text-xs text-gray-400">{{ __('requirements.analysis_confidence') }} {{ $confidence }}%</span>
                                 @if(!empty($c['source_ref']))
-                                    <span class="text-xs text-gray-400">출처: {{ $c['source_ref'] }}</span>
+                                    <span class="text-xs text-gray-400">{{ __('requirements.analysis_source') }}: {{ $c['source_ref'] }}</span>
                                 @endif
                             </div>
                             <p class="text-sm font-medium text-gray-900 mb-1">{{ $c['title'] }}</p>
@@ -197,11 +197,11 @@
             <div class="flex justify-between items-center pt-4 border-t">
                 <button type="button" onclick="submitReject()"
                         class="px-4 py-2 text-sm border border-gray-300 rounded text-gray-600 hover:bg-gray-50">
-                    거부
+                    {{ __('requirements.analysis_reject') }}
                 </button>
                 <button type="submit"
                         class="px-6 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 font-medium">
-                    선택한 요구사항 등록
+                    {{ __('requirements.analysis_approve') }}
                 </button>
             </div>
         </form>
@@ -218,14 +218,14 @@
     @if($session->status === 'failed')
     {{-- 실패 --}}
     <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p class="text-red-700 font-medium mb-2">분석 실패</p>
+        <p class="text-red-700 font-medium mb-2">{{ __('requirements.analysis_failed_title') }}</p>
         <p class="text-sm text-red-600 mb-4">{{ $session->error_message }}</p>
         <form method="POST"
               action="{{ route('projects.requirements.analysis.retry', [$project, $session]) }}">
             @csrf
             <button type="submit"
                     class="px-5 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700">
-                재시도
+                {{ __('requirements.analysis_retry') }}
             </button>
         </form>
     </div>
@@ -235,11 +235,11 @@
     <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-sm text-gray-500">
         @if($session->status === 'approved')
         <div class="flex items-center justify-between flex-wrap gap-3">
-            <span>요구사항 등록이 완료되었습니다.</span>
+            <span>{{ __('requirements.analysis_registered') }}</span>
             <div class="flex items-center gap-2">
                 <a href="{{ route('projects.requirements.index', $project) }}"
                    class="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700">
-                    목록 보기
+                    {{ __('requirements.analysis_view_list') }}
                 </a>
                 @php
                     $sessionReqs = \App\Models\Requirement::where('source_session_id', $session->id)->pluck('id')->all();
@@ -248,13 +248,13 @@
                 <button onclick="openAnalysisApplyModal({{ json_encode($sessionReqs) }})"
                         style="padding:7px 14px;font-size:13px;font-weight:600;color:#7c3aed;border:1.5px solid #ddd6fe;border-radius:8px;background:#faf5ff;cursor:pointer;"
                         onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
-                    기획서에 바로 적용
+                    {{ __('requirements.analysis_apply_to_plan') }}
                 </button>
                 @endif
             </div>
         </div>
         @else
-            분석 결과가 거부되었습니다.
+            {{ __('requirements.analysis_rejected') }}
         @endif
     </div>
     @endif
@@ -284,7 +284,7 @@
 
 <script>
 async function submitReject() {
-    if (await __confirm('이 분석 결과를 거부하시겠습니까?')) {
+    if (await __confirm(@json(__('requirements.js_confirm_reject')))) {
         document.getElementById('reject-form').submit();
     }
 }
@@ -312,15 +312,15 @@ async function openAnalysisApplyModal(reqIds) {
 
     // load plans
     const planSel = document.getElementById('aa-plan-sel');
-    planSel.innerHTML = '<option value="">불러오는 중...</option>';
+    planSel.innerHTML = '<option value="">' + @json(__('requirements.js_preview_loading')) + '</option>';
     try {
         const res = await fetch(PLANS_URL2, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF2 } });
         const data = await res.json();
         _planData2 = data.plans || [];
-        planSel.innerHTML = '<option value="">기획서 선택...</option>' +
+        planSel.innerHTML = '<option value="">' + @json(__('requirements.apply_plan_placeholder')) + '</option>' +
             _planData2.map(p => `<option value="${p.id}">${p.title} (v${p.version})</option>`).join('');
     } catch {
-        planSel.innerHTML = '<option value="">불러올 수 없습니다</option>';
+        planSel.innerHTML = '<option value="">' + @json(__('requirements.js_load_failed')) + '</option>';
     }
 
     document.getElementById('aa-req-count').textContent = reqIds.length;
@@ -336,10 +336,10 @@ async function closeAaModal() {
 
 async function doAaApply() {
     const planId = document.getElementById('aa-plan-sel').value;
-    if (!planId) { alert('기획서를 선택해주세요.'); return; }
+    if (!planId) { alert(@json(__('requirements.js_select_plan'))); return; }
 
     const btn = document.getElementById('aa-btn');
-    btn.disabled = true; btn.textContent = '적용 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_applying'));
     document.getElementById('aa-error').style.display = 'none';
 
     try {
@@ -349,7 +349,7 @@ async function doAaApply() {
             body: JSON.stringify({ requirement_ids: _analysisReqIds.map(Number), position: 'end' }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || '적용 실패');
+        if (!res.ok) throw new Error(data.message || @json(__('requirements.js_apply_failed')));
 
         closeAaModal();
         const plan = _planData2.find(p => String(p.id) === planId);
@@ -361,7 +361,7 @@ async function doAaApply() {
         err.textContent = e.message;
         err.style.display = 'block';
     } finally {
-        btn.disabled = false; btn.textContent = '적용';
+        btn.disabled = false; btn.textContent = @json(__('requirements.apply_btn'));
     }
 }
 </script>
@@ -370,23 +370,23 @@ async function doAaApply() {
 <div id="aa-overlay" onclick="closeAaModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10100;"></div>
 <div id="aa-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10101;background:#fff;border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.18);width:440px;max-width:calc(100vw - 32px);padding:22px;">
     <div class="flex items-center justify-between mb-4">
-        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">기획서에 적용</h3>
+        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.analysis_apply_modal_title') }}</h3>
         <button onclick="closeAaModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;">&times;</button>
     </div>
     <p style="font-size:13px;color:#6b7280;margin:0 0 14px;">
-        이 분석에서 등록된 요구사항 <strong id="aa-req-count">0</strong>개를 기획서 끝에 추가합니다.
+        {!! __('requirements.analysis_apply_desc', ['n' => '<strong id="aa-req-count">0</strong>']) !!}
     </p>
     <div class="mb-4">
-        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">대상 기획서</label>
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.analysis_target_plan') }}</label>
         <select id="aa-plan-sel" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;"></select>
     </div>
     <div id="aa-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;font-size:12px;color:#dc2626;margin-bottom:10px;"></div>
     <div style="display:flex;gap:8px;">
         <button id="aa-btn" onclick="doAaApply()"
                 style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:9px;cursor:pointer;"
-                onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">적용</button>
+                onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">{{ __('requirements.apply_btn') }}</button>
         <button onclick="closeAaModal()"
-                style="padding:9px 18px;font-size:13px;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;">취소</button>
+                style="padding:9px 18px;font-size:13px;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;">{{ __('common.cancel') }}</button>
     </div>
 </div>
 @endsection

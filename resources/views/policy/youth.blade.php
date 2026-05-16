@@ -11,6 +11,64 @@
 <div class="pw">
     @include('policy._nav', ['cur' => 'youth'])
     <h1 class="pt">{{ __('policy.youth_title') }}</h1>
+@if(app()->getLocale() === 'en')
+    <p class="pd">Effective Date: January 1, 2024 &nbsp;|&nbsp; LinkTheLab Co., Ltd.</p>
+
+    <div class="info-box">
+        <p>LinkTheLab Co., Ltd. makes its best efforts to ensure that youth are not exposed to harmful environments, in accordance with the Youth Protection Act.</p>
+    </div>
+
+    <div class="ps">
+        <h2>Article 1 (Blocking Media Harmful to Youth)</h2>
+        <p>SupportWorks is an enterprise collaboration platform and does not post or distribute content harmful to youth. If a user posts harmful content, it is removed immediately and the relevant account is sanctioned.</p>
+    </div>
+
+    <div class="ps">
+        <h2>Article 2 (Service Age Restrictions)</h2>
+        <ul>
+            <li>The SupportWorks service is intended for users aged 14 or older.</li>
+            <li>If a user is found to be under 14 at the time of registration, use of the service is restricted.</li>
+            <li>Minors aged 14 or older but under 19 may be required to obtain the consent of a legal guardian to use the service.</li>
+        </ul>
+    </div>
+
+    <div class="ps">
+        <h2>Article 3 (Reporting and Handling Harmful Content)</h2>
+        <p>If you find content deemed harmful to youth, please report it through the channels below.</p>
+        <ul>
+            <li>Email: <a href="mailto:adm@linkthelab.co.kr" style="color:#7c3aed;">adm@linkthelab.co.kr</a></li>
+            <li>Phone: 02-1544-9086 (weekdays 09:00 – 18:00)</li>
+        </ul>
+        <p>We will notify you of the outcome within 3 business days of receiving a report.</p>
+    </div>
+
+    <div class="ps">
+        <h2>Article 4 (Youth Protection Officer)</h2>
+        <table>
+            <tbody>
+                <tr><td><strong>Officer</strong></td><td>Choi Yeon-a (CEO)</td></tr>
+                <tr><td><strong>Email</strong></td><td><a href="mailto:adm@linkthelab.co.kr" style="color:#7c3aed;">adm@linkthelab.co.kr</a></td></tr>
+                <tr><td><strong>Phone</strong></td><td>02-1544-9086</td></tr>
+                <tr><td><strong>Address</strong></td><td>201-60, 2F, Bldg. 109, 49 Gyeongin-ro 77-gil, Yeongdeungpo-gu, Seoul, Republic of Korea</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="ps">
+        <h2>Article 5 (External Agency Contacts)</h2>
+        <ul>
+            <li>Ministry of Gender Equality and Family, Youth Protection Division: 02-2100-6000</li>
+            <li>Korea Communications Standards Commission: <a href="https://www.kocsc.or.kr" target="_blank" style="color:#7c3aed;">www.kocsc.or.kr</a> (1377)</li>
+            <li>Youth Cyber Counseling Center: <a href="https://www.cyber1388.kr" target="_blank" style="color:#7c3aed;">www.cyber1388.kr</a> (1388)</li>
+        </ul>
+    </div>
+
+    <div class="ps">
+        <h2>Addendum</h2>
+        <p>This policy takes effect on January 1, 2024.</p>
+        <p class="contact-line">Contact: <a href="mailto:adm@linkthelab.co.kr">adm@linkthelab.co.kr</a> &nbsp;|&nbsp; 02-1544-9086</p>
+    </div>
+@else
     <p class="pd">시행일: 2024년 1월 1일 &nbsp;|&nbsp; 주식회사 링크더랩</p>
 
     <div class="info-box">
@@ -67,6 +125,7 @@
         <p>본 정책은 2024년 1월 1일부터 시행합니다.</p>
         <p class="contact-line">문의: <a href="mailto:adm@linkthelab.co.kr">adm@linkthelab.co.kr</a> &nbsp;|&nbsp; 02-1544-9086</p>
     </div>
+@endif
 </div>
 </body>
 </html>

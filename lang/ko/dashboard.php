@@ -100,4 +100,9 @@ return [
     'overdue'                   => '지연',
     'due_soon'                  => '임박',
     'cal_month_format'          => 'Y년 m월',
+
+    // ── 레이아웃
+    'layout_saved'              => '✓ 저장됨',
+    'reset_layout'              => '레이아웃 초기화',
+    'confirm_reset_layout'      => '레이아웃을 기본값으로 초기화할까요?',
 ];

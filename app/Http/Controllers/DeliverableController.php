@@ -41,6 +41,84 @@ class DeliverableController extends Controller
         $this->config = config('deliverables');
     }
 
+    /**
+     * 화면 표시용 산출물 정의를 현재 로케일에 맞게 변환한다.
+     * en 로케일이면 config/deliverables_en.php 의 번역(단계 제목·설명, 필드 라벨,
+     * timing)을 덮어쓴다. AI 프롬프트·저장 로직에는 적용하지 않고 뷰 전달용으로만 사용.
+     */
+    private function localizeTypeDef(array $typeDef, string $typeId): array
+    {
+        if (app()->getLocale() !== 'en') {
+            return $typeDef;
+        }
+
+        $enType = config("deliverables_en.deliverables.{$typeId}");
+        if (!is_array($enType)) {
+            return $typeDef;
+        }
+
+        if (!empty($enType['name'])) {
+            $typeDef['name'] = $enType['name'];
+        }
+        if (!empty($enType['timing'])) {
+            $typeDef['timing'] = $enType['timing'];
+        }
+
+        if (!empty($typeDef['steps'])) {
+            foreach ($typeDef['steps'] as &$step) {
+                $enStep = $enType['steps'][$step['order']] ?? null;
+                if (!is_array($enStep)) {
+                    continue;
+                }
+                if (!empty($enStep['title'])) {
+                    $step['title'] = $enStep['title'];
+                }
+                if (!empty($enStep['description'])) {
+                    $step['description'] = $enStep['description'];
+                }
+                if (!empty($enStep['fields']) && !empty($step['fields'])) {
+                    foreach ($step['fields'] as &$field) {
+                        $enLabel = $enStep['fields'][$field['key']] ?? null;
+                        if ($enLabel) {
+                            $field['label'] = $enLabel;
+                        }
+                    }
+                    unset($field);
+                }
+            }
+            unset($step);
+        }
+
+        return $typeDef;
+    }
+
+    /** 산출물 정의 목록 전체를 현재 로케일에 맞게 변환한다. */
+    private function localizeTypes(array $types): array
+    {
+        if (app()->getLocale() !== 'en') {
+            return $types;
+        }
+        return collect($types)
+            ->map(fn ($type, $id) => $this->localizeTypeDef($type, $id))
+            ->all();
+    }
+
+    /** 도구 정의(name)를 현재 로케일에 맞게 변환한다. */
+    private function localizeTools(array $tools): array
+    {
+        if (app()->getLocale() !== 'en') {
+            return $tools;
+        }
+        foreach ($tools as $toolId => &$tool) {
+            $enName = config("deliverables_en.tools.{$toolId}");
+            if ($enName) {
+                $tool['name'] = $enName;
+            }
+        }
+        unset($tool);
+        return $tools;
+    }
+
     // 대시보드 (카드/리스트 뷰)
     public function index(Project $project, Request $request): View
     {
@@ -53,6 +131,9 @@ class DeliverableController extends Controller
         $types        = $this->config['deliverables'];
         $categories   = $this->config['categories'];
         $view         = $request->input('view', 'card'); // card | list
+
+        // 화면 표시용 로케일 변환 (이름, timing 등)
+        $types = $this->localizeTypes($types);
 
         // 필터
         $filterCategory       = $request->input('category');
@@ -85,6 +166,9 @@ class DeliverableController extends Controller
 
         $typeDef = $this->config['deliverables'][$typeId] ?? null;
         abort_if(!$typeDef, 404, "알 수 없는 산출물 유형: {$typeId}");
+
+        // 화면 표시용 로케일 변환 (단계 제목·설명, 필드 라벨, timing)
+        $typeDef = $this->localizeTypeDef($typeDef, $typeId);
 
         $deliverable = Deliverable::firstOrCreate(
             ['project_id' => $project->id, 'type_id' => $typeId],
@@ -126,9 +210,9 @@ class DeliverableController extends Controller
             'deliverable'    => $deliverable,
             'currentStep'    => $currentStep,
             'stepNo'         => $stepNo,
-            'tools'          => $this->config['tools'],
+            'tools'          => $this->localizeTools($this->config['tools']),
             'categories'     => $this->config['categories'],
-            'allTypes'       => $this->config['deliverables'],
+            'allTypes'       => $this->localizeTypes($this->config['deliverables']),
             'projectMembers' => $projectMembers,
             'stepApproval'   => $stepApproval,
         ]);
@@ -1128,6 +1212,9 @@ class DeliverableController extends Controller
         $typeDef     = $this->config['deliverables'][$deliverable->type_id] ?? null;
         abort_if(!$typeDef, 404);
 
+        // 화면 표시용 로케일 변환 (단계 제목·설명, 필드 라벨, timing)
+        $typeDef = $this->localizeTypeDef($typeDef, $deliverable->type_id);
+
         $project = \App\Models\Project::findOrFail($deliverable->project_id);
         $deliverable->load(['stepData', 'toolResults']);
 
@@ -1135,7 +1222,7 @@ class DeliverableController extends Controller
             'deliverable' => $deliverable,
             'typeDef'     => $typeDef,
             'project'     => $project,
-            'tools'       => $this->config['tools'],
+            'tools'       => $this->localizeTools($this->config['tools']),
         ]);
     }
 
@@ -1182,8 +1269,11 @@ class DeliverableController extends Controller
             'marginLeft' => 1080, 'marginRight' => 1080,
         ]);
 
-        // 표지
-        $section->addText($this->wordEsc($typeDef['name'] . ' (' . $typeDef['shortName'] . ')'), [
+        // 표지 (영문 내보내기 시 영문 산출물명 사용)
+        $docName = $isEn
+            ? ($enMap['deliverables'][$typeId]['name'] ?? $typeDef['name'])
+            : $typeDef['name'];
+        $section->addText($this->wordEsc($docName . ' (' . $typeDef['shortName'] . ')'), [
             'name' => $font, 'size' => 22, 'bold' => true, 'color' => '312E81',
         ], ['alignment' => Jc::CENTER, 'spaceAfter' => 120]);
 

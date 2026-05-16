@@ -47,7 +47,7 @@
                     </div>
                     <div style="flex:1;">
                         <label style="display:block;font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px;">
-                            휴대폰 <span style="font-weight:400;color:#9ca3af;">(선택 · 승인 알림 SMS 발송용)</span>
+                            {{ __('team.phone_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('team.phone_hint') }}</span>
                         </label>
                         <input type="tel" name="phone" value="{{ old('phone') }}"
                             placeholder="010-0000-0000"
@@ -265,9 +265,9 @@
                                 onmouseover="this.style.background='var(--t50)';this.style.borderColor='var(--t300)'"
                                 onmouseout="this.style.background='#fff';this.style.borderColor='var(--t100)'">
                                 <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2m-2 0v-4m-9 0h4v4m-4 0v-4m0-4h.01M11 13h.01M15 13h.01M11 9h.01M15 9h.01M7 9h.01M7 13h.01"/></svg>
-                                <span class="member-company-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;">{{ $curCoName ?: '회사 선택' }}</span>
+                                <span class="member-company-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;">{{ $curCoName ?: __('team.company_select') }}</span>
                             </button>
-                            <span class="member-company-status" style="font-size:10px;color:#15803d;display:none;">저장됨</span>
+                            <span class="member-company-status" style="font-size:10px;color:#15803d;display:none;">{{ __('team.company_saved') }}</span>
                         </div>
                     @elseif($member->company)
                         <div style="font-size:11px;color:var(--t300);margin-top:1px;">{{ $member->company }}</div>
@@ -298,7 +298,7 @@
                 <button type="button"
                     onclick="openProjectModal(this.closest('.member-row'))"
                     style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--t100);color:var(--t500);background:transparent;cursor:pointer;transition:background .12s,color .12s;"
-                    title="프로젝트 배정"
+                    title="{{ __('team.assign_projects') }}"
                     onmouseover="this.style.background='var(--t100)';this.style.color='var(--tText)'" onmouseout="this.style.background='transparent';this.style.color='var(--t500)'">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
@@ -335,7 +335,7 @@
         {{-- 헤더 --}}
         <div style="padding:18px 20px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <div>
-                <div style="font-size:14px;font-weight:700;color:#1e1b2e;">프로젝트 배정</div>
+                <div style="font-size:14px;font-weight:700;color:#1e1b2e;">{{ __('team.assign_projects') }}</div>
                 <div id="proj-modal-subtitle" style="font-size:12px;color:#9ca3af;margin-top:1px;"></div>
             </div>
             <button type="button" onclick="closeProjectModal()"
@@ -347,7 +347,7 @@
 
         {{-- 검색 --}}
         <div style="padding:12px 20px 8px;flex-shrink:0;">
-            <input id="proj-modal-search" type="text" placeholder="프로젝트 검색..."
+            <input id="proj-modal-search" type="text" placeholder="{{ __('team.proj_search_placeholder') }}"
                 oninput="filterModalProjects(this.value)"
                 style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;box-sizing:border-box;transition:border-color .15s;"
                 onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
@@ -364,10 +364,10 @@
             <div style="display:flex;gap:8px;">
                 <button type="button" onclick="closeProjectModal()"
                     style="padding:8px 16px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;font-size:13px;color:#6b7280;cursor:pointer;font-weight:600;transition:background .12s;"
-                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">취소</button>
+                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('team.cancel_invite') }}</button>
                 <button type="button" id="proj-modal-save" onclick="saveProjectAssignment()"
                     style="padding:8px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--t500),var(--t600));color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;"
-                    onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">저장</button>
+                    onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">{{ __('team.save_btn') }}</button>
             </div>
         </div>
     </div>
@@ -379,7 +379,7 @@
     <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:460px;height:560px;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;">
         <div style="padding:18px 20px 12px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <div>
-                <div style="font-size:14px;font-weight:700;color:#1e1b2e;">회사 선택 / 추가</div>
+                <div style="font-size:14px;font-weight:700;color:#1e1b2e;">{{ __('team.company_picker_title') }}</div>
                 <div id="company-modal-subtitle" style="font-size:12px;color:#9ca3af;margin-top:1px;"></div>
             </div>
             <button type="button" onclick="closeCompanyPicker()"
@@ -390,7 +390,7 @@
         </div>
 
         <div style="padding:12px 20px 8px;flex-shrink:0;">
-            <input id="company-modal-search" type="text" placeholder="회사명을 입력하거나 검색…"
+            <input id="company-modal-search" type="text" placeholder="{{ __('team.company_search_placeholder') }}"
                 oninput="onCompanySearchInput()" onkeydown="onCompanySearchKey(event)"
                 autocomplete="off"
                 style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;box-sizing:border-box;transition:border-color .15s;"
@@ -403,23 +403,23 @@
 
         <div id="company-modal-empty" style="display:none;padding:14px 20px;border-top:1px solid #f3f4f6;background:#fefce8;flex-shrink:0;">
             <div style="font-size:12px;color:#92400e;margin-bottom:8px;">
-                "<span id="company-modal-newname" style="font-weight:700;"></span>" 회사가 등록되어 있지 않습니다.
+                "<span id="company-modal-newname" style="font-weight:700;"></span>" {{ __('team.company_not_registered_suffix') }}
             </div>
             <button type="button" onclick="addNewCompany()"
                 style="width:100%;padding:9px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--t500),var(--t600));color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .12s;"
                 onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>새 회사 추가 + 선택</span>
+                <span>{{ __('team.company_add_select') }}</span>
             </button>
         </div>
 
         <div style="padding:11px 20px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fafafa;gap:8px;">
             <button type="button" onclick="clearCompany()"
                 style="padding:7px 12px;border:1.5px solid #fecaca;border-radius:8px;background:#fff;font-size:12px;color:#dc2626;cursor:pointer;font-weight:600;transition:background .12s;"
-                onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">회사 없음으로</button>
+                onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">{{ __('team.company_clear') }}</button>
             <button type="button" onclick="closeCompanyPicker()"
                 style="padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;font-size:12.5px;color:#6b7280;cursor:pointer;font-weight:600;transition:background .12s;"
-                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">닫기</button>
+                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('common.close') }}</button>
         </div>
     </div>
 </div>
@@ -602,7 +602,8 @@ async function openProjectModal(row) {
     _modalRow   = row;
     _checkedIds = new Set(JSON.parse(row.dataset.projectIds || '[]').map(Number));
 
-    document.getElementById('proj-modal-subtitle').textContent = row.dataset.memberName + ' 님의 프로젝트를 선택하세요';
+    document.getElementById('proj-modal-subtitle').textContent =
+        @json(__('team.proj_modal_subtitle')).replace(':name', row.dataset.memberName);
     document.getElementById('proj-modal-search').value = '';
 
     renderModalProjects(ASSIGNABLE_PROJECTS);
@@ -626,7 +627,7 @@ document.getElementById('proj-modal-backdrop')?.addEventListener('click', async 
 async function renderModalProjects(list) {
     const container = document.getElementById('proj-modal-list');
     if (!list.length) {
-        container.innerHTML = '<div style="padding:24px 0;text-align:center;color:#9ca3af;font-size:13px;">배정 가능한 프로젝트가 없습니다.</div>';
+        container.innerHTML = '<div style="padding:24px 0;text-align:center;color:#9ca3af;font-size:13px;">{{ __('team.proj_none_assignable') }}</div>';
         return;
     }
     container.innerHTML = list.map(p => {
@@ -642,7 +643,7 @@ async function renderModalProjects(list) {
             <span style="flex:1;font-size:13px;font-weight:500;color:#1e1b2e;">${escHtml(p.name)}</span>
             <span style="font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600;flex-shrink:0;
                 ${isActive ? 'background:#dcfce7;color:#16a34a;' : 'background:#f1f5f9;color:#64748b;'}">
-                ${isActive ? '진행중' : p.status}
+                ${isActive ? '{{ __('team.proj_in_progress') }}' : p.status}
             </span>
         </label>`;
     }).join('');
@@ -664,7 +665,7 @@ async function toggleProjectCheck(id, checked) {
 
 async function updateModalCount() {
     document.getElementById('proj-modal-count').textContent =
-        _checkedIds.size + '개 프로젝트 선택됨';
+        @json(__('team.proj_count_selected')).replace(':count', _checkedIds.size);
 }
 
 async function saveProjectAssignment() {
@@ -673,7 +674,7 @@ async function saveProjectAssignment() {
     const memberId  = _modalRow.dataset.memberId;
     const saveBtn   = document.getElementById('proj-modal-save');
     saveBtn.disabled = true;
-    saveBtn.textContent = '저장 중...';
+    saveBtn.textContent = '{{ __('team.saving') }}';
 
     try {
         const resp = await fetch(`${PROJ_ASSIGN_URL}/${memberId}/projects`, {
@@ -688,7 +689,7 @@ async function saveProjectAssignment() {
         });
 
         const data = await resp.json();
-        if (!data.ok) throw new Error('서버 오류');
+        if (!data.ok) throw new Error('{{ __('team.server_error') }}');
 
         // 행의 프로젝트 배지 갱신
         _modalRow.dataset.projectIds = JSON.stringify(data.projects.map(p => p.id));
@@ -701,13 +702,13 @@ async function saveProjectAssignment() {
 
         closeProjectModal();
         if (typeof window.showToast === 'function') {
-            window.showToast('저장 완료', '프로젝트 배정이 업데이트되었습니다.', null);
+            window.showToast('{{ __('team.proj_save_done_title') }}', '{{ __('team.proj_save_done_msg') }}', null);
         }
     } catch (err) {
-        alert('저장에 실패했습니다. 다시 시도해 주세요.');
+        alert('{{ __('team.proj_save_fail') }}');
     } finally {
         saveBtn.disabled = false;
-        saveBtn.textContent = '저장';
+        saveBtn.textContent = '{{ __('team.save_btn') }}';
     }
 }
 
@@ -726,7 +727,8 @@ function openCompanyPicker(btn) {
     _coTargetBtn = btn;
     const memberName = btn.dataset.memberName || '';
     const curName    = btn.dataset.companyName || '';
-    document.getElementById('company-modal-subtitle').textContent = memberName + ' 님의 회사';
+    document.getElementById('company-modal-subtitle').textContent =
+        @json(__('team.company_picker_subtitle')).replace(':name', memberName);
     const input = document.getElementById('company-modal-search');
     input.value = curName || '';
     document.getElementById('company-modal-backdrop').style.display = 'flex';
@@ -765,7 +767,7 @@ function onCompanySearchKey(e) {
 async function fetchCompanySuggestions(q) {
     const list = document.getElementById('company-modal-list');
     const empty = document.getElementById('company-modal-empty');
-    list.innerHTML = '<div style="padding:18px;text-align:center;color:#9ca3af;font-size:12px;">검색 중…</div>';
+    list.innerHTML = '<div style="padding:18px;text-align:center;color:#9ca3af;font-size:12px;">{{ __('team.company_searching') }}</div>';
     empty.style.display = 'none';
     try {
         const r = await fetch('{{ route('team.companies.search') }}?q=' + encodeURIComponent(q), {
@@ -777,7 +779,7 @@ async function fetchCompanySuggestions(q) {
         _coLastResults = d.companies || [];
         renderCompanyList(_coLastResults, q);
     } catch (e) {
-        list.innerHTML = '<div style="padding:18px;text-align:center;color:#dc2626;font-size:12px;">불러오기 실패</div>';
+        list.innerHTML = '<div style="padding:18px;text-align:center;color:#dc2626;font-size:12px;">{{ __('team.company_load_fail') }}</div>';
     }
 }
 
@@ -787,7 +789,7 @@ function renderCompanyList(items, q) {
     const trimmed = (q || '').trim();
 
     if (!items.length) {
-        list.innerHTML = '<div style="padding:18px;text-align:center;color:#9ca3af;font-size:12px;">' + (trimmed ? '일치하는 회사가 없습니다' : '등록된 회사가 없습니다') + '</div>';
+        list.innerHTML = '<div style="padding:18px;text-align:center;color:#9ca3af;font-size:12px;">' + (trimmed ? '{{ __('team.company_no_match') }}' : '{{ __('team.company_none_registered') }}') + '</div>';
     } else {
         const cur = _coTargetBtn ? (_coTargetBtn.dataset.companyId || '') : '';
         list.innerHTML = items.map(c => {
@@ -827,10 +829,10 @@ async function addNewCompany() {
             body: JSON.stringify({ name }),
         });
         const d = await r.json();
-        if (!d.ok) throw new Error(d.message || '회사 등록 실패');
+        if (!d.ok) throw new Error(d.message || '{{ __('team.company_register_fail') }}');
         await assignCompany(d.company.id, d.company.name);
     } catch (e) {
-        alert('회사 등록 실패: ' + e.message);
+        alert('{{ __('team.company_register_fail_msg') }}' + e.message);
     }
 }
 
@@ -852,21 +854,21 @@ async function assignCompany(companyId, name) {
         });
         if (!r.ok) {
             const txt = await r.text();
-            throw new Error('서버 응답 ' + r.status + (txt.length < 200 ? ': ' + txt : ''));
+            throw new Error('{{ __('team.company_server_response') }}' + r.status + (txt.length < 200 ? ': ' + txt : ''));
         }
         const d = await r.json();
-        if (!d.ok) throw new Error(d.message || '저장 실패');
+        if (!d.ok) throw new Error(d.message || '{{ __('team.proj_save_fail') }}');
 
         const label = _coTargetBtn.querySelector('.member-company-label');
         _coTargetBtn.dataset.companyId   = companyId || '';
         _coTargetBtn.dataset.companyName = name || '';
-        if (label) label.textContent = name || '회사 선택';
+        if (label) label.textContent = name || '{{ __('team.company_select') }}';
         _coTargetBtn.style.color = name ? 'var(--t700)' : '#9ca3af';
 
         if (status) {
             status.style.display = 'inline';
             status.style.color = '#15803d';
-            status.textContent = '저장됨';
+            status.textContent = '{{ __('team.company_saved') }}';
             clearTimeout(status._t);
             status._t = setTimeout(() => { status.style.display = 'none'; }, 1500);
         }
@@ -875,9 +877,9 @@ async function assignCompany(companyId, name) {
         if (status) {
             status.style.display = 'inline';
             status.style.color = '#dc2626';
-            status.textContent = '실패';
+            status.textContent = '{{ __('team.company_save_failed') }}';
         }
-        alert('회사 배정 실패: ' + e.message);
+        alert('{{ __('team.company_assign_fail') }}' + e.message);
     }
 }
 

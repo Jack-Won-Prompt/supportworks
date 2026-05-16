@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', '위클리')
+@section('title', __('myweekly.page_title'))
 
 @section('breadcrumb')
-<span style="color:#374151;font-weight:500;">위클리</span>
+<span style="color:#374151;font-weight:500;">{{ __('myweekly.page_title') }}</span>
 @endsection
 
 @section('content')
@@ -21,13 +21,13 @@
     <div style="display:flex;align-items:center;gap:4px;background:#f3f4f6;border-radius:10px;padding:4px;">
         <button id="tab-list-btn" onclick="switchTab('list')"
             style="padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.08);">
-            위클리 목록
+            {{ __('myweekly.tab_list') }}
         </button>
         @if($isManager && $managerProjects->isNotEmpty())
         <button id="tab-ai-btn" onclick="switchTab('ai')"
             style="padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:#6b7280;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px;margin-top:-2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-            웍스 서머리
+            {{ __('myweekly.tab_summary') }}
         </button>
         @endif
     </div>
@@ -35,7 +35,7 @@
         @if($userProjects->isNotEmpty())
         <select id="write-project-sel"
             style="padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;color:#1f2937;background:#fff;outline:none;cursor:pointer;">
-            <option value="">프로젝트 선택</option>
+            <option value="">{{ __('myweekly.select_project') }}</option>
             @foreach($userProjects as $up)
             <option value="{{ route('projects.weekly-reports.create', $up) }}">{{ $up->name }}</option>
             @endforeach
@@ -44,12 +44,12 @@
             style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;transition:opacity .15s;"
             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-            위클리 작성
+            {{ __('myweekly.write_weekly') }}
         </button>
         @endif
         <span style="font-size:12px;color:#9ca3af;">
-            @if($isManager) 전체 팀원 @else 내 위클리 @endif
-            — 총 <strong style="color:#374151;">{{ $totalCount }}</strong>건
+            @if($isManager) {{ __('myweekly.scope_all_members') }} @else {{ __('myweekly.scope_my_weekly') }} @endif
+            — {{ __('myweekly.total_prefix') }} <strong style="color:#374151;">{{ $totalCount }}</strong>{{ __('myweekly.total_suffix') }}
         </span>
     </div>
 </div>
@@ -72,14 +72,14 @@
     <svg width="14" height="14" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0014 13.828V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-3.172a1 1 0 00-.293-.707L1.293 6.707A1 1 0 011 6V4z"/></svg>
     <select id="filter-project" onchange="onFilterProjectChange()"
         style="padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;color:#1f2937;background:#fff;outline:none;cursor:pointer;min-width:160px;">
-        <option value="">전체 프로젝트</option>
+        <option value="">{{ __('myweekly.filter_all_projects') }}</option>
         @foreach($filterProjects as $fp)
         <option value="{{ $fp->id }}">{{ $fp->name }}</option>
         @endforeach
     </select>
     <select id="filter-member" onchange="applyListFilter()"
         style="padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;color:#1f2937;background:#fff;outline:none;cursor:pointer;min-width:140px;">
-        <option value="">전체 팀원</option>
+        <option value="">{{ __('myweekly.filter_all_members') }}</option>
         @foreach($filterMembers->unique('id') as $fm)
         <option value="{{ $fm['id'] }}" data-pid="{{ $fm['pid'] }}">{{ $fm['name'] }}</option>
         @endforeach
@@ -87,7 +87,7 @@
     <button onclick="clearListFilter()"
         style="padding:6px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;font-weight:600;color:#6b7280;background:#f9fafb;cursor:pointer;transition:all .12s;"
         onmouseover="this.style.borderColor='#7c3aed';this.style.color='#7c3aed'" onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">
-        초기화
+        {{ __('common.reset') }}
     </button>
     <span id="filter-count" style="margin-left:auto;font-size:12px;color:#9ca3af;"></span>
 </div>
@@ -97,19 +97,19 @@
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px;">
         <div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;padding:16px 18px;">
             <div style="font-size:22px;font-weight:700;color:#18181b;">{{ $totalCount }}</div>
-            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">전체 위클리</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">{{ __('myweekly.stat_total') }}</div>
         </div>
         <div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;padding:16px 18px;">
             <div style="font-size:22px;font-weight:700;color:#065f46;">{{ $submittedCount }}</div>
-            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">제출 완료</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">{{ __('myweekly.stat_submitted') }}</div>
         </div>
         <div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;padding:16px 18px;">
             <div style="font-size:22px;font-weight:700;color:#92400e;">{{ $draftCount }}</div>
-            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">임시 저장</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">{{ __('myweekly.stat_draft') }}</div>
         </div>
         <div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;padding:16px 18px;">
             <div style="font-size:22px;font-weight:700;color:var(--tText);">{{ $projectCount }}</div>
-            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">프로젝트 수</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px;">{{ __('myweekly.stat_projects') }}</div>
         </div>
     </div>
 
@@ -120,8 +120,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
         </div>
-        <p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 6px;">작성된 위클리가 없습니다.</p>
-        <p style="font-size:12.5px;color:#9ca3af;margin:0;">프로젝트 페이지에서 위클리를 작성해 보세요.</p>
+        <p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 6px;">{{ __('myweekly.empty_title') }}</p>
+        <p style="font-size:12.5px;color:#9ca3af;margin:0;">{{ __('myweekly.empty_hint') }}</p>
     </div>
     @else
     @php $grouped = $reports->groupBy(fn($r) => $r->week_start_date->format('Y-m-d'))->sortKeysDesc(); @endphp
@@ -136,7 +136,7 @@
         <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;">
             <span style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:7px;padding:3px 11px;font-size:12.5px;font-weight:700;">{{ $weekLabel }}</span>
             <span style="font-size:12px;color:#7c3aed;font-weight:500;">{{ $weekStartFmt }} ~ {{ $weekEndFmt }}</span>
-            <span class="week-group-count" style="margin-left:auto;font-size:11.5px;color:#9ca3af;">{{ $weekReports->count() }}건</span>
+            <span class="week-group-count" style="margin-left:auto;font-size:11.5px;color:#9ca3af;">{{ __('myweekly.count_unit', ['count' => $weekReports->count()]) }}</span>
         </div>
 
         @foreach($weekReports as $report)
@@ -161,7 +161,7 @@
                 <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;">
                     @if($isManager)
                     <span style="font-size:13.5px;font-weight:700;color:#1f2937;">{{ $report->author_name }}</span>
-                    @if($isOwn)<span style="background:#ede9fe;color:#7c3aed;border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;">나</span>@endif
+                    @if($isOwn)<span style="background:#ede9fe;color:#7c3aed;border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;">{{ __('myweekly.badge_me') }}</span>@endif
                     @endif
                     @if($proj)
                     <span style="display:inline-flex;align-items:center;gap:3px;background:#ede9fe;color:#6d28d9;border-radius:5px;padding:2px 8px;font-size:11.5px;font-weight:700;">
@@ -174,9 +174,9 @@
                     @endif
                 </div>
                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                    <span style="font-size:11.5px;color:#9ca3af;"><span style="color:#6b7280;font-weight:500;">보고일</span> {{ $report->report_date->format('Y.m.d') }}</span>
+                    <span style="font-size:11.5px;color:#9ca3af;"><span style="color:#6b7280;font-weight:500;">{{ __('myweekly.report_date') }}</span> {{ $report->report_date->format('Y.m.d') }}</span>
                     @if($curCnt > 0 || $nxtCnt > 0)
-                    <span style="font-size:11.5px;color:#9ca3af;">이번주 <strong style="color:#374151;">{{ $curCnt }}</strong>건 &middot; 다음주 <strong style="color:#374151;">{{ $nxtCnt }}</strong>건</span>
+                    <span style="font-size:11.5px;color:#9ca3af;">{{ __('myweekly.this_week') }} <strong style="color:#374151;">{{ $curCnt }}</strong>{{ __('myweekly.unit_item') }} &middot; {{ __('myweekly.next_week') }} <strong style="color:#374151;">{{ $nxtCnt }}</strong>{{ __('myweekly.unit_item') }}</span>
                     @endif
                     <span style="font-size:11.5px;color:#c4b5fd;">{{ $report->updated_at->diffForHumans() }}</span>
                 </div>
@@ -185,11 +185,11 @@
             <div style="flex-shrink:0;">
                 @if($report->status === 'submitted')
                 <span style="display:inline-flex;align-items:center;gap:4px;background:#d1fae5;color:#065f46;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>제출 완료
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>{{ __('myweekly.stat_submitted') }}
                 </span>
                 @else
                 <span style="display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#92400e;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>임시 저장
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{{ __('myweekly.stat_draft') }}
                 </span>
                 @endif
             </div>
@@ -200,7 +200,7 @@
                     onmouseover="this.style.borderColor='#7c3aed';this.style.color='#7c3aed';this.style.background='#f5f3ff'"
                     onmouseout="this.style.borderColor='#d1d5db';this.style.color='#374151';this.style.background='#fff'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    상세보기
+                    {{ __('myweekly.view_detail') }}
                 </button>
                 @if($isOwn || $user->isAdmin())
                 <a href="{{ route('projects.weekly-reports.download', [$report->project_id, $report]) }}"
@@ -228,10 +228,10 @@
         {{-- 1행: 프로젝트 선택 + 서머리 타입 --}}
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;">
-                <label style="font-size:12.5px;font-weight:600;color:#374151;white-space:nowrap;">프로젝트</label>
+                <label style="font-size:12.5px;font-weight:600;color:#374151;white-space:nowrap;">{{ __('myweekly.label_project') }}</label>
                 <select id="ai-project-sel" onchange="onProjectChange()"
                     style="flex:1;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1f2937;background:#fff;outline:none;cursor:pointer;">
-                    <option value="">선택하세요</option>
+                    <option value="">{{ __('myweekly.placeholder_choose') }}</option>
                     @foreach($managerProjects as $mp)
                     <option value="{{ $mp->id }}" data-name="{{ $mp->name }}"
                         data-ai-url="{{ route('projects.weekly-reports.ai-summary', $mp) }}"
@@ -247,21 +247,21 @@
             <div style="display:flex;background:#f3f4f6;border-radius:8px;padding:3px;gap:2px;">
                 <button id="type-full-btn" onclick="setType('full')"
                     style="padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.07);">
-                    전체 서머리
+                    {{ __('myweekly.summary_type_full') }}
                 </button>
                 <button id="type-weekly-btn" onclick="setType('weekly')"
                     style="padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:#6b7280;">
-                    주차 서머리
+                    {{ __('myweekly.summary_type_weekly') }}
                 </button>
             </div>
         </div>
 
         {{-- 2행: 주차 선택 (weekly 타입일 때만) --}}
         <div id="week-row" style="display:none;align-items:center;gap:8px;">
-            <label style="font-size:12.5px;font-weight:600;color:#374151;white-space:nowrap;">주차</label>
+            <label style="font-size:12.5px;font-weight:600;color:#374151;white-space:nowrap;">{{ __('myweekly.label_week') }}</label>
             <select id="ai-week-sel" onchange="loadStoredSummary()"
                 style="flex:1;max-width:320px;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1f2937;background:#fff;outline:none;cursor:pointer;">
-                <option value="">프로젝트를 먼저 선택하세요</option>
+                <option value="">{{ __('myweekly.week_select_project_first') }}</option>
             </select>
         </div>
 
@@ -272,13 +272,13 @@
                 <button id="ai-word-btn" onclick="downloadAiWord()" style="display:none;align-items:center;gap:5px;padding:8px 14px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:12.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;transition:all .15s;"
                     onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    Word 다운로드
+                    {{ __('myweekly.word_download') }}
                 </button>
                 <button id="ai-gen-btn" onclick="generateSummary()"
                     style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#4f46e5;border:none;border-radius:8px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:opacity .15s;"
                     onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                    <span id="ai-gen-label">웍스 서머리 생성</span>
+                    <span id="ai-gen-label">{{ __('myweekly.summary_generate') }}</span>
                 </button>
             </div>
         </div>
@@ -292,14 +292,14 @@
             <div style="width:52px;height:52px;background:#f0fdf4;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
                 <svg width="24" height="24" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
             </div>
-            <p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 5px;">프로젝트를 선택하고 웍스 서머리를 생성하세요</p>
-            <p style="font-size:12.5px;color:#9ca3af;margin:0;">저장된 서머리가 있으면 자동으로 불러옵니다.</p>
+            <p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 5px;">{{ __('myweekly.summary_empty_title') }}</p>
+            <p style="font-size:12.5px;color:#9ca3af;margin:0;">{{ __('myweekly.summary_empty_hint') }}</p>
         </div>
 
         {{-- 로딩 --}}
         <div id="ai-loading" style="display:none;padding:60px 24px;text-align:center;">
             <div style="width:36px;height:36px;border:3px solid #d1fae5;border-top-color:#059669;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;"></div>
-            <p style="font-size:13.5px;color:#6b7280;">웍스가 서머리를 생성하고 있습니다…</p>
+            <p style="font-size:13.5px;color:#6b7280;">{{ __('myweekly.summary_loading') }}</p>
         </div>
 
         {{-- 에러 --}}
@@ -350,6 +350,19 @@
 <script>
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const PROJECT_WEEKS = @json($projectWeeksMap ?? []);
+
+// 번역 문자열
+const MW_I18N = {
+    count_unit:        @json(__('myweekly.count_unit', ['count' => ''])),
+    count_filtered:    @json(__('myweekly.count_filtered', ['count' => ''])),
+    week_select:       @json(__('myweekly.week_select')),
+    summary_regenerate:@json(__('myweekly.summary_regenerate')),
+    summary_generate:  @json(__('myweekly.summary_generate')),
+    alert_select_project: @json(__('myweekly.alert_select_project')),
+    alert_select_week:    @json(__('myweekly.alert_select_week')),
+    summary_gen_error:    @json(__('myweekly.summary_gen_error')),
+    generated_by_suffix:  @json(__('myweekly.generated_by_suffix')),
+};
 
 // ── 탭 전환 ─────────────────────────────────────────────────────────
 function switchTab(tab) {
@@ -410,12 +423,12 @@ function applyListFilter() {
         const cnt = group.querySelector('.week-group-count');
         if (cnt) {
             const n = [...group.querySelectorAll('.report-row')].filter(r => r.style.display !== 'none').length;
-            cnt.textContent = n + '건';
+            cnt.textContent = MW_I18N.count_unit.replace(':count', n);
         }
     });
 
     const countEl = document.getElementById('filter-count');
-    if (countEl) countEl.textContent = (pid || uid) ? visible + '건 조회됨' : '';
+    if (countEl) countEl.textContent = (pid || uid) ? MW_I18N.count_filtered.replace(':count', visible) : '';
 }
 
 function clearListFilter() {
@@ -437,7 +450,8 @@ function onProjectChange() {
     // 주차 목록 업데이트
     const weekSel = document.getElementById('ai-week-sel');
     if (weekSel) {
-        weekSel.innerHTML = '<option value="">주차 선택...</option>';
+        weekSel.innerHTML = '<option value=""></option>';
+        weekSel.options[0].textContent = MW_I18N.week_select;
         const weeks = PROJECT_WEEKS[pid] ?? [];
         weeks.forEach(w => {
             const o = document.createElement('option');
@@ -495,7 +509,7 @@ function loadStoredSummary() {
         .then(data => {
             if (data.summary) {
                 renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by);
-                document.getElementById('ai-gen-label').textContent = '웍스 서머리 재생성';
+                document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
             } else {
                 resetResult();
             }
@@ -506,14 +520,14 @@ function loadStoredSummary() {
 // ── 웍스 서머리 생성 ──────────────────────────────────────────────────
 function generateSummary() {
     const pid = document.getElementById('ai-project-sel').value;
-    if (!pid) { alert('프로젝트를 선택해주세요.'); return; }
+    if (!pid) { alert(MW_I18N.alert_select_project); return; }
 
     const opt    = document.getElementById('ai-project-sel').options[document.getElementById('ai-project-sel').selectedIndex];
     const genUrl = opt?.dataset?.genUrl;
     if (!genUrl) return;
 
     const weekDate = currentType === 'weekly' ? (document.getElementById('ai-week-sel')?.value ?? '') : '';
-    if (currentType === 'weekly' && !weekDate) { alert('주차를 선택해주세요.'); return; }
+    if (currentType === 'weekly' && !weekDate) { alert(MW_I18N.alert_select_week); return; }
 
     showLoading();
     const btn = document.getElementById('ai-gen-btn');
@@ -531,12 +545,12 @@ function generateSummary() {
             showError(data.error);
         } else {
             renderContent(data.content, data.generated_at, data.generated_by);
-            document.getElementById('ai-gen-label').textContent = '웍스 서머리 재생성';
+            document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
         }
     })
     .catch(() => {
         btn.disabled = false;
-        showError('웍스 서머리 생성 중 오류가 발생했습니다.');
+        showError(MW_I18N.summary_gen_error);
     });
 }
 
@@ -547,7 +561,7 @@ function resetResult() {
     document.getElementById('ai-error').style.display   = 'none';
     document.getElementById('ai-content').style.display = 'none';
     document.getElementById('ai-meta').textContent      = '';
-    document.getElementById('ai-gen-label').textContent = '웍스 서머리 생성';
+    document.getElementById('ai-gen-label').textContent = MW_I18N.summary_generate;
 
     const wordBtn = document.getElementById('ai-word-btn');
     if (wordBtn) wordBtn.style.display = 'none';
@@ -571,7 +585,7 @@ function renderContent(content, generatedAt, generatedBy) {
     document.getElementById('ai-error').style.display   = 'none';
     document.getElementById('ai-content').style.display = 'block';
     document.getElementById('ai-content').innerHTML     = mdToHtml(content);
-    document.getElementById('ai-meta').textContent      = generatedAt + '  ' + generatedBy + ' 생성';
+    document.getElementById('ai-meta').textContent      = generatedAt + '  ' + generatedBy + MW_I18N.generated_by_suffix;
 
     const wordBtn = document.getElementById('ai-word-btn');
     if (wordBtn) wordBtn.style.display = 'inline-flex';
@@ -609,7 +623,7 @@ function mdToHtml(text) {
 // ── 보고서 작성 팝업 ─────────────────────────────────────────────────
 function openWritePopup() {
     const sel = document.getElementById('write-project-sel');
-    if (!sel || !sel.value) { alert('프로젝트를 선택해주세요.'); return; }
+    if (!sel || !sel.value) { alert(MW_I18N.alert_select_project); return; }
     openWeeklyPopup(sel.value);
 }
 

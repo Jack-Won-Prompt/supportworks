@@ -1,21 +1,21 @@
 @php $isPopup = request()->boolean('popup'); @endphp
 @extends($isPopup ? 'layouts.popup' : 'layouts.app')
 
-@section('title', ($report ? $report->week_label : '주간 업무 보고') . ' - ' . $project->name)
+@section('title', ($report ? $report->week_label : __('weekly.page_title')) . ' - ' . $project->name)
 
 @if($isPopup)
 @section('popup-title')
 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-위클리 수정 — {{ $report?->week_label ?? '신규' }}
+{{ __('weekly.edit_popup_title', ['label' => $report?->week_label ?? __('weekly.edit_popup_new')]) }}
 @endsection
 @endif
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">주간 업무 보고</span>
+<span style="color:#374151;font-weight:500;">{{ __('weekly.weekly_report') }}</span>
 @endsection
 
 @push('styles')
@@ -71,12 +71,12 @@
             <div style="background:#fef3c7;border-radius:8px;padding:7px;">
                 <svg width="20" height="20" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             </div>
-            <span style="font-size:15px;font-weight:700;color:#1f2937;">동시 작성 감지</span>
+            <span style="font-size:15px;font-weight:700;color:#1f2937;">{{ __('weekly.concurrent_detected') }}</span>
         </div>
         <p id="concurrent-msg" style="font-size:13.5px;color:#374151;line-height:1.6;margin-bottom:20px;"></p>
         <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button onclick="closeConcurrentModal()" style="padding:8px 18px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;color:#374151;background:#fff;cursor:pointer;">계속 작성</button>
-            <a href="{{ route('projects.show', $project) }}" style="padding:8px 18px;background:#6d28d9;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">프로젝트로 돌아가기</a>
+            <button onclick="closeConcurrentModal()" style="padding:8px 18px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;color:#374151;background:#fff;cursor:pointer;">{{ __('weekly.continue_writing') }}</button>
+            <a href="{{ route('projects.show', $project) }}" style="padding:8px 18px;background:#6d28d9;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{{ __('weekly.back_to_project') }}</a>
         </div>
     </div>
 </div>
@@ -110,14 +110,14 @@
     <div class="section-card">
         {{-- 제목 --}}
         <div style="margin-bottom:16px;">
-            <p style="font-size:10.5px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">보고서 제목</p>
+            <p style="font-size:10.5px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">{{ __('weekly.report_title_label') }}</p>
             <h2 id="report-title" style="font-size:18px;font-weight:700;color:#1f2937;"></h2>
         </div>
 
         {{-- 주차 선택 --}}
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:10px 14px;background:#f5f3ff;border-radius:9px;">
             <svg width="16" height="16" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <span style="font-size:12.5px;font-weight:600;color:#6d28d9;">기준 날짜 선택</span>
+            <span style="font-size:12.5px;font-weight:600;color:#6d28d9;">{{ __('weekly.base_date_select') }}</span>
             <input type="date" id="base-date" class="wr-date" value="{{ $weekStartDate }}">
             <span id="week-label-badge" style="background:#ede9fe;color:#5b21b6;border-radius:6px;padding:3px 10px;font-size:12.5px;font-weight:700;"></span>
         </div>
@@ -125,9 +125,9 @@
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;">
             {{-- 팀명 --}}
             <div>
-                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">팀명</label>
+                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">{{ __('weekly.team_name') }}</label>
                 <input type="text" name="team_name" id="team-name" list="team-names-list" class="wr-text"
-                    value="{{ $report?->team_name ?? '' }}" placeholder="팀명 입력 또는 선택">
+                    value="{{ $report?->team_name ?? '' }}" placeholder="{{ __('weekly.team_name_placeholder') }}">
                 <datalist id="team-names-list">
                     @foreach($teamNames as $tn)
                     <option value="{{ $tn }}">
@@ -136,9 +136,9 @@
             </div>
             {{-- 담당 매니저 --}}
             <div>
-                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">담당 매니저</label>
+                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">{{ __('weekly.manager_name') }}</label>
                 <input type="text" name="manager_name" id="manager-name" list="manager-names-list" class="wr-text"
-                    value="{{ $report?->manager_name ?? '' }}" placeholder="매니저명 입력">
+                    value="{{ $report?->manager_name ?? '' }}" placeholder="{{ __('weekly.manager_name_placeholder') }}">
                 <datalist id="manager-names-list">
                     @foreach($projectMembers as $member)
                     <option value="{{ $member->name }}">
@@ -147,13 +147,13 @@
             </div>
             {{-- 작성자 --}}
             <div>
-                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">작성자</label>
+                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">{{ __('weekly.author_name') }}</label>
                 <input type="text" name="author_name" id="author-name" class="wr-text"
                     value="{{ $report?->author_name ?? auth()->user()->name }}" readonly style="background:#f9fafb;color:#6b7280;">
             </div>
             {{-- 작성일 --}}
             <div>
-                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">작성일</label>
+                <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">{{ __('weekly.report_date') }}</label>
                 <input type="date" name="report_date" id="report-date" class="wr-date" style="width:100%;"
                     value="{{ $report?->report_date?->format('Y-m-d') ?? today()->format('Y-m-d') }}">
             </div>
@@ -164,7 +164,7 @@
     <div class="section-card">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
             <span class="section-number">1</span>
-            <span class="section-title">주요 성과 요약</span>
+            <span class="section-title">{{ __('weekly.section1_title') }}</span>
             <span style="margin-left:6px;font-size:11px;background:#ede9fe;color:#7c3aed;border-radius:4px;padding:1px 7px;font-weight:600;">Rich Text</span>
         </div>
         <div id="quill-editor"></div>
@@ -178,34 +178,34 @@
                     <span class="section-number">2</span>
                     <span class="section-number" style="background:linear-gradient(135deg,#0891b2,#0e7490);">3</span>
                 </div>
-                <span class="section-title">금주 업무 현황 관리</span>
+                <span class="section-title">{{ __('weekly.section23_title') }}</span>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
                 <span id="prev-load-badge" style="display:none;font-size:11px;background:#ede9fe;color:#7c3aed;border-radius:5px;padding:2px 8px;font-weight:600;"></span>
                 <button type="button" class="btn-add-row" onclick="addCurrentTask()">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    업무 추가
+                    {{ __('weekly.add_task') }}
                 </button>
             </div>
         </div>
-        <p style="font-size:11.5px;color:#9ca3af;margin-bottom:12px;">상태를 선택하면 자동으로 2번(완료) / 3번(진행중) 섹션으로 분류됩니다.</p>
+        <p style="font-size:11.5px;color:#9ca3af;margin-bottom:12px;">{{ __('weekly.section23_hint') }}</p>
 
         <div style="overflow-x:auto;">
             <table class="task-grid-table" style="width:100%;border-collapse:collapse;">
                 <thead>
                     <tr style="border-bottom:1.5px solid #e9e7fb;">
-                        <th style="width:40%;padding:8px 8px;text-align:left;">업무명</th>
-                        <th style="width:13%;padding:8px 8px;text-align:center;">시작일</th>
-                        <th style="width:13%;padding:8px 8px;text-align:center;">종료일</th>
-                        <th style="width:18%;padding:8px 8px;text-align:center;">상태</th>
-                        <th style="width:8%;padding:8px 8px;text-align:center;">원본</th>
+                        <th style="width:40%;padding:8px 8px;text-align:left;">{{ __('weekly.col_task_name') }}</th>
+                        <th style="width:13%;padding:8px 8px;text-align:center;">{{ __('weekly.col_start_date') }}</th>
+                        <th style="width:13%;padding:8px 8px;text-align:center;">{{ __('weekly.col_end_date') }}</th>
+                        <th style="width:18%;padding:8px 8px;text-align:center;">{{ __('weekly.col_status') }}</th>
+                        <th style="width:8%;padding:8px 8px;text-align:center;">{{ __('weekly.col_original') }}</th>
                         <th style="width:8%;padding:8px 8px;text-align:center;"></th>
                     </tr>
                 </thead>
                 <tbody id="current-tasks-body">
                     <tr id="current-empty-row">
                         <td colspan="6" style="text-align:center;padding:20px;color:#9ca3af;font-size:13px;">
-                            업무가 없습니다. 이전 주차 데이터를 불러오거나 직접 추가하세요.
+                            {{ __('weekly.current_empty') }}
                         </td>
                     </tr>
                 </tbody>
@@ -217,7 +217,7 @@
             <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
                     <span class="section-number" style="width:18px;height:18px;font-size:10px;">2</span>
-                    <span style="font-size:12.5px;font-weight:700;color:#065f46;">금주 업무 실시 사항</span>
+                    <span style="font-size:12.5px;font-weight:700;color:#065f46;">{{ __('weekly.section2_preview_title') }}</span>
                     <span id="completed-count" style="background:#10b981;color:#fff;border-radius:999px;font-size:10px;padding:1px 7px;font-weight:700;margin-left:auto;">0</span>
                 </div>
                 <div id="section2-preview" style="display:flex;flex-direction:column;gap:2px;"></div>
@@ -225,7 +225,7 @@
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
                     <span class="section-number" style="width:18px;height:18px;font-size:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);">3</span>
-                    <span style="font-size:12.5px;font-weight:700;color:#1e40af;">진행 중인 업무</span>
+                    <span style="font-size:12.5px;font-weight:700;color:#1e40af;">{{ __('weekly.section3_preview_title') }}</span>
                     <span id="inprogress-count" style="background:#3b82f6;color:#fff;border-radius:999px;font-size:10px;padding:1px 7px;font-weight:700;margin-left:auto;">0</span>
                 </div>
                 <div id="section3-preview" style="display:flex;flex-direction:column;gap:2px;"></div>
@@ -238,11 +238,11 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <div style="display:flex;align-items:center;gap:6px;">
                 <span class="section-number" style="background:linear-gradient(135deg,#f59e0b,#d97706);">4</span>
-                <span class="section-title">차주 업무 계획</span>
+                <span class="section-title">{{ __('weekly.section4_title') }}</span>
             </div>
             <button type="button" class="btn-add-row" onclick="addNextWeekTask()">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                계획 추가
+                {{ __('weekly.add_plan') }}
             </button>
         </div>
 
@@ -250,16 +250,16 @@
             <table class="task-grid-table" style="width:100%;border-collapse:collapse;">
                 <thead>
                     <tr style="border-bottom:1.5px solid #e9e7fb;">
-                        <th style="width:55%;padding:8px 8px;text-align:left;">업무명</th>
-                        <th style="width:17%;padding:8px 8px;text-align:center;">시작일</th>
-                        <th style="width:17%;padding:8px 8px;text-align:center;">종료일</th>
+                        <th style="width:55%;padding:8px 8px;text-align:left;">{{ __('weekly.col_task_name') }}</th>
+                        <th style="width:17%;padding:8px 8px;text-align:center;">{{ __('weekly.col_start_date') }}</th>
+                        <th style="width:17%;padding:8px 8px;text-align:center;">{{ __('weekly.col_end_date') }}</th>
                         <th style="width:11%;padding:8px 8px;text-align:center;"></th>
                     </tr>
                 </thead>
                 <tbody id="next-week-tasks-body">
                     <tr id="next-empty-row">
                         <td colspan="4" style="text-align:center;padding:20px;color:#9ca3af;font-size:13px;">
-                            차주 계획 업무를 추가하세요. (다음 주 보고서 작성 시 자동 연계됩니다)
+                            {{ __('weekly.next_empty') }}
                         </td>
                     </tr>
                 </tbody>
@@ -271,10 +271,10 @@
     <div class="section-card">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
             <span class="section-number" style="background:linear-gradient(135deg,#ef4444,#dc2626);">5</span>
-            <span class="section-title">특이 사항 및 건의 사항 / 업무 지연</span>
+            <span class="section-title">{{ __('weekly.section5_title') }}</span>
         </div>
         <textarea name="special_notes" id="special-notes" class="wr-textarea"
-            placeholder="특이 사항, 건의 사항, 업무 지연 이유 등을 자유롭게 작성하세요."
+            placeholder="{{ __('weekly.special_notes_placeholder') }}"
         >{{ $report?->special_notes ?? '' }}</textarea>
     </div>
 
@@ -284,30 +284,30 @@
         <button type="button" onclick="window.parent&&window.parent.closeWeeklyReportPopup(false)"
             style="display:inline-flex;align-items:center;gap:6px;color:#6b7280;font-size:13px;background:none;border:none;cursor:pointer;padding:0;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            닫기
+            {{ __('common.close') }}
         </button>
         @else
         <a href="{{ route('projects.show', $project) }}"
             style="display:inline-flex;align-items:center;gap:6px;color:#6b7280;font-size:13px;text-decoration:none;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            프로젝트로 돌아가기
+            {{ __('weekly.back_to_project') }}
         </a>
         @endif
         <div style="display:flex;gap:10px;">
             <button type="button" onclick="submitForm('draft')"
                 style="display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:1.5px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;font-size:13.5px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                임시 저장
+                {{ __('weekly.save_draft') }}
             </button>
             <button type="button" onclick="submitForm('submit')"
                 style="display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:8px;background:#059669;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                제출
+                {{ __('weekly.submit_report') }}
             </button>
             <button type="button" onclick="submitForm('download')"
                 style="display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                웍스 워드 다운로드
+                {{ __('weekly.download_word') }}
             </button>
         </div>
     </div>
@@ -334,6 +334,26 @@ const URLS = {
     checkConcurrent: '{{ route('projects.weekly-reports.check-concurrent', $project) }}',
 };
 
+// ── 번역 문자열 ────────────────────────────────────────────────────
+const WR_I18N = {
+    weekLabel:        @json(__('weekly.week_label_js')),
+    titleTemplate:    @json(__('weekly.report_title_template', ['project' => $project->name, 'label' => ':label'])),
+    prevLinkedBadge:  @json(__('weekly.prev_linked_badge', ['date' => ':date', 'count' => ':count'])),
+    concurrentMsg:    @json(__('weekly.concurrent_message', ['name' => ':name', 'date' => ':date'])),
+    taskNamePlaceholder: @json(__('weekly.task_name_placeholder')),
+    statusPending:    @json(__('weekly.status_pending')),
+    statusInProgress: @json(__('weekly.status_in_progress')),
+    statusCompleted:  @json(__('weekly.status_completed')),
+    viewOriginal:     @json(__('weekly.view_original')),
+    badgeModified:    @json(__('weekly.badge_modified')),
+    badgeLinked:      @json(__('weekly.badge_linked')),
+    taskNameEmpty:    @json(__('weekly.task_name_empty')),
+    noCompletedTask:  @json(__('weekly.no_completed_task')),
+    noInProgressTask: @json(__('weekly.no_in_progress_task')),
+    originalDataAlert:@json(__('weekly.original_data_alert', ['name' => ':name', 'start' => ':start', 'end' => ':end'])),
+    downloadingWord:  @json(__('weekly.downloading_word')),
+};
+
 // ── 상태 ────────────────────────────────────────────────────────────
 let currentTasks   = [];
 let nextWeekTasks  = [];
@@ -357,7 +377,8 @@ function getWeekInfo(dateStr) {
 
     const pad2 = n => String(n).padStart(2, '0');
     return {
-        label:          `${y}년 ${m}월 ${w}주차`,
+        label:          WR_I18N.weekLabel
+                            .replace(':year', y).replace(':month', m).replace(':week', w),
         weekStartDate:  `${y}-${pad2(m)}-${pad2(day)}`,
         isoWeek:        getISOWeek(mon),
         year:           y,
@@ -375,7 +396,7 @@ function getISOWeek(date) {
 // ── 제목 / 라벨 업데이트 ─────────────────────────────────────────────
 function updateWeekUI(weekStartDate) {
     const info = getWeekInfo(weekStartDate);
-    const title = `{{ $project->name }} - 주간 업무 보고 | ${info.label}`;
+    const title = WR_I18N.titleTemplate.replace(':label', info.label);
     document.getElementById('report-title').textContent = title;
     document.getElementById('week-label-badge').textContent = info.label;
     document.getElementById('week-start-date').value = info.weekStartDate;
@@ -392,7 +413,9 @@ async function loadPreviousTasks(weekStartDate) {
             currentTasks = data.tasks.map(t => ({ ...t, _id: newId() }));
             renderCurrentTasks();
             const badge = document.getElementById('prev-load-badge');
-            badge.textContent = `이전 주(${data.from_week_date}) 계획 ${data.tasks.length}건 연계됨`;
+            badge.textContent = WR_I18N.prevLinkedBadge
+                .replace(':date', data.from_week_date)
+                .replace(':count', data.tasks.length);
             badge.style.display = 'inline-flex';
         }
     } catch (e) { /* 무시 */ }
@@ -406,9 +429,9 @@ async function checkConcurrent(weekStartDate) {
         });
         const data = await res.json();
         if (data.concurrent) {
-            document.getElementById('concurrent-msg').textContent =
-                `${data.user_name}님이 동일 주차(${weekStartDate}) 보고서를 작성 중입니다. ` +
-                `중복 작성을 방지하려면 돌아가기를 클릭하세요.`;
+            document.getElementById('concurrent-msg').textContent = WR_I18N.concurrentMsg
+                .replace(':name', data.user_name)
+                .replace(':date', weekStartDate);
             document.getElementById('concurrent-modal').classList.add('show');
         }
     } catch (e) { /* 무시 */ }
@@ -435,13 +458,13 @@ function renderCurrentTasks() {
         tr.dataset.id = task._id;
 
         const badgeHtml = isModified
-            ? `<span class="badge-modified" title="원본: ${escHtml(task.original_data?.task_name ?? '')} / ${task.original_data?.start_date ?? '-'} ~ ${task.original_data?.end_date ?? '-'}">✏ 수정됨</span>`
-            : (isFromPrev ? `<span class="badge-prev">연계</span>` : '');
+            ? `<span class="badge-modified" title="${escHtml(WR_I18N.viewOriginal)}: ${escHtml(task.original_data?.task_name ?? '')} / ${task.original_data?.start_date ?? '-'} ~ ${task.original_data?.end_date ?? '-'}">${escHtml(WR_I18N.badgeModified)}</span>`
+            : (isFromPrev ? `<span class="badge-prev">${escHtml(WR_I18N.badgeLinked)}</span>` : '');
 
         tr.innerHTML = `
             <td style="padding:6px 8px;">
                 <div style="display:flex;align-items:center;gap:6px;">
-                    <input type="text" value="${escHtml(task.task_name)}" placeholder="업무명 입력"
+                    <input type="text" value="${escHtml(task.task_name)}" placeholder="${escHtml(WR_I18N.taskNamePlaceholder)}"
                         style="border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:13px;width:100%;outline:none;"
                         oninput="updateCurrentTask('${task._id}','task_name',this.value)"
                         onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e5e7eb'">
@@ -459,14 +482,14 @@ function renderCurrentTasks() {
             <td style="text-align:center;padding:6px 8px;">
                 <select class="wr-select" style="width:100%;"
                     onchange="updateCurrentTask('${task._id}','status',this.value)">
-                    <option value="pending"     ${task.status==='pending'    ?'selected':''}>⬜ 미착수</option>
-                    <option value="in_progress" ${task.status==='in_progress'?'selected':''}>🔵 진행중</option>
-                    <option value="completed"   ${task.status==='completed'  ?'selected':''}>✅ 완료</option>
+                    <option value="pending"     ${task.status==='pending'    ?'selected':''}>${escHtml(WR_I18N.statusPending)}</option>
+                    <option value="in_progress" ${task.status==='in_progress'?'selected':''}>${escHtml(WR_I18N.statusInProgress)}</option>
+                    <option value="completed"   ${task.status==='completed'  ?'selected':''}>${escHtml(WR_I18N.statusCompleted)}</option>
                 </select>
             </td>
             <td style="text-align:center;padding:6px 8px;">
                 ${isFromPrev
-                    ? `<button type="button" title="원본 보기" onclick="showOriginal('${task._id}')"
+                    ? `<button type="button" title="${escHtml(WR_I18N.viewOriginal)}" onclick="showOriginal('${task._id}')"
                         style="background:none;border:none;cursor:pointer;color:#7c3aed;padding:2px;">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                       </button>`
@@ -501,13 +524,13 @@ function updateCurrentTask(id, field, value) {
         if (isTaskModified(task)) {
             const badge = document.createElement('span');
             badge.className = 'badge-modified';
-            badge.title = `원본: ${escHtml(task.original_data?.task_name ?? '')} / ${task.original_data?.start_date ?? '-'} ~ ${task.original_data?.end_date ?? '-'}`;
-            badge.innerHTML = '✏ 수정됨';
+            badge.title = `${WR_I18N.viewOriginal}: ${escHtml(task.original_data?.task_name ?? '')} / ${task.original_data?.start_date ?? '-'} ~ ${task.original_data?.end_date ?? '-'}`;
+            badge.textContent = WR_I18N.badgeModified;
             div.appendChild(badge);
         } else if (task.original_data) {
             const badge = document.createElement('span');
             badge.className = 'badge-prev';
-            badge.innerHTML = '연계';
+            badge.textContent = WR_I18N.badgeLinked;
             div.appendChild(badge);
         }
     }
@@ -536,7 +559,10 @@ function showOriginal(id) {
     const task = currentTasks.find(t => t._id === id);
     if (!task?.original_data) return;
     const o = task.original_data;
-    alert(`원본 데이터:\n업무명: ${o.task_name}\n시작일: ${o.start_date || '-'}\n종료일: ${o.end_date || '-'}`);
+    alert(WR_I18N.originalDataAlert
+        .replace(':name', o.task_name)
+        .replace(':start', o.start_date || '-')
+        .replace(':end', o.end_date || '-'));
 }
 
 // ── 섹션 2+3 미리보기 ────────────────────────────────────────────────
@@ -550,12 +576,12 @@ function renderSectionPreviews() {
     document.getElementById('inprogress-count').textContent = inProgress.length;
 
     s2.innerHTML = completed.length
-        ? completed.map(t => `<div class="section-preview-row completed">✅ <span>${escHtml(t.task_name) || '(업무명 없음)'}</span></div>`).join('')
-        : '<div style="font-size:12px;color:#9ca3af;padding:4px 10px;">완료된 업무 없음</div>';
+        ? completed.map(t => `<div class="section-preview-row completed">✅ <span>${escHtml(t.task_name) || escHtml(WR_I18N.taskNameEmpty)}</span></div>`).join('')
+        : `<div style="font-size:12px;color:#9ca3af;padding:4px 10px;">${escHtml(WR_I18N.noCompletedTask)}</div>`;
 
     s3.innerHTML = inProgress.length
-        ? inProgress.map(t => `<div class="section-preview-row in_progress">🔵 <span>${escHtml(t.task_name) || '(업무명 없음)'}</span></div>`).join('')
-        : '<div style="font-size:12px;color:#9ca3af;padding:4px 10px;">진행 중인 업무 없음</div>';
+        ? inProgress.map(t => `<div class="section-preview-row in_progress">🔵 <span>${escHtml(t.task_name) || escHtml(WR_I18N.taskNameEmpty)}</span></div>`).join('')
+        : `<div style="font-size:12px;color:#9ca3af;padding:4px 10px;">${escHtml(WR_I18N.noInProgressTask)}</div>`;
 }
 
 // ── 차주 업무 그리드 ─────────────────────────────────────────────────
@@ -572,7 +598,7 @@ function renderNextWeekTasks() {
         tr.dataset.id = task._id;
         tr.innerHTML = `
             <td style="padding:6px 8px;">
-                <input type="text" value="${escHtml(task.task_name)}" placeholder="업무명 입력"
+                <input type="text" value="${escHtml(task.task_name)}" placeholder="${escHtml(WR_I18N.taskNamePlaceholder)}"
                     style="border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:13px;width:100%;outline:none;"
                     oninput="updateNextWeekTask('${task._id}','task_name',this.value)"
                     onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e5e7eb'">
@@ -626,7 +652,7 @@ function submitForm(action) {
     if (action === 'download') {
         const btn = event.currentTarget;
         btn.disabled = true;
-        btn.textContent = '웍스가 보고서를 작성 중...';
+        btn.textContent = WR_I18N.downloadingWord;
     }
 
     document.getElementById('report-form').submit();
@@ -646,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Quill 초기화
     quill = new Quill('#quill-editor', {
         theme: 'snow',
-        placeholder: '이번 주 주요 성과를 자유롭게 작성하세요...',
+        placeholder: @json(__('weekly.summary_placeholder')),
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '웍스 분석 이력')
+@section('title', __('requirements.analysis_history'))
 
 @section('content')
 <div class="max-w-4xl mx-auto px-4 py-8">
@@ -8,18 +8,18 @@
     <div class="mb-6 flex items-center justify-between">
         <div>
             <a href="{{ route('projects.requirements.index', $project) }}"
-               class="text-sm text-blue-600 hover:underline">&larr; 요구사항 목록</a>
-            <h1 class="text-xl font-bold mt-1">웍스 분석 이력</h1>
+               class="text-sm text-blue-600 hover:underline">&larr; {{ __('requirements.requirements_list') }}</a>
+            <h1 class="text-xl font-bold mt-1">{{ __('requirements.analysis_history') }}</h1>
         </div>
         <a href="{{ route('projects.requirements.analysis.create', $project) }}"
            class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 font-medium">
-            + 새 분석
+            {{ __('requirements.analysis_new') }}
         </a>
     </div>
 
     @if($sessions->isEmpty())
         <div class="bg-white border border-gray-200 rounded-lg p-12 text-center text-gray-400 text-sm">
-            아직 분석 이력이 없습니다.
+            {{ __('requirements.analysis_no_history') }}
         </div>
     @else
         <div class="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
@@ -43,7 +43,7 @@
                             {{ $s->status_label }}
                         </span>
                         <span class="text-xs text-gray-500">{{ $s->llm_provider }} / {{ $s->llm_model }}</span>
-                        <span class="text-xs text-gray-400">파일 {{ $s->files_count }}개</span>
+                        <span class="text-xs text-gray-400">{{ __('requirements.analysis_files_count', ['n' => $s->files_count]) }}</span>
                     </div>
                     <p class="text-sm text-gray-500 mt-0.5">
                         {{ $s->createdBy?->name ?? '-' }} &middot;

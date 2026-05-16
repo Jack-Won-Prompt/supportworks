@@ -18,6 +18,8 @@ return [
     'invite_message_hint'       => '(Optional)',
     'invite_message_placeholder'=> 'Write a short intro or reason for the invitation...',
     'sending'                   => 'Sending...',
+    'phone_label'               => 'Phone',
+    'phone_hint'                => '(Optional · for approval notification SMS)',
 
     // ── Mail failure fallback
     'mail_fail_title'           => '⚠️ Email delivery failed — share the link directly',
@@ -50,6 +52,38 @@ return [
     'joined_date_suffix'        => 'joined',
     'send_message'              => 'Send message to',
     'no_members'                => 'No members.',
+    'company_select'            => 'Select company',
+    'company_saved'             => 'Saved',
+    'company_save_failed'       => 'Failed',
+    'assign_projects'           => 'Assign Projects',
+
+    // ── Project assignment modal
+    'proj_modal_subtitle'       => "Select projects for :name",
+    'proj_search_placeholder'   => 'Search projects...',
+    'proj_none_assignable'      => 'No assignable projects.',
+    'proj_count_selected'       => ':count project(s) selected',
+    'proj_save_done_title'      => 'Saved',
+    'proj_save_done_msg'        => 'Project assignment has been updated.',
+    'proj_save_fail'            => 'Failed to save. Please try again.',
+    'proj_in_progress'          => 'Active',
+    'saving'                    => 'Saving...',
+    'server_error'              => 'Server error',
+
+    // ── Company picker dialog
+    'company_picker_title'      => 'Select / Add Company',
+    'company_picker_subtitle'   => "Company for :name",
+    'company_search_placeholder'=> 'Type or search a company name…',
+    'company_not_registered_suffix' => 'company is not registered.',
+    'company_add_select'        => 'Add new company + select',
+    'company_clear'             => 'Set to no company',
+    'company_searching'         => 'Searching…',
+    'company_load_fail'         => 'Failed to load',
+    'company_no_match'          => 'No matching company',
+    'company_none_registered'   => 'No companies registered',
+    'company_register_fail'     => 'Failed to register company',
+    'company_register_fail_msg' => 'Failed to register company: ',
+    'company_assign_fail'       => 'Failed to assign company: ',
+    'company_server_response'   => 'Server response ',
 
     // ── Microsoft Teams
     'teams_title'               => 'Microsoft Teams Integration',

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SupportWorks 가입하기</title>
+    <title>{{ __('files.signup_page_title') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -64,8 +64,8 @@
             <div style="width:64px;height:64px;background:rgba(255,255,255,.15);border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px;backdrop-filter:blur(8px);">
                 🎉
             </div>
-            <h1 style="font-size:22px;font-weight:900;color:#fff;margin:0 0 6px;letter-spacing:-.5px;">SupportWorks에 가입하기</h1>
-            <p style="font-size:13px;color:rgba(255,255,255,.75);margin:0;">공유 받은 파일에서 한 발 더 — 함께 협업해 보세요</p>
+            <h1 style="font-size:22px;font-weight:900;color:#fff;margin:0 0 6px;letter-spacing:-.5px;">{{ __('files.signup_heading') }}</h1>
+            <p style="font-size:13px;color:rgba(255,255,255,.75);margin:0;">{{ __('files.signup_subtitle') }}</p>
         </div>
 
         {{-- 초대한 사람 (공유자) --}}
@@ -74,7 +74,7 @@
                 {{ mb_substr($inviterName, 0, 1) }}
             </div>
             <div style="min-width:0;flex:1;">
-                <div style="font-size:10px;color:#a5b4fc;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">초대한 사람</div>
+                <div style="font-size:10px;color:#a5b4fc;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">{{ __('files.signup_inviter') }}</div>
                 <div style="font-size:14px;font-weight:700;color:#1e1b4b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $inviterName }}</div>
             </div>
         </div>
@@ -86,10 +86,10 @@
                 <svg width="15" height="15" fill="none" stroke="#15803d" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
             <div style="min-width:0;flex:1;">
-                <div style="font-size:10px;color:#16a34a;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">소속 회사 (자동)</div>
+                <div style="font-size:10px;color:#16a34a;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">{{ __('files.signup_company') }}</div>
                 <div style="font-size:13px;font-weight:700;color:#14532d;">{{ $companyName }}</div>
             </div>
-            <span style="flex-shrink:0;font-size:10px;padding:3px 8px;background:#dcfce7;color:#16a34a;border-radius:5px;font-weight:700;">기본 설정</span>
+            <span style="flex-shrink:0;font-size:10px;padding:3px 8px;background:#dcfce7;color:#16a34a;border-radius:5px;font-weight:700;">{{ __('files.signup_company_badge') }}</span>
         </div>
         @endif
 
@@ -99,7 +99,7 @@
                 <svg width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
             </div>
             <div style="min-width:0;flex:1;">
-                <div style="font-size:10px;color:#a5b4fc;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">공유받은 파일</div>
+                <div style="font-size:10px;color:#a5b4fc;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">{{ __('files.signup_shared_file') }}</div>
                 <div style="font-size:13px;font-weight:700;color:#1e1b4b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $file->original_name }}</div>
             </div>
         </div>
@@ -123,7 +123,7 @@
                     {{-- 이메일 --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            이메일 <span style="color:#9b8afb;">*</span>
+                            {{ __('files.signup_email') }} <span style="color:#9b8afb;">*</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,20 +136,20 @@
                     {{-- 이름 --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            이름 <span style="color:#9b8afb;">*</span>
+                            {{ __('files.signup_name') }} <span style="color:#9b8afb;">*</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
-                            <input type="text" name="name" value="{{ old('name') }}" required placeholder="홍길동" maxlength="100" style="padding-right:14px;">
+                            <input type="text" name="name" value="{{ old('name') }}" required placeholder="{{ __('files.signup_name_placeholder') }}" maxlength="100" style="padding-right:14px;">
                         </div>
                     </div>
 
                     {{-- 휴대폰 (선택) --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            휴대폰 <span style="font-weight:500;color:#9ca3af;font-size:11px;">(선택 · 알림 SMS 수신용)</span>
+                            {{ __('files.signup_phone') }} <span style="font-weight:500;color:#9ca3af;font-size:11px;">{{ __('files.signup_phone_hint') }}</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,13 +162,13 @@
                     {{-- 비밀번호 --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            비밀번호 <span style="color:#9b8afb;">*</span>
+                            {{ __('files.signup_password') }} <span style="color:#9b8afb;">*</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                             </svg>
-                            <input type="password" name="password" id="pw" required minlength="8" placeholder="8자 이상" oninput="checkStrength(this.value)">
+                            <input type="password" name="password" id="pw" required minlength="8" placeholder="{{ __('files.signup_password_ph') }}" oninput="checkStrength(this.value)">
                             <button type="button" class="toggle-pw" onclick="togglePw('pw','eye1')">
                                 <svg id="eye1" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </button>
@@ -182,13 +182,13 @@
                     {{-- 비밀번호 확인 --}}
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">
-                            비밀번호 확인 <span style="color:#9b8afb;">*</span>
+                            {{ __('files.signup_password_confirm') }} <span style="color:#9b8afb;">*</span>
                         </label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
-                            <input type="password" name="password_confirmation" id="pw2" required minlength="8" placeholder="다시 입력" oninput="checkMatch()">
+                            <input type="password" name="password_confirmation" id="pw2" required minlength="8" placeholder="{{ __('files.signup_password_confirm_ph') }}" oninput="checkMatch()">
                             <button type="button" class="toggle-pw" onclick="togglePw('pw2','eye2')">
                                 <svg id="eye2" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </button>
@@ -196,18 +196,18 @@
                         <div id="match-label" style="font-size:11px;margin-top:4px;"></div>
                     </div>
 
-                    <button type="submit" class="btn-submit" style="margin-top:6px;">SupportWorks 가입하기</button>
+                    <button type="submit" class="btn-submit" style="margin-top:6px;">{{ __('files.signup_submit') }}</button>
                 </div>
             </form>
 
             <p style="text-align:center;font-size:12px;color:#6b7280;margin-top:18px;margin-bottom:0;">
-                이미 계정이 있으신가요? <a href="{{ route('login') }}" style="color:#7c3aed;font-weight:600;text-decoration:none;">로그인</a>
+                {{ __('files.signup_have_account') }} <a href="{{ route('login') }}" style="color:#7c3aed;font-weight:600;text-decoration:none;">{{ __('files.signup_login') }}</a>
             </p>
 
             <p style="text-align:center;margin-top:14px;margin-bottom:0;">
                 <a href="{{ route('files.public-share', $token) }}" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#9ca3af;text-decoration:none;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                    공유 파일로 돌아가기
+                    {{ __('files.signup_back_to_file') }}
                 </a>
             </p>
         </div>
@@ -229,7 +229,7 @@ function checkStrength(v) {
     if (v.length >= 12) score++;
     const widths  = ['0%','30%','55%','80%','100%'];
     const colors  = ['#ef4444','#ef4444','#f59e0b','#84cc16','#16a34a'];
-    const labels  = ['','너무 짧음','보통','좋음','매우 강함'];
+    const labels  = ['', @json(__('files.signup_strength_short')), @json(__('files.signup_strength_normal')), @json(__('files.signup_strength_good')), @json(__('files.signup_strength_strong'))];
     bar.style.width = widths[score];
     bar.style.background = colors[score];
     lbl.textContent = v ? labels[score] : '';
@@ -241,8 +241,8 @@ function checkMatch() {
     const b = document.getElementById('pw2').value;
     const lbl = document.getElementById('match-label');
     if (!b) { lbl.textContent = ''; return; }
-    if (a === b) { lbl.textContent = '✓ 일치합니다'; lbl.style.color = '#16a34a'; }
-    else         { lbl.textContent = '✗ 일치하지 않습니다'; lbl.style.color = '#ef4444'; }
+    if (a === b) { lbl.textContent = @json(__('files.signup_pw_match')); lbl.style.color = '#16a34a'; }
+    else         { lbl.textContent = @json(__('files.signup_pw_mismatch')); lbl.style.color = '#ef4444'; }
 }
 </script>
 

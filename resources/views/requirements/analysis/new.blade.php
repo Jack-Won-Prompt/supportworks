@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '웍스 요구사항 분석')
+@section('title', __('requirements.analysis_title'))
 
 @section('content')
 <div class="max-w-2xl mx-auto px-4 py-8">
@@ -8,9 +8,9 @@
     {{-- 헤더 --}}
     <div class="mb-6">
         <a href="{{ route('projects.requirements.index', $project) }}"
-           class="text-sm text-blue-600 hover:underline">&larr; 요구사항 목록</a>
-        <h1 class="text-2xl font-bold mt-2">웍스 요구사항 분석</h1>
-        <p class="text-sm text-gray-500 mt-1">문서를 업로드하거나 텍스트를 입력하면 웍스가 요구사항 항목을 추출합니다.</p>
+           class="text-sm text-blue-600 hover:underline">&larr; {{ __('requirements.requirements_list') }}</a>
+        <h1 class="text-2xl font-bold mt-2">{{ __('requirements.analysis_title') }}</h1>
+        <p class="text-sm text-gray-500 mt-1">{{ __('requirements.analysis_intro') }}</p>
     </div>
 
     @if ($errors->any())
@@ -27,7 +27,7 @@
 
         {{-- 파일 업로드 --}}
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">문서 파일 (선택)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('requirements.analysis_doc_file') }}</label>
             <div id="drop-zone"
                  class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 transition-colors"
                  onclick="document.getElementById('file-input').click()">
@@ -35,8 +35,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                           d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
-                <p class="text-sm text-gray-500">클릭하거나 파일을 드래그하세요</p>
-                <p class="text-xs text-gray-400 mt-1">docx · xlsx · pptx · pdf · txt · md (최대 20MB, 10개)</p>
+                <p class="text-sm text-gray-500">{{ __('requirements.analysis_drop_hint') }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ __('requirements.analysis_file_types') }}</p>
             </div>
             <input id="file-input" type="file" name="files[]"
                    multiple accept=".docx,.xlsx,.xls,.pptx,.ppt,.pdf,.txt,.md,.csv,.log"
@@ -47,22 +47,22 @@
         {{-- 컨텍스트 메모 --}}
         <div>
             <label for="context_note" class="block text-sm font-medium text-gray-700 mb-1">
-                분석 컨텍스트 메모 <span class="text-gray-400">(선택)</span>
+                {{ __('requirements.analysis_context_label') }} <span class="text-gray-400">{{ __('requirements.analysis_context_optional') }}</span>
             </label>
             <textarea id="context_note" name="context_note" rows="4"
                       maxlength="2000"
-                      placeholder="프로젝트 배경, 분석 목적, 제외할 내용 등을 입력하세요."
+                      placeholder="{{ __('requirements.analysis_context_placeholder') }}"
                       class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
             >{{ old('context_note') }}</textarea>
-            <p class="text-xs text-gray-400 mt-1">파일 없이 메모만 입력해도 분석이 가능합니다.</p>
+            <p class="text-xs text-gray-400 mt-1">{{ __('requirements.analysis_context_hint') }}</p>
         </div>
 
         {{-- LLM 설정 --}}
         <div class="border-t pt-4">
-            <p class="text-sm font-medium text-gray-700 mb-3">웍스 모델 설정</p>
+            <p class="text-sm font-medium text-gray-700 mb-3">{{ __('requirements.analysis_model_settings') }}</p>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">제공자</label>
+                    <label class="block text-xs text-gray-500 mb-1">{{ __('requirements.analysis_provider') }}</label>
                     <select name="llm_provider" id="llm_provider"
                             class="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             onchange="updateModels(this.value)">
@@ -74,7 +74,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">모델</label>
+                    <label class="block text-xs text-gray-500 mb-1">{{ __('requirements.analysis_model') }}</label>
                     <select name="llm_model" id="llm_model"
                             class="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
                         @foreach(\App\Models\AnalysisSession::PROVIDER_MODELS[$provider] as $m)
@@ -87,10 +87,10 @@
 
         <div class="flex justify-end gap-3 pt-2">
             <a href="{{ route('projects.requirements.index', $project) }}"
-               class="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">취소</a>
+               class="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">{{ __('common.cancel') }}</a>
             <button type="submit"
                     class="px-5 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 font-medium">
-                분석 시작
+                {{ __('requirements.analysis_start') }}
             </button>
         </div>
     </form>
@@ -120,7 +120,7 @@ function updateFileList(input) {
     });
 }
 
-// 드래그 앤 드롭
+// 드래그 앤 드롭 (drag & drop)
 const dropZone = document.getElementById('drop-zone');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-blue-500'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-blue-500'));

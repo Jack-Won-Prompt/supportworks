@@ -42,13 +42,13 @@
 <div class="cover-page">
     <div class="cover-logo">SupportWorks</div>
     <div class="cover-title">{{ $doc->title }}</div>
-    <div class="cover-sub">프로젝트 기획서</div>
+    <div class="cover-sub">{{ __('planning.project_planning') }}</div>
     <div class="cover-meta">
-        <span>프로젝트: {{ $doc->project->name }}</span>
-        <span>버전: v{{ $doc->version }}</span>
-        <span>상태: {{ $doc->status_label }}</span>
+        <span>{{ __('planning.meta_project', ['name' => $doc->project->name]) }}</span>
+        <span>{{ __('planning.meta_version', ['version' => $doc->version]) }}</span>
+        <span>{{ __('planning.meta_status', ['status' => $doc->status_label]) }}</span>
         @if($doc->approved_at)
-        <span>승인일: {{ $doc->approved_at->format('Y.m.d') }}</span>
+        <span>{{ __('planning.meta_approved', ['date' => $doc->approved_at->format('Y.m.d')]) }}</span>
         @endif
     </div>
 </div>
@@ -56,7 +56,7 @@
 @if($htmlContent)
 <div class="md-body">{!! $htmlContent !!}</div>
 @else
-<div class="md-body" style="color:#9ca3af;text-align:center;padding:40px;">기획서 내용이 없습니다.</div>
+<div class="md-body" style="color:#9ca3af;text-align:center;padding:40px;">{{ __('planning.empty_content') }}</div>
 @endif
 
 </body>

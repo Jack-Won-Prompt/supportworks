@@ -147,7 +147,7 @@
                         <label style="font-size:11px;font-weight:600;color:#6b7280;flex-shrink:0;margin-left:4px;">{{ __('projects.schedule') }}</label>
                         <select id="upload-schedule-sel" class="cat-select">
                             <option value="">—</option>
-                            @foreach($subTasks->groupBy(fn($t) => $t->taskGroup?->title ?? '미분류') as $grpTitle => $grpTasks)
+                            @foreach($subTasks->groupBy(fn($t) => $t->taskGroup?->title ?? __('team.uncategorized')) as $grpTitle => $grpTasks)
                             <optgroup label="{{ $grpTitle }}">
                                 @foreach($grpTasks as $t)
                                 <option value="{{ $t->id }}">{{ $t->title }}</option>
@@ -206,7 +206,7 @@
                         </select>
                         <select id="url-schedule-sel" class="url-field" style="padding:9px 10px;flex-shrink:0;">
                             <option value="">— {{ __('projects.schedule') }}</option>
-                            @foreach($subTasks->groupBy(fn($t) => $t->taskGroup?->title ?? '미분류') as $grpTitle => $grpTasks)
+                            @foreach($subTasks->groupBy(fn($t) => $t->taskGroup?->title ?? __('team.uncategorized')) as $grpTitle => $grpTasks)
                             <optgroup label="{{ $grpTitle }}">
                                 @foreach($grpTasks as $t)
                                 <option value="{{ $t->id }}">{{ $t->title }}</option>
@@ -309,12 +309,12 @@
                                             <svg width="10" height="10" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                             @foreach($file->reviewRequests as $req)
                                             @if($req->reviewed_at)
-                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="검토 완료">
+                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="{{ __('files.review_complete') }}">
                                                 <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                                 {{ $req->reviewer->name }}
                                             </span>
                                             @else
-                                            <span style="font-size:10px;padding:1px 6px;background:#fefce8;color:#854d0e;border:1px solid #fde047;border-radius:8px;font-weight:500;white-space:nowrap;" title="검토 대기중">{{ $req->reviewer->name }}</span>
+                                            <span style="font-size:10px;padding:1px 6px;background:#fefce8;color:#854d0e;border:1px solid #fde047;border-radius:8px;font-weight:500;white-space:nowrap;" title="{{ __('files.review_pending') }}">{{ $req->reviewer->name }}</span>
                                             @endif
                                             @endforeach
                                         </div>
@@ -323,7 +323,7 @@
                                                 style="display:none;align-items:center;gap:3px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
                                                 onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
                                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                            검토 완료
+                                            {{ __('files.review_complete') }}
                                         </button>
                                         @endif
                                     </div>
@@ -334,7 +334,7 @@
                                             onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                         @if(($file->versions_count ?? 0) >= 2)
-                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="수정본 {{ $file->versions_count - 1 }}개 (현재 v{{ $file->versions_count }})">
+                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="{{ __('files.versions_tooltip', ['count' => $file->versions_count - 1, 'current' => $file->versions_count]) }}">
                                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                                 v{{ $file->versions_count }}
                                             </span>
@@ -358,12 +358,12 @@
                                             <svg width="10" height="10" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                             @foreach($file->reviewRequests as $req)
                                             @if($req->reviewed_at)
-                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="검토 완료">
+                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="{{ __('files.review_complete') }}">
                                                 <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                                 {{ $req->reviewer->name }}
                                             </span>
                                             @else
-                                            <span style="font-size:10px;padding:1px 6px;background:#fefce8;color:#854d0e;border:1px solid #fde047;border-radius:8px;font-weight:500;white-space:nowrap;" title="검토 대기중">{{ $req->reviewer->name }}</span>
+                                            <span style="font-size:10px;padding:1px 6px;background:#fefce8;color:#854d0e;border:1px solid #fde047;border-radius:8px;font-weight:500;white-space:nowrap;" title="{{ __('files.review_pending') }}">{{ $req->reviewer->name }}</span>
                                             @endif
                                             @endforeach
                                         </div>
@@ -372,7 +372,7 @@
                                                 style="display:none;align-items:center;gap:3px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
                                                 onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
                                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                            검토 완료
+                                            {{ __('files.review_complete') }}
                                         </button>
                                         @endif
                                     </div>
@@ -383,7 +383,7 @@
                                        onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                         @if(($file->versions_count ?? 0) >= 2)
-                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="수정본 {{ $file->versions_count - 1 }}개 (현재 v{{ $file->versions_count }})">
+                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="{{ __('files.versions_tooltip', ['count' => $file->versions_count - 1, 'current' => $file->versions_count]) }}">
                                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                                 v{{ $file->versions_count }}
                                             </span>
@@ -406,12 +406,12 @@
                                             <svg width="10" height="10" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                             @foreach($file->reviewRequests as $req)
                                             @if($req->reviewed_at)
-                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="검토 완료">
+                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="{{ __('files.review_complete') }}">
                                                 <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                                 {{ $req->reviewer->name }}
                                             </span>
                                             @else
-                                            <span style="font-size:10px;padding:1px 6px;background:#fefce8;color:#854d0e;border:1px solid #fde047;border-radius:8px;font-weight:500;white-space:nowrap;" title="검토 대기중">{{ $req->reviewer->name }}</span>
+                                            <span style="font-size:10px;padding:1px 6px;background:#fefce8;color:#854d0e;border:1px solid #fde047;border-radius:8px;font-weight:500;white-space:nowrap;" title="{{ __('files.review_pending') }}">{{ $req->reviewer->name }}</span>
                                             @endif
                                             @endforeach
                                         </div>
@@ -420,7 +420,7 @@
                                                 style="display:none;align-items:center;gap:3px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
                                                 onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
                                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                            검토 완료
+                                            {{ __('files.review_complete') }}
                                         </button>
                                         @endif
                                     </div>
@@ -486,7 +486,7 @@
                                         data-file-subtask="{{ $file->sub_task_id ?? '' }}"
                                         data-file-project="{{ $file->project_id }}"
                                         style="font-size:12px;font-weight:600;color:#6366f1;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
-                                        onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#6366f1'">수정</button>
+                                        onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#6366f1'">{{ __('files.edit_file') }}</button>
                                 <form method="POST" action="{{ route('projects.files.destroy', [$project, $file]) }}"
                                       onsubmit="return confirm('{{ __('team.delete_confirm') }}')" style="margin:0;">
                                     @csrf @method('DELETE')
@@ -564,10 +564,10 @@
         <div style="display:flex;gap:10px;justify-content:center;">
             <button id="custom-confirm-cancel"
                 style="flex:1;padding:9px 0;border:1.5px solid #e5e7eb;border-radius:9px;background:#fff;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;transition:background .12s;"
-                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">취소</button>
+                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('files.confirm_cancel') }}</button>
             <button id="custom-confirm-ok"
                 style="flex:1;padding:9px 0;border:none;border-radius:9px;background:#0891b2;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:background .12s;"
-                onmouseover="this.style.background='#0e7490'" onmouseout="this.style.background='#0891b2'">확인</button>
+                onmouseover="this.style.background='#0e7490'" onmouseout="this.style.background='#0891b2'">{{ __('files.confirm_ok') }}</button>
         </div>
     </div>
 </div>
@@ -628,7 +628,7 @@
                 <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="16" height="16" fill="none" stroke="#fff" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </div>
-                <h3 style="margin:0;font-size:16px;font-weight:700;color:#111827;">파일 정보 수정</h3>
+                <h3 style="margin:0;font-size:16px;font-weight:700;color:#111827;">{{ __('files.edit_modal_title') }}</h3>
             </div>
             <button onclick="closeEditModal()" style="background:none;border:none;cursor:pointer;font-size:22px;color:#9ca3af;line-height:1;padding:4px;">×</button>
         </div>
@@ -636,7 +636,7 @@
         {{-- 파일명 --}}
         <div style="margin-bottom:16px;">
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">
-                파일명 / 제목 <span style="color:#ef4444;">*</span>
+                {{ __('files.edit_name_label') }} <span style="color:#ef4444;">*</span>
             </label>
             <input id="edit-name" type="text" maxlength="255"
                    style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#111827;outline:none;transition:border-color .15s;"
@@ -647,7 +647,7 @@
         <div style="margin-bottom:16px;">
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="vertical-align:-1px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                프로젝트
+                {{ __('files.edit_project_label') }}
             </label>
             <select id="edit-project-sel"
                     style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#111827;outline:none;background:#fff;cursor:pointer;transition:border-color .15s;"
@@ -658,7 +658,7 @@
                 @endforeach
             </select>
             <p id="edit-project-hint" style="display:none;margin:5px 0 0;font-size:11px;color:#f59e0b;">
-                ⚠ 프로젝트를 변경하면 카테고리·일정 연결이 초기화됩니다.
+                {{ __('files.edit_project_hint') }}
             </p>
         </div>
 
@@ -666,13 +666,13 @@
         <div style="margin-bottom:16px;">
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="vertical-align:-1px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                일정
+                {{ __('files.edit_schedule_label') }}
             </label>
             <select id="edit-subtask-sel"
                     style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#111827;outline:none;background:#fff;cursor:pointer;transition:border-color .15s;"
                     onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'">
-                <option value="">— 연결 없음</option>
-                @foreach($subTasks->groupBy(fn($t) => $t->taskGroup?->title ?? '미분류') as $grpTitle => $grpTasks)
+                <option value="">{{ __('files.edit_schedule_none') }}</option>
+                @foreach($subTasks->groupBy(fn($t) => $t->taskGroup?->title ?? __('team.uncategorized')) as $grpTitle => $grpTasks)
                 <optgroup label="{{ $grpTitle }}">
                     @foreach($grpTasks as $t)
                     <option value="{{ $t->id }}">{{ $t->title }}</option>
@@ -686,9 +686,9 @@
         <div style="margin-bottom:24px;">
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="vertical-align:-1px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h7"/></svg>
-                설명
+                {{ __('files.edit_desc_label') }}
             </label>
-            <textarea id="edit-desc" rows="3" maxlength="500" placeholder="파일에 대한 설명을 입력하세요"
+            <textarea id="edit-desc" rows="3" maxlength="500" placeholder="{{ __('files.edit_desc_placeholder') }}"
                       style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;resize:vertical;transition:border-color .15s;font-family:inherit;"
                       onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
         </div>
@@ -698,10 +698,10 @@
             <span id="edit-status" style="font-size:12px;flex:1;"></span>
             <button onclick="closeEditModal()"
                     style="padding:9px 20px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;font-size:13px;color:#6b7280;cursor:pointer;transition:background .12s;"
-                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">취소</button>
+                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('files.confirm_cancel') }}</button>
             <button id="edit-submit-btn" onclick="submitFileEdit()"
                     style="padding:9px 24px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;"
-                    onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">저장</button>
+                    onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">{{ __('files.edit_save') }}</button>
         </div>
     </div>
 </div>
@@ -1027,6 +1027,25 @@ const STR = {
     copy_success:        '{{ __("team.copy_success") }}',
     copy_fail:           '{{ __("team.copy_fail") }}',
     desc_placeholder:    '{{ __("team.desc_placeholder") }}',
+    edit_save:           @json(__('files.edit_save')),
+    edit_saving:         @json(__('files.edit_saving')),
+    edit_name_required:  @json(__('files.edit_name_required')),
+    edit_save_failed:    @json(__('files.edit_save_failed')),
+    edit_error:          @json(__('files.edit_error')),
+    processing:          @json(__('files.processing')),
+    error_occurred:      @json(__('files.error_occurred')),
+    network_err:         @json(__('files.network_error')),
+    tooltip_loading:     @json(__('files.tooltip_loading')),
+    tooltip_load_failed: @json(__('files.tooltip_load_failed')),
+    review_complete_confirm:     @json(__('files.review_complete_confirm')),
+    review_complete_confirm_sub: @json(__('files.review_complete_confirm_sub')),
+    log_review_request:  @json(__('files.log_review_request')),
+    log_download:        @json(__('files.log_download')),
+    log_copy:            @json(__('files.log_copy')),
+    log_view:            @json(__('files.log_view')),
+    log_share:           @json(__('files.log_share')),
+    log_no_history:      @json(__('files.log_no_history')),
+    log_history_header:  @json(__('files.log_history_header')),
 };
 
 // ── 업로드 프로젝트 변경 ────────────────────────────────────────
@@ -1068,7 +1087,7 @@ async function changeUploadProject(projectId, projectName) {
             const tasks = await schedRes.json();
             const byGroup = {};
             tasks.forEach(t => {
-                const g = t.task_group?.title ?? '미분류';
+                const g = t.task_group?.title ?? STR.uncategorized;
                 if (!byGroup[g]) byGroup[g] = [];
                 byGroup[g].push(t);
             });
@@ -1119,7 +1138,7 @@ async function addCategory() {
                 <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(cat.name)}</span>
                 <span class="cat-count">0</span>
             </a>
-            <button class="cat-edit-btn" onclick="startEditCategory(${cat.id},'${escHtml(cat.name).replace(/'/g,"\\'")}','${cat.color}')" title="${STR.edit||'편집'}">
+            <button class="cat-edit-btn" onclick="startEditCategory(${cat.id},'${escHtml(cat.name).replace(/'/g,"\\'")}','${cat.color}')" title="${STR.edit}">
                 <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             </button>
             <button class="cat-delete-btn" onclick="deleteCategory(${cat.id},this)" title="${STR.delete}">×</button>
@@ -1130,8 +1149,8 @@ async function addCategory() {
                 <input type="text" class="cat-edit-name" value="${escHtml(cat.name)}" style="flex:1;padding:5px 8px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:12px;outline:none;background:#fff;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'" onkeydown="if(event.key==='Enter')saveEditCategory(${cat.id},this)">
             </div>
             <div style="display:flex;gap:4px;">
-                <button onclick="saveEditCategory(${cat.id},this)" class="cat-save-btn" style="font-size:11px;padding:4px 10px;">${STR.save||'저장'}</button>
-                <button onclick="cancelEditCategory(${cat.id})" class="cat-cancel-btn" style="font-size:11px;padding:4px 10px;">${STR.cancel||'취소'}</button>
+                <button onclick="saveEditCategory(${cat.id},this)" class="cat-save-btn" style="font-size:11px;padding:4px 10px;">${STR.save}</button>
+                <button onclick="cancelEditCategory(${cat.id})" class="cat-cancel-btn" style="font-size:11px;padding:4px 10px;">${STR.cancel}</button>
             </div>
         </div>`;
     document.getElementById('cat-list').appendChild(li);
@@ -1650,10 +1669,10 @@ function customConfirm(message, sub, onOk) {
 
 // ── 검토 완료 ──────────────────────────────────────────────────
 function completeReview(fileId) {
-    customConfirm('검토를 완료로 표시하시겠습니까?', '완료 후에는 검토 요청자에게 알림이 전달됩니다.', async () => {
+    customConfirm(STR.review_complete_confirm, STR.review_complete_confirm_sub, async () => {
         const btn = document.getElementById('review-complete-btn-' + fileId);
         const savedHTML = btn ? btn.innerHTML : '';
-        if (btn) { btn.disabled = true; btn.textContent = '처리중...'; }
+        if (btn) { btn.disabled = true; btn.textContent = STR.processing; }
 
         try {
             const res = await fetch(REVIEW_BASE_URL + fileId + '/review-complete', {
@@ -1664,11 +1683,11 @@ function completeReview(fileId) {
             if (data.ok) {
                 location.reload();
             } else {
-                alert(data.error || '오류가 발생했습니다.');
+                alert(data.error || STR.error_occurred);
                 if (btn) { btn.disabled = false; btn.innerHTML = savedHTML; }
             }
         } catch {
-            alert('네트워크 오류가 발생했습니다.');
+            alert(STR.network_err);
             if (btn) { btn.disabled = false; btn.innerHTML = savedHTML; }
         }
     });
@@ -1863,7 +1882,7 @@ async function showFileActionTooltip(event, fileId, action) {
     const cacheKey = fileId + '_' + action;
     tt.innerHTML = _fileActionLogCache[cacheKey] !== undefined
         ? _renderActionLog(_fileActionLogCache[cacheKey], action)
-        : '<span style="color:#94a3b8">불러오는 중…</span>';
+        : '<span style="color:#94a3b8">' + STR.tooltip_loading + '</span>';
     document.body.appendChild(tt);
     _positionTooltip(tt, rect);
 
@@ -1880,7 +1899,7 @@ async function showFileActionTooltip(event, fileId, action) {
         }
     } catch {
         const existing = document.getElementById('file-action-tooltip');
-        if (existing) existing.innerHTML = '<span style="color:#f87171">불러오기 실패</span>';
+        if (existing) existing.innerHTML = '<span style="color:#f87171">' + STR.tooltip_load_failed + '</span>';
     }
 }
 
@@ -1896,10 +1915,10 @@ async function _positionTooltip(tt, rect) {
 }
 
 function _renderActionLog(logs, action) {
-    const labels = { review_request: '검토 요청', download: '다운로드', copy: '복사', view: '리뷰', share: '링크 공유' };
+    const labels = { review_request: STR.log_review_request, download: STR.log_download, copy: STR.log_copy, view: STR.log_view, share: STR.log_share };
     const label = labels[action] || action;
-    if (!logs.length) return `<span style="color:#94a3b8">${label} 이력이 없습니다</span>`;
-    const header = `<div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.05em;margin-bottom:5px;border-bottom:1px solid #334155;padding-bottom:3px;">${label} 이력 (최근 5건)</div>`;
+    if (!logs.length) return `<span style="color:#94a3b8">${escHtml(STR.log_no_history.replace(':label', label))}</span>`;
+    const header = `<div style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:.05em;margin-bottom:5px;border-bottom:1px solid #334155;padding-bottom:3px;">${escHtml(STR.log_history_header.replace(':label', label))}</div>`;
     const rows = logs.map(l =>
         `<div><span style="color:#e2e8f0;font-weight:600">${l.user_name}</span>&nbsp;<span style="color:#64748b">${l.created_at}</span></div>`
     ).join('');
@@ -1964,7 +1983,7 @@ async function openEditModal(id, name, desc, subTaskId, projectId) {
 
     const btn = document.getElementById('edit-submit-btn');
     btn.disabled    = false;
-    btn.textContent = '저장';
+    btn.textContent = STR.edit_save;
 
     document.getElementById('edit-file-modal').style.display = 'flex';
     setTimeout(() => document.getElementById('edit-name').focus(), 60);
@@ -1988,7 +2007,7 @@ async function submitFileEdit() {
 
     const name = document.getElementById('edit-name').value.trim();
     if (!name) {
-        document.getElementById('edit-status').textContent = '파일명을 입력해 주세요.';
+        document.getElementById('edit-status').textContent = STR.edit_name_required;
         document.getElementById('edit-status').style.color = '#ef4444';
         return;
     }
@@ -1996,7 +2015,7 @@ async function submitFileEdit() {
     const btn    = document.getElementById('edit-submit-btn');
     const status = document.getElementById('edit-status');
     btn.disabled    = true;
-    btn.textContent = '저장 중...';
+    btn.textContent = STR.edit_saving;
     status.textContent = '';
 
     const body = {
@@ -2018,16 +2037,16 @@ async function submitFileEdit() {
             closeEditModal();
             window.location.reload();
         } else {
-            status.textContent = d.message || '저장에 실패했습니다.';
+            status.textContent = d.message || STR.edit_save_failed;
             status.style.color = '#ef4444';
             btn.disabled    = false;
-            btn.textContent = '저장';
+            btn.textContent = STR.edit_save;
         }
     } catch {
-        status.textContent = '오류가 발생했습니다.';
+        status.textContent = STR.edit_error;
         status.style.color = '#ef4444';
         btn.disabled    = false;
-        btn.textContent = '저장';
+        btn.textContent = STR.edit_save;
     }
 }
 

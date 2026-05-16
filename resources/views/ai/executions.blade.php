@@ -40,7 +40,7 @@
             @if($ex->project)
             <span style="font-size:11px;background:#dbeafe;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-weight:600;">{{ $ex->project->name }}</span>
             @endif
-            <span class="ex-meta" style="margin-left:auto;">{{ $ex->created_at->format('Y.m.d H:i') }}</span>
+            <span class="ex-meta" style="margin-left:auto;">{{ $ex->created_at->format(__('ai.php_date_format')) }}</span>
         </div>
         <div class="ex-input">{{ Str::limit($ex->raw_input, 120) }}</div>
         @if($ex->ai_response)

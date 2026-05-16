@@ -2,7 +2,7 @@
 @section('title', $project->name . ' — URS')
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('urs.breadcrumb_projects') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
@@ -16,10 +16,10 @@
 
 @php
 $statusMap = [
-    'draft'          => ['label'=>'초안',      'bg'=>'#f1f5f9','color'=>'#64748b'],
-    'qa_in_progress' => ['label'=>'Q&A 진행중','bg'=>'#eff6ff','color'=>'#2563eb'],
-    'generating'     => ['label'=>'생성중',    'bg'=>'#fef9c3','color'=>'#ca8a04'],
-    'completed'      => ['label'=>'완성',      'bg'=>'#dcfce7','color'=>'#16a34a'],
+    'draft'          => ['label'=>__('urs.status_draft'),          'bg'=>'#f1f5f9','color'=>'#64748b'],
+    'qa_in_progress' => ['label'=>__('urs.status_qa_in_progress'), 'bg'=>'#eff6ff','color'=>'#2563eb'],
+    'generating'     => ['label'=>__('urs.status_generating'),     'bg'=>'#fef9c3','color'=>'#ca8a04'],
+    'completed'      => ['label'=>__('urs.status_completed'),       'bg'=>'#dcfce7','color'=>'#16a34a'],
 ];
 $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 @endphp
@@ -33,7 +33,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                 <svg width="18" height="18" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
             </div>
             <div>
-                <h1 style="font-size:16px;font-weight:700;color:#111827;margin:0;">User Requirements Specification</h1>
+                <h1 style="font-size:16px;font-weight:700;color:#111827;margin:0;">{{ __('urs.page_title') }}</h1>
                 <div style="font-size:12px;color:#9ca3af;margin-top:2px;">{{ $project->name }}</div>
             </div>
             <span style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:{{ $st['bg'] }};color:{{ $st['color'] }};">{{ $st['label'] }}</span>
@@ -48,7 +48,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                         style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#1d4ed8;color:#fff;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;"
                         onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1d4ed8'">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Word
+                        {{ __('urs.download_word') }}
                         <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div id="word-lang-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);min-width:160px;z-index:100;overflow:hidden;">
@@ -56,21 +56,21 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                             <a href="{{ route('projects.urs.download.word', [$project, $urs]) }}?lang=ko"
                                style="display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:12px;color:#374151;text-decoration:none;"
                                onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background=''">
-                                <span style="font-size:15px;">🇰🇷</span> 한국어
+                                <span style="font-size:15px;">🇰🇷</span> {{ __('urs.lang_korean') }}
                             </a>
                             <div id="en-dl-item" style="position:relative;">
                                 @if($urs->content_en)
                                 <a href="{{ route('projects.urs.download.word', [$project, $urs]) }}?lang=en"
                                    style="display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:12px;color:#374151;text-decoration:none;"
                                    onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background=''">
-                                    <span style="font-size:15px;">🇺🇸</span> English
+                                    <span style="font-size:15px;">🇺🇸</span> {{ __('urs.lang_english') }}
                                 </a>
                                 @else
                                 <button onclick="generateEnglishTranslation()" id="btn-gen-en"
                                     style="display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:12px;color:#6b7280;background:none;border:none;width:100%;cursor:pointer;text-align:left;"
                                     onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background=''">
                                     <span style="font-size:15px;">🇺🇸</span>
-                                    <span id="en-btn-label">English <span style="font-size:10px;color:#9ca3af;">(번역 생성)</span></span>
+                                    <span id="en-btn-label">{{ __('urs.lang_english') }} <span style="font-size:10px;color:#9ca3af;">{{ __('urs.generate_translation') }}</span></span>
                                 </button>
                                 @endif
                             </div>
@@ -81,14 +81,14 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                    style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#dc2626;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;"
                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    PDF
+                    {{ __('urs.download_pdf') }}
                 </a>
                 @endif
             </div>
             <button onclick="resetURS()"
                     style="font-size:12px;color:#9ca3af;background:none;border:1px solid #e5e7eb;border-radius:7px;padding:5px 12px;cursor:pointer;"
                     onmouseover="this.style.color='#ef4444';this.style.borderColor='#fca5a5'"
-                    onmouseout="this.style.color='#9ca3af';this.style.borderColor='#e5e7eb'">초기화</button>
+                    onmouseout="this.style.color='#9ca3af';this.style.borderColor='#e5e7eb'">{{ __('common.reset') }}</button>
         </div>
     </div>
 
@@ -99,7 +99,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
             <div style="width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:8px;display:flex;align-items:center;justify-content:center;">
                 <svg width="14" height="14" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.414 2.798H4.213c-1.444 0-2.414-1.798-1.414-2.798L4.8 15.3"/></svg>
             </div>
-            <span style="font-size:14px;font-weight:700;color:#1e1b2e;">웍스 연동 URS 작성</span>
+            <span style="font-size:14px;font-weight:700;color:#1e1b2e;">{{ __('urs.qa_section_title') }}</span>
             <span id="qa-progress-badge" style="font-size:11px;padding:2px 9px;border-radius:20px;background:#ede9fe;color:var(--t600);font-weight:600;display:none;"></span>
         </div>
 
@@ -108,20 +108,17 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
         <div id="qa-start-panel" style="text-align:center;padding:20px 0;">
             @if($planningDoc && $planningDoc->content)
             <div style="font-size:13px;color:#6b7280;margin-bottom:18px;line-height:1.7;">
-                기획서 "<strong style="color:#374151;">{{ $planningDoc->title }}</strong>"를 분석하여<br>
-                웍스가 URS 작성에 필요한 질문들을 생성합니다.<br>
-                <span style="font-size:12px;color:#9ca3af;">답변하지 않으면 웍스 추천 답변이 자동으로 사용됩니다.</span>
+                {!! __('urs.qa_intro_with_doc', ['title' => e($planningDoc->title)]) !!}
             </div>
             @else
             <div style="font-size:13px;color:#6b7280;margin-bottom:18px;line-height:1.7;">
-                기획서가 없어 일반적인 질문으로 URS를 작성합니다.<br>
-                <span style="font-size:12px;color:#9ca3af;">답변하지 않으면 웍스 추천 답변이 자동으로 사용됩니다.</span>
+                {!! __('urs.qa_intro_without_doc') !!}
             </div>
             @endif
             <button onclick="startQA()"
                     id="btn-start-qa"
                     style="padding:11px 28px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
-                웍스 질문 생성 시작
+                {{ __('urs.start_qa_button') }}
             </button>
         </div>
         @elseif($urs->status === 'qa_in_progress' || $urs->status === 'generating')
@@ -135,7 +132,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
                 </svg>
-                웍스가 질문을 생성하는 중...
+                {{ __('urs.qa_generating_questions') }}
             </div>
         </div>
 
@@ -154,16 +151,16 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                 <div style="margin-bottom:12px;">
                     <div style="font-size:11px;font-weight:600;color:#7c3aed;margin-bottom:5px;display:flex;align-items:center;gap:4px;">
                         <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/></svg>
-                        웍스 추천 답변
+                        {{ __('urs.qa_ai_suggestion_label') }}
                     </div>
                     <div id="qa-ai-suggestion" style="background:#fff;border:1px solid #e8e3ff;border-radius:8px;padding:10px 12px;font-size:13px;color:#374151;line-height:1.6;"></div>
                 </div>
 
                 <div style="margin-bottom:14px;">
-                    <div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:5px;">내 답변 (비워두면 웍스 추천 답변 사용)</div>
+                    <div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('urs.qa_my_answer_label') }}</div>
                     <textarea id="qa-answer-input"
                               rows="3"
-                              placeholder="직접 답변을 입력하거나, 웍스 추천 답변을 사용하려면 비워 두세요..."
+                              placeholder="{{ __('urs.qa_answer_placeholder') }}"
                               style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit;"
                               onfocus="this.style.borderColor='#7c3aed'"
                               onblur="this.style.borderColor='#e5e7eb'"></textarea>
@@ -173,12 +170,12 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                     <button onclick="useAiSuggestion()"
                             style="padding:8px 16px;background:#f5f3ff;color:#7c3aed;border:1px solid #e8e3ff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;"
                             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
-                        웍스 추천 답변 사용
+                        {{ __('urs.qa_use_suggestion') }}
                     </button>
                     <button onclick="submitAnswer()"
                             id="btn-next"
                             style="padding:8px 20px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
-                        다음 →
+                        {{ __('urs.qa_next') }}
                     </button>
                 </div>
             </div>
@@ -188,11 +185,11 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
         <div id="qa-done-panel" style="{{ ($urs->status === 'generating') ? '' : 'display:none;' }}">
             <div style="text-align:center;padding:20px 0;">
                 <div style="font-size:32px;margin-bottom:10px;">✅</div>
-                <div style="font-size:14px;font-weight:600;color:#1e1b2e;margin-bottom:6px;">모든 질문에 답변 완료!</div>
-                <div style="font-size:13px;color:#6b7280;margin-bottom:20px;">이제 웍스가 URS 문서를 생성합니다.</div>
+                <div style="font-size:14px;font-weight:600;color:#1e1b2e;margin-bottom:6px;">{{ __('urs.qa_all_done') }}</div>
+                <div style="font-size:13px;color:#6b7280;margin-bottom:20px;">{{ __('urs.qa_all_done_hint') }}</div>
                 <button onclick="generateURS()" id="btn-generate"
                         style="padding:11px 28px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
-                    URS 문서 생성하기
+                    {{ __('urs.generate_urs_button') }}
                 </button>
             </div>
         </div>
@@ -203,7 +200,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
                 </svg>
-                URS 문서를 생성하는 중... 잠시만 기다려 주세요.
+                {{ __('urs.generating_urs') }}
             </div>
         </div>
     </div>
@@ -215,11 +212,11 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
         <div style="display:flex;align-items:stretch;border-bottom:1px solid #f0eeff;">
             <button id="tab-view-btn" onclick="switchTab('view')"
                     style="flex:1;padding:13px 20px;background:#fff;border:none;border-right:1px solid #f0eeff;font-size:13px;font-weight:600;color:var(--t600);cursor:pointer;border-bottom:2px solid var(--t500);transition:all .15s;">
-                📄 URS 보기
+                {{ __('urs.tab_view') }}
             </button>
             <button id="tab-edit-btn" onclick="switchTab('edit')"
                     style="flex:1;padding:13px 20px;background:#fafafa;border:none;font-size:13px;font-weight:500;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;">
-                ✏️ URS 수정 (Markdown)
+                {{ __('urs.tab_edit') }}
             </button>
         </div>
 
@@ -228,15 +225,15 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 
             {{-- 보기 모드 토글 --}}
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f8f7ff;background:#faf9ff;">
-                <span style="font-size:12px;color:#6b7280;">보기 모드</span>
+                <span style="font-size:12px;color:#6b7280;">{{ __('urs.view_mode') }}</span>
                 <div style="display:flex;background:#f0eeff;border-radius:8px;padding:2px;gap:2px;">
                     <button id="view-mode-full-btn" onclick="setViewMode('full')"
                             style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--t600);color:#fff;transition:all .15s;">
-                        전체 보기
+                        {{ __('urs.view_mode_full') }}
                     </button>
                     <button id="view-mode-section-btn" onclick="setViewMode('section')"
                             style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:#7c3aed;transition:all .15s;">
-                        단락별 보기
+                        {{ __('urs.view_mode_section') }}
                     </button>
                 </div>
             </div>
@@ -245,8 +242,8 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
             <div id="view-full" style="padding:28px 32px;">
                 <div id="view-empty-hint" style="text-align:center;padding:60px 20px;color:#9ca3af;{{ ($urs->content) ? 'display:none;' : '' }}">
                     <div style="font-size:40px;margin-bottom:12px;">📋</div>
-                    <div style="font-size:14px;">URS 문서가 아직 생성되지 않았습니다.</div>
-                    <div style="font-size:12px;margin-top:6px;">위의 웍스 연동 섹션에서 Q&A를 완료하면 자동으로 생성됩니다.</div>
+                    <div style="font-size:14px;">{{ __('urs.empty_title') }}</div>
+                    <div style="font-size:12px;margin-top:6px;">{{ __('urs.empty_hint') }}</div>
                 </div>
                 <div id="urs-rendered" class="urs-markdown-body"></div>
             </div>
@@ -262,15 +259,15 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 
             {{-- 편집 모드 토글 --}}
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f8f7ff;background:#faf9ff;">
-                <span style="font-size:12px;color:#6b7280;">편집 모드</span>
+                <span style="font-size:12px;color:#6b7280;">{{ __('urs.edit_mode') }}</span>
                 <div style="display:flex;background:#f0eeff;border-radius:8px;padding:2px;gap:2px;">
                     <button id="edit-mode-full-btn" onclick="setEditMode('full')"
                             style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--t600);color:#fff;transition:all .15s;">
-                        전체 편집
+                        {{ __('urs.edit_mode_full') }}
                     </button>
                     <button id="edit-mode-section-btn" onclick="setEditMode('section')"
                             style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:#7c3aed;transition:all .15s;">
-                        단락별 편집
+                        {{ __('urs.edit_mode_section') }}
                     </button>
                 </div>
             </div>
@@ -278,11 +275,11 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
             {{-- 전체 편집 --}}
             <div id="edit-full" style="padding:20px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                    <span style="font-size:12px;color:#9ca3af;">Markdown으로 전체 문서를 수정합니다.</span>
+                    <span style="font-size:12px;color:#9ca3af;">{{ __('urs.edit_full_hint') }}</span>
                     <button onclick="saveMarkdown()" id="btn-save-md"
-                            style="padding:7px 18px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">저장</button>
+                            style="padding:7px 18px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.save') }}</button>
                 </div>
-                <textarea id="urs-editor" rows="32" placeholder="URS Markdown 내용을 입력하세요..."
+                <textarea id="urs-editor" rows="32" placeholder="{{ __('urs.editor_placeholder') }}"
                           style="width:100%;padding:14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'JetBrains Mono','Fira Code',monospace;color:#374151;resize:vertical;outline:none;box-sizing:border-box;line-height:1.7;"
                           onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e5e7eb'">{{ $urs->content ?? '' }}</textarea>
             </div>
@@ -292,7 +289,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                 <div id="section-edit-list"></div>
                 <button onclick="saveAllSections()" id="btn-save-all-sections"
                         style="margin-top:14px;width:100%;padding:11px;background:var(--t600);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">
-                    전체 저장
+                    {{ __('urs.save_all') }}
                 </button>
             </div>
         </div>
@@ -325,6 +322,34 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 </style>
 
 <script>
+// 번역 문자열 (서버 렌더링)
+const URS_I18N = {
+    save:              @json(__('common.save')),
+    saving:            @json(__('common.saving')),
+    saved_check:       @json(__('urs.saved_check')),
+    save_all:          @json(__('urs.save_all')),
+    saved_all_check:   @json(__('urs.saved_all_check')),
+    no_content:        @json(__('urs.no_content')),
+    section_preamble:  @json(__('urs.section_preamble')),
+    generating_short:  @json(__('urs.generating_short')),
+    generate_urs:      @json(__('urs.generate_urs_button')),
+    start_qa:          @json(__('urs.start_qa_button')),
+    qa_next:           @json(__('urs.qa_next')),
+    qa_done_badge:     @json(__('urs.qa_done_badge')),
+    qa_q_prefix:       @json(__('urs.qa_question_prefix')),
+    translating:       @json(__('urs.translating')),
+    translation_failed:@json(__('urs.translation_failed')),
+    lang_english:      @json(__('urs.lang_english')),
+    error_prefix:      @json(__('urs.error_prefix')),
+    generate_error:    @json(__('urs.generate_error_prefix')),
+    default_error:     @json(__('urs.default_error')),
+    save_failed:       @json(__('urs.save_failed')),
+    generate_failed:   @json(__('urs.generate_failed')),
+    question_gen_failed:@json(__('urs.question_gen_failed')),
+    reset_failed:      @json(__('urs.reset_failed')),
+    confirm_reset:     @json(__('urs.confirm_reset')),
+};
+
 const URS_ID        = {{ $urs->id }};
 const PROJECT_ID    = {{ $project->id }};
 const START_URL     = '{{ route("projects.urs.qa.start",    [$project, $urs]) }}';
@@ -354,7 +379,7 @@ async function generateEnglishTranslation() {
     if (!btn || btn.disabled) return;
 
     btn.disabled = true;
-    label.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/></svg> 번역 중...';
+    label.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/></svg> ' + URS_I18N.translating;
 
     try {
         const res = await fetch(TRANSLATE_EN_URL, {
@@ -362,7 +387,7 @@ async function generateEnglishTranslation() {
             headers: { 'X-CSRF-TOKEN': CSRF(), 'Accept': 'application/json' },
         });
         const data = await res.json();
-        if (!data.ok) throw new Error(data.message ?? '오류');
+        if (!data.ok) throw new Error(data.message ?? URS_I18N.default_error);
 
         const item = document.getElementById('en-dl-item');
         item.innerHTML = `<a href="${WORD_URL}?lang=en"
@@ -371,7 +396,7 @@ async function generateEnglishTranslation() {
             <span style="font-size:15px;">🇺🇸</span> English
         </a>`;
     } catch (err) {
-        label.innerHTML = 'English <span style="font-size:10px;color:#ef4444;">(실패 — 재시도)</span>';
+        label.innerHTML = URS_I18N.lang_english + ' <span style="font-size:10px;color:#ef4444;">' + URS_I18N.translation_failed + '</span>';
         btn.disabled = false;
     }
 }
@@ -479,11 +504,11 @@ async function renderSectionView(sections) {
     const list = document.getElementById('section-view-list');
     if (!list) return;
     if (!sections || sections.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#9ca3af;">내용이 없습니다.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#9ca3af;">' + escHtml(URS_I18N.no_content) + '</div>';
         return;
     }
     list.innerHTML = sections.map((s, i) => {
-        const title = s.title === '__preamble__' ? '제목 / 소개' : s.title;
+        const title = s.title === '__preamble__' ? URS_I18N.section_preamble : s.title;
         const html  = renderMdToHtml(s.content);
         return `<div style="border:1px solid #e8e3ff;border-radius:10px;margin-bottom:8px;overflow:hidden;">
             <div onclick="toggleSectionView(${i})"
@@ -513,17 +538,17 @@ async function renderSectionEdit(sections) {
     const list = document.getElementById('section-edit-list');
     if (!list) return;
     if (!sections || sections.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#9ca3af;">내용이 없습니다.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#9ca3af;">' + escHtml(URS_I18N.no_content) + '</div>';
         return;
     }
     list.innerHTML = sections.map((s, i) => {
-        const label = s.title === '__preamble__' ? '제목 / 소개' : `## ${s.title}`;
+        const label = s.title === '__preamble__' ? URS_I18N.section_preamble : `## ${s.title}`;
         return `<div style="border:1px solid #e8e3ff;border-radius:10px;margin-bottom:12px;overflow:hidden;">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#f8f7ff;border-bottom:1px solid #e8e3ff;">
                 <span style="font-size:13px;font-weight:600;color:#1e1b2e;">${escHtml(label)}</span>
                 <button onclick="saveSection(${i})" id="btn-save-sec-${i}"
                         style="padding:4px 12px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
-                    저장
+                    ${escHtml(URS_I18N.save)}
                 </button>
             </div>
             <div style="padding:12px 16px;">
@@ -541,18 +566,18 @@ async function saveSection(idx) {
     const ta  = document.getElementById(`se-ta-${idx}`);
     const btn = document.getElementById(`btn-save-sec-${idx}`);
     if (!ta || !btn) return;
-    btn.disabled = true; btn.textContent = '저장 중...';
+    btn.disabled = true; btn.textContent = URS_I18N.saving;
     currentSections[idx].content = ta.value;
     const fullMd = rebuildMarkdown(currentSections);
     document.getElementById('urs-editor').value = fullMd;
     try {
         await saveMdToServer(fullMd);
         renderMarkdown(fullMd);
-        btn.textContent = '저장됨 ✓';
-        setTimeout(() => { btn.disabled = false; btn.textContent = '저장'; }, 1500);
+        btn.textContent = URS_I18N.saved_check;
+        setTimeout(() => { btn.disabled = false; btn.textContent = URS_I18N.save; }, 1500);
     } catch(e) {
-        btn.disabled = false; btn.textContent = '저장';
-        alert('오류: ' + e.message);
+        btn.disabled = false; btn.textContent = URS_I18N.save;
+        alert(URS_I18N.error_prefix + e.message);
     }
 }
 
@@ -565,15 +590,15 @@ async function saveAllSections() {
     const fullMd = rebuildMarkdown(currentSections);
     document.getElementById('urs-editor').value = fullMd;
     const btn = document.getElementById('btn-save-all-sections');
-    btn.disabled = true; btn.textContent = '저장 중...';
+    btn.disabled = true; btn.textContent = URS_I18N.saving;
     try {
         await saveMdToServer(fullMd);
         renderMarkdown(fullMd);
-        btn.textContent = '전체 저장됨 ✓';
-        setTimeout(() => { btn.disabled = false; btn.textContent = '전체 저장'; }, 1500);
+        btn.textContent = URS_I18N.saved_all_check;
+        setTimeout(() => { btn.disabled = false; btn.textContent = URS_I18N.save_all; }, 1500);
     } catch(e) {
-        btn.disabled = false; btn.textContent = '전체 저장';
-        alert('오류: ' + e.message);
+        btn.disabled = false; btn.textContent = URS_I18N.save_all;
+        alert(URS_I18N.error_prefix + e.message);
     }
 }
 
@@ -581,18 +606,18 @@ async function saveAllSections() {
 async function saveMarkdown() {
     const content = document.getElementById('urs-editor').value;
     const btn     = document.getElementById('btn-save-md');
-    btn.disabled  = true; btn.textContent = '저장 중...';
+    btn.disabled  = true; btn.textContent = URS_I18N.saving;
     try {
         await saveMdToServer(content);
         currentSections = parseMarkdownSections(content);
         renderMarkdown(content);
         if (currentViewMode === 'section') renderSectionView(currentSections);
         if (currentEditMode === 'section') renderSectionEdit(currentSections);
-        btn.textContent = '저장됨 ✓';
-        setTimeout(() => { btn.disabled = false; btn.textContent = '저장'; }, 1500);
+        btn.textContent = URS_I18N.saved_check;
+        setTimeout(() => { btn.disabled = false; btn.textContent = URS_I18N.save; }, 1500);
     } catch(e) {
-        btn.disabled = false; btn.textContent = '저장';
-        alert('오류: ' + e.message);
+        btn.disabled = false; btn.textContent = URS_I18N.save;
+        alert(URS_I18N.error_prefix + e.message);
     }
 }
 
@@ -604,7 +629,7 @@ async function saveMdToServer(content) {
         body: JSON.stringify({ content }),
     });
     const d = await res.json();
-    if (!d.ok) throw new Error(d.message || '저장 실패');
+    if (!d.ok) throw new Error(d.message || URS_I18N.save_failed);
     return d;
 }
 
@@ -677,7 +702,7 @@ function renderMdToHtml(md) {
 // ── URS 생성 ─────────────────────────────────────────────
 async function generateURS() {
     const btn = document.getElementById('btn-generate');
-    btn.disabled = true; btn.textContent = '생성 중...';
+    btn.disabled = true; btn.textContent = URS_I18N.generating_short;
     document.getElementById('qa-done-panel').style.display = 'none';
     document.getElementById('generating-panel').style.display = 'block';
     try {
@@ -687,7 +712,7 @@ async function generateURS() {
         });
         const d = await res.json();
         document.getElementById('generating-panel').style.display = 'none';
-        if (!d.ok) throw new Error(d.message || '생성 실패');
+        if (!d.ok) throw new Error(d.message || URS_I18N.generate_failed);
 
         document.getElementById('qa-section').style.display = 'none';
         document.getElementById('urs-editor').value = d.content;
@@ -700,8 +725,8 @@ async function generateURS() {
     } catch(e) {
         document.getElementById('generating-panel').style.display = 'none';
         document.getElementById('qa-done-panel').style.display = 'block';
-        btn.disabled = false; btn.textContent = 'URS 문서 생성하기';
-        alert('생성 오류: ' + e.message);
+        btn.disabled = false; btn.textContent = URS_I18N.generate_urs;
+        alert(URS_I18N.generate_error + e.message);
     }
 }
 
@@ -744,7 +769,7 @@ function makeHistoryRow(num, question, answer) {
     const div = document.createElement('div');
     div.style.cssText = 'background:#f8f7ff;border:1px solid #e8e3ff;border-radius:8px;padding:10px 14px;';
     div.innerHTML = `
-        <div style="font-size:11px;font-weight:700;color:var(--t600);margin-bottom:4px;">Q${num}. ${escHtml(question)}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--t600);margin-bottom:4px;">${URS_I18N.qa_q_prefix}${num}. ${escHtml(question)}</div>
         <div style="font-size:12px;color:#374151;">${escHtml(answer)}</div>`;
     return div;
 }
@@ -755,7 +780,7 @@ function escHtml(s) {
 
 async function startQA() {
     const btn = document.getElementById('btn-start-qa');
-    btn.disabled = true; btn.textContent = '생성 중...';
+    btn.disabled = true; btn.textContent = URS_I18N.generating_short;
     document.getElementById('qa-start-panel').style.display = 'none';
     document.getElementById('qa-loading').style.display = 'block';
     try {
@@ -765,7 +790,7 @@ async function startQA() {
         });
         const d = await res.json();
         document.getElementById('qa-loading').style.display = 'none';
-        if (!d.ok) throw new Error(d.message || '질문 생성 실패');
+        if (!d.ok) throw new Error(d.message || URS_I18N.question_gen_failed);
         currentIndex = d.index;
         document.getElementById('qa-panel').style.display = 'block';
         showQuestion(d.index, d.question, d.ai_suggestion, d.total);
@@ -773,8 +798,8 @@ async function startQA() {
     } catch(e) {
         document.getElementById('qa-loading').style.display = 'none';
         document.getElementById('qa-start-panel').style.display = 'block';
-        btn.disabled = false; btn.textContent = '웍스 질문 생성 시작';
-        alert('오류: ' + e.message);
+        btn.disabled = false; btn.textContent = URS_I18N.start_qa;
+        alert(URS_I18N.error_prefix + e.message);
     }
 }
 
@@ -802,7 +827,7 @@ async function useAiSuggestion() {
 async function submitAnswer() {
     const answer = document.getElementById('qa-answer-input').value.trim() || currentSuggestion;
     const btn    = document.getElementById('btn-next');
-    btn.disabled = true; btn.textContent = '저장 중...';
+    btn.disabled = true; btn.textContent = URS_I18N.saving;
     try {
         const res = await fetch(ANSWER_URL, {
             method: 'POST',
@@ -810,18 +835,18 @@ async function submitAnswer() {
             body: JSON.stringify({ answer, index: currentIndex }),
         });
         const d = await res.json();
-        if (!d.ok) throw new Error(d.message || '저장 실패');
+        if (!d.ok) throw new Error(d.message || URS_I18N.save_failed);
         const historyEl = document.getElementById('qa-history');
         const q = document.getElementById('qa-question-text').textContent;
         historyEl.appendChild(makeHistoryRow(currentIndex + 1, q, answer));
         historyEl.scrollTop = historyEl.scrollHeight;
         document.getElementById('qa-answer-input').value = '';
-        btn.disabled = false; btn.textContent = '다음 →';
+        btn.disabled = false; btn.textContent = URS_I18N.qa_next;
         if (d.done) showDonePanel();
         else        showQuestion(d.index, d.question, d.ai_suggestion, d.total);
     } catch(e) {
-        btn.disabled = false; btn.textContent = '다음 →';
-        alert('오류: ' + e.message);
+        btn.disabled = false; btn.textContent = URS_I18N.qa_next;
+        alert(URS_I18N.error_prefix + e.message);
     }
 }
 
@@ -829,20 +854,20 @@ async function showDonePanel() {
     document.getElementById('current-question-wrap').style.display = 'none';
     document.getElementById('qa-done-panel').style.display = 'block';
     const badge = document.getElementById('qa-progress-badge');
-    badge.textContent = '완료';
+    badge.textContent = URS_I18N.qa_done_badge;
     badge.style.background = '#dcfce7'; badge.style.color = '#16a34a';
 }
 
 // ── 초기화 ───────────────────────────────────────────────
 async function resetURS() {
-    if (!await __confirm('URS를 초기화하시겠습니까? Q&A 내용과 생성된 문서가 모두 삭제됩니다.')) return;
+    if (!await __confirm(URS_I18N.confirm_reset)) return;
     const res = await fetch(RESET_URL, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': CSRF(), 'Accept': 'application/json', 'Content-Type': 'application/json' },
     });
     const d = await res.json();
     if (d.ok) location.reload();
-    else alert('초기화 실패');
+    else alert(URS_I18N.reset_failed);
 }
 
 // Enter키로 답변 제출

@@ -350,7 +350,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
         {{-- 헤더 --}}
         <div class="dlv-center-header">
             <div class="dlv-center-header-top">
-                <button class="dlv-left-toggle" type="button" onclick="dlvToggleLeft()" title="산출물 목록 펼치기/접기" aria-label="toggle deliverable list">
+                <button class="dlv-left-toggle" type="button" onclick="dlvToggleLeft()" title="{{ __('deliverables.toggle_list') }}" aria-label="{{ __('deliverables.toggle_list') }}">
                     <svg id="dlv-left-toggle-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <div class="dlv-center-title">
@@ -492,7 +492,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                     <div class="dlv-tool-slot" id="tool-EXPORT">
                         <div class="dlv-tool-slot-header">
                             @include('ai-agent.deliverables.partials.tool-icon', ['toolId' => 'EXPORT'])
-                            <span class="dlv-tool-slot-name">{{ $tools['EXPORT']['name'] ?? '다중 포맷 출력' }}</span>
+                            <span class="dlv-tool-slot-name">{{ $tools['EXPORT']['name'] ?? __('deliverables.export_default_name') }}</span>
                             <span style="font-size:10px;padding:2px 6px;background:#f1f5f9;color:#64748b;border-radius:4px;font-weight:600;">EXPORT</span>
                         </div>
                         @include('ai-agent.deliverables.partials.tool-widget', [
@@ -541,7 +541,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             @else
             <button id="dlv-tr-all-btn" class="dlv-btn dlv-btn-outline" onclick="dlvTranslateAll()" style="color:#0284c7;border-color:#bae6fd;">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
-                모든 STEP 영문 변환
+                {{ __('deliverables.translate_all_steps') }}
             </button>
             <button class="dlv-btn dlv-btn-primary" onclick="completeDeliverable()" style="background:#16a34a;">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -552,21 +552,21 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             <button class="dlv-btn dlv-btn-ghost" title="{{ __('deliverables.btn_skip') }}" onclick="skipStep()">{{ __('deliverables.btn_skip') }}</button>
 
             {{-- 버전 이력 --}}
-            <button onclick="dlvOpenVersions()" title="STEP 버전 이력" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+            <button onclick="dlvOpenVersions()" title="{{ __('deliverables.version_history_title') }}" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                버전 이력
+                {{ __('deliverables.version_history') }}
             </button>
 
             {{-- Word 다운로드 팝오버 --}}
             <button id="word-dl-btn2" onclick="dlvWordPopover(this)" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Word 다운로드
+                {{ __('deliverables.word_download') }}
             </button>
 
             {{-- 파일로 등록 --}}
-            <button onclick="dlvRegisterAsFile()" title="현재 산출물을 프로젝트 파일로 등록 (재등록 시 파일 버전 자동 증가)" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+            <button onclick="dlvRegisterAsFile()" title="{{ __('deliverables.register_as_file_title') }}" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                파일로 등록
+                {{ __('deliverables.register_as_file') }}
             </button>
         </div>
     </div>
@@ -640,31 +640,31 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
     <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
         <button onclick="dlvCloseViewer()" style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            닫기
+            {{ __('deliverables.viewer_close') }}
         </button>
         <span id="dlv-viewer-step-title" style="flex:1;overflow:hidden;font-size:13px;font-weight:600;color:#e5e7eb;white-space:nowrap;text-overflow:ellipsis;"></span>
         <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;background:#2d1b5e;color:#c4b5fd;flex-shrink:0;">{{ $typeDef['shortName'] }}</span>
         <button onclick="dlvWordPopover(this)" style="display:inline-flex;align-items:center;gap:5px;color:#a5b4fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;background:none;cursor:pointer;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Word 다운로드
+            {{ __('deliverables.word_download') }}
         </button>
         <button id="dlv-ann-dl-btn" style="display:none;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            주석 포함 다운로드
+            {{ __('deliverables.viewer_ann_dl') }}
         </button>
     </div>
 
     {{-- 주석 툴바 (뷰어 열면 자동 표시, 간트 동일) --}}
     <div id="dlv-ann-toolbar" style="display:none;height:42px;background:rgba(12,9,26,.98);border-bottom:1px solid rgba(196,181,253,.08);align-items:center;gap:4px;padding:0 14px;flex-shrink:0;">
-        <span style="font-size:10px;font-weight:600;color:#6b7280;letter-spacing:.4px;margin-right:4px;">도형 주석</span>
+        <span style="font-size:10px;font-weight:600;color:#6b7280;letter-spacing:.4px;margin-right:4px;">{{ __('deliverables.viewer_ann_shape') }}</span>
         <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 4px;"></div>
-        <button id="dlv-ann-btn-number" onclick="dlvSetAnnTool('number')" data-tool="number" title="순서 번호" class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><text x="7" y="7.5" text-anchor="middle" dominant-baseline="central" font-size="7" font-weight="700" fill="currentColor">1</text></svg></button>
-        <button id="dlv-ann-btn-rect"   onclick="dlvSetAnnTool('rect')"   data-tool="rect"   title="사각형"   class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" stroke="currentColor" stroke-width="1.5" rx="1"/></svg></button>
-        <button id="dlv-ann-btn-circle" onclick="dlvSetAnnTool('circle')" data-tool="circle" title="원"       class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="7" rx="5.5" ry="4.5" stroke="currentColor" stroke-width="1.5"/></svg></button>
-        <button id="dlv-ann-btn-line"   onclick="dlvSetAnnTool('line')"   data-tool="line"   title="화살표 선" class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="12" x2="11" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polygon points="11,3 7.5,4.5 9.5,7" fill="currentColor"/></svg></button>
-        <button id="dlv-ann-btn-text"   onclick="dlvSetAnnTool('text')"   data-tool="text"   title="텍스트"   class="dlv-ann-btn" style="font-size:13px;font-weight:700;line-height:1;">T</button>
+        <button id="dlv-ann-btn-number" onclick="dlvSetAnnTool('number')" data-tool="number" title="{{ __('deliverables.viewer_ann_number') }}" class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><text x="7" y="7.5" text-anchor="middle" dominant-baseline="central" font-size="7" font-weight="700" fill="currentColor">1</text></svg></button>
+        <button id="dlv-ann-btn-rect"   onclick="dlvSetAnnTool('rect')"   data-tool="rect"   title="{{ __('deliverables.viewer_ann_rect') }}"   class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" stroke="currentColor" stroke-width="1.5" rx="1"/></svg></button>
+        <button id="dlv-ann-btn-circle" onclick="dlvSetAnnTool('circle')" data-tool="circle" title="{{ __('deliverables.viewer_ann_circle') }}"       class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="7" rx="5.5" ry="4.5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <button id="dlv-ann-btn-line"   onclick="dlvSetAnnTool('line')"   data-tool="line"   title="{{ __('deliverables.viewer_ann_line') }}" class="dlv-ann-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="12" x2="11" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polygon points="11,3 7.5,4.5 9.5,7" fill="currentColor"/></svg></button>
+        <button id="dlv-ann-btn-text"   onclick="dlvSetAnnTool('text')"   data-tool="text"   title="{{ __('deliverables.viewer_ann_text') }}"   class="dlv-ann-btn" style="font-size:13px;font-weight:700;line-height:1;">T</button>
         <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 6px;"></div>
-        <span style="font-size:10px;color:#6b7280;margin-right:4px;">색상</span>
+        <span style="font-size:10px;color:#6b7280;margin-right:4px;">{{ __('deliverables.viewer_ann_color') }}</span>
         <button onclick="dlvSetAnnColor('#ef4444')" data-color="#ef4444" class="dlv-ann-color" style="width:16px;height:16px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;outline:2px solid #fff;outline-offset:2px;flex-shrink:0;"></button>
         <button onclick="dlvSetAnnColor('#f97316')" data-color="#f97316" class="dlv-ann-color" style="width:16px;height:16px;border-radius:50%;background:#f97316;border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
         <button onclick="dlvSetAnnColor('#eab308')" data-color="#eab308" class="dlv-ann-color" style="width:16px;height:16px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
@@ -684,7 +684,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             {{-- 공통 로딩 오버레이 [z-index:2] --}}
             <div id="dlv-viewer-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6b7280;font-size:14px;gap:12px;z-index:2;background:#1f2937;">
                 <div style="width:36px;height:36px;border:3px solid rgba(196,181,253,.2);border-top-color:#9b8afb;border-radius:50%;animation:dlvSpin .8s linear infinite;"></div>
-                <span>불러오는 중…</span>
+                <span>{{ __('deliverables.viewer_loading') }}</span>
             </div>
 
             {{-- 콘텐츠 뷰어 [z-index:1, position:absolute;inset:0] --}}
@@ -740,7 +740,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                                 @endif
                             @endforeach
                             @if(!$stepHasContent)
-                                <div style="text-align:center;padding:48px 20px;color:#6b7280;font-size:13px;font-style:italic;">(미입력)</div>
+                                <div style="text-align:center;padding:48px 20px;color:#6b7280;font-size:13px;font-style:italic;">{{ __('deliverables.viewer_empty_step') }}</div>
                             @endif
                         </div>
                         @endforeach
@@ -752,21 +752,21 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                             style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;"
                             onmouseover="if(!this.disabled)this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                        이전
+                        {{ __('deliverables.viewer_prev') }}
                     </button>
                     <span id="dlv-step-counter" style="font-size:13px;font-weight:600;color:#e5e7eb;min-width:80px;text-align:center;">— / —</span>
                     <button id="dlv-btn-next" onclick="dlvNextStep()"
                             style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;"
                             onmouseover="if(!this.disabled)this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
-                        다음
+                        {{ __('deliverables.viewer_next') }}
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </button>
                     <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
                     <button onclick="dlvZoomOut()" style="padding:5px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:14px;cursor:pointer;line-height:1;" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">−</button>
                     <span id="dlv-zoom-label" style="font-size:12px;color:#9ca3af;min-width:40px;text-align:center;">100%</span>
                     <button onclick="dlvZoomIn()" style="padding:5px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:14px;cursor:pointer;line-height:1;" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">+</button>
-                    <button onclick="dlvZoomFit()" style="padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">맞춤</button>
-                    <button onclick="dlvZoomOriginal()" style="padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">원본</button>
+                    <button onclick="dlvZoomFit()" style="padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">{{ __('deliverables.viewer_fit') }}</button>
+                    <button onclick="dlvZoomOriginal()" style="padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">{{ __('deliverables.viewer_original') }}</button>
                 </div>
             </div>
 
@@ -783,12 +783,12 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             <div style="padding:12px 16px 10px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
                 <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:6px;">
                     <svg width="15" height="15" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    의견
+                    {{ __('deliverables.viewer_comments') }}
                     <span id="dlv-cm-count" style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
                 </div>
                 <div style="display:flex;gap:6px;margin-top:7px;">
-                    <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#ede9fe;color:#6d28d9;font-weight:600;">화면주석</span>
-                    <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#f0fdf4;color:#065f46;font-weight:600;">일반</span>
+                    <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#ede9fe;color:#6d28d9;font-weight:600;">{{ __('deliverables.viewer_cm_screen') }}</span>
+                    <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#f0fdf4;color:#065f46;font-weight:600;">{{ __('deliverables.viewer_cm_general') }}</span>
                 </div>
                 {{-- 단계 필터 바 --}}
                 <div id="dlv-cmt-filter-bar" style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:6px;">
@@ -801,7 +801,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
 
             {{-- 의견 목록 --}}
             <div id="dlv-cm-list" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;">
-                <div id="dlv-cm-empty" style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">의견이 없습니다.</div>
+                <div id="dlv-cm-empty" style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">{{ __('deliverables.viewer_cm_empty') }}</div>
             </div>
 
             {{-- 의견 작성 폼 (간트 동일 구조) --}}
@@ -809,7 +809,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                 {{-- 단계 번호 선택 --}}
                 <div id="dlv-step-input-wrap" style="margin-bottom:8px;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                        <label style="font-size:11px;font-weight:600;color:#6b7280;white-space:nowrap;">단계</label>
+                        <label style="font-size:11px;font-weight:600;color:#6b7280;white-space:nowrap;">{{ __('deliverables.viewer_cm_step') }}</label>
                         <div style="display:flex;align-items:center;border:1.5px solid #e5e7eb;border-radius:7px;overflow:hidden;background:#fff;">
                             <button type="button" onclick="dlvAdjustStep(-1)" style="padding:4px 8px;background:none;border:none;cursor:pointer;color:#6b7280;font-size:14px;line-height:1;">−</button>
                             <input type="number" id="dlv-cm-step" min="1" max="{{ count($typeDef['steps']) }}" placeholder="—"
@@ -817,17 +817,17 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                             <button type="button" onclick="dlvAdjustStep(1)" style="padding:4px 8px;background:none;border:none;cursor:pointer;color:#6b7280;font-size:14px;line-height:1;">+</button>
                         </div>
                     </div>
-                    <span style="font-size:10px;color:#9ca3af;">비워두면 현재 단계에 등록</span>
+                    <span style="font-size:10px;color:#9ca3af;">{{ __('deliverables.viewer_cm_step_hint') }}</span>
                 </div>
-                <textarea id="dlv-cm-input" rows="3" placeholder="의견을 입력하세요…"
+                <textarea id="dlv-cm-input" rows="3" placeholder="{{ __('deliverables.viewer_cm_input_ph') }}"
                           style="width:100%;padding:9px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#1f2937;resize:none;outline:none;transition:border-color .15s;box-sizing:border-box;font-family:inherit;background:#fff;"
                           onfocus="this.style.borderColor='#a78bfa'" onblur="this.style.borderColor='#e5e7eb'"
                           onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();dlvSubmitComment();}"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;">
-                    <span style="font-size:11px;color:#9ca3af;">Ctrl+Enter 등록</span>
+                    <span style="font-size:11px;color:#9ca3af;">{{ __('deliverables.viewer_cm_submit_hint') }}</span>
                     <button id="dlv-cm-submit" onclick="dlvSubmitComment()"
                             style="padding:7px 16px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">
-                        등록
+                        {{ __('deliverables.viewer_cm_submit') }}
                     </button>
                 </div>
             </div>
@@ -889,6 +889,113 @@ const LANG = {
     error_occurred:   '{{ addslashes(__('deliverables.error_occurred')) }}',
     reject_prompt:    '{{ addslashes(__('deliverables.approve_reject_prompt')) }}',
     link_copied:      '{{ addslashes(__('deliverables.link_copied')) }}',
+    writing:          '{{ addslashes(__('deliverables.js_writing')) }}',
+    field_list_loading: '{{ addslashes(__('deliverables.js_field_list_loading')) }}',
+    field_list_fail:  '{{ addslashes(__('deliverables.js_field_list_fail')) }}',
+    translating:      '{{ addslashes(__('deliverables.js_translating', ['done' => ':done', 'total' => ':total'])) }}',
+    all_translated:   '{{ addslashes(__('deliverables.js_all_translated', ['count' => ':count'])) }}',
+    no_content_to_tr: '{{ addslashes(__('deliverables.js_no_content_to_tr')) }}',
+    tr_done_partial:  '{{ addslashes(__('deliverables.js_tr_done_partial', ['done' => ':done', 'failed' => ':failed'])) }}',
+    tr_done_cache:    '{{ addslashes(__('deliverables.js_tr_done_cache', ['count' => ':count'])) }}',
+    tr_done:          '{{ addslashes(__('deliverables.js_tr_done', ['done' => ':done'])) }}',
+    tr_done_cache_plus: '{{ addslashes(__('deliverables.js_tr_done_cache_plus', ['count' => ':count'])) }}',
+    tr_all_error:     '{{ addslashes(__('deliverables.js_tr_all_error')) }}',
+    save_method_title: '{{ addslashes(__('deliverables.js_save_method_title', ['step' => ':step'])) }}',
+    save_new:         '{{ addslashes(__('deliverables.js_save_new')) }}',
+    save_new_desc:    '{{ addslashes(__('deliverables.js_save_new_desc')) }}',
+    save_overwrite:   '{{ addslashes(__('deliverables.js_save_overwrite')) }}',
+    save_overwrite_desc: '{{ addslashes(__('deliverables.js_save_overwrite_desc')) }}',
+    change_note_ph:   '{{ addslashes(__('deliverables.js_change_note_ph')) }}',
+    cancel:           '{{ addslashes(__('common.cancel')) }}',
+    save:             '{{ addslashes(__('common.save')) }}',
+    delete:           '{{ addslashes(__('common.delete')) }}',
+    ver_history_title: '{{ addslashes(__('deliverables.js_ver_history_title', ['step' => ':step'])) }}',
+    no_versions:      '{{ addslashes(__('deliverables.js_no_versions')) }}',
+    restore_btn:      '{{ addslashes(__('deliverables.js_restore_btn')) }}',
+    error_label:      '{{ addslashes(__('deliverables.js_error_label', ['message' => ':message'])) }}',
+    restore_confirm:  '{{ addslashes(__('deliverables.js_restore_confirm', ['vno' => ':vno'])) }}',
+    restore_done:     '{{ addslashes(__('deliverables.js_restore_done')) }}',
+    restore_fail:     '{{ addslashes(__('deliverables.js_restore_fail')) }}',
+    restore_fail_msg: '{{ addslashes(__('deliverables.js_restore_fail_msg', ['message' => ':message'])) }}',
+    reg_title:        '{{ addslashes(__('deliverables.js_reg_title')) }}',
+    reg_desc:         '{{ addslashes(__('deliverables.js_reg_desc')) }}',
+    reg_recent_history: '{{ addslashes(__('deliverables.js_reg_recent_history')) }}',
+    reg_loading:      '{{ addslashes(__('deliverables.js_reg_loading')) }}',
+    reg_target:       '{{ addslashes(__('deliverables.js_reg_target')) }}',
+    reg_new_file:     '{{ addslashes(__('deliverables.js_reg_new_file')) }}',
+    reg_new_file_desc: '{{ addslashes(__('deliverables.js_reg_new_file_desc')) }}',
+    reg_existing:     '{{ addslashes(__('deliverables.js_reg_existing')) }}',
+    reg_existing_desc: '{{ addslashes(__('deliverables.js_reg_existing_desc')) }}',
+    reg_target_file:  '{{ addslashes(__('deliverables.js_reg_target_file')) }}',
+    reg_search_ph:    '{{ addslashes(__('deliverables.js_reg_search_ph')) }}',
+    reg_filelist_loading: '{{ addslashes(__('deliverables.js_reg_filelist_loading')) }}',
+    reg_no_results:   '{{ addslashes(__('deliverables.js_reg_no_results')) }}',
+    reg_select_clear: '{{ addslashes(__('deliverables.js_reg_select_clear')) }}',
+    reg_change_note:  '{{ addslashes(__('deliverables.js_reg_change_note')) }}',
+    reg_change_note_ph: '{{ addslashes(__('deliverables.js_reg_change_note_ph')) }}',
+    reg_output_lang:  '{{ addslashes(__('deliverables.js_reg_output_lang')) }}',
+    reg_lang_ko:      '{{ addslashes(__('deliverables.js_reg_lang_ko')) }}',
+    reg_submit:       '{{ addslashes(__('deliverables.js_reg_submit')) }}',
+    reg_no_history:   '{{ addslashes(__('deliverables.js_reg_no_history')) }}',
+    reg_count:        '{{ addslashes(__('deliverables.js_reg_count', ['count' => ':count'])) }}',
+    reg_file_deleted: '{{ addslashes(__('deliverables.js_reg_file_deleted')) }}',
+    reg_history_fail: '{{ addslashes(__('deliverables.js_reg_history_fail', ['message' => ':message'])) }}',
+    reg_no_files:     '{{ addslashes(__('deliverables.js_reg_no_files')) }}',
+    reg_next_version: '{{ addslashes(__('deliverables.js_reg_next_version', ['version' => ':version'])) }}',
+    reg_filelist_fail: '{{ addslashes(__('deliverables.js_reg_filelist_fail', ['message' => ':message'])) }}',
+    reg_select_file:  '{{ addslashes(__('deliverables.js_reg_select_file')) }}',
+    reg_submitting:   '{{ addslashes(__('deliverables.js_reg_submitting')) }}',
+    reg_fail:         '{{ addslashes(__('deliverables.js_reg_fail')) }}',
+    reg_fail_msg:     '{{ addslashes(__('deliverables.js_reg_fail_msg', ['message' => ':message'])) }}',
+    reg_optional:     '{{ addslashes(__('common.optional')) }}',
+    save_failed:      '{{ addslashes(__('deliverables.js_save_failed')) }}',
+    save_error:       '{{ addslashes(__('deliverables.js_save_error', ['message' => ':message'])) }}',
+    saving:           '{{ addslashes(__('deliverables.js_saving')) }}',
+    saved:            '{{ addslashes(__('deliverables.js_saved')) }}',
+    ai_generating:    '{{ addslashes(__('deliverables.js_ai_generating')) }}',
+    ai_gen_done:      '{{ addslashes(__('deliverables.js_ai_gen_done')) }}',
+    ai_gen_error:     '{{ addslashes(__('deliverables.js_ai_gen_error', ['message' => ':message'])) }}',
+    ai_draft_gen_fail: '{{ addslashes(__('deliverables.js_ai_draft_gen_fail', ['message' => ':message'])) }}',
+    gen_failed:       '{{ addslashes(__('deliverables.js_gen_failed')) }}',
+    enter_code:       '{{ addslashes(__('deliverables.js_enter_code')) }}',
+    render_error:     '{{ addslashes(__('deliverables.js_render_error', ['message' => ':message'])) }}',
+    no_table_content: '{{ addslashes(__('deliverables.js_no_table_content')) }}',
+    converting:       '{{ addslashes(__('deliverables.js_converting')) }}',
+    exceljs_fail:     '{{ addslashes(__('deliverables.js_exceljs_fail')) }}',
+    excel_dl_fail:    '{{ addslashes(__('deliverables.js_excel_dl_fail', ['message' => ':message'])) }}',
+    png_convert_fail: '{{ addslashes(__('deliverables.js_png_convert_fail')) }}',
+    no_diagram:       '{{ addslashes(__('deliverables.js_no_diagram')) }}',
+    diagram:          '{{ addslashes(__('deliverables.js_diagram')) }}',
+    lb_hint:          '{{ addslashes(__('deliverables.js_lb_hint')) }}',
+    restore_korean:   '{{ addslashes(__('deliverables.js_restore_korean')) }}',
+    dgr_default_label: '{{ addslashes(__('deliverables.js_dgr_default_label')) }}',
+    qa_section_delete_confirm: '{{ addslashes(__('deliverables.js_qa_section_delete_confirm')) }}',
+    qa_section_title_ph: '{{ addslashes(__('deliverables.js_qa_section_title_ph')) }}',
+    qa_add_question:  '{{ addslashes(__('deliverables.js_qa_add_question')) }}',
+    qa_collapse_title: '{{ addslashes(__('deliverables.js_qa_collapse_title')) }}',
+    qa_question:      '{{ addslashes(__('deliverables.js_qa_question')) }}',
+    qa_question_ph:   '{{ addslashes(__('deliverables.js_qa_question_ph')) }}',
+    qa_question_del:  '{{ addslashes(__('deliverables.js_qa_question_del')) }}',
+    qa_answer:        '{{ addslashes(__('deliverables.js_qa_answer')) }}',
+    qa_answer_ph:     '{{ addslashes(__('deliverables.js_qa_answer_ph')) }}',
+    qa_risk_level:    '{{ addslashes(__('deliverables.js_qa_risk_level')) }}',
+    qa_notes:         '{{ addslashes(__('deliverables.js_qa_notes')) }}',
+    qa_notes_ph:      '{{ addslashes(__('deliverables.js_qa_notes_ph')) }}',
+    qa_risk_none:     '{{ addslashes(__('deliverables.js_qa_risk_none')) }}',
+    qa_risk_low:      '{{ addslashes(__('deliverables.js_qa_risk_low')) }}',
+    qa_risk_medium:   '{{ addslashes(__('deliverables.js_qa_risk_medium')) }}',
+    qa_risk_high:     '{{ addslashes(__('deliverables.js_qa_risk_high')) }}',
+    qa_risk_critical: '{{ addslashes(__('deliverables.js_qa_risk_critical')) }}',
+    viewer_loading:   '{{ addslashes(__('deliverables.viewer_loading')) }}',
+    viewer_cm_empty:  '{{ addslashes(__('deliverables.viewer_cm_empty')) }}',
+    viewer_cm_all_steps: '{{ addslashes(__('deliverables.viewer_cm_all_steps')) }}',
+    viewer_cm_step_n: '{{ addslashes(__('deliverables.viewer_cm_step_n', ['step' => ':step'])) }}',
+    viewer_cm_current_only: '{{ addslashes(__('deliverables.viewer_cm_current_only')) }}',
+    viewer_cm_show_all: '{{ addslashes(__('deliverables.viewer_cm_show_all')) }}',
+    viewer_cm_load_fail: '{{ addslashes(__('deliverables.viewer_cm_load_fail')) }}',
+    viewer_cm_delete_confirm: '{{ addslashes(__('deliverables.viewer_cm_delete_confirm')) }}',
+    word_dl_ko:       '{{ addslashes(__('deliverables.word_dl_ko')) }}',
+    word_dl_en:       '{{ addslashes(__('deliverables.word_dl_en')) }}',
 };
 const MD_TR_BTN_HTML = '🌐 {{ addslashes(__('deliverables.tab_translate')) }}';
 
@@ -988,19 +1095,19 @@ function showVersionModal(onConfirm) {
     wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
     wrap.innerHTML = `
       <div style="background:#fff;border-radius:12px;width:420px;max-width:92vw;padding:22px 22px 18px;box-shadow:0 20px 50px rgba(0,0,0,.25);">
-        <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px;">STEP ${STEP_NO} 저장 방식 선택</div>
+        <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px;">${LANG.save_method_title.replace(':step', STEP_NO)}</div>
         <label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;cursor:pointer;">
           <input type="radio" name="dlv-ver-mode" value="new" checked style="margin-top:3px;">
-          <span><strong style="color:#0f172a;">새 버전으로 저장</strong><div style="font-size:12px;color:#64748b;margin-top:2px;">이전 버전 보존 + 새 스냅샷 생성</div></span>
+          <span><strong style="color:#0f172a;">${LANG.save_new}</strong><div style="font-size:12px;color:#64748b;margin-top:2px;">${LANG.save_new_desc}</div></span>
         </label>
         <label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px;cursor:pointer;">
           <input type="radio" name="dlv-ver-mode" value="overwrite" style="margin-top:3px;">
-          <span><strong style="color:#0f172a;">현재 버전 덮어쓰기</strong><div style="font-size:12px;color:#64748b;margin-top:2px;">가장 최근 버전 스냅샷만 갱신</div></span>
+          <span><strong style="color:#0f172a;">${LANG.save_overwrite}</strong><div style="font-size:12px;color:#64748b;margin-top:2px;">${LANG.save_overwrite_desc}</div></span>
         </label>
-        <textarea id="dlv-ver-note" rows="2" placeholder="변경 메모 (선택)" style="width:100%;padding:8px;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"></textarea>
+        <textarea id="dlv-ver-note" rows="2" placeholder="${LANG.change_note_ph}" style="width:100%;padding:8px;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"></textarea>
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
-          <button id="dlv-ver-cancel" style="padding:7px 14px;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;">취소</button>
-          <button id="dlv-ver-ok" style="padding:7px 14px;font-size:13px;border:none;border-radius:8px;background:var(--t600,#4f46e5);color:#fff;font-weight:600;cursor:pointer;">저장</button>
+          <button id="dlv-ver-cancel" style="padding:7px 14px;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;">${LANG.cancel}</button>
+          <button id="dlv-ver-ok" style="padding:7px 14px;font-size:13px;border:none;border-radius:8px;background:var(--t600,#4f46e5);color:#fff;font-weight:600;cursor:pointer;">${LANG.save}</button>
         </div>
       </div>`;
     document.body.appendChild(wrap);
@@ -1022,10 +1129,10 @@ async function dlvOpenVersions() {
     wrap.style.cssText = 'position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.15);z-index:9998;display:flex;flex-direction:column;';
     wrap.innerHTML = `
       <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:14px;font-weight:700;color:#0f172a;">STEP ${STEP_NO} 버전 이력</div>
+        <div style="font-size:14px;font-weight:700;color:#0f172a;">${LANG.ver_history_title.replace(':step', STEP_NO)}</div>
         <button id="dlv-ver-close" style="background:none;border:none;font-size:18px;cursor:pointer;color:#64748b;">×</button>
       </div>
-      <div id="dlv-ver-list" style="flex:1;overflow:auto;padding:10px 14px;font-size:13px;color:#334155;">불러오는 중…</div>`;
+      <div id="dlv-ver-list" style="flex:1;overflow:auto;padding:10px 14px;font-size:13px;color:#334155;">${LANG.reg_loading}</div>`;
     document.body.appendChild(wrap);
     wrap.querySelector('#dlv-ver-close').addEventListener('click', () => wrap.remove());
 
@@ -1034,7 +1141,7 @@ async function dlvOpenVersions() {
         const data = await res.json();
         const list = wrap.querySelector('#dlv-ver-list');
         if (!data.versions?.length) {
-            list.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:30px 0;">저장된 버전이 없습니다.</div>';
+            list.innerHTML = `<div style="color:#94a3b8;text-align:center;padding:30px 0;">${LANG.no_versions}</div>`;
             return;
         }
         list.innerHTML = data.versions.map(v => `
@@ -1044,15 +1151,15 @@ async function dlvOpenVersions() {
               <span style="font-size:11px;color:#94a3b8;">${v.created_at ?? ''}</span>
             </div>
             <div style="font-size:12px;color:#475569;margin-bottom:6px;">${(v.creator || '-') + (v.change_note ? ' · ' + v.change_note : '')}</div>
-            <button onclick="dlvRestoreVersion(${v.id}, ${v.version_no})" style="font-size:12px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;">이 버전으로 복원</button>
+            <button onclick="dlvRestoreVersion(${v.id}, ${v.version_no})" style="font-size:12px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;">${LANG.restore_btn}</button>
           </div>`).join('');
     } catch(e) {
-        wrap.querySelector('#dlv-ver-list').textContent = '오류: ' + e.message;
+        wrap.querySelector('#dlv-ver-list').textContent = LANG.error_label.replace(':message', e.message);
     }
 }
 
 async function dlvRestoreVersion(id, vno) {
-    if (!confirm('v' + vno + ' 내용으로 현재 작업본을 복원하시겠습니까?')) return;
+    if (!confirm(LANG.restore_confirm.replace(':vno', vno))) return;
     const url = VERSIONS_RESTORE_URL.replace('__ID__', id);
     try {
         const res = await fetch(url, {
@@ -1061,12 +1168,12 @@ async function dlvRestoreVersion(id, vno) {
         });
         const data = await res.json();
         if (data.ok) {
-            showToast(data.message || '복원 완료');
+            showToast(data.message || LANG.restore_done);
             setTimeout(() => location.reload(), 800);
         } else {
-            alert(data.message || '복원 실패');
+            alert(data.message || LANG.restore_fail);
         }
-    } catch(e) { alert('복원 실패: ' + e.message); }
+    } catch(e) { alert(LANG.restore_fail_msg.replace(':message', e.message)); }
 }
 
 // ── 산출물 → 파일로 등록 (커스텀 다이얼로그 + 파일 선택) ──────────────
@@ -1081,10 +1188,10 @@ async function dlvRegisterAsFile() {
         <div class="dlv-reg-head">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
             <svg width="18" height="18" fill="none" stroke="var(--t600,#4f46e5)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <div style="font-size:15px;font-weight:700;color:#0f172a;">산출물을 파일로 등록</div>
+            <div style="font-size:15px;font-weight:700;color:#0f172a;">${LANG.reg_title}</div>
           </div>
           <div style="font-size:12px;color:#64748b;line-height:1.55;">
-            왼쪽 이력의 항목을 누르면 그 파일에 새 버전이 추가됩니다.
+            ${LANG.reg_desc}
           </div>
         </div>
 
@@ -1093,63 +1200,63 @@ async function dlvRegisterAsFile() {
           {{-- ① 좌: 등록 이력 --}}
           <aside class="dlv-reg-side">
             <div class="dlv-reg-side-head">
-              <span>최근 등록 이력</span>
+              <span>${LANG.reg_recent_history}</span>
               <span id="dlv-reg-hist-count" style="font-size:10px;color:#94a3b8;font-weight:600;"></span>
             </div>
             <div id="dlv-reg-history" class="dlv-reg-side-list">
-              <div style="padding:18px 10px;text-align:center;color:#94a3b8;font-size:12px;">불러오는 중…</div>
+              <div style="padding:18px 10px;text-align:center;color:#94a3b8;font-size:12px;">${LANG.reg_loading}</div>
             </div>
           </aside>
 
           {{-- ② 우: 등록 폼 --}}
           <section class="dlv-reg-main">
             <div class="dlv-reg-field">
-              <span class="dlv-reg-field-label">등록 대상</span>
+              <span class="dlv-reg-field-label">${LANG.reg_target}</span>
               <label class="dlv-reg-target-opt">
                 <input type="radio" name="dlv-reg-target" value="new" checked>
                 <div class="dlv-reg-row-body">
-                  <strong style="color:#0f172a;font-size:13px;">새 파일로 등록 (v1)</strong>
-                  <div style="font-size:11.5px;color:#64748b;margin-top:2px;">프로젝트 파일에 새 항목으로 추가합니다.</div>
+                  <strong style="color:#0f172a;font-size:13px;">${LANG.reg_new_file}</strong>
+                  <div style="font-size:11.5px;color:#64748b;margin-top:2px;">${LANG.reg_new_file_desc}</div>
                 </div>
               </label>
               <label class="dlv-reg-target-opt">
                 <input type="radio" name="dlv-reg-target" value="existing">
                 <div class="dlv-reg-row-body">
-                  <strong style="color:#0f172a;font-size:13px;">기존 파일에 버전 추가</strong>
-                  <div style="font-size:11.5px;color:#64748b;margin-top:2px;">대상 파일을 검색해서 선택하세요.</div>
+                  <strong style="color:#0f172a;font-size:13px;">${LANG.reg_existing}</strong>
+                  <div style="font-size:11.5px;color:#64748b;margin-top:2px;">${LANG.reg_existing_desc}</div>
                 </div>
               </label>
             </div>
 
             {{-- 기존 파일 선택 시에만 표시 --}}
             <div id="dlv-reg-filelist-wrap" class="dlv-reg-field" style="display:none;">
-              <span class="dlv-reg-field-label">대상 파일</span>
+              <span class="dlv-reg-field-label">${LANG.reg_target_file}</span>
               <div class="dlv-reg-search-wrap">
                 <svg class="dlv-reg-search-icon" width="13" height="13" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.3-4.3M11 17a6 6 0 1 1 0-12 6 6 0 0 1 0 12Z"/></svg>
-                <input id="dlv-reg-filesearch" type="text" class="dlv-reg-search" placeholder="대상 파일 검색 — 클릭하여 목록 열기" autocomplete="off">
+                <input id="dlv-reg-filesearch" type="text" class="dlv-reg-search" placeholder="${LANG.reg_search_ph}" autocomplete="off">
                 <button type="button" id="dlv-reg-filesearch-clear" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;font-size:14px;cursor:pointer;padding:2px 6px;line-height:1;">×</button>
                 <div id="dlv-reg-filelist" class="dlv-reg-filelist">
-                  <div style="padding:14px;text-align:center;color:#94a3b8;font-size:12.5px;">파일 목록을 불러오는 중…</div>
+                  <div style="padding:14px;text-align:center;color:#94a3b8;font-size:12.5px;">${LANG.reg_filelist_loading}</div>
                 </div>
-                <div id="dlv-reg-filelist-empty" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:50;padding:12px;text-align:center;color:#94a3b8;font-size:12px;background:#fff;border:1.5px solid #c4b5fd;border-radius:8px;box-shadow:0 10px 28px rgba(15,23,42,.16);">검색 결과가 없습니다.</div>
+                <div id="dlv-reg-filelist-empty" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:50;padding:12px;text-align:center;color:#94a3b8;font-size:12px;background:#fff;border:1.5px solid #c4b5fd;border-radius:8px;box-shadow:0 10px 28px rgba(15,23,42,.16);">${LANG.reg_no_results}</div>
               </div>
               {{-- 선택된 파일 표시 --}}
               <div id="dlv-reg-selected" class="dlv-reg-selected">
                 <svg width="13" height="13" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 <span id="dlv-reg-selected-name" style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;"></span>
-                <button type="button" id="dlv-reg-selected-clear" class="dlv-reg-selected-clear" title="선택 해제">×</button>
+                <button type="button" id="dlv-reg-selected-clear" class="dlv-reg-selected-clear" title="${LANG.reg_select_clear}">×</button>
               </div>
             </div>
 
             <div class="dlv-reg-field">
-              <span class="dlv-reg-field-label">변경 메모 <span style="color:#94a3b8;font-weight:400;">(선택)</span></span>
-              <textarea id="dlv-reg-note" rows="3" class="dlv-reg-textarea" placeholder="이번 버전에 포함된 주요 변경 내용을 적어주세요."></textarea>
+              <span class="dlv-reg-field-label">${LANG.reg_change_note} <span style="color:#94a3b8;font-weight:400;">(${LANG.reg_optional})</span></span>
+              <textarea id="dlv-reg-note" rows="3" class="dlv-reg-textarea" placeholder="${LANG.reg_change_note_ph}"></textarea>
             </div>
 
             <div class="dlv-reg-field" style="margin-bottom:0;">
-              <span class="dlv-reg-field-label">출력 언어</span>
+              <span class="dlv-reg-field-label">${LANG.reg_output_lang}</span>
               <div class="dlv-reg-lang-row">
-                <label class="dlv-reg-lang-opt"><input type="radio" name="dlv-reg-lang" value="ko" checked> 한글</label>
+                <label class="dlv-reg-lang-opt"><input type="radio" name="dlv-reg-lang" value="ko" checked> ${LANG.reg_lang_ko}</label>
                 <label class="dlv-reg-lang-opt"><input type="radio" name="dlv-reg-lang" value="en"> English</label>
               </div>
             </div>
@@ -1158,8 +1265,8 @@ async function dlvRegisterAsFile() {
 
         {{-- 푸터 --}}
         <div class="dlv-reg-foot">
-          <button id="dlv-reg-cancel" style="padding:7px 14px;font-size:13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;color:#64748b;font-weight:600;cursor:pointer;">취소</button>
-          <button id="dlv-reg-ok" style="padding:7px 16px;font-size:13px;border:none;border-radius:8px;background:var(--t600,#4f46e5);color:#fff;font-weight:700;cursor:pointer;">파일로 등록</button>
+          <button id="dlv-reg-cancel" style="padding:7px 14px;font-size:13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;color:#64748b;font-weight:600;cursor:pointer;">${LANG.cancel}</button>
+          <button id="dlv-reg-ok" style="padding:7px 16px;font-size:13px;border:none;border-radius:8px;background:var(--t600,#4f46e5);color:#fff;font-weight:700;cursor:pointer;">${LANG.reg_submit}</button>
         </div>
       </div>`;
     document.body.appendChild(wrap);
@@ -1238,14 +1345,14 @@ async function dlvRegisterAsFile() {
             const res = await fetch(FILE_REGISTRATIONS_URL, { headers: { 'Accept': 'application/json' } });
             const data = await res.json();
             if (!data.registrations?.length) {
-                historyEl.innerHTML = '<div style="padding:18px 10px;text-align:center;color:#94a3b8;font-size:12px;">아직 등록 이력이 없습니다.</div>';
+                historyEl.innerHTML = `<div style="padding:18px 10px;text-align:center;color:#94a3b8;font-size:12px;">${LANG.reg_no_history}</div>`;
                 if (historyCount) historyCount.textContent = '';
                 return;
             }
-            if (historyCount) historyCount.textContent = data.registrations.length + '건';
+            if (historyCount) historyCount.textContent = LANG.reg_count.replace(':count', data.registrations.length);
             historyEl.innerHTML = data.registrations.map(r => {
                 const note = r.change_note ? `<span style="color:#475569;"> · ${String(r.change_note).replace(/[<>"']/g,'')}</span>` : '';
-                const fname = String(r.file_name || '(삭제됨)').replace(/[<>"']/g,'');
+                const fname = String(r.file_name || LANG.reg_file_deleted).replace(/[<>"']/g,'');
                 const langTag = r.lang === 'en' ? '<span style="font-size:10px;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:3px;margin-left:4px;">EN</span>' : '';
                 return `
                   <div data-pf="${r.project_file_id}" class="dlv-reg-row dlv-reg-hist-row">
@@ -1280,7 +1387,7 @@ async function dlvRegisterAsFile() {
                 });
             });
         } catch (e) {
-            historyEl.innerHTML = '<div style="padding:14px;color:#dc2626;">이력 조회 실패: ' + e.message + '</div>';
+            historyEl.innerHTML = `<div style="padding:14px;color:#dc2626;">${LANG.reg_history_fail.replace(':message', e.message)}</div>`;
         }
     })();
 
@@ -1294,7 +1401,7 @@ async function dlvRegisterAsFile() {
                     const res = await fetch(REGISTERABLE_FILES_URL, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
                     if (!data.files?.length) {
-                        fileListEl.innerHTML = '<div style="padding:14px;text-align:center;color:#94a3b8;font-size:12.5px;">등록된 파일이 없습니다.</div>';
+                        fileListEl.innerHTML = `<div style="padding:14px;text-align:center;color:#94a3b8;font-size:12.5px;">${LANG.reg_no_files}</div>`;
                         return;
                     }
                     fileListEl.innerHTML = data.files.map(f => {
@@ -1314,7 +1421,7 @@ async function dlvRegisterAsFile() {
                             <input type="radio" name="dlv-reg-file" value="${f.id}" class="dlv-reg-row-lead" style="margin-top:3px;">
                             <div class="dlv-reg-row-body">
                               <div class="dlv-reg-row-title">${catBadge}<span class="dlv-reg-row-title-name">${safeName}</span></div>
-                              <div class="dlv-reg-row-meta">다음 버전 v${f.next_version} · ${sizeText} · ${f.updated_at ?? ''}</div>
+                              <div class="dlv-reg-row-meta">${LANG.reg_next_version.replace(':version', f.next_version)} · ${sizeText} · ${f.updated_at ?? ''}</div>
                             </div>
                           </label>`;
                     }).join('');
@@ -1329,7 +1436,7 @@ async function dlvRegisterAsFile() {
                     dlvApplyFileSearch();
                     fileSearchEl.focus();
                 } catch (e) {
-                    fileListEl.innerHTML = '<div style="padding:14px;color:#dc2626;font-size:12.5px;">목록 조회 실패: ' + e.message + '</div>';
+                    fileListEl.innerHTML = `<div style="padding:14px;color:#dc2626;font-size:12.5px;">${LANG.reg_filelist_fail.replace(':message', e.message)}</div>`;
                 }
             } else {
                 fileSearchEl.focus();
@@ -1344,7 +1451,7 @@ async function dlvRegisterAsFile() {
     wrap.querySelector('#dlv-reg-ok').addEventListener('click', async () => {
         const targetMode = wrap.querySelector('input[name="dlv-reg-target"]:checked').value;
         if (targetMode === 'existing' && !selectedFileId) {
-            alert('대상 파일을 선택하세요.');
+            alert(LANG.reg_select_file);
             return;
         }
         const note = wrap.querySelector('#dlv-reg-note').value.trim();
@@ -1354,7 +1461,7 @@ async function dlvRegisterAsFile() {
 
         const okBtn = wrap.querySelector('#dlv-reg-ok');
         okBtn.disabled = true;
-        okBtn.textContent = '등록 중…';
+        okBtn.textContent = LANG.reg_submitting;
         try {
             const res = await fetch(REGISTER_FILE_URL, {
                 method: 'POST',
@@ -1366,11 +1473,11 @@ async function dlvRegisterAsFile() {
             if (data.ok) {
                 showToast(data.message);
             } else {
-                alert(data.message || '파일 등록 실패');
+                alert(data.message || LANG.reg_fail);
             }
         } catch(e) {
             close();
-            alert('파일 등록 실패: ' + e.message);
+            alert(LANG.reg_fail_msg.replace(':message', e.message));
         }
     });
 }
@@ -1550,7 +1657,7 @@ async function generateDraft() {
                     if (eventName === 'chunk' && data.text) {
                         accumulated += data.text;
                         statusEl.style.display = 'block';
-                        statusEl.textContent   = '✍️ 작성 중…';
+                        statusEl.textContent   = LANG.writing;
                         // 중앙 편집 영역 실시간 반영
                         applyPartialStream(accumulated);
                     }
@@ -1761,7 +1868,7 @@ function _mdShowTranslated(editor, textarea, translated) {
     if (firstTab) firstTab.classList.add('is-active');
     // 버튼 → 한국어 (다시 클릭 시 복원)
     const trBtn = editor.querySelector('.md-tab-tr');
-    if (trBtn) { trBtn.dataset.translated = 'true'; trBtn.innerHTML = '한국어'; }
+    if (trBtn) { trBtn.dataset.translated = 'true'; trBtn.innerHTML = LANG.restore_korean; }
 }
 
 function _mdRestoreKorean(editor, textarea) {
@@ -1845,28 +1952,28 @@ async function dlvTranslateAll() {
     const orig = btn.innerHTML;
 
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> 필드 목록 로딩 중…';
+    btn.innerHTML = '<span>⏳</span> ' + LANG.field_list_loading;
 
     try {
         const fRes = await fetch(ALL_STEP_FIELDS_URL, {
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
         });
         const fData = await fRes.json();
-        if (!fData.ok) throw new Error('필드 목록 로드 실패');
+        if (!fData.ok) throw new Error(LANG.field_list_fail);
 
         const todo  = fData.fields.filter(f => !f.has_en && f.value.trim() !== '');
         const total = todo.length;
         const skip  = fData.fields.length - total;
 
         if (total === 0) {
-            showToast(skip > 0 ? `모두 번역됨 (${skip}개 캐시)` : '번역할 저장 내용이 없습니다.');
+            showToast(skip > 0 ? LANG.all_translated.replace(':count', skip) : LANG.no_content_to_tr);
             return;
         }
 
         let done = 0, failed = 0;
 
         for (const field of todo) {
-            btn.innerHTML = `<span>⏳</span> 번역 중… (${done + 1}/${total})`;
+            btn.innerHTML = `<span>⏳</span> ` + LANG.translating.replace(':done', done + 1).replace(':total', total);
             try {
                 const tRes = await fetch(TRANSLATE_URL, {
                     method:  'POST',
@@ -1890,16 +1997,16 @@ async function dlvTranslateAll() {
                 done++;
             } catch (e) {
                 failed++;
-                console.warn('번역 실패:', field.field_key, e.message);
+                console.warn('translate failed:', field.field_key, e.message);
             }
         }
 
         const msg = failed > 0
-            ? `번역 완료: ${done}개 성공, ${failed}개 실패` + (skip > 0 ? ` (${skip}개 기존 캐시)` : '')
-            : `${done}개 필드 영문 번역 완료` + (skip > 0 ? ` (+${skip}개 기존 캐시)` : '');
+            ? LANG.tr_done_partial.replace(':done', done).replace(':failed', failed) + (skip > 0 ? LANG.tr_done_cache.replace(':count', skip) : '')
+            : LANG.tr_done.replace(':done', done) + (skip > 0 ? LANG.tr_done_cache_plus.replace(':count', skip) : '');
         showToast(msg);
     } catch (e) {
-        alert('번역 중 오류가 발생했습니다:\n' + e.message);
+        alert(LANG.tr_all_error + '\n' + e.message);
     } finally {
         btn.disabled = false;
         btn.innerHTML = orig;
@@ -1981,7 +2088,7 @@ let _dlvTextPos    = null;
 async function dlvResetViewer() {
     document.getElementById('dlv-viewer-loading').style.display = 'flex';
     document.getElementById('dlv-viewer-wrap').style.display = 'none';
-    document.getElementById('dlv-cm-list').innerHTML = '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">불러오는 중…</div>';
+    document.getElementById('dlv-cm-list').innerHTML = `<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">${LANG.reg_loading}</div>`;
     document.getElementById('dlv-cm-count').textContent = '';
     document.getElementById('dlv-cm-input').value = '';
     _dlvDrw = false; _dlvDrag = null; _dlvCur = null;
@@ -2249,31 +2356,31 @@ async function dlvAnnUp(e) {
 /* ── 의견 ── */
 async function dlvLoadComments(step) {
     const list = document.getElementById('dlv-cm-list');
-    list.innerHTML = '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">불러오는 중…</div>';
+    list.innerHTML = `<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">${LANG.reg_loading}</div>`;
     // 단계 필터 바 업데이트
     const filterLabel = document.getElementById('dlv-cmt-filter-label');
     const filterBtn   = document.getElementById('dlv-cmt-filter-btn');
-    if (filterLabel) filterLabel.textContent = _dlvCmShowAll ? '전체 단계' : `단계 ${step}`;
-    if (filterBtn)   filterBtn.textContent   = _dlvCmShowAll ? '현재 단계만' : '전체 보기';
+    if (filterLabel) filterLabel.textContent = _dlvCmShowAll ? LANG.viewer_cm_all_steps : LANG.viewer_cm_step_n.replace(':step', step);
+    if (filterBtn)   filterBtn.textContent   = _dlvCmShowAll ? LANG.viewer_cm_current_only : LANG.viewer_cm_show_all;
     try {
         const url = _dlvCmShowAll ? DLV_CM_INDEX_URL : `${DLV_CM_INDEX_URL}?step=${step}`;
         const r = await fetch(url, {headers:{'Accept':'application/json','X-CSRF-TOKEN':_dlvCsrf()}});
         const data = await r.json();
         document.getElementById('dlv-cm-count').textContent = data.length;
         dlvRenderComments(data);
-    } catch { list.innerHTML = '<div style="color:#ef4444;font-size:12px;padding:12px;text-align:center;">불러오기 실패</div>'; }
+    } catch { list.innerHTML = `<div style="color:#ef4444;font-size:12px;padding:12px;text-align:center;">${LANG.viewer_cm_load_fail}</div>`; }
 }
 async function dlvRenderComments(list) {
     const el = document.getElementById('dlv-cm-list');
     if (!list.length) {
-        el.innerHTML = '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">의견이 없습니다.</div>';
+        el.innerHTML = `<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">${LANG.viewer_cm_empty}</div>`;
         return;
     }
     el.innerHTML = list.map(c => `
         <div style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:10px;padding:10px 12px;">
             <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
                 <span style="font-size:11px;font-weight:700;color:#6d28d9;">${c.user_name}</span>
-                <span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#ede9fe;color:#6d28d9;font-weight:600;">단계 ${c.step_order ?? '?'}</span>
+                <span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#ede9fe;color:#6d28d9;font-weight:600;">${LANG.viewer_cm_step_n.replace(':step', c.step_order ?? '?')}</span>
                 <span style="font-size:10px;color:#9ca3af;flex:1;">${c.created_at}</span>
                 ${c.mine ? `<button onclick="dlvDeleteComment(${c.id})" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:15px;padding:0 2px;line-height:1;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#9ca3af'">×</button>` : ''}
             </div>
@@ -2306,7 +2413,7 @@ async function dlvSubmitComment() {
     } finally { btn.disabled = false; }
 }
 async function dlvDeleteComment(id) {
-    if (!await __confirm('의견을 삭제하시겠습니까?')) return;
+    if (!await __confirm(LANG.viewer_cm_delete_confirm)) return;
     await fetch(DLV_CM_DESTROY_TPL.replace('__ID__', id), {method:'DELETE', headers:{'Accept':'application/json','X-CSRF-TOKEN':_dlvCsrf()}});
     dlvLoadComments(_dlvPage);
 }
@@ -2376,8 +2483,8 @@ async function dlvCopyShareUrl() {
         pop.className = 'dlv-word-pop';
 
         [
-            { label: '한글 Word 다운로드', url: KO_URL },
-            { label: 'English Word Download', url: EN_URL },
+            { label: LANG.word_dl_ko, url: KO_URL },
+            { label: LANG.word_dl_en, url: EN_URL },
         ].forEach(({ label, url }) => {
             const item = document.createElement('div');
             item.className = 'dlv-word-pop-item';
@@ -2576,7 +2683,7 @@ async function tblSave(btn) {
     const md = tblToMarkdown(b);
     btn.disabled = true;
     const origHtml = btn.innerHTML;
-    btn.innerHTML = '저장 중…';
+    btn.innerHTML = LANG.saving;
     try {
         const res = await fetch(SAVE_TOOL_URL, {
             method: 'POST',
@@ -2585,14 +2692,14 @@ async function tblSave(btn) {
         });
         const json = await res.json();
         if (json.ok) {
-            btn.innerHTML = '✓ 저장됨';
+            btn.innerHTML = LANG.saved;
             setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1500);
         } else {
-            alert(json.message || '저장 실패');
+            alert(json.message || LANG.save_failed);
             btn.innerHTML = origHtml; btn.disabled = false;
         }
     } catch (e) {
-        alert('저장 중 오류: ' + e.message);
+        alert(LANG.save_error.replace(':message', e.message));
         btn.innerHTML = origHtml; btn.disabled = false;
     }
 }
@@ -2601,7 +2708,7 @@ async function tblAiGen(btn) {
     const b = tblGetBuilder(btn);
     btn.disabled = true;
     const origHtml = btn.innerHTML;
-    btn.innerHTML = '웍스 생성 중…';
+    btn.innerHTML = LANG.ai_generating;
     try {
         const res = await fetch(ANALYZE_URL, {
             method: 'POST',
@@ -2613,7 +2720,7 @@ async function tblAiGen(btn) {
         if (md) {
             b.dataset.initMd = md;
             tblInit(b);
-            btn.innerHTML = '저장 중…';
+            btn.innerHTML = LANG.saving;
             // tool result 저장 (markdown)
             await fetch(SAVE_TOOL_URL, {
                 method: 'POST',
@@ -2626,14 +2733,14 @@ async function tblAiGen(btn) {
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
                 body: JSON.stringify(getFormData()),
             });
-            btn.innerHTML = '✓ 생성 완료';
+            btn.innerHTML = LANG.ai_gen_done;
             setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1800);
             return;
         } else if (json.message) {
             alert(json.message);
         }
     } catch (e) {
-        alert('웍스 생성 중 오류: ' + e.message);
+        alert(LANG.ai_gen_error.replace(':message', e.message));
     }
     btn.innerHTML = origHtml; btn.disabled = false;
 }
@@ -2652,7 +2759,7 @@ function dgrRender(btn) {
     const preview = b.querySelector('.dlv-dgr-preview');
     const errEl   = b.querySelector('.dlv-dgr-err');
     if (errEl) errEl.remove();
-    if (!code) { preview.innerHTML = '<span style="color:#94a3b8;font-size:12px;">코드를 입력하세요</span>'; return; }
+    if (!code) { preview.innerHTML = `<span style="color:#94a3b8;font-size:12px;">${LANG.enter_code}</span>`; return; }
     try {
         preview.innerHTML = '';
         preview.removeAttribute('data-processed');
@@ -2666,7 +2773,7 @@ function dgrRender(btn) {
                 preview.innerHTML = '';
                 const d = document.createElement('div');
                 d.className = 'dlv-dgr-err';
-                d.textContent = '렌더링 오류: ' + err.message;
+                d.textContent = LANG.render_error.replace(':message', err.message);
                 preview.parentElement.appendChild(d);
             });
         }
@@ -2674,7 +2781,7 @@ function dgrRender(btn) {
         preview.innerHTML = '';
         const d = document.createElement('div');
         d.className = 'dlv-dgr-err';
-        d.textContent = '렌더링 오류: ' + e.message;
+        d.textContent = LANG.render_error.replace(':message', e.message);
         preview.parentElement.appendChild(d);
     }
 }
@@ -2736,11 +2843,11 @@ async function dgrSvgToPng(builder) {
    질의응답 폼 빌더 (FORM-QA)
 ══════════════════════════════════════════════════ */
 const _QA_RISKS = [
-    { key:'none',     label:'해당없음' },
-    { key:'low',      label:'낮음'   },
-    { key:'medium',   label:'보통'   },
-    { key:'high',     label:'높음'   },
-    { key:'critical', label:'위험'   },
+    { key:'none',     label:LANG.qa_risk_none     },
+    { key:'low',      label:LANG.qa_risk_low      },
+    { key:'medium',   label:LANG.qa_risk_medium   },
+    { key:'high',     label:LANG.qa_risk_high     },
+    { key:'critical', label:LANG.qa_risk_critical },
 ];
 
 function _qaMakeRiskPills(selected) {
@@ -2762,29 +2869,29 @@ function _qaMakeItem(data) {
     d.innerHTML = `
         <div class="dlv-qa-item-hd">
             <span class="dlv-qa-item-num"></span>
-            <button type="button" class="dlv-qa-item-del" onclick="qaRemoveItem(this)" title="질문 삭제">×</button>
+            <button type="button" class="dlv-qa-item-del" onclick="qaRemoveItem(this)" title="${LANG.qa_question_del}">×</button>
         </div>
         <div class="dlv-qa-item-body">
             <div>
-                <div class="dlv-qa-lbl">질문</div>
-                <textarea class="dlv-qa-cell dlv-qa-q-input" placeholder="질문을 입력하세요" rows="1"
+                <div class="dlv-qa-lbl">${LANG.qa_question}</div>
+                <textarea class="dlv-qa-cell dlv-qa-q-input" placeholder="${LANG.qa_question_ph}" rows="1"
                           oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
                 >${_qaEsc(data.question ?? '')}</textarea>
             </div>
             <div>
-                <div class="dlv-qa-lbl">답변</div>
-                <textarea class="dlv-qa-cell dlv-qa-a-input" placeholder="답변을 입력하세요" rows="2"
+                <div class="dlv-qa-lbl">${LANG.qa_answer}</div>
+                <textarea class="dlv-qa-cell dlv-qa-a-input" placeholder="${LANG.qa_answer_ph}" rows="2"
                           oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
                 >${_qaEsc(data.answer ?? '')}</textarea>
             </div>
             <div class="dlv-qa-meta">
                 <div class="dlv-qa-risk-wrap">
-                    <div class="dlv-qa-lbl">위험 수준</div>
+                    <div class="dlv-qa-lbl">${LANG.qa_risk_level}</div>
                     <div class="dlv-qa-risk-pills">${_qaMakeRiskPills(data.risk ?? 'none')}</div>
                 </div>
                 <div class="dlv-qa-notes-wrap">
-                    <div class="dlv-qa-lbl">비고</div>
-                    <textarea class="dlv-qa-cell dlv-qa-n-input" placeholder="비고 (선택)" rows="1"
+                    <div class="dlv-qa-lbl">${LANG.qa_notes}</div>
+                    <textarea class="dlv-qa-cell dlv-qa-n-input" placeholder="${LANG.qa_notes_ph}" rows="1"
                               oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
                     >${_qaEsc(data.notes ?? '')}</textarea>
                 </div>
@@ -2800,12 +2907,12 @@ function _qaMakeSection(data) {
     wrap.innerHTML = `
         <div class="dlv-qa-sec-hd">
             <span class="dlv-qa-sec-num"></span>
-            <input type="text" class="dlv-qa-sec-title" placeholder="섹션 제목을 입력하세요"
+            <input type="text" class="dlv-qa-sec-title" placeholder="${LANG.qa_section_title_ph}"
                    value="${_qaEsc(data.title ?? '')}">
             <div class="dlv-qa-sec-btns">
-                <button type="button" class="dlv-qa-sec-btn" onclick="qaAddItem(this)">+ 질문</button>
-                <button type="button" class="dlv-qa-sec-btn" onclick="_qaToggle(this)" title="접기/펼치기">▲</button>
-                <button type="button" class="dlv-qa-sec-btn danger" onclick="qaRemoveSection(this)">삭제</button>
+                <button type="button" class="dlv-qa-sec-btn" onclick="qaAddItem(this)">${LANG.qa_add_question}</button>
+                <button type="button" class="dlv-qa-sec-btn" onclick="_qaToggle(this)" title="${LANG.qa_collapse_title}">▲</button>
+                <button type="button" class="dlv-qa-sec-btn danger" onclick="qaRemoveSection(this)">${LANG.delete}</button>
             </div>
         </div>
         <div class="dlv-qa-items${data.collapsed ? ' collapsed' : ''}"></div>`;
@@ -2866,7 +2973,7 @@ function qaAddSection(btn) {
 
 function qaRemoveSection(btn) {
     const sec = btn.closest('.dlv-qa-section');
-    if (!confirm('이 섹션을 삭제할까요?')) return;
+    if (!confirm(LANG.qa_section_delete_confirm)) return;
     sec.remove();
     _qaRenumber(btn.closest('.dlv-qa-builder'));
 }
@@ -2913,7 +3020,7 @@ async function qaSave(btn) {
     const result   = _qaCollect(builder);
     const origHtml = btn.innerHTML;
     btn.disabled  = true;
-    btn.textContent = '저장 중…';
+    btn.textContent = LANG.saving;
     try {
         const r = await fetch(SAVE_TOOL_URL, {
             method: 'POST',
@@ -2921,12 +3028,12 @@ async function qaSave(btn) {
             body: JSON.stringify({ step: +builder.dataset.step, tool_id: 'FORM-QA', result }),
         });
         const d = await r.json();
-        if (!d.ok) throw new Error(d.message || '저장 실패');
-        btn.textContent = '저장됨 ✓';
+        if (!d.ok) throw new Error(d.message || LANG.save_failed);
+        btn.textContent = LANG.dgr_default_label;
         setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1200);
         return;
     } catch (e) {
-        alert('저장 실패: ' + e.message);
+        alert(LANG.save_error.replace(':message', e.message));
     }
     btn.innerHTML = origHtml;
     btn.disabled  = false;
@@ -2936,7 +3043,7 @@ async function qaAiGen(btn) {
     const builder = btn.closest('.dlv-qa-builder');
     const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.textContent = '생성 중…';
+    btn.textContent = LANG.ai_generating;
     try {
         const r = await fetch(ANALYZE_URL, {
             method: 'POST',
@@ -2944,7 +3051,7 @@ async function qaAiGen(btn) {
             body: JSON.stringify({ action: 'qa', step: +builder.dataset.step, tool_id: 'FORM-QA', fields: getFormData().fields }),
         });
         const d = await r.json();
-        if (!d.ok || !d.result?.sections) throw new Error(d.message || '생성 실패');
+        if (!d.ok || !d.result?.sections) throw new Error(d.message || LANG.gen_failed);
         builder.querySelector('.dlv-qa-sections').innerHTML = '';
         d.result.sections.forEach(sec => {
             builder.querySelector('.dlv-qa-sections').appendChild(_qaMakeSection(sec));
@@ -2955,7 +3062,7 @@ async function qaAiGen(btn) {
             ta.style.height = ta.scrollHeight + 'px';
         });
     } catch (e) {
-        alert('웍스 초안 생성 실패: ' + e.message);
+        alert(LANG.ai_draft_gen_fail.replace(':message', e.message));
     }
     btn.innerHTML = origHtml;
     btn.disabled  = false;
@@ -2970,18 +3077,18 @@ async function tblExcel(btn) {
     const allRows = Array.from(tbl.rows).map(row =>
         Array.from(row.cells).map(cell => cell.querySelector('textarea')?.value ?? '')
     );
-    if (!allRows.length) { alert('테이블 내용이 없습니다.'); return; }
+    if (!allRows.length) { alert(LANG.no_table_content); return; }
 
     const origHtml = btn.innerHTML;
     btn.disabled  = true;
-    btn.innerHTML = '변환 중…';
+    btn.innerHTML = LANG.converting;
     try {
         if (!window.ExcelJS) {
             await new Promise((res, rej) => {
                 const s = document.createElement('script');
                 s.src = 'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js';
                 s.onload = res;
-                s.onerror = () => rej(new Error('ExcelJS 로드 실패'));
+                s.onerror = () => rej(new Error(LANG.exceljs_fail));
                 document.head.appendChild(s);
             });
         }
@@ -3057,7 +3164,7 @@ async function tblExcel(btn) {
         a.click();
         URL.revokeObjectURL(url);
     } catch (e) {
-        alert('Excel 다운로드 실패: ' + e.message);
+        alert(LANG.excel_dl_fail.replace(':message', e.message));
     } finally {
         btn.innerHTML = origHtml;
         btn.disabled  = false;
@@ -3069,7 +3176,7 @@ async function tblExcel(btn) {
 ══════════════════════════════════════════════════ */
 async function _dgrSaveAsPng(svgEl, name) {
     const base64 = await _svgElToPng(svgEl);
-    if (!base64) { alert('PNG 변환에 실패했습니다. 미리보기를 먼저 확인해 주세요.'); return; }
+    if (!base64) { alert(LANG.png_convert_fail); return; }
     const a = document.createElement('a');
     a.href     = 'data:image/png;base64,' + base64;
     a.download = name + '_' + new Date().toISOString().slice(0, 10) + '.png';
@@ -3079,7 +3186,7 @@ async function _dgrSaveAsPng(svgEl, name) {
 async function dgrDownloadPng(btn) {
     const b     = dgrGetBuilder(btn);
     const svgEl = b.querySelector('.dlv-dgr-preview svg');
-    if (!svgEl) { alert('렌더링된 다이어그램이 없습니다. 미리보기 후 다시 시도하세요.'); return; }
+    if (!svgEl) { alert(LANG.no_diagram); return; }
     await _dgrSaveAsPng(svgEl, b.dataset.toolId ?? 'diagram');
 }
 
@@ -3264,7 +3371,7 @@ function _dgrCreateLightbox() {
                     <span style="font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#7c6eff;background:rgba(124,110,255,.12);padding:2px 8px;border-radius:4px;">DIAGRAM</span>
                     <span id="dlv-dgr-lb-title" style="font-size:13px;font-weight:700;color:#e2e8f0;"></span>
                     <span id="dlv-dgr-lb-zoom" style="font-size:10.5px;font-weight:700;color:#a78bfa;background:rgba(124,110,255,.12);border-radius:4px;padding:1px 8px;min-width:42px;text-align:center;display:inline-block;">100%</span>
-                    <span style="font-size:10px;color:#4b5563;">휠: 확대/축소 · 드래그: 이동 · 더블클릭: 초기화</span>
+                    <span style="font-size:10px;color:#4b5563;">${LANG.lb_hint}</span>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
                     <button id="dlv-dgr-lb-dl" onclick="dgrLbDownload()"
@@ -3305,7 +3412,7 @@ function dgrOpenLb(previewEl) {
     if (!svgEl) return;
     _dgrLbSvg = svgEl;
     const builder = previewEl.closest('.dlv-dgr-builder');
-    document.getElementById('dlv-dgr-lb-title').textContent = builder?.dataset.toolId ?? '다이어그램';
+    document.getElementById('dlv-dgr-lb-title').textContent = builder?.dataset.toolId ?? LANG.diagram;
 
     const sz = _dgrGetSvgNaturalSize(svgEl);
     _dgrLbNW = sz.w; _dgrLbNH = sz.h; _dgrLbZoom = 1.0;
@@ -3368,7 +3475,7 @@ async function dgrSave(btn) {
     const code   = b.querySelector('.dlv-dgr-textarea').value.trim();
     btn.disabled = true;
     const origHtml = btn.innerHTML;
-    btn.innerHTML = '저장 중…';
+    btn.innerHTML = LANG.saving;
     try {
         const png    = await dgrSvgToPng(b);
         const result = { mermaid: code };
@@ -3381,14 +3488,14 @@ async function dgrSave(btn) {
         });
         const json = await res.json();
         if (json.ok) {
-            btn.innerHTML = '✓ 저장됨';
+            btn.innerHTML = LANG.saved;
             setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1500);
         } else {
-            alert(json.message || '저장 실패');
+            alert(json.message || LANG.save_failed);
             btn.innerHTML = origHtml; btn.disabled = false;
         }
     } catch (e) {
-        alert('저장 중 오류: ' + e.message);
+        alert(LANG.save_error.replace(':message', e.message));
         btn.innerHTML = origHtml; btn.disabled = false;
     }
 }
@@ -3397,7 +3504,7 @@ async function dgrAiGen(btn) {
     const b = dgrGetBuilder(btn);
     btn.disabled = true;
     const origHtml = btn.innerHTML;
-    btn.innerHTML = '웍스 생성 중…';
+    btn.innerHTML = LANG.ai_generating;
     try {
         const res = await fetch(ANALYZE_URL, {
             method: 'POST',
@@ -3413,7 +3520,7 @@ async function dgrAiGen(btn) {
             alert(json.message);
         }
     } catch (e) {
-        alert('웍스 생성 중 오류: ' + e.message);
+        alert(LANG.ai_gen_error.replace(':message', e.message));
     } finally {
         btn.innerHTML = origHtml; btn.disabled = false;
     }
@@ -3465,7 +3572,7 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
                 pv.innerHTML = '';
                 const d = document.createElement('div');
                 d.className = 'dlv-dgr-err';
-                d.textContent = '렌더링 오류: ' + err.message;
+                d.textContent = @json(__('deliverables.js_render_error', ['message' => ''])) + err.message;
                 pv.parentElement.appendChild(d);
             });
         }, 600);

@@ -19,7 +19,7 @@
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;color:var(--t600);border:1.5px solid var(--t300);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.background='var(--t50)';this.style.borderColor='var(--t500)'" onmouseout="this.style.background='#fff';this.style.borderColor='var(--t300)'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            회의 일정 등록
+            {{ __('maintenance.meeting_schedule') }}
         </button>
         <button onclick="openMeetingModal()"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--t600);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:background .15s;"
@@ -34,7 +34,7 @@
         @foreach([
             ['label'=>__('maintenance.stat_total'),      'value'=>$stats['total'],     'color'=>'var(--t600)'],
             ['label'=>__('maintenance.stat_this_month'), 'value'=>$stats['month'],     'color'=>'#3b82f6'],
-            ['label'=>'예정 회의',                       'value'=>$stats['scheduled'] ?? 0, 'color'=>'#f97316'],
+            ['label'=>__('maintenance.scheduled_meeting'),  'value'=>$stats['scheduled'] ?? 0, 'color'=>'#f97316'],
             ['label'=>__('maintenance.stat_general'),    'value'=>$stats['general'],   'color'=>'#10b981'],
             ['label'=>__('maintenance.stat_project'),    'value'=>$stats['project'],   'color'=>'#f59e0b'],
         ] as $s)
@@ -48,9 +48,9 @@
     {{-- 필터 --}}
     <form method="GET" style="background:#fff;border:1px solid #f0eeff;border-radius:12px;padding:14px 16px;margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <select name="status" onchange="this.form.submit()" style="padding:7px 10px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#1e1b2e;">
-            <option value="">전체 상태</option>
-            <option value="scheduled" {{ request('status')==='scheduled'?'selected':'' }}>예정</option>
-            <option value="completed" {{ request('status')==='completed'?'selected':'' }}>완료</option>
+            <option value="">{{ __('maintenance.filter_all_statuses') }}</option>
+            <option value="scheduled" {{ request('status')==='scheduled'?'selected':'' }}>{{ __('maintenance.status_scheduled') }}</option>
+            <option value="completed" {{ request('status')==='completed'?'selected':'' }}>{{ __('maintenance.status_completed_meeting') }}</option>
         </select>
         <select name="type" onchange="this.form.submit()" style="padding:7px 10px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#1e1b2e;">
             <option value="">{{ __('maintenance.filter_all_types') }}</option>
@@ -86,7 +86,7 @@
                     @if($minute->isScheduled())
                     <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#ffedd5;color:#c2410c;display:inline-flex;align-items:center;gap:4px;">
                         <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3M3 12a9 9 0 1018 0 9 9 0 00-18 0z"/></svg>
-                        예정
+                        {{ __('maintenance.status_scheduled') }}
                     </span>
                     @endif
                     <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;
@@ -113,7 +113,7 @@
                     <span>✍️ {{ $minute->author->name }}</span>
                     <span>👥 {{ __('maintenance.attendees_count', ['count' => $minute->attendees->count()]) }}</span>
                     @if($minute->actionItems->count())
-                    <span style="color:var(--t600);font-weight:600;">⚡ Action {{ $minute->actionItems->count() }}건</span>
+                    <span style="color:var(--t600);font-weight:600;">⚡ {{ __('maintenance.action_count', ['count' => $minute->actionItems->count()]) }}</span>
                     @endif
                 </div>
             </div>
@@ -121,9 +121,9 @@
                 @if($minute->isScheduled() && (auth()->id() === $minute->author_id || auth()->user()->isAdmin()))
                 <button onclick="openEditModal({{ $minute->id }})"
                         style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;"
-                        title="회의록 작성하기">
+                        title="{{ __('maintenance.minute_write_tooltip') }}">
                     <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    회의록 작성
+                    {{ __('maintenance.minute_write') }}
                 </button>
                 @endif
                 @if(auth()->id() === $minute->author_id || auth()->user()->isAdmin())
@@ -211,7 +211,7 @@
                         <select name="project_id" id="modal-project-id"
                                 style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;box-sizing:border-box;"
                                 onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
-                            <option value="">프로젝트 없음 (일반 회의)</option>
+                            <option value="">{{ __('maintenance.form_project_none') }}</option>
                             @foreach($projects as $proj)
                             <option value="{{ $proj->id }}">{{ $proj->name }}</option>
                             @endforeach
@@ -273,14 +273,14 @@
                              onclick="document.getElementById('modal-attendee-input').focus()">
                             <div id="modal-attendee-chips" style="display:contents;"></div>
                             <input id="modal-attendee-input" type="text" autocomplete="off"
-                                   placeholder="이름·이메일로 검색하거나 입력 후 Enter"
+                                   placeholder="{{ __('maintenance.attendee_search_ph') }}"
                                    style="flex:1;min-width:140px;border:none;outline:none;background:transparent;font-size:13px;color:#1e1b2e;padding:4px;"
                                    oninput="onAttendeeSearch()" onfocus="onAttendeeSearch()" onkeydown="onAttendeeKeydown(event)">
                         </div>
                         <div id="modal-attendee-dropdown"
                              style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e8e3ff;border-radius:9px;box-shadow:0 8px 24px rgba(15,23,42,.08);max-height:220px;overflow-y:auto;z-index:50;"></div>
                     </div>
-                    <div style="font-size:11px;color:#94a3b8;margin-top:6px;">팀원이 아닌 외부 참석자는 이름을 입력하고 Enter 키를 눌러 추가하세요.</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:6px;">{{ __('maintenance.attendee_external_hint') }}</div>
                 </div>
 
                 {{-- 회의 내용 --}}
@@ -315,7 +315,7 @@
                     <div id="modal-actionitem-list"></div>
                     <button type="button" onclick="modalAddActionItem()"
                             style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1.5px dashed #c4b5fd;border-radius:8px;background:transparent;color:var(--t600);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;">
-                        + Action Item 추가
+                        {{ __('maintenance.action_item_add_btn') }}
                     </button>
                 </div>
                 </div>{{-- /우측 컬럼 --}}
@@ -344,12 +344,27 @@ const INP_STYLE  = 'width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;borde
 const STR_DIRECT = '{{ __('maintenance.form_attendee_direct') }}';
 const STR_NAME   = '{{ __('maintenance.form_attendee_name_ph') }}';
 
+// 사용자 노출 텍스트 번역
+const T = {
+    actionItemTaskPh: @json(__('maintenance.action_item_task_ph')),
+    ownerUnassigned:  @json(__('maintenance.owner_unassigned')),
+    priorityHigh:     @json(__('maintenance.action_priority_high')),
+    priorityMedium:   @json(__('maintenance.action_priority_medium')),
+    priorityLow:      @json(__('maintenance.action_priority_low')),
+    attendeeManualLabel: @json(__('maintenance.attendee_manual_label')),
+    attendeeRemove:   @json(__('maintenance.attendee_remove')),
+    attendeeManualAdd: @json(__('maintenance.attendee_manual_add')),
+    meetingCreate:    @json(__('maintenance.meeting_create')),
+    meetingSchedule:  @json(__('maintenance.meeting_schedule')),
+    meetingEdit:      @json(__('maintenance.meeting_edit')),
+};
+
 const TM_OPTIONS = `<option value="">${STR_DIRECT}</option>` +
     `@foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}@if($tm->email) ({{ $tm->email }})@endif</option>@endforeach`;
 
 const TEAMMATE_DATA = @json($teammates->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'email' => $t->email]));
 
-const OWNER_OPTIONS = `<option value="">담당자 미지정</option>` +
+const OWNER_OPTIONS = `<option value="">${T.ownerUnassigned}</option>` +
     `@foreach($teammates as $tm)<option value="{{ $tm->id }}">{{ $tm->name }}</option>@endforeach`;
 
 // Action Item 행 상태
@@ -365,7 +380,7 @@ function modalAddActionItem(data) {
     row.innerHTML = `
         <input type="hidden" name="action_items[${i}][id]" value="${data.id || ''}">
         <div style="display:flex;gap:6px;margin-bottom:6px;">
-            <input type="text" name="action_items[${i}][title]" placeholder="할 일 (Action Item)"
+            <input type="text" name="action_items[${i}][title]" placeholder="${T.actionItemTaskPh}"
                    value="${escAttHtml(data.title || '')}" style="flex:1;min-width:0;${inp}">
             <button type="button" onclick="this.closest('.modal-actionitem-row').remove()"
                     style="width:28px;flex-shrink:0;border:1.5px solid #fecaca;background:#fff;border-radius:7px;color:#ef4444;cursor:pointer;font-size:15px;">&times;</button>
@@ -374,9 +389,9 @@ function modalAddActionItem(data) {
             <select name="action_items[${i}][owner_id]" class="ai-owner" style="flex:1;min-width:0;${inp}">${OWNER_OPTIONS}</select>
             <input type="date" name="action_items[${i}][due_date]" value="${data.due_date || ''}" style="flex:1;min-width:0;${inp}">
             <select name="action_items[${i}][priority]" class="ai-priority" style="width:74px;flex-shrink:0;${inp}">
-                <option value="high">높음</option>
-                <option value="medium">보통</option>
-                <option value="low">낮음</option>
+                <option value="high">${T.priorityHigh}</option>
+                <option value="medium">${T.priorityMedium}</option>
+                <option value="low">${T.priorityLow}</option>
             </select>
         </div>
     `;
@@ -405,11 +420,11 @@ function renderAttendeeChips() {
         const chip = document.createElement('span');
         chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 9px;background:var(--t50);border:1px solid var(--t200);border-radius:8px;font-size:12px;color:var(--t700);max-width:100%;';
         const isManual = !a.user_id;
-        const meta = a.email ? ` (${a.email})` : (isManual ? ' · 직접 입력' : '');
+        const meta = a.email ? ` (${a.email})` : (isManual ? ` · ${T.attendeeManualLabel}` : '');
         chip.innerHTML = `
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">${escAttHtml(a.name)}</span>
             <span style="color:#94a3b8;font-weight:500;">${escAttHtml(meta)}</span>
-            <button type="button" data-att-idx="${idx}" aria-label="제거"
+            <button type="button" data-att-idx="${idx}" aria-label="${T.attendeeRemove}"
                 style="border:none;background:transparent;color:var(--t600);cursor:pointer;font-size:14px;line-height:1;padding:0 4px;">×</button>
         `;
         chip.querySelector('button').addEventListener('click', (e) => {
@@ -457,7 +472,7 @@ function renderAttendeeDropdown() {
     if (matches.length === 0 && q.trim()) {
         const item = document.createElement('div');
         item.style.cssText = 'padding:8px 12px;font-size:13px;color:var(--t700);cursor:pointer;';
-        item.textContent = `"${q.trim()}" 직접 추가`;
+        item.textContent = T.attendeeManualAdd.replace(':name', q.trim());
         item.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); addAttendeeManual(q.trim()); });
         dd.appendChild(item);
         dd.style.display = 'block';
@@ -620,7 +635,7 @@ function setDiscussionBlocksVisible(visible) {
 }
 
 function openMeetingModal() {
-    document.getElementById('modal-title').textContent = '{{ __('maintenance.meeting_create') }}';
+    document.getElementById('modal-title').textContent = T.meetingCreate;
     document.getElementById('modal-method').value = '';
     document.getElementById('meeting-modal-form').action = STORE_URL;
 
@@ -632,7 +647,7 @@ function openMeetingModal() {
 }
 
 function openScheduleModal() {
-    document.getElementById('modal-title').textContent = '회의 일정 등록';
+    document.getElementById('modal-title').textContent = T.meetingSchedule;
     document.getElementById('modal-method').value = '';
     document.getElementById('meeting-modal-form').action = SCHEDULE_URL;
 
@@ -659,7 +674,7 @@ async function openEditModal(minuteId) {
     if (!res.ok) return;
     const d = await res.json();
 
-    document.getElementById('modal-title').textContent = '{{ __('maintenance.meeting_edit') }}';
+    document.getElementById('modal-title').textContent = T.meetingEdit;
     document.getElementById('modal-method').value = 'PATCH';
     document.getElementById('meeting-modal-form').action = `${JSON_URL}/${minuteId}`;
 

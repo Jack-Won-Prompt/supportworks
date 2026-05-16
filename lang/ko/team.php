@@ -18,6 +18,8 @@ return [
     'invite_message_hint'       => '(선택)',
     'invite_message_placeholder'=> '함께 일하고 싶은 이유나 팀 소개를 적어보세요...',
     'sending'                   => '발송 중...',
+    'phone_label'               => '휴대폰',
+    'phone_hint'                => '(선택 · 승인 알림 SMS 발송용)',
 
     // ── 발송 실패 fallback
     'mail_fail_title'           => '⚠️ 이메일 발송 실패 — 링크를 직접 공유하세요',
@@ -50,6 +52,38 @@ return [
     'joined_date_suffix'        => '가입',
     'send_message'              => '에게 메시지',
     'no_members'                => '구성원이 없습니다.',
+    'company_select'            => '회사 선택',
+    'company_saved'             => '저장됨',
+    'company_save_failed'       => '실패',
+    'assign_projects'           => '프로젝트 배정',
+
+    // ── 프로젝트 배정 모달
+    'proj_modal_subtitle'       => ':name 님의 프로젝트를 선택하세요',
+    'proj_search_placeholder'   => '프로젝트 검색...',
+    'proj_none_assignable'      => '배정 가능한 프로젝트가 없습니다.',
+    'proj_count_selected'       => ':count개 프로젝트 선택됨',
+    'proj_save_done_title'      => '저장 완료',
+    'proj_save_done_msg'        => '프로젝트 배정이 업데이트되었습니다.',
+    'proj_save_fail'            => '저장에 실패했습니다. 다시 시도해 주세요.',
+    'proj_in_progress'          => '진행중',
+    'saving'                    => '저장 중...',
+    'server_error'              => '서버 오류',
+
+    // ── 회사 선택/추가 다이얼로그
+    'company_picker_title'      => '회사 선택 / 추가',
+    'company_picker_subtitle'   => ':name 님의 회사',
+    'company_search_placeholder'=> '회사명을 입력하거나 검색…',
+    'company_not_registered_suffix' => '회사가 등록되어 있지 않습니다.',
+    'company_add_select'        => '새 회사 추가 + 선택',
+    'company_clear'             => '회사 없음으로',
+    'company_searching'         => '검색 중…',
+    'company_load_fail'         => '불러오기 실패',
+    'company_no_match'          => '일치하는 회사가 없습니다',
+    'company_none_registered'   => '등록된 회사가 없습니다',
+    'company_register_fail'     => '회사 등록 실패',
+    'company_register_fail_msg' => '회사 등록 실패: ',
+    'company_assign_fail'       => '회사 배정 실패: ',
+    'company_server_response'   => '서버 응답 ',
 
     // ── Microsoft Teams
     'teams_title'               => 'Microsoft Teams 연동',

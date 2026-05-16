@@ -45,32 +45,32 @@
         <span id="modal-filename" style="flex:1;overflow:hidden;font-size:13px;font-weight:600;color:#e5e7eb;white-space:nowrap;text-overflow:ellipsis;"></span>
         <span id="modal-version-bar" style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;"></span>
         <button id="modal-compare-btn" type="button" onclick="openVersionCompareMenu(event)"
-                title="두 버전을 나란히 비교"
+                title="{{ __('viewer.compare_versions_title') }}"
                 style="display:none;align-items:center;gap:5px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;"
                 onmouseover="this.style.background='rgba(125,211,252,.1)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
-            버전 비교
+            {{ __('viewer.compare_versions') }}
         </button>
         <span id="modal-badge" style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;flex-shrink:0;"></span>
-        <button id="modal-upload-version" type="button" onclick="openUploadVersionModal()" style="display:inline-flex;align-items:center;gap:5px;color:#fde68a;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(253,230,138,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(253,230,138,.1)'" onmouseout="this.style.background='none'" title="의견을 반영한 수정본 업로드 (새 버전)">
+        <button id="modal-upload-version" type="button" onclick="openUploadVersionModal()" style="display:inline-flex;align-items:center;gap:5px;color:#fde68a;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(253,230,138,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(253,230,138,.1)'" onmouseout="this.style.background='none'" title="{{ __('viewer.upload_revision_title') }}">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            수정본 업로드
+            {{ __('viewer.upload_revision') }}
         </button>
         <a id="modal-download" href="#" style="display:inline-flex;align-items:center;gap:5px;color:#a5b4fc;font-size:12px;font-weight:600;text-decoration:none;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;flex-shrink:0;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.download') }}
         </a>
-        <button type="button" id="preview-fs-btn" onclick="togglePreviewFullscreen()" class="preview-fs-btn" title="전체창 보기 (F11)">
+        <button type="button" id="preview-fs-btn" onclick="togglePreviewFullscreen()" class="preview-fs-btn" title="{{ __('viewer.fullwindow_title') }}">
             <svg class="preview-fs-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
             <svg class="preview-fs-icon-on" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 0H5m4 4L4 4m11 5h4m0 0V5m0 4l5-5M9 15v4m0 0H5m4 0l-5 5m11-5h4m0 0v4m0-4l5 5"/></svg>
-            전체창
+            {{ __('viewer.fullwindow') }}
         </button>
         <button id="modal-download-comments" type="button" onclick="downloadCommentsReport()"
-                title="현재 버전의 의견·답글을 원본 형식(또는 PDF 보고서)으로 다운로드"
+                title="{{ __('viewer.download_with_comments_title') }}"
                 style="display:inline-flex;align-items:center;gap:5px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
                 onmouseover="this.style.background='rgba(134,239,172,.1)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            의견 포함 다운로드
+            {{ __('viewer.download_with_comments') }}
         </button>
         <button id="ann-dl-btn" onclick="downloadAnnotatedPdf()" style="display:none;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -163,31 +163,31 @@
                     </div>
                     {{-- 컨트롤 버튼 --}}
                     <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
-                        <button type="button" onclick="vidSeekRelative(-10)" title="10초 뒤로"
+                        <button type="button" onclick="vidSeekRelative(-10)" title="{{ __('viewer.vid_back_10') }}"
                                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 17l-5-5 5-5"/></svg>
-                            10초 뒤로
+                            {{ __('viewer.vid_back_10') }}
                         </button>
-                        <button type="button" id="vid-play-btn" onclick="vidTogglePlay()" title="재생/일시정지"
+                        <button type="button" id="vid-play-btn" onclick="vidTogglePlay()" title="{{ __('viewer.vid_play_pause') }}"
                                 style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;background:linear-gradient(135deg,#7c3aed,#9b8afb);border:none;color:#fff;border-radius:50%;cursor:pointer;flex-shrink:0;box-shadow:0 4px 14px rgba(124,58,237,.45);"
                                 onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
                             <svg id="vid-play-icon" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </button>
-                        <button type="button" onclick="vidSeekRelative(10)" title="10초 앞으로"
+                        <button type="button" onclick="vidSeekRelative(10)" title="{{ __('viewer.vid_forward_10') }}"
                                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
-                            10초 앞으로
+                            {{ __('viewer.vid_forward_10') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17l5-5-5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 17l5-5-5-5"/></svg>
                         </button>
                         <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
                         <span id="vid-time-label" style="font-size:12px;color:#9ca3af;font-variant-numeric:tabular-nums;min-width:90px;text-align:center;">0:00 / 0:00</span>
                         <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
-                        <button type="button" onclick="vidPauseAndAddComment()" title="현재 시점에 의견 추가"
+                        <button type="button" onclick="vidPauseAndAddComment()" title="{{ __('viewer.vid_add_comment_title') }}"
                                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(196,181,253,.15);border:1px solid rgba(196,181,253,.3);color:#c4b5fd;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(196,181,253,.25)'" onmouseout="this.style.background='rgba(196,181,253,.15)'">
                             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                            이 시점 의견
+                            {{ __('viewer.vid_add_comment') }}
                         </button>
                     </div>
                 </div>
@@ -201,7 +201,7 @@
                 </div>
                 {{-- PDF 네비게이션 바 (하단) --}}
                 <div style="position:absolute;bottom:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;background:#111827;border-top:1px solid rgba(255,255,255,.07);">
-                    <button id="pdf-first-btn" onclick="pdfFirstPage()" title="처음 페이지"
+                    <button id="pdf-first-btn" onclick="pdfFirstPage()" title="{{ __('viewer.pdf_first_page') }}"
                             style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;cursor:pointer;transition:background .15s;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 19l-7-7 7-7M11 19l-7-7 7-7"/></svg>
@@ -218,16 +218,16 @@
                     {{-- 페이지 번호 입력 + 이동 --}}
                     <div style="display:inline-flex;align-items:center;gap:4px;margin-left:4px;">
                         <input id="pdf-page-input" type="number" min="1" value="" placeholder="#"
-                               title="페이지 번호 입력 후 Enter"
+                               title="{{ __('viewer.pdf_page_input_title') }}"
                                style="width:54px;padding:4px 6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e5e7eb;border-radius:6px;font-size:12px;text-align:center;outline:none;"
                                onfocus="this.select();this.style.background='rgba(255,255,255,.13)';this.style.borderColor='rgba(196,181,253,.4)'"
                                onblur="this.style.background='rgba(255,255,255,.07)';this.style.borderColor='rgba(255,255,255,.12)'"
                                onkeydown="if(event.key==='Enter'){event.preventDefault();pdfGoToInput();}">
                         <button onclick="pdfGoToInput()" type="button"
-                                title="입력한 페이지로 이동"
+                                title="{{ __('viewer.pdf_goto_input_title') }}"
                                 style="padding:5px 9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s;"
                                 onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
-                            이동
+                            {{ __('viewer.pdf_goto') }}
                         </button>
                     </div>
 
@@ -252,14 +252,14 @@
         </div>
 
         {{-- 의견 패널 토글 (접힘 시 보이는 가장자리 핸들) --}}
-        <button id="comment-panel-handle" onclick="toggleCommentPanel()" title="의견 영역 열기"
+        <button id="comment-panel-handle" onclick="toggleCommentPanel()" title="{{ __('viewer.open_comment_panel') }}"
                 style="display:none;width:28px;flex-shrink:0;background:#ede9fe;border:none;border-left:1px solid #c4b5fd;cursor:pointer;align-items:center;justify-content:center;color:#6d28d9;padding:0;writing-mode:vertical-rl;font-size:11px;font-weight:700;letter-spacing:.05em;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transform:rotate(-90deg);margin-bottom:8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-            의견 보기
+            {{ __('viewer.show_comments') }}
         </button>
 
         {{-- 의견 패널 좌측 리사이즈 핸들 --}}
-        <div class="cmt-resize-handle" data-target="comment-panel" title="드래그하여 의견 영역 폭 조절"></div>
+        <div class="cmt-resize-handle" data-target="comment-panel" title="{{ __('viewer.resize_comment_panel') }}"></div>
 
         {{-- 의견 패널 --}}
         <div id="comment-panel" style="width:340px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
@@ -270,7 +270,7 @@
                     <svg width="15" height="15" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     {{ __('viewer.opinions') }}
                     <span id="comment-count" style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
-                    <button onclick="toggleCommentPanel()" title="의견 영역 접기"
+                    <button onclick="toggleCommentPanel()" title="{{ __('viewer.collapse_comment_panel') }}"
                             style="margin-left:auto;background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px 4px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;"
                             onmouseover="this.style.color='#6d28d9';this.style.background='#f5f3ff'" onmouseout="this.style.color='#9ca3af';this.style.background='none'">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
@@ -334,31 +334,31 @@
     <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:14px;padding:0 16px;flex-shrink:0;">
         <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;">
             <svg width="15" height="15" fill="none" stroke="#7dd3fc" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
-            버전 비교
+            {{ __('viewer.compare_versions') }}
         </span>
         <span id="compare-title" style="flex:1;overflow:hidden;font-size:12px;color:#9ca3af;white-space:nowrap;text-overflow:ellipsis;"></span>
         <label id="compare-sync-wrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
             <input type="checkbox" id="compare-sync-pages" onchange="onCompareSyncToggle()" disabled
                    style="width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;">
-            <span id="compare-sync-label">페이지 동일함</span>
+            <span id="compare-sync-label">{{ __('viewer.sync_same_page') }}</span>
         </label>
         <span id="compare-sync-note" style="display:none;font-size:11px;color:#6b7280;flex-shrink:0;"></span>
         <button onclick="closeCompare()"
                 style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;transition:background .15s;"
                 onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            닫기
+            {{ __('common.close') }}
         </button>
     </div>
     {{-- 본문: 두 뷰어 나란히 --}}
     <div style="display:flex;flex:1;min-height:0;">
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;border-right:2px solid #2d2748;">
             <div id="compare-label-a" class="compare-pane-label"></div>
-            <iframe id="compare-frame-a" title="버전 비교 - 좌측" style="flex:1;width:100%;border:none;background:#1a1730;"></iframe>
+            <iframe id="compare-frame-a" title="{{ __('viewer.compare_frame_left') }}" style="flex:1;width:100%;border:none;background:#1a1730;"></iframe>
         </div>
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
             <div id="compare-label-b" class="compare-pane-label"></div>
-            <iframe id="compare-frame-b" title="버전 비교 - 우측" style="flex:1;width:100%;border:none;background:#1a1730;"></iframe>
+            <iframe id="compare-frame-b" title="{{ __('viewer.compare_frame_right') }}" style="flex:1;width:100%;border:none;background:#1a1730;"></iframe>
         </div>
     </div>
 </div>
@@ -384,16 +384,16 @@
             {{ __('viewer.save_pdf') }}
         </button>
         <button type="button" onclick="downloadUrlCommentsReport()"
-                title="현재 의견·답글을 PDF 보고서로 다운로드"
+                title="{{ __('viewer.url_download_comments_title') }}"
                 style="display:inline-flex;align-items:center;gap:5px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
                 onmouseover="this.style.background='rgba(134,239,172,.1)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            문서 다운로드
+            {{ __('viewer.download_with_review') }}
         </button>
-        <button type="button" id="url-preview-fs-btn" onclick="toggleUrlPreviewFullscreen()" class="preview-fs-btn" title="전체창 보기">
+        <button type="button" id="url-preview-fs-btn" onclick="toggleUrlPreviewFullscreen()" class="preview-fs-btn" title="{{ __('viewer.fullwindow') }}">
             <svg class="preview-fs-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
             <svg class="preview-fs-icon-on" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 0H5m4 4L4 4m11 5h4m0 0V5m0 4l5-5M9 15v4m0 0H5m4 0l-5 5m11-5h4m0 0v4m0-4l5 5"/></svg>
-            전체창
+            {{ __('viewer.fullwindow') }}
         </button>
     </div>
 
@@ -423,7 +423,7 @@
         </div>
 
         {{-- 의견 패널 좌측 리사이즈 핸들 --}}
-        <div class="cmt-resize-handle" data-target="url-comment-panel" title="드래그하여 의견 영역 폭 조절"></div>
+        <div class="cmt-resize-handle" data-target="url-comment-panel" title="{{ __('viewer.resize_comment_panel') }}"></div>
 
         {{-- 의견 패널 --}}
         <div id="url-comment-panel" style="width:340px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
@@ -473,20 +473,20 @@
         <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
             <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                논의사항으로 등록
+                {{ __('viewer.register_as_discussion') }}
             </h3>
             <button onclick="cnvCloseConfirm()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
         </div>
         <div style="padding:18px 22px;">
-            <p style="margin:0 0 12px;font-size:13px;color:#374151;">이 의견을 프로젝트 논의사항으로 등록하시겠습니까?</p>
+            <p style="margin:0 0 12px;font-size:13px;color:#374151;">{{ __('viewer.confirm_register_discussion') }}</p>
             <div style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:10px 12px;max-height:160px;overflow-y:auto;">
                 <div id="cnv-confirm-meta" style="font-size:11px;color:#9ca3af;margin-bottom:4px;font-weight:600;"></div>
                 <div id="cnv-confirm-content" style="font-size:13px;color:#1f2937;white-space:pre-wrap;word-break:break-word;line-height:1.5;"></div>
             </div>
         </div>
         <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
-            <button onclick="cnvCloseConfirm()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
-            <button id="cnv-confirm-ok" onclick="cnvDoConvert()" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">등록</button>
+            <button onclick="cnvCloseConfirm()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
+            <button id="cnv-confirm-ok" onclick="cnvDoConvert()" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">{{ __('common.register') }}</button>
         </div>
     </div>
 </div>
@@ -494,7 +494,7 @@
 <div id="cnv-detail-modal" onclick="if(event.target===this)cnvCloseDetail()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:760px;max-width:calc(100vw - 48px);max-height:85vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
         <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;">
-            <h3 id="cnv-detail-title" style="margin:0;font-size:15px;font-weight:700;color:#1f2937;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">논의사항</h3>
+            <h3 id="cnv-detail-title" style="margin:0;font-size:15px;font-weight:700;color:#1f2937;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ __('viewer.discussion') }}</h3>
             <span id="cnv-detail-status" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;flex-shrink:0;"></span>
             <button onclick="cnvCloseDetail()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;flex-shrink:0;">×</button>
         </div>
@@ -502,14 +502,14 @@
         <div style="padding:18px 22px;overflow-y:auto;flex:1;min-height:0;">
             <div id="cnv-detail-content" style="font-size:14px;color:#1f2937;line-height:1.7;word-break:break-word;"></div>
             <div id="cnv-detail-conclusion" style="margin-top:18px;padding:14px;background:#fef3c7;border-left:3px solid #f59e0b;border-radius:6px;display:none;">
-                <div style="font-size:11px;font-weight:700;color:#b45309;margin-bottom:6px;letter-spacing:.05em;">결론</div>
+                <div style="font-size:11px;font-weight:700;color:#b45309;margin-bottom:6px;letter-spacing:.05em;">{{ __('viewer.conclusion') }}</div>
                 <div id="cnv-detail-conclusion-body" style="font-size:13px;color:#92400e;line-height:1.6;"></div>
             </div>
         </div>
         <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
-            <button onclick="cnvCloseDetail()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">닫기</button>
+            <button onclick="cnvCloseDetail()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.close') }}</button>
             <a id="cnv-detail-link" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
-                논의사항 페이지에서 열기
+                {{ __('viewer.open_in_discussions') }}
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </a>
         </div>
@@ -522,31 +522,31 @@
         <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
             <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                수정본 업로드 (새 버전)
+                {{ __('viewer.upload_revision_heading') }}
             </h3>
             <button type="button" onclick="closeUploadVersionModal()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
         </div>
         <div style="padding:18px 22px;">
             <p style="margin:0 0 14px;font-size:13px;color:#374151;line-height:1.55;">
-                의견을 반영한 수정본을 업로드합니다.<br>
-                <span style="font-size:12px;color:#6b7280;">현재 등록된 의견들은 모두 <strong style="color:#15803d;">반영 완료</strong>로 처리됩니다.</span>
+                {{ __('viewer.upload_revision_desc') }}<br>
+                <span style="font-size:12px;color:#6b7280;">{!! __('viewer.upload_revision_note', ['done' => '<strong style="color:#15803d;">'.__('viewer.applied_done').'</strong>']) !!}</span>
             </p>
-            <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">새 파일 *</label>
+            <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">{{ __('viewer.new_file_label') }}</label>
             <input type="file" id="upv-file" class="upv-file-native">
             <label for="upv-file" id="upv-file-drop" class="upv-file-drop">
                 <svg width="22" height="22" fill="none" stroke="#a78bfa" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.9 5 5 0 019.9-1A5.5 5.5 0 0118 16h-1m-6-1l3-3m0 0l3 3m-3-3v8"/></svg>
-                <div class="upv-file-drop-main"><span id="upv-file-drop-cta">파일 선택</span><span class="upv-file-drop-hint">또는 이 영역으로 끌어다 놓기</span></div>
+                <div class="upv-file-drop-main"><span id="upv-file-drop-cta">{{ __('viewer.choose_file') }}</span><span class="upv-file-drop-hint">{{ __('viewer.drop_file_here') }}</span></div>
             </label>
             <div id="upv-filename" style="margin-top:6px;font-size:12px;color:#7c3aed;font-weight:600;"></div>
 
-            <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">변경 노트 (선택)</label>
-            <textarea id="upv-note" rows="3" placeholder="이번 버전에서 반영한 주요 변경사항을 적어주세요."
+            <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">{{ __('viewer.change_note_label') }}</label>
+            <textarea id="upv-note" rows="3" placeholder="{{ __('viewer.change_note_placeholder') }}"
                       style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;line-height:1.55;resize:vertical;box-sizing:border-box;outline:none;"
                       onfocus="this.style.borderColor='#a78bfa'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
         </div>
         <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
-            <button type="button" onclick="closeUploadVersionModal()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
-            <button type="button" id="upv-submit-btn" onclick="submitUploadVersion()" style="padding:7px 18px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">업로드</button>
+            <button type="button" onclick="closeUploadVersionModal()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
+            <button type="button" id="upv-submit-btn" onclick="submitUploadVersion()" style="padding:7px 18px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">{{ __('common.upload') }}</button>
         </div>
     </div>
 </div>
@@ -555,7 +555,7 @@
 <div id="vh-modal" onclick="if(event.target===this)closeVersionHistory()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:560px;max-width:calc(100vw - 48px);max-height:80vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
         <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;">버전 이력</h3>
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;">{{ __('viewer.version_history') }}</h3>
             <button type="button" onclick="closeVersionHistory()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
         </div>
         <div id="vh-list" style="padding:14px 22px;overflow-y:auto;flex:1;min-height:0;font-size:13px;color:#374151;"></div>
@@ -763,6 +763,56 @@ const FM_STR = {
     popup_blocked:         '{{ __("viewer.popup_blocked_msg") }}',
     pdfjs_not_loaded:      '{{ __("viewer.pdfjs_not_loaded") }}',
     jspdf_not_loaded:      '{{ __("viewer.jspdf_not_loaded") }}',
+    comment_placeholder:   '{{ __("viewer.comment_placeholder") }}',
+    discussion:            '{{ __("viewer.discussion") }}',
+    view_discussion:       '{{ __("viewer.view_discussion") }}',
+    register_discussion:   '{{ __("viewer.register_discussion") }}',
+    register_doing:        '{{ __("viewer.register_doing") }}',
+    file_info_missing:     '{{ __("viewer.file_info_missing") }}',
+    network_error:         '{{ __("common.network_error") }}',
+    already_discussion:    '{{ __("viewer.already_discussion") }}',
+    discussion_reg_failed: '{{ __("viewer.discussion_reg_failed") }}',
+    loading_text:          '{{ __("common.loading") }}',
+    discussion_load_failed:'{{ __("viewer.discussion_load_failed") }}',
+    meta_author:           '{{ __("viewer.meta_author") }}',
+    meta_discussion_date:  '{{ __("viewer.meta_discussion_date") }}',
+    meta_registered:       '{{ __("viewer.meta_registered") }}',
+    no_content:            '{{ __("viewer.no_content") }}',
+    upload:                '{{ __("common.upload") }}',
+    uploading:             '{{ __("viewer.uploading") }}',
+    upload_failed:         '{{ __("viewer.upload_failed") }}',
+    upload_done:           '{{ __("viewer.upload_done") }}',
+    upload_confirm:        '{{ __("viewer.upload_confirm") }}',
+    loading_ellipsis:      '{{ __("viewer.loading_ellipsis") }}',
+    no_version_history:    '{{ __("viewer.no_version_history") }}',
+    load_failed_short:     '{{ __("viewer.load_failed_short") }}',
+    select_file_alert:     '{{ __("viewer.select_file_alert") }}',
+    file_selected:         '{{ __("viewer.file_selected") }}',
+    choose_file:           '{{ __("viewer.choose_file") }}',
+    register:              '{{ __("viewer.register") }}',
+    cmp_pick_versions:     '{{ __("viewer.cmp_pick_versions") }}',
+    cmp_pick_hint:         '{{ __("viewer.cmp_pick_hint") }}',
+    cmp_select_prompt:     '{{ __("viewer.cmp_select_prompt") }}',
+    cmp_view_one:          '{{ __("viewer.cmp_view_one") }}',
+    cmp_compare_two:       '{{ __("viewer.cmp_compare_two") }}',
+    cmp_current:           '{{ __("viewer.cmp_current") }}',
+    cmp_current_version:   '{{ __("viewer.cmp_current_version") }}',
+    sync_same_video:       '{{ __("viewer.sync_same_video") }}',
+    sync_same_page:        '{{ __("viewer.sync_same_page") }}',
+    sync_same_format_only: '{{ __("viewer.sync_same_format_only") }}',
+    confirm_delete_short:  '{{ __("viewer.confirm_delete_short") }}',
+    del_cancel:            '{{ __("common.cancel") }}',
+    del_confirm:           '{{ __("common.delete") }}',
+    vid_err_aborted:       '{{ __("viewer.vid_err_aborted") }}',
+    vid_err_network:       '{{ __("viewer.vid_err_network") }}',
+    vid_err_decode:        '{{ __("viewer.vid_err_decode") }}',
+    vid_err_src:           '{{ __("viewer.vid_err_src") }}',
+    vid_err_generic:       '{{ __("viewer.vid_err_generic") }}',
+    vid_err_cannot_play:   '{{ __("viewer.vid_err_cannot_play") }}',
+    vid_cannot_play_title: '{{ __("viewer.vid_cannot_play_title") }}',
+    goto_page_suffix:      '{{ __("viewer.goto_page_suffix") }}',
+    vid_seek_to:           '{{ __("viewer.vid_seek_to") }}',
+    vid_comment_at_time:   '{{ __("viewer.vid_comment_at_time") }}',
 };
 let currentFileId    = null;
 let currentProjectId = null;
@@ -1582,7 +1632,7 @@ function openVersionCompareMenu(ev) {
 
     const activeVersion = window._currentVersion || null;
     const rows = [..._cmpVersionList].reverse().map(v => {
-        const sub = (v.uploader?.name || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · 현재' : '');
+        const sub = (v.uploader?.name || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · ' + FM_STR.cmp_current : '');
         const pre = (v.version === activeVersion) ? ' checked' : '';
         return `<label class="vcmp-row${pre ? ' is-checked' : ''}" data-version="${v.version}">
             <input type="checkbox" value="${v.version}" onchange="onVersionCompareCheck()"${pre}>
@@ -1598,7 +1648,7 @@ function openVersionCompareMenu(ev) {
     pop.id = 'version-compare-pop';
     pop.style.cssText = 'position:fixed;z-index:10010;background:#241f3d;border:1px solid rgba(196,181,253,.25);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.55);padding:10px;width:288px;';
     pop.innerHTML = `
-        <div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">비교할 버전 선택 <span style="font-weight:500;color:#8b85a8;">(최대 2개)</span></div>
+        <div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">${FM_STR.cmp_pick_versions} <span style="font-weight:500;color:#8b85a8;">${FM_STR.cmp_pick_hint}</span></div>
         <div style="display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;">${rows}</div>
         <button id="vcmp-go" type="button" onclick="confirmVersionCompare()"
             style="margin-top:9px;width:100%;padding:8px;border:none;border-radius:7px;font-size:12px;font-weight:700;"></button>`;
@@ -1644,16 +1694,16 @@ function onVersionCompareCheck() {
     const go = document.getElementById('vcmp-go');
     if (checked.length === 0) {
         go.disabled = true;
-        go.textContent = '버전을 선택하세요';
+        go.textContent = FM_STR.cmp_select_prompt;
         go.style.background = '#3a3357'; go.style.color = '#8b85a8'; go.style.cursor = 'not-allowed';
     } else if (checked.length === 1) {
         go.disabled = false;
-        go.textContent = 'v' + checked[0].value + ' 보기';
+        go.textContent = FM_STR.cmp_view_one.replace(':version', checked[0].value);
         go.style.background = 'linear-gradient(135deg,#7c3aed,#a78bfa)'; go.style.color = '#fff'; go.style.cursor = 'pointer';
     } else {
         const sorted = checked.map(b => parseInt(b.value, 10)).sort((a, b) => a - b);
         go.disabled = false;
-        go.textContent = 'v' + sorted[0] + ' ↔ v' + sorted[1] + ' 비교';
+        go.textContent = FM_STR.cmp_compare_two.replace(':a', sorted[0]).replace(':b', sorted[1]);
         go.style.background = 'linear-gradient(135deg,#0ea5e9,#7dd3fc)'; go.style.color = '#08233a'; go.style.cursor = 'pointer';
     }
 }
@@ -1676,7 +1726,7 @@ function _compareLabelHtml(v) {
     if (!v) return '';
     const sub = (v.uploader?.name || '—')
               + (v.created_at ? ' · ' + v.created_at : '')
-              + (v.is_current ? ' · 현재 버전' : '');
+              + (v.is_current ? ' · ' + FM_STR.cmp_current_version : '');
     return `<span style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;padding:2px 9px;border-radius:5px;font-size:11px;flex-shrink:0;">v${v.version}</span>
             <span style="color:#e5e7eb;overflow:hidden;text-overflow:ellipsis;">${escHtml(v.name || '')}</span>
             <span style="color:#8b85a8;font-weight:500;flex-shrink:0;">${escHtml(sub)}</span>`;
@@ -1732,14 +1782,14 @@ function _compareUpdateSyncAvailability() {
     const bothVideo = _cmpState.ptypeA === 'video' && _cmpState.ptypeB === 'video';
     _cmpSyncMode = bothPdf ? 'page' : (bothVideo ? 'video' : null);
 
-    if (label) label.textContent = bothVideo ? '재생 위치 동일함' : '페이지 동일함';
+    if (label) label.textContent = bothVideo ? FM_STR.sync_same_video : FM_STR.sync_same_page;
 
     const enabled = !!_cmpSyncMode;
     sync.disabled = !enabled;
     wrap.style.opacity = enabled ? '1' : '.5';
     if (!enabled) {
         sync.checked = false;
-        note.textContent = '같은 형식(PDF끼리·동영상끼리)일 때만 동기화할 수 있습니다.';
+        note.textContent = FM_STR.sync_same_format_only;
         note.style.display = 'inline';
     } else {
         note.style.display = 'none';
@@ -1817,12 +1867,12 @@ window.downloadCommentsReport = downloadCommentsReport;
 
 // ── 파일 수정본 업로드 (버전 관리) ──────────────────────────
 function openUploadVersionModal() {
-    if (!currentProjectId || !currentFileId) { alert('파일 정보를 확인할 수 없습니다.'); return; }
+    if (!currentProjectId || !currentFileId) { alert(FM_STR.file_info_missing); return; }
     document.getElementById('upv-file').value = '';
     document.getElementById('upv-note').value = '';
     if (typeof _updateUpvFileUi === 'function') _updateUpvFileUi(null);
     const btn = document.getElementById('upv-submit-btn');
-    btn.disabled = false; btn.textContent = '업로드';
+    btn.disabled = false; btn.textContent = FM_STR.upload;
     document.getElementById('upv-modal').style.display = 'flex';
 }
 function closeUploadVersionModal() {
@@ -1841,11 +1891,11 @@ function _updateUpvFileUi(f) {
     if (!drop || !cta || !fn) return;
     if (f) {
         drop.classList.add('has-file');
-        cta.textContent = '✓ 파일 선택됨';
+        cta.textContent = '✓ ' + FM_STR.file_selected;
         fn.textContent  = `${f.name} (${(f.size/1024).toFixed(0)} KB)`;
     } else {
         drop.classList.remove('has-file');
-        cta.textContent = '파일 선택';
+        cta.textContent = FM_STR.choose_file;
         fn.textContent  = '';
     }
 }
@@ -1883,13 +1933,13 @@ function _updateUpvFileUi(f) {
 async function submitUploadVersion() {
     const fileInput = document.getElementById('upv-file');
     const note      = document.getElementById('upv-note').value.trim();
-    if (!fileInput.files?.[0]) { alert('파일을 선택해주세요.'); return; }
+    if (!fileInput.files?.[0]) { alert(FM_STR.select_file_alert); return; }
     const ok = (typeof window.__confirm === 'function')
-        ? await window.__confirm('수정본을 업로드하면 기존 의견은 모두 "반영 완료"로 처리되고, 새 버전으로 미리보기가 갱신됩니다. 계속하시겠습니까?')
-        : confirm('수정본을 업로드하면 기존 의견은 모두 "반영 완료"로 처리되고, 새 버전으로 미리보기가 갱신됩니다. 계속하시겠습니까?');
+        ? await window.__confirm(FM_STR.upload_confirm)
+        : confirm(FM_STR.upload_confirm);
     if (!ok) return;
     const btn = document.getElementById('upv-submit-btn');
-    btn.disabled = true; btn.textContent = '업로드 중...';
+    btn.disabled = true; btn.textContent = FM_STR.uploading;
 
     const fd = new FormData();
     fd.append('file', fileInput.files[0]);
@@ -1902,18 +1952,18 @@ async function submitUploadVersion() {
     })
     .then(async r => {
         const d = await r.json().catch(() => ({}));
-        if (!r.ok) { alert(d.message || '업로드 실패'); btn.disabled = false; btn.textContent = '업로드'; return; }
+        if (!r.ok) { alert(d.message || FM_STR.upload_failed); btn.disabled = false; btn.textContent = FM_STR.upload; return; }
         closeUploadVersionModal();
-        alert(d.message || '업로드되었습니다.');
+        alert(d.message || FM_STR.upload_done);
         // 미리보기/의견 갱신을 위해 페이지 reload (간단)
         location.reload();
     })
-    .catch(() => { alert('네트워크 오류가 발생했습니다.'); btn.disabled = false; btn.textContent = '업로드'; });
+    .catch(() => { alert(FM_STR.network_error); btn.disabled = false; btn.textContent = FM_STR.upload; });
 }
 
 function openVersionHistory() {
     if (!currentProjectId || !currentFileId) return;
-    document.getElementById('vh-list').innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;">불러오는 중…</div>';
+    document.getElementById('vh-list').innerHTML = `<div style="padding:24px;text-align:center;color:#9ca3af;">${FM_STR.loading_ellipsis}</div>`;
     document.getElementById('vh-modal').style.display = 'flex';
     fetch(`${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/versions`, {
         headers:{'Accept':'application/json'}
@@ -1921,7 +1971,7 @@ function openVersionHistory() {
     .then(r => r.json())
     .then(d => {
         if (!d.ok || !d.versions?.length) {
-            document.getElementById('vh-list').innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;">버전 이력이 없습니다.</div>';
+            document.getElementById('vh-list').innerHTML = `<div style="padding:24px;text-align:center;color:#9ca3af;">${FM_STR.no_version_history}</div>`;
             return;
         }
         document.getElementById('vh-list').innerHTML = d.versions.map(v => `
@@ -1937,7 +1987,7 @@ function openVersionHistory() {
         `).join('');
     })
     .catch(() => {
-        document.getElementById('vh-list').innerHTML = '<div style="padding:24px;text-align:center;color:#ef4444;">불러오기 실패</div>';
+        document.getElementById('vh-list').innerHTML = `<div style="padding:24px;text-align:center;color:#ef4444;">${FM_STR.load_failed_short}</div>`;
     });
 }
 function closeVersionHistory() {
@@ -1950,18 +2000,18 @@ let _cnvPendingCommentId = null;
 function convertBtnHtml(c) {
     if (!c || c.parent_id) return '';
     if (c.discussion_id) {
-        return `<button onclick="cnvOpenDetail(${c.discussion_id})" title="등록된 논의사항 보기"
+        return `<button onclick="cnvOpenDetail(${c.discussion_id})" title="${FM_STR.view_discussion}"
                     style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#15803d;background:#dcfce7;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                     onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
-                    논의사항
+                    ${FM_STR.discussion}
                 </button>`;
     }
-    return `<button onclick="convertCommentToDiscussion(${c.id})" title="이 의견을 프로젝트 논의사항으로 등록"
+    return `<button onclick="convertCommentToDiscussion(${c.id})" title="${FM_STR.register_discussion}"
                 style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#5b21b6;background:#ede9fe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                 onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                논의사항
+                ${FM_STR.discussion}
             </button>`;
 }
 
@@ -1985,7 +2035,7 @@ function convertCommentToDiscussion(commentId) {
         [c.user_name, c.created_at].filter(Boolean).join(' · ');
     document.getElementById('cnv-confirm-content').textContent = c.content || '';
     const okBtn = document.getElementById('cnv-confirm-ok');
-    okBtn.disabled = false; okBtn.textContent = '등록';
+    okBtn.disabled = false; okBtn.textContent = FM_STR.register;
     document.getElementById('cnv-confirm-modal').style.display = 'flex';
 }
 
@@ -1998,10 +2048,10 @@ function cnvDoConvert() {
     const commentId = _cnvPendingCommentId;
     if (!commentId) return;
     const fileId = (typeof _cmFileId !== 'undefined' && _cmFileId) ? _cmFileId : currentFileId;
-    if (!fileId || !currentProjectId) { alert('파일 정보를 확인할 수 없습니다.'); cnvCloseConfirm(); return; }
+    if (!fileId || !currentProjectId) { alert(FM_STR.file_info_missing); cnvCloseConfirm(); return; }
 
     const okBtn = document.getElementById('cnv-confirm-ok');
-    okBtn.disabled = true; okBtn.textContent = '등록 중...';
+    okBtn.disabled = true; okBtn.textContent = FM_STR.register_doing;
 
     fetch(`${BASE_URL}/projects/${currentProjectId}/files/${fileId}/comments/${commentId}/convert-to-discussion`, {
         method:'POST',
@@ -2012,9 +2062,9 @@ function cnvDoConvert() {
         if (!res.ok) {
             if (res.status === 409 && data.discussion_id) {
                 _cnvUpdateCardButton(commentId, data.discussion_id);
-                alert(data.message || '이미 논의사항으로 등록된 의견입니다.');
+                alert(data.message || FM_STR.already_discussion);
             } else {
-                alert(data.message || '논의사항 등록에 실패했습니다.');
+                alert(data.message || FM_STR.discussion_reg_failed);
             }
             cnvCloseConfirm();
             return;
@@ -2023,8 +2073,8 @@ function cnvDoConvert() {
         cnvCloseConfirm();
     })
     .catch(() => {
-        alert('네트워크 오류가 발생했습니다.');
-        okBtn.disabled = false; okBtn.textContent = '등록';
+        alert(FM_STR.network_error);
+        okBtn.disabled = false; okBtn.textContent = FM_STR.register;
     });
 }
 
@@ -2053,7 +2103,7 @@ function _cnvUpdateCardButton(commentId, discussionId) {
 function cnvOpenDetail(discussionId) {
     if (!discussionId || !currentProjectId) return;
     const modal = document.getElementById('cnv-detail-modal');
-    document.getElementById('cnv-detail-title').textContent = '불러오는 중...';
+    document.getElementById('cnv-detail-title').textContent = FM_STR.loading_text;
     document.getElementById('cnv-detail-meta').textContent = '';
     document.getElementById('cnv-detail-content').innerHTML = '';
     document.getElementById('cnv-detail-conclusion').style.display = 'none';
@@ -2067,13 +2117,13 @@ function cnvOpenDetail(discussionId) {
     })
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(d => {
-        document.getElementById('cnv-detail-title').textContent = d.title || '논의사항';
+        document.getElementById('cnv-detail-title').textContent = d.title || FM_STR.discussion;
         const meta = [];
-        if (d.author?.name) meta.push('작성자: ' + d.author.name);
-        if (d.discussion_date) meta.push('논의일: ' + d.discussion_date);
-        if (d.created_at) meta.push('등록: ' + d.created_at);
+        if (d.author?.name) meta.push(FM_STR.meta_author + ': ' + d.author.name);
+        if (d.discussion_date) meta.push(FM_STR.meta_discussion_date + ': ' + d.discussion_date);
+        if (d.created_at) meta.push(FM_STR.meta_registered + ': ' + d.created_at);
         document.getElementById('cnv-detail-meta').textContent = meta.join(' · ');
-        document.getElementById('cnv-detail-content').innerHTML = d.content || '<p style="color:#9ca3af;">내용이 없습니다.</p>';
+        document.getElementById('cnv-detail-content').innerHTML = d.content || `<p style="color:#9ca3af;">${FM_STR.no_content}</p>`;
         if (d.status_label) {
             stEl.textContent = d.status_label;
             stEl.style.background = d.status_color?.bg || '#f3f4f6';
@@ -2084,7 +2134,7 @@ function cnvOpenDetail(discussionId) {
             document.getElementById('cnv-detail-conclusion-body').innerHTML = d.conclusion;
         }
     })
-    .catch(() => { document.getElementById('cnv-detail-title').textContent = '논의사항을 불러오지 못했습니다.'; });
+    .catch(() => { document.getElementById('cnv-detail-title').textContent = FM_STR.discussion_load_failed; });
 }
 
 function cnvCloseDetail() {
@@ -2117,7 +2167,7 @@ function commentHtml(c, label) {
     `).join('');
 
     const vidBadge = (c.video_time != null)
-        ? `<button onclick="vidSeekTo(${c.video_time})" class="page-badge" style="background:#ddd6fe;color:#5b21b6;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;" title="동영상의 ${vidFmtTime(c.video_time)} 시점으로 이동">
+        ? `<button onclick="vidSeekTo(${c.video_time})" class="page-badge" style="background:#ddd6fe;color:#5b21b6;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;" title="${FM_STR.vid_seek_to.replace(':time', vidFmtTime(c.video_time))}">
                 <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor"><path d="M4 3v10l8-5z"/></svg>
                 ${vidFmtTime(c.video_time)}
             </button>`
@@ -2126,7 +2176,7 @@ function commentHtml(c, label) {
     return `<div class="comment-card" id="cmt-${c.id}">
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;">
             <span class="page-badge" style="background:#f0fdf4;color:#065f46;">${FM_STR.badge_general}</span>
-            ${c.page ? `<button type="button" onclick="event.stopPropagation();gotoPage(${c.page})" class="page-badge" title="${escHtml(label)} ${c.page} 페이지로 이동" style="background:#ede9fe;color:#6d28d9;border:none;cursor:pointer;">${escHtml(label)} ${c.page}</button>` : ''}
+            ${c.page ? `<button type="button" onclick="event.stopPropagation();gotoPage(${c.page})" class="page-badge" title="${escHtml(label)} ${c.page}${FM_STR.goto_page_suffix}" style="background:#ede9fe;color:#6d28d9;border:none;cursor:pointer;">${escHtml(label)} ${c.page}</button>` : ''}
             ${vidBadge}
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
@@ -2164,7 +2214,7 @@ function annCommentHtml(ann, label) {
                 <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 8h6M8 5v6" stroke-linecap="round"/></svg>
                 ${FM_STR.badge_screen_ann}
             </span>
-            ${ann.page ? `<button type="button" onclick="event.stopPropagation();gotoPage(${ann.page})" class="page-badge" title="${escHtml(label)} ${ann.page} 페이지로 이동" style="background:#ede9fe;color:#6d28d9;border:none;cursor:pointer;">${escHtml(label)} ${ann.page}</button>` : ''}
+            ${ann.page ? `<button type="button" onclick="event.stopPropagation();gotoPage(${ann.page})" class="page-badge" title="${escHtml(label)} ${ann.page}${FM_STR.goto_page_suffix}" style="background:#ede9fe;color:#6d28d9;border:none;cursor:pointer;">${escHtml(label)} ${ann.page}</button>` : ''}
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
             <div style="flex:1;min-width:0;">
@@ -2214,7 +2264,7 @@ function submitComment() {
         if (_annPreviewType === 'video') {
             vidRenderMarkers();
             _vidPendingTime = null;
-            document.getElementById('comment-input').placeholder = FM_STR.comment_placeholder || '의견을 입력하세요...';
+            document.getElementById('comment-input').placeholder = FM_STR.comment_placeholder;
         }
         const list = document.getElementById('comment-list');
         list.scrollTop = 0;
@@ -3553,11 +3603,11 @@ function showDeleteConfirmPopover(targetBtn, message, onConfirm) {
     pop.innerHTML = `
         <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">
             <svg width="16" height="16" fill="none" stroke="#dc2626" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <div style="font-size:13px;color:#374151;line-height:1.5;">${message || '삭제하시겠습니까?'}</div>
+            <div style="font-size:13px;color:#374151;line-height:1.5;">${message || FM_STR.confirm_delete_short}</div>
         </div>
         <div style="display:flex;gap:6px;justify-content:flex-end;">
-            <button type="button" class="sw-del-cancel" style="padding:5px 12px;background:#f3f4f6;color:#374151;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">취소</button>
-            <button type="button" class="sw-del-confirm" style="padding:5px 14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">삭제</button>
+            <button type="button" class="sw-del-cancel" style="padding:5px 12px;background:#f3f4f6;color:#374151;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">${FM_STR.del_cancel}</button>
+            <button type="button" class="sw-del-confirm" style="padding:5px 14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">${FM_STR.del_confirm}</button>
         </div>`;
 
     document.body.appendChild(pop);
@@ -3617,14 +3667,14 @@ function vidInit(src) {
     // 에러 핸들러 — 미지원 코덱·잘못된 MIME·404 등 모든 케이스
     vid.onerror = () => {
         const err = vid.error;
-        const codeMap = {1:'사용자가 재생을 중단했습니다.', 2:'네트워크 오류로 다운로드가 실패했습니다.', 3:'동영상을 디코딩할 수 없습니다 (지원하지 않는 코덱).', 4:'동영상 소스를 찾을 수 없거나 형식이 지원되지 않습니다.'};
-        const msg = err ? (codeMap[err.code] || '재생 오류') : '재생할 수 없습니다.';
+        const codeMap = {1:FM_STR.vid_err_aborted, 2:FM_STR.vid_err_network, 3:FM_STR.vid_err_decode, 4:FM_STR.vid_err_src};
+        const msg = err ? (codeMap[err.code] || FM_STR.vid_err_generic) : FM_STR.vid_err_cannot_play;
         const wrapInner = document.getElementById('vid-wrap');
         if (wrapInner && !document.getElementById('vid-err-msg')) {
             const e = document.createElement('div');
             e.id = 'vid-err-msg';
             e.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,17,35,.92);color:#f9a8a8;font-size:13px;gap:8px;padding:24px;text-align:center;';
-            e.innerHTML = `<div style="font-size:32px;">🎬</div><div style="font-weight:700;">동영상을 재생할 수 없습니다</div><div style="color:#fca5a5;font-size:12px;">${msg}</div>`;
+            e.innerHTML = `<div style="font-size:32px;">🎬</div><div style="font-weight:700;">${FM_STR.vid_cannot_play_title}</div><div style="color:#fca5a5;font-size:12px;">${msg}</div>`;
             wrapInner.appendChild(e);
         }
     };
@@ -3866,7 +3916,7 @@ function vidPauseAndAddComment() {
 
     const ta = document.getElementById('comment-input');
     if (ta) {
-        ta.placeholder = `[${vidFmtTime(_vidPendingTime)}] 시점에 대한 의견을 입력하세요…`;
+        ta.placeholder = FM_STR.vid_comment_at_time.replace(':time', vidFmtTime(_vidPendingTime));
         ta.focus();
     }
 }

@@ -629,7 +629,7 @@
                             <span style="font-size:15px;font-weight:700;color:#1e1b2e;">{{ $conversation->name }}</span>
                             <button type="button" id="group-tag-btn" onclick="toggleMembersPopover(event)"
                                     class="group-tag" style="border:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;"
-                                    title="구성원 보기">
+                                    title="{{ __('messages.view_members') }}">
                                 {{ __('messages.group_member_count', ['count' => $conversation->participants->count()]) }}
                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                             </button>
@@ -639,14 +639,14 @@
                             @foreach($others as $i => $m)
                                 <button type="button" class="hdr-member-chip"
                                         onclick="mentionMemberInComposer(@js($m->name))"
-                                        title="입력창에 멘션 추가">{{ $m->name }}</button>@if($i < $others->count() - 1)<span style="color:#cbd5e1;">, </span>@endif
+                                        title="{{ __('messages.mention_add') }}">{{ $m->name }}</button>@if($i < $others->count() - 1)<span style="color:#cbd5e1;">, </span>@endif
                             @endforeach
                         </div>
 
                         {{-- 구성원 팝오버 --}}
                         <div id="members-popover" style="display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:50;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.12);min-width:260px;max-width:340px;max-height:360px;overflow:hidden;display:none;flex-direction:column;">
                             <div style="padding:10px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fafafa;">
-                                <span style="font-size:12px;font-weight:700;color:#1f2937;">구성원 {{ $conversation->participants->count() }}명</span>
+                                <span style="font-size:12px;font-weight:700;color:#1f2937;">{{ __('messages.member_count', ['count' => $conversation->participants->count()]) }}</span>
                                 <button type="button" onclick="closeMembersPopover()" style="background:none;border:none;font-size:18px;line-height:1;color:#9ca3af;cursor:pointer;padding:0;">×</button>
                             </div>
                             <ul style="list-style:none;margin:0;padding:6px 0;overflow-y:auto;flex:1;">
@@ -655,7 +655,7 @@
                                     <li>
                                         <button type="button"
                                             @if(!$isMe) onclick="mentionMemberInComposer(@js($m->name))" @endif
-                                            @if($isMe) disabled title="자기 자신은 멘션할 수 없습니다" @else title="입력창에 멘션 추가" @endif
+                                            @if($isMe) disabled title="{{ __('messages.mention_self_disabled') }}" @else title="{{ __('messages.mention_add') }}" @endif
                                             style="width:100%;display:flex;align-items:center;gap:9px;padding:7px 14px;background:none;border:none;cursor:{{ $isMe ? 'default' : 'pointer' }};text-align:left;{{ $isMe ? 'opacity:.6;' : '' }}"
                                             @if(!$isMe) onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" @endif>
                                             <div style="width:28px;height:28px;border-radius:50%;background:{{ $mColor }};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -663,7 +663,7 @@
                                             </div>
                                             <div style="min-width:0;flex:1;">
                                                 <div style="font-size:13px;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                    {{ $m->name }}{{ $isMe ? ' (나)' : '' }}
+                                                    {{ $m->name }}{{ $isMe ? ' ('.__('messages.me').')' : '' }}
                                                 </div>
                                                 <div style="font-size:11px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                                     {{ $m->email }}
@@ -675,11 +675,11 @@
                             </ul>
                         </div>
                     </div>
-                    <button type="button" id="invite-btn" onclick="openInviteModal()" title="채팅방에 초대"
+                    <button type="button" id="invite-btn" onclick="openInviteModal()" title="{{ __('messages.invite_to_room') }}"
                             style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#fff;border:1.5px solid var(--t200);color:var(--t500);font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;flex-shrink:0;transition:all .15s;"
                             onmouseover="this.style.background='var(--t100)';this.style.borderColor='var(--t500)'" onmouseout="this.style.background='#fff';this.style.borderColor='var(--t200)'">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        초대하기
+                        {{ __('messages.invite') }}
                     </button>
                 @else
                     @php $other = $conversation->otherParticipant($me); $color = $colors[($other?->id ?? 0) % count($colors)]; @endphp
@@ -700,18 +700,18 @@
                 <div id="invite-overlay" class="modal-overlay" onclick="closeInviteModal()" style="display:none;"></div>
                 <div id="invite-modal" class="modal-box" style="display:none;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                        <span class="modal-title">채팅방에 초대</span>
+                        <span class="modal-title">{{ __('messages.invite_to_room') }}</span>
                         <button onclick="closeInviteModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;">&times;</button>
                     </div>
                     <form id="invite-form" onsubmit="return submitInvite(event)">
                         @csrf
                         <div style="margin-bottom:10px;">
-                            <input type="text" id="invite-search" class="modal-input" placeholder="이름 또는 이메일 검색" oninput="filterInviteCandidates(this.value)">
+                            <input type="text" id="invite-search" class="modal-input" placeholder="{{ __('messages.search_name_email') }}" oninput="filterInviteCandidates(this.value)">
                         </div>
                         @if($inviteCandidates->isEmpty())
                             <div style="padding:32px 12px;text-align:center;color:#9ca3af;font-size:13px;">
-                                초대할 수 있는 멤버가 없습니다.<br>
-                                <span style="font-size:11px;">(같은 프로젝트 멤버 중 미참여자만 초대 가능)</span>
+                                {{ __('messages.no_invite_candidates') }}<br>
+                                <span style="font-size:11px;">{{ __('messages.no_invite_candidates_hint') }}</span>
                             </div>
                         @else
                             <div id="invite-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--t100);border-radius:9px;padding:6px;">
@@ -730,10 +730,10 @@
                             <div id="invite-selected-count" style="font-size:12px;color:var(--t500);margin-top:6px;font-weight:500;"></div>
                         @endif
                         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
-                            <button type="button" onclick="closeInviteModal()" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:#52525b;cursor:pointer;">취소</button>
+                            <button type="button" onclick="closeInviteModal()" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:#52525b;cursor:pointer;">{{ __('common.cancel') }}</button>
                             <button type="submit" id="invite-submit-btn" @if($inviteCandidates->isEmpty()) disabled style="opacity:.4;cursor:not-allowed;" @endif
                                 style="padding:8px 20px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);">
-                                초대
+                                {{ __('messages.invite') }}
                             </button>
                         </div>
                     </form>
@@ -746,14 +746,13 @@
                     <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
                         <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t500)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            파일 메일 발송
+                            {{ __('messages.file_email_send') }}
                         </h3>
                         <button type="button" onclick="esfClose()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
                     </div>
                     <div style="padding:18px 22px;">
                         <p style="margin:0 0 10px;font-size:13.5px;color:#374151;line-height:1.55;">
-                            이 파일을 채팅방 구성원 <strong id="esf-count">{{ $conversation->participants->where('id', '!=', $me)->count() }}명</strong>(나 제외)에게<br>
-                            이메일로 발송하시겠습니까?
+                            {!! __('messages.file_email_confirm', ['count' => '<strong id="esf-count">'.__('messages.member_count', ['count' => $conversation->participants->where('id', '!=', $me)->count()]).'</strong>']) !!}
                         </p>
                         <div id="esf-filename" style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#6b7280;display:flex;align-items:center;gap:6px;">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
@@ -761,8 +760,8 @@
                         </div>
                     </div>
                     <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
-                        <button type="button" onclick="esfClose()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
-                        <button type="button" id="esf-send-btn" onclick="esfDoSend()" style="padding:7px 18px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">발송</button>
+                        <button type="button" onclick="esfClose()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
+                        <button type="button" id="esf-send-btn" onclick="esfDoSend()" style="padding:7px 18px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">{{ __('messages.send_email') }}</button>
                     </div>
                 </div>
             </div>
@@ -840,7 +839,7 @@
                                     @if($hasTranslation && $isMine)
                                         <div class="msg-translated-badge">🌐{{ $langNames[$msg->translate_lang] ?? $msg->translate_lang }}</div>
                                     @elseif($hasTranslation && !$isMine && $msg->body && $msg->translate_lang !== app()->getLocale())
-                                        <div class="msg-original-note"><span class="msg-original-label">원문</span>{{ Str::limit($msg->body, 120) }}</div>
+                                        <div class="msg-original-note"><span class="msg-original-label">{{ __('messages.original_text') }}</span>{{ Str::limit($msg->body, 120) }}</div>
                                     @endif
                                     @if($msg->file_path)
                                         <div class="file-with-actions">
@@ -852,9 +851,9 @@
                                                     <div><div style="font-size:12.5px;font-weight:600;">{{ $msg->file_name }}</div><div style="font-size:11px;opacity:.7;">{{ $msg->formattedSize() }}</div></div>
                                                 </a>
                                             @endif
-                                            <button type="button" class="file-share-email-btn" onclick="shareFileByEmail({{ $msg->id }}, this)" title="채팅방 구성원에게 이메일로 발송">
+                                            <button type="button" class="file-share-email-btn" onclick="shareFileByEmail({{ $msg->id }}, this)" title="{{ __('messages.share_file_email_title') }}">
                                                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                메일 보내기
+                                                {{ __('messages.send_email') }}
                                             </button>
                                         </div>
                                     @endif
@@ -1192,15 +1191,15 @@ function filterInviteCandidates(q) {
 function updateInviteCount() {
     const checked = document.querySelectorAll('#invite-list input[type=checkbox]:checked').length;
     const el = document.getElementById('invite-selected-count');
-    if (el) el.textContent = checked > 0 ? `${checked}명 선택됨` : '';
+    if (el) el.textContent = checked > 0 ? MSG_STR.nSelected.replace(':count', checked) : '';
 }
 function submitInvite(ev) {
     ev.preventDefault();
     const form = ev.target;
     const ids = Array.from(form.querySelectorAll('input[name="member_ids[]"]:checked')).map(c => c.value);
-    if (!ids.length) { alert('초대할 멤버를 1명 이상 선택하세요.'); return false; }
+    if (!ids.length) { alert(MSG_STR.inviteSelectAtLeast); return false; }
     const btn = document.getElementById('invite-submit-btn');
-    btn.disabled = true; btn.textContent = '초대 중...';
+    btn.disabled = true; btn.textContent = MSG_STR.inviting;
 
     const url = '{{ isset($conversation) ? route("messages.invite", $conversation) : "" }}';
     const fd = new FormData();
@@ -1212,11 +1211,11 @@ function submitInvite(ev) {
     })
     .then(async r => {
         const d = await r.json().catch(() => ({}));
-        if (!r.ok) { alert(d.message || '초대에 실패했습니다.'); btn.disabled = false; btn.textContent = '초대'; return; }
+        if (!r.ok) { alert(d.message || MSG_STR.inviteFail); btn.disabled = false; btn.textContent = MSG_STR.invite; return; }
         // 페이지 리로드해서 멤버 목록 갱신
         location.reload();
     })
-    .catch(() => { alert('네트워크 오류가 발생했습니다.'); btn.disabled = false; btn.textContent = '초대'; });
+    .catch(() => { alert(MSG_STR.networkError); btn.disabled = false; btn.textContent = MSG_STR.invite; });
     return false;
 }
 
@@ -1238,10 +1237,10 @@ function shareFileByEmail(messageId, btn) {
             if (nameEl) fileName = nameEl.textContent.trim();
         }
     }
-    document.getElementById('esf-filename-text').textContent = fileName || '(첨부 파일)';
+    document.getElementById('esf-filename-text').textContent = fileName || MSG_STR.attachedFileFallback;
 
     const sendBtn = document.getElementById('esf-send-btn');
-    sendBtn.disabled = false; sendBtn.textContent = '발송';
+    sendBtn.disabled = false; sendBtn.textContent = MSG_STR.sendEmail;
     document.getElementById('esf-modal').style.display = 'flex';
 }
 function esfClose() {
@@ -1254,7 +1253,7 @@ function esfDoSend() {
     if (!messageId) return;
     const sendBtn = document.getElementById('esf-send-btn');
     const sourceBtn = _esfPendingBtn;
-    sendBtn.disabled = true; sendBtn.textContent = '발송 중...';
+    sendBtn.disabled = true; sendBtn.textContent = MSG_STR.sending;
     if (sourceBtn) sourceBtn.disabled = true;
 
     fetch(`${LB_BASE}/messages/${messageId}/email-file`, {
@@ -1264,11 +1263,11 @@ function esfDoSend() {
     .then(async r => {
         const d = await r.json().catch(() => ({}));
         esfClose();
-        alert(d.message || (r.ok ? '메일을 발송했습니다.' : '메일 발송에 실패했습니다.'));
+        alert(d.message || (r.ok ? MSG_STR.emailSent : MSG_STR.emailSendFail));
     })
     .catch(() => {
         esfClose();
-        alert('네트워크 오류가 발생했습니다.');
+        alert(MSG_STR.networkError);
     })
     .finally(() => { if (sourceBtn) sourceBtn.disabled = false; });
 }
@@ -1284,9 +1283,11 @@ function mentionMemberInComposer(name) {
     closeMembersPopover();
     const ta = document.getElementById('msg-textarea');
     if (!ta || !name) return;
-    const prefixRe = /^[^\n:]+? 님에게:\s*/;
+    // 멘션 프리픽스 패턴: 번역 문자열의 :name 위치를 임의 이름으로 치환한 정규식
+    const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const prefixRe = new RegExp('^' + escapeRe(MSG_STR.mentionPrefix).replace(':name', '[^\\n:]+?'));
     const body = ta.value.replace(prefixRe, '');
-    const prefix = `${name} 님에게: `;
+    const prefix = MSG_STR.mentionPrefix.replace(':name', name);
     ta.value = prefix + body;
     ta.focus();
     const caret = ta.value.length;
@@ -1336,6 +1337,20 @@ const MSG_STR = {
     annTextTitle:         '{{ __("viewer.ann_text_title") }}',
     annTextEdit:          '{{ __("viewer.ann_text_edit") }}',
     zoomFit:              '{{ __("messages.zoom_fit") }}',
+    inviteSelectAtLeast:  @json(__('messages.invite_select_at_least')),
+    inviting:             @json(__('messages.inviting')),
+    inviteFail:           @json(__('messages.invite_fail')),
+    networkError:         @json(__('messages.ai_network_error')),
+    attachedFileFallback: @json(__('messages.attached_file_fallback')),
+    sendEmail:            @json(__('messages.send_email')),
+    sending:              @json(__('messages.sending')),
+    emailSent:            @json(__('messages.email_sent')),
+    emailSendFail:        @json(__('messages.email_send_fail')),
+    invite:               @json(__('messages.invite')),
+    nSelected:            @json(__('messages.n_selected', ['count' => ':count'])),
+    mentionPrefix:        @json(__('messages.mention_prefix', ['name' => ':name'])),
+    translateFail:        @json(__('messages.translate_fail')),
+    translateReqError:    @json(__('messages.translate_req_error')),
 };
 function fmtDate(d) {
     const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
@@ -1445,11 +1460,11 @@ async function submitForm() {
                 translateOk    = true;
             } else {
                 console.error('[번역 실패]', tData.error || 'unknown error');
-                showTranslateError(tData.error || '번역에 실패했습니다.');
+                showTranslateError(tData.error || MSG_STR.translateFail);
             }
         } catch(e) {
             console.error('[번역 요청 오류]', e);
-            showTranslateError('번역 요청 중 오류가 발생했습니다.');
+            showTranslateError(MSG_STR.translateReqError);
         } finally {
             if (sendBtn) { sendBtn.disabled = false; sendIcon.style.display = ''; sendSpin.style.display = 'none'; }
         }
@@ -1874,7 +1889,7 @@ async function renderMessage(data) {
             translationHtml = `<div class="msg-translated-badge">🌐${LANG_NAMES[data.translate_lang] || data.translate_lang}</div>`;
         } else if (data.body && data.translate_lang !== MSG_LOCALE) {
             const origEscaped = convertEmoticons(data.body).replace(/</g, '&lt;');
-            translationHtml = `<div class="msg-original-note"><span class="msg-original-label">원문</span>${origEscaped}</div>`;
+            translationHtml = `<div class="msg-original-note"><span class="msg-original-label">{{ __('messages.original_text') }}</span>${origEscaped}</div>`;
         }
     }
 

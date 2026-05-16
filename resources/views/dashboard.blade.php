@@ -4,13 +4,13 @@
 
 @section('header-actions')
 <div style="display:flex;align-items:center;gap:8px;">
-    <span id="gs-saved" style="font-size:11px;color:#22c55e;opacity:0;transition:opacity .4s;white-space:nowrap;">✓ 저장됨</span>
+    <span id="gs-saved" style="font-size:11px;color:#22c55e;opacity:0;transition:opacity .4s;white-space:nowrap;">{{ __('dashboard.layout_saved') }}</span>
     <button onclick="resetDashboardLayout()"
             style="font-size:12px;padding:5px 12px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;"
             onmouseover="this.style.borderColor='#c4b5fd';this.style.color='#7c3aed'"
             onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-        레이아웃 초기화
+        {{ __('dashboard.reset_layout') }}
     </button>
 </div>
 @endsection
@@ -843,7 +843,7 @@ grid.on('dragstop resizestop', () => {
 
 // 레이아웃 초기화
 async function resetDashboardLayout() {
-    if (!await __confirm('레이아웃을 기본값으로 초기화할까요?')) return;
+    if (!await __confirm(@json(__('dashboard.confirm_reset_layout')))) return;
     localStorage.removeItem(LAYOUT_KEY);
     grid.load(DEFAULT_LAYOUT);
     flashSaved();

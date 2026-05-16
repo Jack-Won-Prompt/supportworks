@@ -100,4 +100,9 @@ return [
     'overdue'                   => 'Overdue',
     'due_soon'                  => 'Due soon',
     'cal_month_format'          => 'F Y',
+
+    // ── Layout
+    'layout_saved'              => '✓ Saved',
+    'reset_layout'              => 'Reset layout',
+    'confirm_reset_layout'      => 'Reset the layout to default?',
 ];

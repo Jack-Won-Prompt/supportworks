@@ -19,8 +19,10 @@ use App\Http\Controllers\Api\Mobile\CommunityController as MobileCommunityContro
 use App\Http\Controllers\Api\Mobile\DashboardController as MobileDashboardController;
 use App\Http\Controllers\Api\Mobile\InquiryController as MobileInquiryController;
 use App\Http\Controllers\Api\Mobile\IssueController as MobileIssueController;
+use App\Http\Controllers\Api\Mobile\LeaveController as MobileLeaveController;
 use App\Http\Controllers\Api\Mobile\MeetingMinuteController as MobileMeetingMinuteController;
 use App\Http\Controllers\Api\Mobile\MeetingRecordingController as MobileMeetingRecordingController;
+use App\Http\Controllers\Api\Mobile\MyWorkController as MobileMyWorkController;
 use App\Http\Controllers\Api\Mobile\MemoController as MobileMemoController;
 use App\Http\Controllers\Api\Mobile\MessageController as MobileMessageController;
 use App\Http\Controllers\Api\Mobile\ProjectController as MobileProjectController;
@@ -189,6 +191,15 @@ Route::prefix('mobile')->group(function () {
 
         // 대시보드
         Route::get('dashboard', [MobileDashboardController::class, 'index']);
+
+        // 내 업무
+        Route::get('my-work', [MobileMyWorkController::class, 'index']);
+
+        // 휴가
+        Route::get   ('leaves',          [MobileLeaveController::class, 'index']);
+        Route::get   ('leaves/projects', [MobileLeaveController::class, 'projects']);
+        Route::post  ('leaves',          [MobileLeaveController::class, 'store']);
+        Route::delete('leaves/{leave}',  [MobileLeaveController::class, 'destroy']);
 
         // 프로젝트
         Route::get   ('projects',          [MobileProjectController::class, 'index']);

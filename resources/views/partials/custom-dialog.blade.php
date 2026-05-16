@@ -14,8 +14,8 @@
                    onfocus="this.style.borderColor='#a78bfa'" onblur="this.style.borderColor='#e5e7eb'">
         </div>
         <div style="padding:18px 22px;display:flex;justify-content:flex-end;gap:8px;">
-            <button id="__dlg-no"  style="display:none;padding:8px 20px;background:#f3f4f6;color:#374151;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .14s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">취소</button>
-            <button id="__dlg-yes" style="padding:8px 22px;background:#7c3aed;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:background .14s;" onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">확인</button>
+            <button id="__dlg-no"  style="display:none;padding:8px 20px;background:#f3f4f6;color:#374151;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .14s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">{{ __('common.cancel') }}</button>
+            <button id="__dlg-yes" style="padding:8px 22px;background:#7c3aed;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:background .14s;" onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">{{ __('common.confirm') }}</button>
         </div>
     </div>
 </div>
@@ -42,7 +42,13 @@
         error:   {bg:'#fef2f2',svg:'<svg width="20" height="20" fill="none" stroke="#dc2626" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-width="2" d="M15 9l-6 6M9 9l6 6"/></svg>'},
         success: {bg:'#f0fdf4',svg:'<svg width="20" height="20" fill="none" stroke="#16a34a" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>'},
     };
-    var TITLES = {alert:'알림', confirm:'확인', prompt:'입력', error:'오류', success:'완료'};
+    var TITLES = {
+        alert:   @json(__('common.dialog_alert')),
+        confirm: @json(__('common.dialog_confirm')),
+        prompt:  @json(__('common.dialog_prompt')),
+        error:   @json(__('common.dialog_error')),
+        success: @json(__('common.dialog_success')),
+    };
 
     function open(type, msg, ph) {
         return new Promise(function(resolve) {
@@ -50,7 +56,7 @@
             var ic = ICONS[type] || ICONS.alert;
             icon.style.background = ic.bg;
             icon.innerHTML = ic.svg;
-            ttl.textContent  = TITLES[type] || '알림';
+            ttl.textContent  = TITLES[type] || @json(__('common.dialog_alert'));
             body.textContent = msg || '';
             iw.style.display  = type === 'prompt' ? 'block' : 'none';
             no.style.display  = type === 'alert'  ? 'none'  : 'inline-block';

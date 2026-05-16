@@ -98,4 +98,102 @@ return [
     'pdfjs_not_loaded'       => 'PDF.js가 로드되지 않았습니다.',
     'jspdf_not_loaded'       => 'jsPDF가 로드되지 않았습니다.',
     'file_type_fallback'     => '파일',
+
+    // ── 상단바 버튼/타이틀 (file-preview-modal.blade.php)
+    'compare_versions'          => '버전 비교',
+    'compare_versions_title'    => '두 버전을 나란히 비교',
+    'upload_revision'           => '수정본 업로드',
+    'upload_revision_title'     => '의견을 반영한 수정본 업로드 (새 버전)',
+    'fullwindow'                => '전체창',
+    'fullwindow_title'          => '전체창 보기 (F11)',
+    'download_with_comments'    => '의견 포함 다운로드',
+    'download_with_comments_title' => '현재 버전의 의견·답글을 원본 형식(또는 PDF 보고서)으로 다운로드',
+    'url_download_comments_title'  => '현재 의견·답글을 PDF 보고서로 다운로드',
+
+    // ── 동영상 컨트롤
+    'vid_back_10'               => '10초 뒤로',
+    'vid_forward_10'            => '10초 앞으로',
+    'vid_play_pause'            => '재생/일시정지',
+    'vid_add_comment'           => '이 시점 의견',
+    'vid_add_comment_title'     => '현재 시점에 의견 추가',
+    'vid_comment_at_time'       => '[:time] 시점에 대한 의견을 입력하세요…',
+    'vid_seek_to'               => '동영상의 :time 시점으로 이동',
+    'vid_err_aborted'           => '사용자가 재생을 중단했습니다.',
+    'vid_err_network'           => '네트워크 오류로 다운로드가 실패했습니다.',
+    'vid_err_decode'            => '동영상을 디코딩할 수 없습니다 (지원하지 않는 코덱).',
+    'vid_err_src'               => '동영상 소스를 찾을 수 없거나 형식이 지원되지 않습니다.',
+    'vid_err_generic'           => '재생 오류',
+    'vid_err_cannot_play'       => '재생할 수 없습니다.',
+    'vid_cannot_play_title'     => '동영상을 재생할 수 없습니다',
+
+    // ── PDF 네비게이션
+    'pdf_first_page'            => '처음 페이지',
+    'pdf_page_input_title'      => '페이지 번호 입력 후 Enter',
+    'pdf_goto'                  => '이동',
+    'pdf_goto_input_title'      => '입력한 페이지로 이동',
+    'goto_page_suffix'          => ' 페이지로 이동',
+
+    // ── 의견 패널 핸들
+    'open_comment_panel'        => '의견 영역 열기',
+    'show_comments'             => '의견 보기',
+    'collapse_comment_panel'    => '의견 영역 접기',
+    'resize_comment_panel'      => '드래그하여 의견 영역 폭 조절',
+
+    // ── 버전 비교 모달
+    'compare_frame_left'        => '버전 비교 - 좌측',
+    'compare_frame_right'       => '버전 비교 - 우측',
+    'sync_same_page'            => '페이지 동일함',
+    'sync_same_video'           => '재생 위치 동일함',
+    'sync_same_format_only'     => '같은 형식(PDF끼리·동영상끼리)일 때만 동기화할 수 있습니다.',
+    'cmp_pick_versions'         => '비교할 버전 선택',
+    'cmp_pick_hint'             => '(최대 2개)',
+    'cmp_select_prompt'         => '버전을 선택하세요',
+    'cmp_view_one'              => 'v:version 보기',
+    'cmp_compare_two'           => 'v:a ↔ v:b 비교',
+    'cmp_current'               => '현재',
+    'cmp_current_version'       => '현재 버전',
+
+    // ── 의견 → 논의사항 변환
+    'register_as_discussion'    => '논의사항으로 등록',
+    'confirm_register_discussion' => '이 의견을 프로젝트 논의사항으로 등록하시겠습니까?',
+    'discussion'                => '논의사항',
+    'conclusion'                => '결론',
+    'open_in_discussions'       => '논의사항 페이지에서 열기',
+    'view_discussion'           => '등록된 논의사항 보기',
+    'register_discussion'       => '이 의견을 프로젝트 논의사항으로 등록',
+    'register_doing'            => '등록 중...',
+    'already_discussion'        => '이미 논의사항으로 등록된 의견입니다.',
+    'discussion_reg_failed'     => '논의사항 등록에 실패했습니다.',
+    'discussion_load_failed'    => '논의사항을 불러오지 못했습니다.',
+    'meta_author'               => '작성자',
+    'meta_discussion_date'      => '논의일',
+    'meta_registered'           => '등록',
+    'no_content'                => '내용이 없습니다.',
+    'file_info_missing'         => '파일 정보를 확인할 수 없습니다.',
+
+    // ── 수정본 업로드 다이얼로그
+    'upload_revision_heading'   => '수정본 업로드 (새 버전)',
+    'upload_revision_desc'      => '의견을 반영한 수정본을 업로드합니다.',
+    'upload_revision_note'      => '현재 등록된 의견들은 모두 :done로 처리됩니다.',
+    'applied_done'              => '반영 완료',
+    'new_file_label'            => '새 파일 *',
+    'choose_file'               => '파일 선택',
+    'drop_file_here'            => '또는 이 영역으로 끌어다 놓기',
+    'file_selected'             => '파일 선택됨',
+    'change_note_label'         => '변경 노트 (선택)',
+    'change_note_placeholder'   => '이번 버전에서 반영한 주요 변경사항을 적어주세요.',
+    'select_file_alert'         => '파일을 선택해주세요.',
+    'upload_confirm'            => '수정본을 업로드하면 기존 의견은 모두 "반영 완료"로 처리되고, 새 버전으로 미리보기가 갱신됩니다. 계속하시겠습니까?',
+    'uploading'                 => '업로드 중...',
+    'upload_failed'             => '업로드 실패',
+    'upload_done'               => '업로드되었습니다.',
+
+    // ── 버전 이력 다이얼로그
+    'version_history'           => '버전 이력',
+    'loading_ellipsis'          => '불러오는 중…',
+    'no_version_history'        => '버전 이력이 없습니다.',
+    'load_failed_short'         => '불러오기 실패',
+
+    // ── 삭제 확인 팝오버
+    'confirm_delete_short'      => '삭제하시겠습니까?',
 ];

@@ -3,16 +3,16 @@ $_pnUser  = auth()->user();
 $_pnItems = array_values(array_filter([
     ['key'=>'overview',       'url'=>route('projects.show', $project),                 'label'=>__('projects.nav_overview'),  'feature'=>null],
     ['key'=>'planning',       'url'=>route('projects.planning.index', $project),       'label'=>__('projects.planning'),      'feature'=>'planning'],
-    ['key'=>'requirements',   'url'=>route('projects.requirements.index', $project),   'label'=>'요구사항',                   'feature'=>'requirements'],
-    ['key'=>'discussions',    'url'=>route('projects.discussions.index',  $project),   'label'=>'논의사항',                   'feature'=>null],
-    ['key'=>'deliverables',   'url'=>route('ai-agent.projects.deliverables.index', $project), 'label'=>'산출물',                'feature'=>null],
+    ['key'=>'requirements',   'url'=>route('projects.requirements.index', $project),   'label'=>__('projects.nav_requirements'),   'feature'=>'requirements'],
+    ['key'=>'discussions',    'url'=>route('projects.discussions.index',  $project),   'label'=>__('projects.nav_discussions'),    'feature'=>null],
+    ['key'=>'deliverables',   'url'=>route('ai-agent.projects.deliverables.index', $project), 'label'=>__('projects.nav_deliverables'),'feature'=>null],
     ['key'=>'schedules',      'url'=>route('projects.schedules.index', $project),      'label'=>__('projects.schedule'),      'feature'=>'schedules'],
     ['key'=>'gantt',          'url'=>route('projects.gantt', $project),                'label'=>__('projects.gantt'),         'feature'=>'gantt'],
     ['key'=>'qa',             'url'=>route('projects.questions.index', $project),      'label'=>__('projects.qa'),            'feature'=>'qa'],
-    ['key'=>'issues',         'url'=>route('projects.issues.index', $project),         'label'=>'이슈',                       'feature'=>'issues'],
+    ['key'=>'issues',         'url'=>route('projects.issues.index', $project),         'label'=>__('projects.nav_issues'),         'feature'=>'issues'],
     ['key'=>'files',          'url'=>route('projects.files.index', $project),          'label'=>__('projects.files'),         'feature'=>'files'],
     ['key'=>'members',        'url'=>route('projects.members.index', $project),        'label'=>__('projects.members_btn'),   'feature'=>null,  'popup'=>true],
-    ['key'=>'weekly-reports', 'url'=>route('projects.weekly-reports.index', $project), 'label'=>'주간 보고',                  'feature'=>'weekly_reports'],
+    ['key'=>'weekly-reports', 'url'=>route('projects.weekly-reports.index', $project), 'label'=>__('projects.nav_weekly_reports'), 'feature'=>'weekly_reports'],
     ['key'=>'leaves',         'url'=>route('projects.leaves.index', $project),         'label'=>__('projects.leave_days'),    'feature'=>'leaves'],
     ['key'=>'maintenances',   'url'=>route('projects.maintenances.index', $project),   'label'=>__('projects.sr_receive'),    'feature'=>'sr'],
 ], fn($item) => $item['feature'] === null || $_pnUser->hasFeature($item['feature'])));
@@ -151,8 +151,8 @@ $_pnItems = array_values(array_filter([
 <div id="pnm-overlay" class="pnm-overlay" onclick="pnmClose()"></div>
 <div id="pnm-modal"   class="pnm-modal">
     <div class="pnm-head">
-        <h3>멤버 관리</h3>
-        <button class="pnm-head-close" onclick="pnmClose()" title="닫기">&times;</button>
+        <h3>{{ __('projects.member_management') }}</h3>
+        <button class="pnm-head-close" onclick="pnmClose()" title="{{ __('common.close') }}">&times;</button>
     </div>
     <div id="pnm-content" class="pnm-body"></div>
 </div>
@@ -173,14 +173,14 @@ window.pnmOpen = async function() {
     document.getElementById('pnm-overlay').style.display = 'block';
     document.getElementById('pnm-modal').classList.add('is-open');
     document.getElementById('pnm-content').innerHTML =
-        '<p class="pnm-empty">불러오는 중...</p>';
+        '<p class="pnm-empty">{{ __('projects.loading_members') }}</p>';
 
     fetch(PNM_JSON_URL, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': PNM_CSRF() } })
         .then(r => r.json())
         .then(d => pnmRender(d))
         .catch(() => {
             document.getElementById('pnm-content').innerHTML =
-                '<p class="pnm-empty" style="color:#ef4444;">불러오기 실패</p>';
+                '<p class="pnm-empty" style="color:#ef4444;">{{ __('projects.loading_failed') }}</p>';
         });
 };
 
@@ -199,26 +199,26 @@ async function pnmRender(d) {
         ).join('');
         html += `
         <div class="pnm-add-section">
-            <p class="pnm-section-label">멤버 추가</p>
+            <p class="pnm-section-label">{{ __('projects.member_add_section') }}</p>
             <div class="pnm-add-row">
                 <select id="pnm-user-sel" class="pnm-select pnm-select-user">
-                    <option value="">사용자 선택...</option>${opts}
+                    <option value="">{{ __('projects.select_user_placeholder') }}</option>${opts}
                 </select>
                 <select id="pnm-role-sel" class="pnm-select pnm-select-role">
-                    <option value="member">멤버</option>
-                    <option value="manager">매니저</option>
-                    <option value="viewer">뷰어</option>
+                    <option value="member">{{ __('projects.role_member') }}</option>
+                    <option value="manager">{{ __('projects.role_manager') }}</option>
+                    <option value="viewer">{{ __('projects.role_viewer_label') }}</option>
                 </select>
-                <button id="pnm-add-btn" class="pnm-btn-add" onclick="pnmAdd()">추가</button>
+                <button id="pnm-add-btn" class="pnm-btn-add" onclick="pnmAdd()">{{ __('projects.add_btn') }}</button>
             </div>
             <p id="pnm-add-err" class="pnm-err"></p>
         </div>`;
     }
 
-    html += `<p class="pnm-section-label" id="pnm-mem-title">현재 멤버 (${members.length}명)</p>`;
+    html += `<p class="pnm-section-label" id="pnm-mem-title">{{ __('projects.current_members', ['count' => '${members.length}']) }}</p>`;
     html += `<div id="pnm-list">`;
     if (members.length === 0) {
-        html += `<p class="pnm-empty">멤버가 없습니다.</p>`;
+        html += `<p class="pnm-empty">{{ __('projects.member_none') }}</p>`;
     } else {
         members.forEach(m => { html += pnmRow(m); });
     }
@@ -230,9 +230,9 @@ async function pnmRender(d) {
 function pnmRow(m) {
     const initial = esc(m.name.charAt(0));
     const roleMeta = {
-        manager: { bg:'#eef2ff', color:'#4f46e5', label:'매니저' },
-        member:  { bg:'#f3f4f6', color:'#6b7280', label:'멤버'   },
-        viewer:  { bg:'#d1fae5', color:'#059669', label:'뷰어'   },
+        manager: { bg:'#eef2ff', color:'#4f46e5', label:@json(__('projects.role_manager')) },
+        member:  { bg:'#f3f4f6', color:'#6b7280', label:@json(__('projects.role_member')) },
+        viewer:  { bg:'#d1fae5', color:'#059669', label:@json(__('projects.role_viewer_label')) },
     };
     const rm = roleMeta[m.role] ?? roleMeta.member;
 
@@ -241,12 +241,12 @@ function pnmRow(m) {
         const disAttr = m.is_self ? 'disabled' : '';
         right = `
         <select class="pnm-role-sel" ${disAttr} onchange="pnmChangeRole(${m.id}, this.value)">
-            <option value="manager" ${m.role==='manager'?'selected':''}>매니저</option>
-            <option value="member"  ${m.role==='member' ?'selected':''}>멤버</option>
-            <option value="viewer"  ${m.role==='viewer' ?'selected':''}>뷰어</option>
+            <option value="manager" ${m.role==='manager'?'selected':''}>{{ __('projects.role_manager') }}</option>
+            <option value="member"  ${m.role==='member' ?'selected':''}>{{ __('projects.role_member') }}</option>
+            <option value="viewer"  ${m.role==='viewer' ?'selected':''}>{{ __('projects.role_viewer_label') }}</option>
         </select>
         ${!m.is_self ? `
-        <button class="pnm-btn-del" onclick="pnmRemove(${m.id}, '${esc(m.name)}')" title="멤버 제거">
+        <button class="pnm-btn-del" onclick="pnmRemove(${m.id}, '${esc(m.name)}')" title="{{ __('projects.member_remove_title') }}">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -275,11 +275,11 @@ window.pnmAdd = async function() {
     const btn   = document.getElementById('pnm-add-btn');
 
     if (!sel.value) {
-        errEl.textContent = '사용자를 선택하세요.';
+        errEl.textContent = @json(__('projects.select_user_required'));
         errEl.style.display = 'block'; return;
     }
     errEl.style.display = 'none';
-    btn.disabled = true; btn.textContent = '추가 중...';
+    btn.disabled = true; btn.textContent = @json(__('projects.adding'));
 
     try {
         const res = await fetch(PNM_STORE_URL, {
@@ -290,14 +290,14 @@ window.pnmAdd = async function() {
         const d = await res.json();
         if (d.ok) { pnmOpen(); }
         else {
-            errEl.textContent = d.message || '추가 실패';
+            errEl.textContent = d.message || @json(__('projects.add_failed'));
             errEl.style.display = 'block';
-            btn.disabled = false; btn.textContent = '추가';
+            btn.disabled = false; btn.textContent = @json(__('projects.add_btn'));
         }
     } catch {
-        errEl.textContent = '오류가 발생했습니다.';
+        errEl.textContent = @json(__('common.error'));
         errEl.style.display = 'block';
-        btn.disabled = false; btn.textContent = '추가';
+        btn.disabled = false; btn.textContent = @json(__('projects.add_btn'));
     }
 };
 
@@ -308,11 +308,11 @@ window.pnmChangeRole = async function(memberId, role) {
         body: JSON.stringify({ role }),
     });
     const d = await res.json();
-    if (!d.ok) { alert(d.message || '역할 변경 실패'); pnmOpen(); }
+    if (!d.ok) { alert(d.message || @json(__('projects.role_change_failed'))); pnmOpen(); }
 };
 
 window.pnmRemove = async function(memberId, name) {
-    if (!await __confirm(`"${name}" 멤버를 프로젝트에서 제거하시겠습니까?`)) return;
+    if (!await __confirm(@json(__('projects.member_remove_confirm_name')).replace(':name', name))) return;
     const res = await fetch(`${PNM_BASE_URL}/${memberId}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': PNM_CSRF(), 'Accept': 'application/json' },
@@ -322,9 +322,9 @@ window.pnmRemove = async function(memberId, name) {
         document.getElementById(`pnm-row-${memberId}`)?.remove();
         const count = document.getElementById('pnm-list')?.querySelectorAll('.pnm-row').length ?? 0;
         const t = document.getElementById('pnm-mem-title');
-        if (t) t.textContent = `현재 멤버 (${count}명)`;
+        if (t) t.textContent = @json(__('projects.current_members')).replace(':count', count);
     } else {
-        alert(d.message || '제거 실패');
+        alert(d.message || @json(__('projects.remove_failed')));
     }
 };
 

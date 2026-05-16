@@ -168,12 +168,40 @@ class MeetingMinuteController extends Controller
             'attendees.user',
             'memos.user', 'memos.actionItems.owner',
             'actionItems.owner',
+            'recordings.user',
         ]);
 
         $user = auth()->user();
         $teammates = $this->projectTeammates($user);
 
         return view('meeting-minutes.show', compact('meetingMinute', 'teammates'));
+    }
+
+    /** 회의 녹음 오디오 스트리밍 (인증된 사용자) */
+    public function recordingAudio(MeetingMinute $meetingMinute, \App\Models\MeetingRecording $recording)
+    {
+        $this->authorizeMinute($meetingMinute);
+        abort_if($recording->meeting_minute_id !== $meetingMinute->id, 404);
+        abort_unless(\Illuminate\Support\Facades\Storage::exists($recording->file_path), 404);
+
+        return \Illuminate\Support\Facades\Storage::response(
+            $recording->file_path,
+            $recording->original_name ?? basename($recording->file_path),
+            ['Content-Type' => $recording->mime_type ?? 'audio/mp4']
+        );
+    }
+
+    /** 회의 녹음 파일 다운로드 */
+    public function recordingDownload(MeetingMinute $meetingMinute, \App\Models\MeetingRecording $recording)
+    {
+        $this->authorizeMinute($meetingMinute);
+        abort_if($recording->meeting_minute_id !== $meetingMinute->id, 404);
+        abort_unless(\Illuminate\Support\Facades\Storage::exists($recording->file_path), 404);
+
+        return \Illuminate\Support\Facades\Storage::download(
+            $recording->file_path,
+            $recording->original_name ?? basename($recording->file_path)
+        );
     }
 
     public function showPopup(MeetingMinute $meetingMinute): View

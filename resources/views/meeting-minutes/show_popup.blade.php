@@ -366,7 +366,7 @@ async function deleteMinute() {
             window.top.location.href = '{{ route('meeting-minutes.index') }}';
         }
     } catch (e) {
-        alert('삭제 중 오류가 발생했습니다.');
+        alert(@json(__('maintenance.js_delete_error')));
     }
 }
 </script>

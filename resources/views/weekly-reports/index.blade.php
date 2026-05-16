@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '주간 업무 보고 - ' . $project->name)
+@section('title', __('weekly.page_title') . ' - ' . $project->name)
 
 @section('header-actions')@endsection
 
@@ -10,16 +10,16 @@
     style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--t500);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s;"
     onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-    새 보고서 작성
+    {{ __('weekly.new_report') }}
 </button>
 @endsection
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">주간 업무 보고</span>
+<span style="color:#374151;font-weight:500;">{{ __('weekly.weekly_report') }}</span>
 @endsection
 
 @section('content')
@@ -43,9 +43,9 @@
     <div id="manager-toolbar" style="background:#fff;border:1px solid #e9e7fb;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#6b7280;cursor:pointer;user-select:none;">
             <input type="checkbox" id="select-all-reports" style="width:15px;height:15px;accent-color:#6d28d9;cursor:pointer;">
-            전체 선택
+            {{ __('common.select_all') }}
         </label>
-        <span id="selected-count" style="font-size:12px;color:#9ca3af;margin-left:2px;">0개 선택됨</span>
+        <span id="selected-count" style="font-size:12px;color:#9ca3af;margin-left:2px;">{{ __('weekly.selected_count', ['count' => 0]) }}</span>
 
         <div style="flex:1;"></div>
 
@@ -54,14 +54,14 @@
             style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:12.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-            주차 보고 분석
+            {{ __('weekly.analysis_week') }}
         </button>
 
         {{-- 팀원 주간 보고 분석 (선택 팀원) --}}
         <button type="button" id="member-analysis-btn" onclick="openMemberAnalysisPicker()" disabled
             style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:12.5px;font-weight:600;color:#6b7280;background:#fff;cursor:not-allowed;opacity:.5;transition:all .15s;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-            팀원 주간 보고 분석
+            {{ __('weekly.analysis_member') }}
         </button>
     </div>
     @endif
@@ -72,12 +72,12 @@
         <div style="width:52px;height:52px;background:#f5f3ff;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
             <svg width="24" height="24" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         </div>
-        <p style="font-size:14px;font-weight:600;color:#374151;margin-bottom:6px;">아직 작성된 보고서가 없습니다.</p>
-        <p style="font-size:12.5px;color:#9ca3af;margin-bottom:18px;">첫 번째 주간 보고서를 작성해 보세요.</p>
+        <p style="font-size:14px;font-weight:600;color:#374151;margin-bottom:6px;">{{ __('weekly.empty_title') }}</p>
+        <p style="font-size:12.5px;color:#9ca3af;margin-bottom:18px;">{{ __('weekly.empty_hint') }}</p>
         <button type="button"
             onclick="openWeeklyReportPopup('{{ route('projects.weekly-reports.create', $project) }}')"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#4f46e5;color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;">
-            보고서 작성하기
+            {{ __('weekly.write_report') }}
         </button>
     </div>
     @else
@@ -105,7 +105,7 @@
         <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;">
             <span style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:7px;padding:3px 11px;font-size:12.5px;font-weight:700;">{{ $weekLabel }}</span>
             <span style="font-size:12px;color:#7c3aed;font-weight:500;">{{ $weekStartFmt }} ~ {{ $weekEnd }}</span>
-            <span style="margin-left:auto;font-size:11.5px;color:#9ca3af;">{{ $weekReports->count() }}명 작성</span>
+            <span style="margin-left:auto;font-size:11.5px;color:#9ca3af;">{{ __('weekly.week_authored_count', ['count' => $weekReports->count()]) }}</span>
         </div>
 
         {{-- 보고서 행 --}}
@@ -131,10 +131,10 @@
             {{-- 보고자 정보 --}}
             <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-size:11px;color:#9ca3af;font-weight:500;">보고자</span>
+                    <span style="font-size:11px;color:#9ca3af;font-weight:500;">{{ __('weekly.reporter') }}</span>
                     <span style="font-size:13.5px;font-weight:600;color:#1f2937;">{{ $report->author_name }}</span>
                     @if($isOwner)
-                    <span style="background:#ede9fe;color:#7c3aed;border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;">내 보고서</span>
+                    <span style="background:#ede9fe;color:#7c3aed;border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;">{{ __('weekly.my_report') }}</span>
                     @endif
                     @if($report->team_name)
                     <span style="background:#f3f4f6;color:#6b7280;border-radius:4px;font-size:11px;padding:1px 7px;">{{ $report->team_name }}</span>
@@ -142,16 +142,16 @@
                     @if($report->manager_name)
                     <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#6b7280;">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        수신 {{ $report->manager_name }}
+                        {{ __('weekly.manager_received', ['name' => $report->manager_name]) }}
                     </span>
                     @endif
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;margin-top:3px;">
                     <span style="font-size:11.5px;color:#9ca3af;">
-                        작성일 {{ $report->report_date->format('Y.m.d') }}
+                        {{ __('weekly.created_on', ['date' => $report->report_date->format('Y.m.d')]) }}
                     </span>
                     <span style="font-size:11.5px;color:#9ca3af;">
-                        최종 수정 {{ $report->updated_at->format('Y.m.d H:i') }}
+                        {{ __('weekly.last_modified', ['date' => $report->updated_at->format('Y.m.d H:i')]) }}
                     </span>
                 </div>
             </div>
@@ -161,12 +161,12 @@
                 @if($report->status === 'submitted')
                 <span style="display:inline-flex;align-items:center;gap:4px;background:#d1fae5;color:#065f46;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    제출 완료
+                    {{ __('weekly.status_submitted') }}
                 </span>
                 @else
                 <span style="display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#92400e;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    임시 저장
+                    {{ __('weekly.status_draft') }}
                 </span>
                 @endif
             </div>
@@ -181,7 +181,7 @@
                     onmouseover="this.style.borderColor='#7c3aed';this.style.color='#7c3aed';this.style.background='#f5f3ff'"
                     onmouseout="this.style.borderColor='#d1d5db';this.style.color='#374151';this.style.background='#fff'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    수정
+                    {{ __('common.edit') }}
                 </button>
                 @endif
                 {{-- 웍스 워드 다운로드 (소유자/어드민/매니저) --}}
@@ -196,19 +196,19 @@
                 {{-- 삭제 --}}
                 @if($isOwner || $user->isAdmin())
                 <form method="POST" action="{{ route('projects.weekly-reports.destroy', [$project, $report]) }}"
-                    onsubmit="return confirm('보고서를 삭제하시겠습니까?')">
+                    onsubmit="return confirm(@json(__('weekly.confirm_delete')))">
                     @csrf
                     @method('DELETE')
                     <button type="submit"
                         style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid #fca5a5;border-radius:7px;font-size:12px;font-weight:600;color:#dc2626;background:#fff;cursor:pointer;transition:all .12s;"
                         onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2H5z"/></svg>
-                        삭제
+                        {{ __('common.delete') }}
                     </button>
                 </form>
                 @endif
                 @if(!$isOwner && !$user->isAdmin() && !$isManager)
-                <span style="font-size:11.5px;color:#d1d5db;padding:0 4px;">열람 전용</span>
+                <span style="font-size:11.5px;color:#d1d5db;padding:0 4px;">{{ __('weekly.view_only') }}</span>
                 @endif
             </div>
         </div>
@@ -309,18 +309,18 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e5e7eb;flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:8px;">
                 <svg width="18" height="18" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                <span id="ai-modal-title" style="font-size:14px;font-weight:700;color:#1f2937;">웍스 분석</span>
+                <span id="ai-modal-title" style="font-size:14px;font-weight:700;color:#1f2937;">{{ __('weekly.works_analysis') }}</span>
             </div>
             <button onclick="closeAiModal()"
                 style="display:flex;align-items:center;gap:4px;padding:5px 11px;font-size:13px;color:#6b7280;border:1px solid #e4e4e7;border-radius:7px;background:#fff;cursor:pointer;">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                닫기
+                {{ __('common.close') }}
             </button>
         </div>
         <div id="ai-modal-body">
             <div id="ai-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;">
                 <div style="width:36px;height:36px;border:3px solid #e9e7fb;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;"></div>
-                <p style="font-size:13px;color:#6b7280;">웍스가 보고서를 분석하고 있습니다...</p>
+                <p style="font-size:13px;color:#6b7280;">{{ __('weekly.analyzing') }}</p>
             </div>
             <div id="ai-result" style="display:none;"></div>
             <div id="ai-error" style="display:none;padding:20px;background:#fef2f2;border-radius:8px;color:#dc2626;font-size:13px;"></div>
@@ -332,14 +332,14 @@
 <div id="member-picker-backdrop" onclick="if(event.target===this)closeMemberPicker()">
     <div id="member-picker-panel">
         <div style="padding:14px 16px;border-bottom:1px solid #e5e7eb;font-size:13.5px;font-weight:700;color:#1f2937;">
-            담당자 선택
+            {{ __('weekly.member_picker_title') }}
         </div>
         <div id="member-picker-list" style="flex:1;overflow-y:auto;padding:8px;">
         </div>
         <div style="padding:10px 16px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;">
             <button onclick="closeMemberPicker()"
                 style="padding:6px 14px;font-size:12.5px;color:#6b7280;border:1px solid #d1d5db;border-radius:7px;background:#fff;cursor:pointer;">
-                취소
+                {{ __('common.cancel') }}
             </button>
         </div>
     </div>
@@ -393,7 +393,7 @@ function getChecked() {
 async function updateToolbar() {
     const checked = getChecked();
     const count   = checked.length;
-    countLabel.textContent = count + '개 선택됨';
+    countLabel.textContent = @json(__('weekly.selected_count', ['count' => ':count'])).replace(':count', count);
 
     // 팀원 주간 보고 분석: 1명 이상 선택 시 활성화
     const userIds = [...new Set(checked.map(cb => cb.dataset.userId))];
@@ -466,7 +466,9 @@ async function openAnalysis(type, userId, userName) {
     const result  = document.getElementById('ai-result');
     const errEl   = document.getElementById('ai-error');
 
-    title.textContent = type === 'member' ? userName + ' 팀원 주간 보고 분석' : '주차 보고 분석 (모든 팀원)';
+    title.textContent = type === 'member'
+        ? @json(__('weekly.analysis_member_title', ['name' => ':name'])).replace(':name', userName)
+        : @json(__('weekly.analysis_all_title'));
     loading.style.display = 'flex';
     result.style.display  = 'none';
     errEl.style.display   = 'none';
@@ -500,7 +502,7 @@ async function openAnalysis(type, userId, userName) {
     })
     .catch(err => {
         loading.style.display = 'none';
-        errEl.textContent   = '웍스 분석 요청 중 오류가 발생했습니다.';
+        errEl.textContent   = @json(__('weekly.analysis_error'));
         errEl.style.display = 'block';
     });
 }

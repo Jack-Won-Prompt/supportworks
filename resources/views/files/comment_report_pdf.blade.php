@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
-    <title>의견 보고서 — {{ $ctx->sourceName }}</title>
+    <title>{{ __('files.report_doc_title', ['name' => $ctx->sourceName]) }}</title>
     <style>
         @page { margin: 28mm 18mm 22mm 18mm; }
         body {
@@ -47,36 +47,36 @@
 </head>
 <body>
 
-    <div class="cover-title">{{ $ctx->sourceName }} — 의견 보고서</div>
+    <div class="cover-title">{{ $ctx->sourceName }} — {{ __('files.report_title') }}</div>
     <div class="cover-meta">
-        <div class="meta-row"><span class="meta-key">파일</span> {{ $ctx->sourceName }}</div>
-        <div class="meta-row"><span class="meta-key">버전</span> v{{ $ctx->version }}{{ $ctx->isCurrentVersion ? ' (현재)' : '' }}</div>
-        <div class="meta-row"><span class="meta-key">생성</span> {{ $ctx->generatedAt }}{{ $ctx->generatedByName ? ' / ' . $ctx->generatedByName : '' }}</div>
-        <div class="meta-row"><span class="meta-key">의견 수</span> {{ count($ctx->rootComments) }} 건</div>
+        <div class="meta-row"><span class="meta-key">{{ __('files.report_meta_file') }}</span> {{ $ctx->sourceName }}</div>
+        <div class="meta-row"><span class="meta-key">{{ __('files.report_meta_version') }}</span> v{{ $ctx->version }}{{ $ctx->isCurrentVersion ? ' (' . __('files.report_meta_current') . ')' : '' }}</div>
+        <div class="meta-row"><span class="meta-key">{{ __('files.report_meta_generated') }}</span> {{ $ctx->generatedAt }}{{ $ctx->generatedByName ? ' / ' . $ctx->generatedByName : '' }}</div>
+        <div class="meta-row"><span class="meta-key">{{ __('files.report_meta_count') }}</span> {{ count($ctx->rootComments) }} {{ __('files.report_count_unit') }}</div>
     </div>
     <hr class="divider">
 
     @if (count($commentsByPage) === 0)
-        <div class="empty">등록된 의견이 없습니다.</div>
+        <div class="empty">{{ __('files.report_no_comments') }}</div>
     @else
         @foreach ($commentsByPage as $pageNo => $comments)
             <div class="page-section">
                 <div class="page-h">
                     @if ($pageNo > 0)
-                        페이지 {{ $pageNo }}
+                        {{ __('files.report_page', ['no' => $pageNo]) }}
                     @else
-                        (페이지 미지정)
+                        {{ __('files.report_page_none') }}
                     @endif
-                    <span class="count">의견 {{ count($comments) }}건</span>
+                    <span class="count">{{ __('files.report_page_count', ['count' => count($comments)]) }}</span>
                 </div>
 
                 @foreach ($comments as $c)
                     <div class="comment">
                         <div class="comment-head">
-                            <span class="comment-author">{{ $c->user?->name ?? $c->guest_name ?? '외부' }}</span>
+                            <span class="comment-author">{{ $c->user?->name ?? $c->guest_name ?? __('files.report_external') }}</span>
                             <span>{{ optional($c->created_at)->format('Y-m-d H:i') }}</span>
                             @if ($c->resolved)
-                                <span class="resolved-tag">해결됨</span>
+                                <span class="resolved-tag">{{ __('files.report_resolved') }}</span>
                             @endif
                         </div>
                         <div class="comment-body">{{ $c->content }}</div>
@@ -86,7 +86,7 @@
                                 @foreach ($c->replies as $r)
                                     <div class="reply">
                                         <div class="reply-head">
-                                            <span class="reply-author">↳ {{ $r->user?->name ?? $r->guest_name ?? '외부' }}</span>
+                                            <span class="reply-author">↳ {{ $r->user?->name ?? $r->guest_name ?? __('files.report_external') }}</span>
                                             <span>{{ optional($r->created_at)->format('Y-m-d H:i') }}</span>
                                         </div>
                                         <div class="reply-body">{{ $r->content }}</div>
@@ -100,7 +100,7 @@
         @endforeach
     @endif
 
-    <div class="footer-note">SupportWorks · 파일 의견 보고서</div>
+    <div class="footer-note">{{ __('files.report_footer') }}</div>
 
 </body>
 </html>

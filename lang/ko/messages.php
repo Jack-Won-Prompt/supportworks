@@ -174,4 +174,34 @@ return [
     'ai_action_assignee'        => '담당',
     'ai_action_promote_fail'    => 'Action Item 등록에 실패했습니다.',
     'action_source_message'     => '원본 메시지',
+
+    // ── 그룹 채팅 구성원/초대
+    'view_members'              => '구성원 보기',
+    'mention_add'               => '입력창에 멘션 추가',
+    'mention_self_disabled'     => '자기 자신은 멘션할 수 없습니다',
+    'member_count'              => '구성원 :count명',
+    'invite'                    => '초대',
+    'invite_to_room'            => '채팅방에 초대',
+    'search_name_email'         => '이름 또는 이메일 검색',
+    'no_invite_candidates'      => '초대할 수 있는 멤버가 없습니다.',
+    'no_invite_candidates_hint' => '(같은 프로젝트 멤버 중 미참여자만 초대 가능)',
+    'invite_select_at_least'    => '초대할 멤버를 1명 이상 선택하세요.',
+    'inviting'                  => '초대 중...',
+    'invite_fail'               => '초대에 실패했습니다.',
+    'mention_prefix'            => ':name 님에게: ',
+
+    // ── 파일 메일 발송
+    'file_email_send'           => '파일 메일 발송',
+    'file_email_confirm'        => '이 파일을 채팅방 구성원 :count(나 제외)에게<br>이메일로 발송하시겠습니까?',
+    'share_file_email_title'    => '채팅방 구성원에게 이메일로 발송',
+    'send_email'                => '발송',
+    'sending'                   => '발송 중...',
+    'email_sent'                => '메일을 발송했습니다.',
+    'email_send_fail'           => '메일 발송에 실패했습니다.',
+    'attached_file_fallback'    => '(첨부 파일)',
+
+    // ── 번역
+    'original_text'             => '원문',
+    'translate_fail'            => '번역에 실패했습니다.',
+    'translate_req_error'       => '번역 요청 중 오류가 발생했습니다.',
 ];

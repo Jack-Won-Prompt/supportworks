@@ -61,7 +61,7 @@ return [
         // ─────────────────────────────────────────────────────────────────
         'USR' => [
             'no'             => 2,
-            'name'           => 'User Requirement Specifications',
+            'name'           => '사용자 요구사항 명세서',
             'shortName'      => 'USR',
             'category'       => 'design',
             'responsibility' => 'B',
@@ -81,7 +81,7 @@ return [
 
         'FRS' => [
             'no'             => 3,
-            'name'           => 'Functional Requirement Specifications',
+            'name'           => '기능 요구사항 명세서',
             'shortName'      => 'FRS',
             'category'       => 'design',
             'responsibility' => 'B',
@@ -102,7 +102,7 @@ return [
         // ─────────────────────────────────────────────────────────────────
         'InfoSec' => [
             'no'             => 4,
-            'name'           => 'Information Security Assessment',
+            'name'           => '정보보안 평가서',
             'shortName'      => 'InfoSec',
             'category'       => 'security',
             'responsibility' => 'A+B',
@@ -119,7 +119,7 @@ return [
 
         'RoPA' => [
             'no'             => 5,
-            'name'           => 'Record of Processing Activities',
+            'name'           => '개인정보 처리활동 기록(RoPA)',
             'shortName'      => 'RoPA',
             'category'       => 'security',
             'responsibility' => 'A+B',
@@ -137,7 +137,7 @@ return [
 
         'Access' => [
             'no'             => 6,
-            'name'           => 'Access Controls',
+            'name'           => '접근 통제',
             'shortName'      => 'Access',
             'category'       => 'security',
             'responsibility' => 'A+B',
@@ -155,7 +155,7 @@ return [
 
         'Audit' => [
             'no'             => 8,
-            'name'           => 'Audit Trail and Logs',
+            'name'           => '감사 추적 및 로그',
             'shortName'      => 'Audit',
             'category'       => 'security',
             'responsibility' => 'B',
@@ -172,7 +172,7 @@ return [
 
         'PhySec' => [
             'no'             => 17,
-            'name'           => 'Physical Security',
+            'name'           => '물리적 보안',
             'shortName'      => 'PhySec',
             'category'       => 'security',
             'responsibility' => 'B',
@@ -192,7 +192,7 @@ return [
         // ─────────────────────────────────────────────────────────────────
         'Backup' => [
             'no'             => 11,
-            'name'           => 'Backup and Recovery',
+            'name'           => '백업 및 복구',
             'shortName'      => 'Backup',
             'category'       => 'operations',
             'responsibility' => 'A+B',
@@ -210,7 +210,7 @@ return [
 
         'BCP' => [
             'no'             => 16,
-            'name'           => 'Business Continuity',
+            'name'           => '업무 연속성 계획',
             'shortName'      => 'BCP',
             'category'       => 'operations',
             'responsibility' => 'A+B',
@@ -228,7 +228,7 @@ return [
 
         'Mon' => [
             'no'             => 20,
-            'name'           => 'Platform/System Monitoring',
+            'name'           => '플랫폼/시스템 모니터링',
             'shortName'      => 'Mon',
             'category'       => 'operations',
             'responsibility' => 'B',
@@ -245,7 +245,7 @@ return [
 
         'Jobs' => [
             'no'             => 10,
-            'name'           => 'Scheduled Jobs',
+            'name'           => '예약 작업(배치)',
             'shortName'      => 'Jobs',
             'category'       => 'operations',
             'responsibility' => 'A+B',
@@ -262,7 +262,7 @@ return [
 
         'Retention' => [
             'no'             => 12,
-            'name'           => 'Data Retention & Archiving',
+            'name'           => '데이터 보존 및 아카이빙',
             'shortName'      => 'Retention',
             'category'       => 'operations',
             'responsibility' => 'A+B',
@@ -279,7 +279,7 @@ return [
 
         'Review' => [
             'no'             => 13,
-            'name'           => 'Periodic Review / Checks',
+            'name'           => '정기 검토 및 점검',
             'shortName'      => 'Review',
             'category'       => 'operations',
             'responsibility' => 'A+B',
@@ -296,7 +296,7 @@ return [
 
         'Config' => [
             'no'             => 19,
-            'name'           => 'Configuration Information List',
+            'name'           => '구성 정보 목록',
             'shortName'      => 'Config',
             'category'       => 'operations',
             'responsibility' => 'A+B',
@@ -317,7 +317,7 @@ return [
         // ─────────────────────────────────────────────────────────────────
         'Test' => [
             'no'             => 7,
-            'name'           => 'Test Scripts and Test Report',
+            'name'           => '테스트 스크립트 및 결과 보고서',
             'shortName'      => 'Test',
             'category'       => 'test_deploy',
             'responsibility' => 'B',
@@ -334,7 +334,7 @@ return [
 
         'Deploy' => [
             'no'             => 18,
-            'name'           => 'Deployment Document',
+            'name'           => '배포 문서',
             'shortName'      => 'Deploy',
             'category'       => 'test_deploy',
             'responsibility' => 'B',
@@ -352,7 +352,7 @@ return [
 
         'Train' => [
             'no'             => 14,
-            'name'           => 'Training Plan and Materials',
+            'name'           => '교육 계획 및 자료',
             'shortName'      => 'Train',
             'category'       => 'test_deploy',
             'responsibility' => 'A+B',
@@ -373,7 +373,7 @@ return [
         // ─────────────────────────────────────────────────────────────────
         'SLA' => [
             'no'             => 15,
-            'name'           => 'Service Level Agreement',
+            'name'           => '서비스 수준 협약(SLA)',
             'shortName'      => 'SLA',
             'category'       => 'contract',
             'responsibility' => 'A+B',
@@ -392,7 +392,7 @@ return [
 
         'Escal' => [
             'no'             => 21,
-            'name'           => 'Escalation Matrix',
+            'name'           => '에스컬레이션 매트릭스',
             'shortName'      => 'Escal',
             'category'       => 'contract',
             'responsibility' => 'A+B',
@@ -410,7 +410,7 @@ return [
 
         'Change' => [
             'no'             => 9,
-            'name'           => 'Change Management',
+            'name'           => '변경 관리',
             'shortName'      => 'Change',
             'category'       => 'contract',
             'responsibility' => 'A+B',

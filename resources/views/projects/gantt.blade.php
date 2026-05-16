@@ -228,15 +228,15 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
         <span id="g-save-msg" style="font-size:12px;color:#10b981;display:none;">{{ __('projects.saved') }}</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-        <span class="legend-btn" id="legend-not_started" data-status="not_started" style="--dot:#9ca3af;"><span class="legend-color-dot" title="색상 변경" onclick="openColorPicker('not_started',event)"></span><span class="legend-label" onclick="toggleStatusFilter('not_started')">미시작</span></span>
-        <span class="legend-btn" id="legend-in_progress"  data-status="in_progress"  style="--dot:#3b82f6;"><span class="legend-color-dot" title="색상 변경" onclick="openColorPicker('in_progress',event)"></span><span class="legend-label" onclick="toggleStatusFilter('in_progress')">진행중</span></span>
-        <span class="legend-btn" id="legend-completed"    data-status="completed"    style="--dot:#22c55e;"><span class="legend-color-dot" title="색상 변경" onclick="openColorPicker('completed',event)"></span><span class="legend-label" onclick="toggleStatusFilter('completed')">완료</span></span>
-        <span class="legend-btn" id="legend-blocked"      data-status="blocked"      style="--dot:#ef4444;"><span class="legend-color-dot" title="색상 변경" onclick="openColorPicker('blocked',event)"></span><span class="legend-label" onclick="toggleStatusFilter('blocked')">블로킹</span></span>
+        <span class="legend-btn" id="legend-not_started" data-status="not_started" style="--dot:#9ca3af;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('not_started',event)"></span><span class="legend-label" onclick="toggleStatusFilter('not_started')">{{ __('projects.gantt_status_not_started') }}</span></span>
+        <span class="legend-btn" id="legend-in_progress"  data-status="in_progress"  style="--dot:#3b82f6;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('in_progress',event)"></span><span class="legend-label" onclick="toggleStatusFilter('in_progress')">{{ __('projects.gantt_status_in_progress') }}</span></span>
+        <span class="legend-btn" id="legend-completed"    data-status="completed"    style="--dot:#22c55e;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('completed',event)"></span><span class="legend-label" onclick="toggleStatusFilter('completed')">{{ __('projects.gantt_status_completed') }}</span></span>
+        <span class="legend-btn" id="legend-blocked"      data-status="blocked"      style="--dot:#ef4444;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('blocked',event)"></span><span class="legend-label" onclick="toggleStatusFilter('blocked')">{{ __('projects.gantt_status_blocked') }}</span></span>
         <input type="color" id="g-color-picker" style="position:fixed;opacity:0;pointer-events:none;width:0;height:0;">
         <style id="g-dyn-colors"></style>
         <div style="width:1px;height:18px;background:#e4e4e7;margin:0 2px;flex-shrink:0;"></div>
         <button id="excel-dl-btn" onclick="downloadGanttExcel(event)"
-                title="엑셀 다운로드"
+                title="{{ __('projects.excel_download') }}"
                 style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;font-weight:500;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#374151;cursor:pointer;white-space:nowrap;transition:background .12s;"
                 onmouseover="this.style.background='#f0fdf4';this.style.borderColor='#86efac';this.style.color='#15803d'"
                 onmouseout="this.style.background='#fff';this.style.borderColor='#d1d5db';this.style.color='#374151'">
@@ -299,19 +299,19 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
 <div id="sd">
     <div class="sd-opt" data-val="not_started">
         <span class="sd-dot" style="background:#9ca3af;"></span>
-        <span style="color:#6b7280;">미시작</span>
+        <span style="color:#6b7280;">{{ __('projects.gantt_status_not_started') }}</span>
     </div>
     <div class="sd-opt" data-val="in_progress">
         <span class="sd-dot" style="background:#3b82f6;"></span>
-        <span style="color:#1d4ed8;">진행중</span>
+        <span style="color:#1d4ed8;">{{ __('projects.gantt_status_in_progress') }}</span>
     </div>
     <div class="sd-opt" data-val="completed">
         <span class="sd-dot" style="background:#22c55e;"></span>
-        <span style="color:#15803d;">완료</span>
+        <span style="color:#15803d;">{{ __('projects.gantt_status_completed') }}</span>
     </div>
     <div class="sd-opt" data-val="blocked">
         <span class="sd-dot" style="background:#ef4444;"></span>
-        <span style="color:#b91c1c;">블로킹</span>
+        <span style="color:#b91c1c;">{{ __('projects.gantt_status_blocked') }}</span>
     </div>
 </div>
 <div id="sd-overlay" style="display:none;position:fixed;inset:0;z-index:10000;" onclick="closeStatusDropdown()"></div>
@@ -405,14 +405,14 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
                 <select name="status"
                         style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;font-family:inherit;"
                         onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
-                    <option value="not_started">미시작</option>
-                    <option value="in_progress">진행중</option>
-                    <option value="completed">완료</option>
-                    <option value="blocked">블로킹</option>
+                    <option value="not_started">{{ __('projects.gantt_status_not_started') }}</option>
+                    <option value="in_progress">{{ __('projects.gantt_status_in_progress') }}</option>
+                    <option value="completed">{{ __('projects.gantt_status_completed') }}</option>
+                    <option value="blocked">{{ __('projects.gantt_status_blocked') }}</option>
                 </select>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">진행률 (%)</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.gantt_progress_percent') }}</label>
                 <input type="number" name="progress" min="0" max="100"
                        style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;font-family:inherit;"
                        onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
@@ -533,14 +533,14 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
                 <select id="em-status"
                         style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;font-family:inherit;"
                         onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
-                    <option value="not_started">미시작</option>
-                    <option value="in_progress">진행중</option>
-                    <option value="completed">완료</option>
-                    <option value="blocked">블로킹</option>
+                    <option value="not_started">{{ __('projects.gantt_status_not_started') }}</option>
+                    <option value="in_progress">{{ __('projects.gantt_status_in_progress') }}</option>
+                    <option value="completed">{{ __('projects.gantt_status_completed') }}</option>
+                    <option value="blocked">{{ __('projects.gantt_status_blocked') }}</option>
                 </select>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">진행률 (%)</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.gantt_progress_percent') }}</label>
                 <input type="number" id="em-progress" min="0" max="100"
                        style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;font-family:inherit;"
                        onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
@@ -605,9 +605,33 @@ $_allHolidays = array_values(array_unique($_allHolidays));
 @endphp
 <script>
 const GANTT_STR = {
-    yearSuffix:   '{{ __("projects.gantt_year_suffix") }}',
-    saveFailed:   '{{ __("projects.save_failed") }}',
-    unclassified: '{{ __("projects.unclassified") }}',
+    yearSuffix:      '{{ __("projects.gantt_year_suffix") }}',
+    saveFailed:      '{{ __("projects.save_failed") }}',
+    unclassified:    '{{ __("projects.unclassified") }}',
+    viewAttachments: @json(__('projects.view_attachments')),
+    preview:         @json(__('projects.preview')),
+    generating:      @json(__('projects.generating')),
+    deleteTaskFailed:@json(__('projects.delete_task_failed')),
+    networkError:    @json(__('projects.network_error')),
+    excelSheetName:  @json(__('projects.excel_sheet_name')),
+    excelFileSuffix: @json(__('projects.excel_file_suffix')),
+    statusLabels:    @json([
+        'not_started' => __('projects.gantt_status_not_started'),
+        'in_progress' => __('projects.gantt_status_in_progress'),
+        'completed'   => __('projects.gantt_status_completed'),
+        'blocked'     => __('projects.gantt_status_blocked'),
+    ]),
+    excelCols:       @json([
+        __('projects.excel_col_no'),
+        __('projects.excel_col_group'),
+        __('projects.excel_col_task'),
+        __('projects.excel_col_status'),
+        __('projects.excel_col_assignee'),
+        __('projects.excel_col_start'),
+        __('projects.excel_col_end'),
+        __('projects.excel_col_progress'),
+        __('projects.excel_col_duration'),
+    ]),
 };
 // ─── Data ────────────────────────────────────────────────────────────────────
 const ALL_TASKS          = @json($ganttTasks);
@@ -861,7 +885,7 @@ async function renderLeft() {
                         <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
                     </span>
                     <span class="task-name" title="${esc(t.name)}">${esc(t.name)}</span>
-                    ${t._files_count > 0 ? `<span onclick="event.stopPropagation();openGanttFileChip(${t.id},event)" title="첨부파일 보기" style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>${t._files_count}</span>` : ''}
+                    ${t._files_count > 0 ? `<span onclick="event.stopPropagation();openGanttFileChip(${t.id},event)" title="${escAttr(GANTT_STR.viewAttachments)}" style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>${t._files_count}</span>` : ''}
                 </div>
                 <div class="lc lc-status"><span class="sbadge" data-tid="${t.id}" onclick="openStatusDropdown(event, ${t.id})">${t._status_label}<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.5;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></span></div>
                 <div class="lc lc-assignee" onclick="openAssigneeDropdown(event,${t.id})" title="{{ __('projects.col_assignee') }}">${esc(t._assignee)}</div>
@@ -1202,10 +1226,10 @@ async function closePopup() {
 
 // ─── Status dropdown ──────────────────────────────────────────────────────────
 const STATUS_META = {
-    not_started: { label:'미시작',  bg:'#f3f4f6', color:'#6b7280', bar:'#9ca3af' },
-    in_progress: { label:'진행중',  bg:'#dbeafe', color:'#1d4ed8', bar:'#3b82f6' },
-    completed:   { label:'완료',    bg:'#dcfce7', color:'#15803d', bar:'#22c55e' },
-    blocked:     { label:'블로킹',  bg:'#fee2e2', color:'#b91c1c', bar:'#ef4444' },
+    not_started: { label:GANTT_STR.statusLabels.not_started, bg:'#f3f4f6', color:'#6b7280', bar:'#9ca3af' },
+    in_progress: { label:GANTT_STR.statusLabels.in_progress, bg:'#dbeafe', color:'#1d4ed8', bar:'#3b82f6' },
+    completed:   { label:GANTT_STR.statusLabels.completed,   bg:'#dcfce7', color:'#15803d', bar:'#22c55e' },
+    blocked:     { label:GANTT_STR.statusLabels.blocked,     bg:'#fee2e2', color:'#b91c1c', bar:'#ef4444' },
 };
 
 // ─── Members ─────────────────────────────────────────────────────────────────
@@ -1854,7 +1878,7 @@ async function deleteFromEditModal() {
     if (!tid) return;
     const task = ALL_TASKS.find(t => t.id === String(tid));
     if (!task) return;
-    if (!await __confirm(`"${task.name}" 태스크를 삭제하시겠습니까?`)) return;
+    if (!await __confirm(@json(__('projects.delete_task_confirm')).replace(':name', task.name))) return;
 
     const btn = document.getElementById('em-delete');
     btn.disabled = true;
@@ -1873,10 +1897,10 @@ async function deleteFromEditModal() {
             bindRowDrag();
         } else {
             const data = await res.json().catch(() => ({}));
-            alert(data.message || '삭제에 실패했습니다.');
+            alert(data.message || GANTT_STR.deleteTaskFailed);
         }
     } catch {
-        alert('네트워크 오류가 발생했습니다.');
+        alert(GANTT_STR.networkError);
     } finally {
         btn.disabled = false;
     }
@@ -1984,7 +2008,7 @@ async function renderEmExistingFiles(files) {
             <svg style="width:13px;height:13px;flex-shrink:0;color:#6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${canPreview ? 'cursor:pointer;color:#4f46e5;' : ''}" ${canPreview ? `onclick="openGanttFilePreview(${f.id})"` : ''}>${escHtml(f.name)}</span>
             <span style="color:#94a3b8;flex-shrink:0;font-size:11px;">${fmtBytes(f.size)}</span>
-            ${canPreview ? `<button type="button" onclick="openGanttFilePreview(${f.id})" style="background:none;border:none;cursor:pointer;color:#7c3aed;padding:0 2px;flex-shrink:0;" title="미리보기"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>` : ''}
+            ${canPreview ? `<button type="button" onclick="openGanttFilePreview(${f.id})" style="background:none;border:none;cursor:pointer;color:#7c3aed;padding:0 2px;flex-shrink:0;" title="${escAttr(GANTT_STR.preview)}"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>` : ''}
             <button type="button" onclick="deleteScheduleFile(${f.id},'${escAttr(f.name)}')" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:16px;line-height:1;padding:0;flex-shrink:0;">&times;</button>
         </div>`;
         ul.appendChild(li);
@@ -2063,7 +2087,7 @@ async function removeEmNewFile(index) {
 }
 
 async function deleteScheduleFile(fileId, fileName) {
-    if (!await __confirm(escHtml(fileName) + ' 파일을 삭제하시겠습니까?')) return;
+    if (!await __confirm(@json(__('projects.delete_file_confirm')).replace(':name', escHtml(fileName)))) return;
     const tid = document.getElementById('em-tid').value;
     const res = await fetch(`${FILE_DEL_BASE}/${fileId}`, {
         method: 'DELETE',
@@ -2136,7 +2160,7 @@ async function downloadGanttExcel(e) {
     const btn = document.getElementById('excel-dl-btn');
     const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> 생성 중...';
+    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> ' + escHtml(GANTT_STR.generating);
 
     try {
         if (typeof ExcelJS === 'undefined') {
@@ -2152,18 +2176,18 @@ async function downloadGanttExcel(e) {
         wb.creator = '{{ addslashes($project->name) }}';
         wb.created = new Date();
 
-        const ws = wb.addWorksheet('간트 일정', {
+        const ws = wb.addWorksheet(GANTT_STR.excelSheetName, {
             views: [{ state: 'frozen', ySplit: 4 }],
             pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, paperSize: 9 }
         });
 
         const COLS = 9;
         const COL_W     = [5, 22, 38, 13, 15, 13, 13, 10, 10];
-        const COL_HDR   = ['NO', '그룹', '태스크명', '상태', '담당자', '시작일', '종료일', '진행률', '기간(일)'];
+        const COL_HDR   = GANTT_STR.excelCols;
         const COL_ALIGN = ['center','left','left','center','center','center','center','center','center'];
         COL_W.forEach((w, i) => ws.getColumn(i + 1).width = w);
 
-        const STATUS_KO = { not_started:'미시작', in_progress:'진행중', completed:'완료', blocked:'블로킹' };
+        const STATUS_KO = GANTT_STR.statusLabels;
         const STATUS_BG = { not_started:'FFF3F4F6', in_progress:'FFDBEAFE', completed:'FFD1FAE5', blocked:'FFFEE2E2' };
         const STATUS_FG = { not_started:'FF6B7280', in_progress:'FF1D4ED8', completed:'FF065F46', blocked:'FF991B1B' };
 
@@ -2186,14 +2210,18 @@ async function downloadGanttExcel(e) {
         const medTop = { style:'medium', color:{ argb:'FF94A3B8' } };
 
         // ── Row 1: 제목 ──────────────────────────────────────
-        ws.addRow(['{{ addslashes($project->name) }} — 간트 일정 계획표']);
+        ws.addRow([@json(__('projects.excel_doc_title', ['name' => $project->name]))]);
         mergeRow(1, 'FF3730A3', { bold:true, size:15, color:{ argb:'FFFFFFFF' } }, 38);
         ws.getCell('A1').alignment = { vertical:'middle', indent:1 };
 
         // ── Row 2: 메타 ──────────────────────────────────────
         const total = ALL_TASKS.length;
         const done  = ALL_TASKS.filter(t => t._status === 'completed').length;
-        ws.addRow(['내보내기: ' + new Date().toLocaleString('ko-KR') + '   ·   전체 ' + total + '개   ·   완료 ' + done + '개 (' + Math.round(done/total*100||0) + '%)']);
+        ws.addRow([@json(__('projects.excel_export_meta'))
+            .replace(':datetime', new Date().toLocaleString('{{ app()->getLocale() }}'))
+            .replace(':total', total)
+            .replace(':done', done)
+            .replace(':percent', Math.round(done/total*100||0))]);
         mergeRow(2, 'FFF8FAFC', { size:9, color:{ argb:'FF6B7280' } }, 20);
         ws.getCell('A2').alignment = { vertical:'middle', indent:1 };
 
@@ -2215,12 +2243,12 @@ async function downloadGanttExcel(e) {
         // 그룹 순서 유지
         const seen = new Set(), orderedGroups = [];
         knownGroupOrder.forEach(g => {
-            const tasks = ALL_TASKS.filter(t => (t.group_name || '미분류') === g);
+            const tasks = ALL_TASKS.filter(t => (t.group_name || GANTT_STR.unclassified) === g);
             if (tasks.length && !seen.has(g)) { seen.add(g); orderedGroups.push({ g, tasks }); }
         });
         ALL_TASKS.forEach(t => {
-            const g = t.group_name || '미분류';
-            if (!seen.has(g)) { seen.add(g); orderedGroups.push({ g, tasks: ALL_TASKS.filter(tt => (tt.group_name||'미분류') === g) }); }
+            const g = t.group_name || GANTT_STR.unclassified;
+            if (!seen.has(g)) { seen.add(g); orderedGroups.push({ g, tasks: ALL_TASKS.filter(tt => (tt.group_name||GANTT_STR.unclassified) === g) }); }
         });
 
         let no = 1;
@@ -2230,7 +2258,7 @@ async function downloadGanttExcel(e) {
             const gRowNum = ws.rowCount;
             ws.mergeCells(gRowNum, 1, gRowNum, COLS);
             const gCell = ws.getCell(gRowNum, 1);
-            gCell.value     = '▸  ' + gName + '  (' + tasks.length + '개)';
+            gCell.value     = '▸  ' + gName + '  (' + @json(__('projects.excel_group_count')).replace(':count', tasks.length) + ')';
             gCell.font      = { bold:true, size:10, color:{ argb:'FF312E81' } };
             gCell.fill      = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFE0E7FF' } };
             gCell.alignment = { vertical:'middle', indent:1 };
@@ -2247,7 +2275,7 @@ async function downloadGanttExcel(e) {
 
                 const row = ws.addRow([
                     no++,
-                    t.group_name || '미분류',
+                    t.group_name || GANTT_STR.unclassified,
                     t.name,
                     STATUS_KO[t._status] || t._status,
                     t._assignee || '-',
@@ -2274,7 +2302,10 @@ async function downloadGanttExcel(e) {
 
         // ── 합계 행 ──────────────────────────────────────────
         ws.addRow([]);
-        ws.addRow(['총 ' + total + '개 작업  ·  완료 ' + done + '개  ·  진행율 ' + Math.round(done/total*100||0) + '%']);
+        ws.addRow([@json(__('projects.excel_summary'))
+            .replace(':total', total)
+            .replace(':done', done)
+            .replace(':percent', Math.round(done/total*100||0))]);
         const sumRowNum = ws.rowCount;
         ws.mergeCells(sumRowNum, 1, sumRowNum, COLS);
         const sumCell = ws.getCell(sumRowNum, 1);
@@ -2285,7 +2316,7 @@ async function downloadGanttExcel(e) {
         ws.getRow(sumRowNum).height = 22;
 
         // ── 다운로드 ──────────────────────────────────────────
-        const fname  = '{{ addslashes($project->name) }}-간트-' + new Date().toISOString().slice(0,10) + '.xlsx';
+        const fname  = '{{ addslashes($project->name) }}-' + GANTT_STR.excelFileSuffix + '-' + new Date().toISOString().slice(0,10) + '.xlsx';
         const buffer = await wb.xlsx.writeBuffer();
         const blob   = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url    = URL.createObjectURL(blob);
@@ -2296,7 +2327,7 @@ async function downloadGanttExcel(e) {
         URL.revokeObjectURL(url);
 
     } catch(err) {
-        alert('엑셀 생성 중 오류가 발생했습니다: ' + err.message);
+        alert(@json(__('projects.excel_gen_error')).replace(':message', err.message));
     } finally {
         btn.disabled = false; btn.innerHTML = origHtml;
     }

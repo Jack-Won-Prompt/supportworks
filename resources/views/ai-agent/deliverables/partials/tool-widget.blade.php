@@ -124,13 +124,13 @@
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;"
                     onclick="dlvOpenViewer()">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:-1px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                뷰어
+                {{ __('deliverables.viewer') }}
             </button>
             {{-- 링크 공유 (뷰어와 독립) --}}
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;"
                     onclick="dlvToggleShare()">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:-1px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                링크 공유
+                {{ __('deliverables.tw_share_link') }}
             </button>
             {{-- Word 실제 다운로드 --}}
             <a href="{{ $wordUrl }}" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;text-decoration:none;">
@@ -139,12 +139,12 @@
             </a>
             {{-- Excel: 현재 단계에 표 필드가 있을 때만 --}}
             @if($hasTableField)
-            <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;" onclick="alert('Excel 내보내기 준비 중입니다.')">
+            <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;" onclick="alert('{{ __('deliverables.tw_excel_coming') }}')">
                 Excel
             </button>
             @endif
             {{-- PDF --}}
-            <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;" onclick="alert('PDF 내보내기는 연동 후 활성화됩니다.')">
+            <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;" onclick="alert('{{ __('deliverables.tw_pdf_coming') }}')">
                 PDF
             </button>
             {{-- 공유 URL 표시 (링크 공유 활성 시) --}}
@@ -153,9 +153,9 @@
                        value="{{ $deliverable->share_token ? route('deliverables.public-share', $deliverable->share_token) : '' }}"
                        style="flex:1;font-size:10.5px;padding:4px 8px;border:1px solid #ddd6fe;border-radius:5px;background:#faf5ff;color:#5b21b6;outline:none;">
                 <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:10.5px;padding:3px 8px;white-space:nowrap;"
-                        onclick="dlvCopyShareUrl()">복사</button>
+                        onclick="dlvCopyShareUrl()">{{ __('deliverables.copy_link') }}</button>
                 <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:10.5px;padding:3px 8px;color:#b91c1c;border-color:#fecaca;white-space:nowrap;"
-                        onclick="dlvToggleShare()">공유 해제</button>
+                        onclick="dlvToggleShare()">{{ __('deliverables.tw_unshare') }}</button>
             </div>
         </div>
 
@@ -189,24 +189,24 @@
          data-init-md="{{ e($tblInitMd) }}">
         {{-- 툴바 --}}
         <div class="dlv-tbl-toolbar">
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddRow(this)" title="행 추가">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> 행
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddRow(this)" title="{{ __('deliverables.tw_tbl_add_row') }}">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> {{ __('deliverables.tw_row') }}
             </button>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddCol(this)" title="열 추가">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> 열
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddCol(this)" title="{{ __('deliverables.tw_tbl_add_col') }}">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> {{ __('deliverables.tw_col') }}
             </button>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelRow(this)" title="마지막 행 삭제">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> 행
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelRow(this)" title="{{ __('deliverables.tw_tbl_del_row') }}">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> {{ __('deliverables.tw_row') }}
             </button>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelCol(this)" title="마지막 열 삭제">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> 열
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelCol(this)" title="{{ __('deliverables.tw_tbl_del_col') }}">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> {{ __('deliverables.tw_col') }}
             </button>
             <span class="dlv-tbl-sep"></span>
             <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAiGen(this)" style="color:var(--t600);border-color:var(--t300);">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> 웍스 생성
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> {{ __('deliverables.tw_ai_gen') }}
             </button>
             <span class="dlv-tbl-sep"></span>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblExcel(this)" style="color:#16a34a;border-color:#86efac;" title="Excel 다운로드">
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblExcel(this)" style="color:#16a34a;border-color:#86efac;" title="{{ __('deliverables.tw_excel_dl') }}">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Excel
             </button>
         </div>
@@ -217,7 +217,7 @@
         {{-- 저장 버튼 --}}
         <div style="display:flex;justify-content:flex-end;margin-top:6px;">
             <button type="button" class="dlv-btn dlv-btn-primary dlv-tbl-btn" style="font-size:11px;padding:4px 12px;" onclick="tblSave(this)">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> 저장
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('deliverables.tw_save') }}
             </button>
         </div>
     </div>
@@ -244,34 +244,34 @@
         {{-- 상단 툴바 --}}
         <div class="dlv-tbl-toolbar" style="margin-bottom:6px;">
             <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="dgrAiGen(this)" style="color:var(--t600);border-color:var(--t300);">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> 웍스 생성
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> {{ __('deliverables.tw_ai_gen') }}
             </button>
             <span class="dlv-tbl-sep"></span>
             <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="dgrRender(this)">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> 미리보기
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> {{ __('deliverables.tw_preview') }}
             </button>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="dgrDownloadPng(this)" title="PNG 다운로드">
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="dgrDownloadPng(this)" title="{{ __('deliverables.tw_png_dl') }}">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> PNG
             </button>
             <button type="button" class="dlv-btn dlv-btn-primary dlv-tbl-btn" style="font-size:11px;padding:4px 12px;" onclick="dgrSave(this)">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> 저장
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('deliverables.tw_save') }}
             </button>
         </div>
         {{-- 분할 편집 창 --}}
         <div class="dlv-dgr-panes">
             <div class="dlv-dgr-code-pane">
-                <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;font-weight:600;">Mermaid 코드</div>
+                <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;font-weight:600;">{{ __('deliverables.tw_mermaid_code') }}</div>
                 <textarea class="dlv-dgr-textarea" spellcheck="false">{{ $dgrInitMd }}</textarea>
             </div>
             <div class="dlv-dgr-preview-pane">
-                <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;font-weight:600;">미리보기 <span style="font-weight:400;color:#b0b8c9;">· 휠: 확대/축소 · 드래그: 이동</span></div>
+                <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;font-weight:600;">{{ __('deliverables.tw_preview') }} <span style="font-weight:400;color:#b0b8c9;">· {{ __('deliverables.tw_preview_hint') }}</span></div>
                 <div class="dlv-dgr-pv-wrap">
                     <div class="dlv-dgr-preview mermaid"></div>
                     <button type="button" class="dlv-dgr-open-lb-btn"
                             onclick="dgrOpenLb(this.closest('.dlv-dgr-pv-wrap').querySelector('.dlv-dgr-preview'))"
-                            title="팝업으로 크게 보기">
+                            title="{{ __('deliverables.tw_diagram_view_title') }}">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 3h6m0 0v6m0-6l-7 7M9 21H3m0 0v-6m0 6l7-7"/></svg>
-                        다이어그램 보기
+                        {{ __('deliverables.tw_diagram_view') }}
                     </button>
                 </div>
             </div>
@@ -313,16 +313,16 @@
         <div class="dlv-tbl-toolbar">
             <button type="button" class="dlv-btn dlv-tbl-btn" onclick="qaAddSection(this)">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
-                섹션 추가
+                {{ __('deliverables.tw_qa_add_section') }}
             </button>
             <span class="dlv-tbl-sep"></span>
             <button type="button" class="dlv-btn dlv-btn-primary dlv-tbl-btn" onclick="qaSave(this)">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 21v-8H7v8M7 3v5h8"/></svg>
-                저장
+                {{ __('deliverables.tw_save') }}
             </button>
             <button type="button" class="dlv-btn dlv-tbl-btn" onclick="qaAiGen(this)">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                웍스 초안
+                {{ __('deliverables.tw_qa_ai_draft') }}
             </button>
         </div>
 
@@ -332,7 +332,7 @@
         {{-- 빈 상태 --}}
         <div class="dlv-qa-empty">
             <svg width="28" height="28" fill="none" stroke="#c4b5fd" viewBox="0 0 24 24" style="margin:0 auto 8px;display:block;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-            섹션을 추가하여 질의응답 항목을 작성하세요.
+            {{ __('deliverables.tw_qa_empty') }}
         </div>
     </div>
 

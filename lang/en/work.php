@@ -236,4 +236,9 @@ return [
     'leave_half_day_unit'        => '0.5d',
     'leave_month_format'         => 'MMMM YYYY',
     'leave_month_name_format'    => 'MMMM',
+    'leave_team_stats_heading'   => 'Team Leave Status (:year)',
+    'leave_team_col_total'       => 'Total',
+    'leave_self_badge'           => 'Me',
+    'leave_all_pending_heading'  => 'All Pending Leaves (:count)',
+    'leave_filter_all_members'   => 'All Members',
 ];

@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
-@section('title', '위클리 웍스 서머리 - ' . $project->name)
+@section('title', __('weekly.summary_title') . ' - ' . $project->name)
 
 @section('header-actions')@endsection
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<a href="{{ route('projects.weekly-reports.index', $project) }}" class="hover:text-indigo-500 transition-colors">주간 업무 보고</a>
+<a href="{{ route('projects.weekly-reports.index', $project) }}" class="hover:text-indigo-500 transition-colors">{{ __('weekly.weekly_report') }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">웍스 서머리 종합</span>
+<span style="color:#374151;font-weight:500;">{{ __('weekly.breadcrumb_summary') }}</span>
 @endsection
 
 @section('content')
@@ -35,14 +35,14 @@
             {{ $showAll ? 'background:#4f46e5;color:#fff;' : 'border:1.5px solid #d1d5db;color:#6b7280;background:#fff;' }}"
             onmouseover="if(!this.style.background.includes('46e5'))this.style.background='#f5f3ff'"
             onmouseout="if(!this.style.background.includes('46e5'))this.style.background='#fff'">
-            전체
+            {{ __('common.all') }}
         </a>
         @foreach($allWeeks->take(8) as $wk)
         @php
             $wDate = $wk->week_start_date instanceof \Carbon\Carbon
                 ? $wk->week_start_date->format('Y-m-d')
                 : \Carbon\Carbon::parse($wk->week_start_date)->format('Y-m-d');
-            $wLabel = \Carbon\Carbon::parse($wDate)->locale('ko')->isoFormat('YYYY년 M월 W주차');
+            $wLabel = \Carbon\Carbon::parse($wDate)->locale(app()->getLocale())->isoFormat(__('weekly.week_label_format'));
             // Use the model's week_label if available
             $tempReport = $grouped->get($wDate)?->first();
             if ($tempReport) $wLabel = $tempReport->week_label;
@@ -57,7 +57,7 @@
         </a>
         @endforeach
         @if($allWeeks->count() > 8)
-        <span style="font-size:11.5px;color:#9ca3af;">+{{ $allWeeks->count() - 8 }}개</span>
+        <span style="font-size:11.5px;color:#9ca3af;">{{ __('weekly.more_weeks', ['count' => $allWeeks->count() - 8]) }}</span>
         @endif
     </div>
 
@@ -66,7 +66,7 @@
         style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:12.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;transition:all .15s;"
         onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Word 다운로드
+        {{ __('weekly.download_word_btn') }}
     </button>
 
     {{-- 웍스 종합 분석 --}}
@@ -74,16 +74,16 @@
         style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #a7f3d0;border-radius:8px;font-size:12.5px;font-weight:600;color:#065f46;background:#f0fdf4;cursor:pointer;transition:all .15s;"
         onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-        웍스 종합 분석
+        {{ __('weekly.works_summary_analysis') }}
     </button>
 </div>
 
 {{-- ── 리포트 카운트 헤더 ── --}}
 @if($totalCount > 0)
 <div style="font-size:13px;color:#6b7280;padding:0 2px;">
-    {{ $showAll ? '전체 주차' : ($grouped->first()?->first()?->week_label ?? '') }}
-    — 총 <strong style="color:#4f46e5;">{{ $totalCount }}</strong>건 ·
-    <strong style="color:#059669;">{{ $grouped->flatten()->where('status','submitted')->count() }}</strong>건 제출 완료
+    {{ $showAll ? __('weekly.all_weeks') : ($grouped->first()?->first()?->week_label ?? '') }}
+    — {{ __('weekly.count_total', ['total' => $totalCount]) }} ·
+    {{ __('weekly.count_submitted', ['count' => $grouped->flatten()->where('status','submitted')->count()]) }}
 </div>
 @endif
 
@@ -93,8 +93,8 @@
     <div style="width:52px;height:52px;background:#f5f3ff;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
         <svg width="24" height="24" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
     </div>
-    <p style="font-size:14px;font-weight:600;color:#374151;margin-bottom:6px;">표시할 보고서가 없습니다.</p>
-    <p style="font-size:12.5px;color:#9ca3af;">다른 주차를 선택하거나 팀원에게 보고서 작성을 요청하세요.</p>
+    <p style="font-size:14px;font-weight:600;color:#374151;margin-bottom:6px;">{{ __('weekly.summary_empty_title') }}</p>
+    <p style="font-size:12.5px;color:#9ca3af;">{{ __('weekly.summary_empty_hint') }}</p>
 </div>
 @else
 
@@ -114,7 +114,7 @@
         <span style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:7px;padding:3px 11px;font-size:12.5px;font-weight:700;">{{ $weekLabel }}</span>
         <span style="font-size:12px;color:#7c3aed;font-weight:500;">{{ $wStart->format('m/d') }} ~ {{ $wEnd->format('m/d') }}</span>
         <span style="font-size:11.5px;color:#9ca3af;margin-left:auto;">
-            {{ $weekReports->count() }}명 작성  ·  제출 완료 {{ $submitted }}명
+            {{ __('weekly.week_summary_stat', ['count' => $weekReports->count(), 'submitted' => $submitted]) }}
         </span>
     </div>
 
@@ -147,18 +147,18 @@
                     <span style="background:#f3f4f6;color:#6b7280;border-radius:4px;font-size:11px;padding:1px 7px;">{{ $report->team_name }}</span>
                     @endif
                     @if($report->status === 'submitted')
-                    <span style="background:#d1fae5;color:#065f46;border-radius:5px;font-size:11px;font-weight:600;padding:1px 7px;">제출 완료</span>
+                    <span style="background:#d1fae5;color:#065f46;border-radius:5px;font-size:11px;font-weight:600;padding:1px 7px;">{{ __('weekly.status_submitted') }}</span>
                     @else
-                    <span style="background:#fef3c7;color:#92400e;border-radius:5px;font-size:11px;font-weight:600;padding:1px 7px;">임시 저장</span>
+                    <span style="background:#fef3c7;color:#92400e;border-radius:5px;font-size:11px;font-weight:600;padding:1px 7px;">{{ __('weekly.status_draft') }}</span>
                     @endif
                     @if(!$hasSummary)
-                    <span style="background:#fee2e2;color:#991b1b;border-radius:5px;font-size:11px;padding:1px 7px;">서머리 없음</span>
+                    <span style="background:#fee2e2;color:#991b1b;border-radius:5px;font-size:11px;padding:1px 7px;">{{ __('weekly.no_summary_badge') }}</span>
                     @endif
                 </div>
                 <div style="margin-top:3px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                     <span style="font-size:11.5px;color:#9ca3af;">{{ $report->report_date->format('Y.m.d') }}</span>
                     <span style="font-size:11.5px;color:#9ca3af;">
-                        완료 {{ $currentDone }}  ·  진행 {{ $currentProg }}  ·  차주 {{ $nextCount }}
+                        {{ __('weekly.task_stat', ['done' => $currentDone, 'prog' => $currentProg, 'next' => $nextCount]) }}
                     </span>
                 </div>
             </div>
@@ -187,19 +187,19 @@
                 <div>
                     <div style="font-size:12px;font-weight:700;color:#4f46e5;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        주요 성과 요약
+                        {{ __('weekly.section1_title') }}
                     </div>
                     @if($hasSummary)
                     <div style="font-size:12.5px;line-height:1.75;color:#374151;background:#fff;border:1px solid #e9e7fb;border-radius:8px;padding:12px 14px;max-height:220px;overflow-y:auto;">
                         {!! nl2br(e(strip_tags($report->summary))) !!}
                     </div>
                     @else
-                    <div style="font-size:12px;color:#9ca3af;background:#f9fafb;border:1px dashed #d1d5db;border-radius:8px;padding:14px;text-align:center;">작성된 서머리가 없습니다.</div>
+                    <div style="font-size:12px;color:#9ca3af;background:#f9fafb;border:1px dashed #d1d5db;border-radius:8px;padding:14px;text-align:center;">{{ __('weekly.no_summary_content') }}</div>
                     @endif
 
                     @if($report->special_notes)
                     <div style="margin-top:12px;">
-                        <div style="font-size:11.5px;font-weight:600;color:#dc2626;margin-bottom:6px;">특이 사항</div>
+                        <div style="font-size:11.5px;font-weight:600;color:#dc2626;margin-bottom:6px;">{{ __('weekly.special_notes_label') }}</div>
                         <div style="font-size:12px;line-height:1.65;color:#374151;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:10px 12px;">
                             {!! nl2br(e($report->special_notes)) !!}
                         </div>
@@ -219,7 +219,7 @@
                     {{-- 금주 완료 --}}
                     @if($completed->isNotEmpty())
                     <div style="margin-bottom:12px;">
-                        <div style="font-size:11.5px;font-weight:700;color:#059669;margin-bottom:5px;">✔ 완료 ({{ $completed->count() }})</div>
+                        <div style="font-size:11.5px;font-weight:700;color:#059669;margin-bottom:5px;">{{ __('weekly.completed_with_count', ['count' => $completed->count()]) }}</div>
                         @foreach($completed as $t)
                         <div style="font-size:12px;color:#1f2937;padding:3px 0 3px 10px;border-left:3px solid #6ee7b7;">{{ $t->task_name }}</div>
                         @endforeach
@@ -229,7 +229,7 @@
                     {{-- 진행 중 --}}
                     @if($inProgress->isNotEmpty())
                     <div style="margin-bottom:12px;">
-                        <div style="font-size:11.5px;font-weight:700;color:#d97706;margin-bottom:5px;">▶ 진행 중 ({{ $inProgress->count() }})</div>
+                        <div style="font-size:11.5px;font-weight:700;color:#d97706;margin-bottom:5px;">{{ __('weekly.in_progress_with_count', ['count' => $inProgress->count()]) }}</div>
                         @foreach($inProgress as $t)
                         <div style="font-size:12px;color:#1f2937;padding:3px 0 3px 10px;border-left:3px solid #fbbf24;">{{ $t->task_name }}</div>
                         @endforeach
@@ -239,7 +239,7 @@
                     {{-- 미착수 --}}
                     @if($pending->isNotEmpty())
                     <div style="margin-bottom:12px;">
-                        <div style="font-size:11.5px;font-weight:700;color:#6b7280;margin-bottom:5px;">○ 미착수 ({{ $pending->count() }})</div>
+                        <div style="font-size:11.5px;font-weight:700;color:#6b7280;margin-bottom:5px;">{{ __('weekly.pending_with_count', ['count' => $pending->count()]) }}</div>
                         @foreach($pending as $t)
                         <div style="font-size:12px;color:#6b7280;padding:3px 0 3px 10px;border-left:3px solid #d1d5db;">{{ $t->task_name }}</div>
                         @endforeach
@@ -249,7 +249,7 @@
                     {{-- 차주 계획 --}}
                     @if($next->isNotEmpty())
                     <div>
-                        <div style="font-size:11.5px;font-weight:700;color:#7c3aed;margin-bottom:5px;">→ 차주 계획 ({{ $next->count() }})</div>
+                        <div style="font-size:11.5px;font-weight:700;color:#7c3aed;margin-bottom:5px;">{{ __('weekly.next_plan_with_count', ['count' => $next->count()]) }}</div>
                         @foreach($next as $t)
                         <div style="font-size:12px;color:#1f2937;padding:3px 0 3px 10px;border-left:3px solid #c4b5fd;">
                             {{ $t->task_name }}
@@ -262,7 +262,7 @@
                     @endif
 
                     @if($report->tasks->isEmpty())
-                    <div style="font-size:12px;color:#9ca3af;text-align:center;padding:20px 0;">등록된 업무가 없습니다.</div>
+                    <div style="font-size:12px;color:#9ca3af;text-align:center;padding:20px 0;">{{ __('weekly.no_tasks') }}</div>
                     @endif
                 </div>
             </div>
@@ -284,7 +284,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #f3f4f6;">
             <div style="display:flex;align-items:center;gap:8px;">
                 <svg width="18" height="18" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span style="font-size:15px;font-weight:700;color:#1f2937;">Word 다운로드</span>
+                <span style="font-size:15px;font-weight:700;color:#1f2937;">{{ __('weekly.download_word_btn') }}</span>
             </div>
             <button onclick="closeDlModal()" style="background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -294,24 +294,24 @@
         <form id="dl-form" method="POST" action="{{ $downloadUrl }}">
             @csrf
             <div style="padding:20px;">
-                <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">다운로드 범위를 선택하세요.</p>
+                <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">{{ __('weekly.download_range_hint') }}</p>
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid #e9e7fb;border-radius:9px;cursor:pointer;transition:border-color .15s;"
                         onclick="selectDlRange(this,'current')">
                         <input type="radio" name="week" value="{{ $showAll ? 'all' : ($selectedWeek ?? 'all') }}" id="dl-current" checked style="accent-color:#6d28d9;width:15px;height:15px;">
                         <div>
                             <div style="font-size:13px;font-weight:600;color:#1f2937;">
-                                {{ $showAll ? '전체 주차' : ($grouped->first()?->first()?->week_label ?? '현재 필터') }}
+                                {{ $showAll ? __('weekly.all_weeks') : ($grouped->first()?->first()?->week_label ?? __('weekly.current_filter')) }}
                             </div>
-                            <div style="font-size:11.5px;color:#9ca3af;margin-top:1px;">현재 보기 기준 ({{ $totalCount }}건)</div>
+                            <div style="font-size:11.5px;color:#9ca3af;margin-top:1px;">{{ __('weekly.current_view_basis', ['count' => $totalCount]) }}</div>
                         </div>
                     </label>
                     <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid #e9e7fb;border-radius:9px;cursor:pointer;transition:border-color .15s;"
                         onclick="selectDlRange(this,'all')">
                         <input type="radio" name="week" value="all" id="dl-all" style="accent-color:#6d28d9;width:15px;height:15px;">
                         <div>
-                            <div style="font-size:13px;font-weight:600;color:#1f2937;">전체 주차 종합</div>
-                            <div style="font-size:11.5px;color:#9ca3af;margin-top:1px;">모든 주차 포함</div>
+                            <div style="font-size:13px;font-weight:600;color:#1f2937;">{{ __('weekly.all_weeks_summary') }}</div>
+                            <div style="font-size:11.5px;color:#9ca3af;margin-top:1px;">{{ __('weekly.all_weeks_included') }}</div>
                         </div>
                     </label>
                 </div>
@@ -321,13 +321,13 @@
                 <button type="button" onclick="closeDlModal()"
                     style="padding:8px 16px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;color:#374151;background:#fff;cursor:pointer;transition:all .12s;"
                     onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
-                    취소
+                    {{ __('common.cancel') }}
                 </button>
                 <button type="submit"
                     style="padding:8px 18px;background:#4f46e5;border:none;border-radius:8px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:opacity .15s;"
                     onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Word 다운로드
+                    {{ __('weekly.download_word_btn') }}
                 </button>
             </div>
         </form>
@@ -342,7 +342,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:8px;">
                 <svg width="18" height="18" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                <span style="font-size:15px;font-weight:700;color:#1f2937;">웍스 종합 분석</span>
+                <span style="font-size:15px;font-weight:700;color:#1f2937;">{{ __('weekly.works_summary_analysis') }}</span>
                 <span id="ai-modal-scope" style="font-size:12px;color:#6b7280;"></span>
             </div>
             <button onclick="closeAiModal()" style="background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;">
@@ -353,7 +353,7 @@
         {{-- 로딩 --}}
         <div id="ai-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 24px;gap:14px;flex:1;">
             <div style="width:40px;height:40px;border:3px solid #d1fae5;border-top-color:#059669;border-radius:50%;animation:spin .7s linear infinite;"></div>
-            <p style="font-size:13.5px;color:#6b7280;">웍스가 보고서를 분석하고 있습니다…</p>
+            <p style="font-size:13.5px;color:#6b7280;">{{ __('weekly.analyzing') }}</p>
         </div>
 
         {{-- 결과 --}}
@@ -368,7 +368,7 @@
         <div id="ai-footer" style="display:none;padding:12px 20px;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;">
             <button onclick="closeAiModal()"
                 style="padding:7px 16px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;color:#374151;background:#fff;cursor:pointer;"
-                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">닫기</button>
+                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('common.close') }}</button>
         </div>
     </div>
 </div>
@@ -444,8 +444,8 @@ function openAiAnalysis() {
     const totalCount = @json($totalCount);
     @php
         $_aiScope = $showAll
-            ? "전체 주차 · {$totalCount}건"
-            : (($grouped->first()?->first()?->week_label ?? '') . " · {$totalCount}건");
+            ? __('weekly.scope_all_weeks', ['count' => $totalCount])
+            : __('weekly.scope_week', ['label' => $grouped->first()?->first()?->week_label ?? '', 'count' => $totalCount]);
     @endphp
     const scopeLabel = @json($_aiScope);
     document.getElementById('ai-modal-scope').textContent = '— ' + scopeLabel;
@@ -476,7 +476,7 @@ function openAiAnalysis() {
     .catch(err => {
         document.getElementById('ai-loading').style.display = 'none';
         document.getElementById('ai-footer').style.display = 'flex';
-        document.getElementById('ai-error-msg').textContent = '웍스 분석 요청 중 오류가 발생했습니다.';
+        document.getElementById('ai-error-msg').textContent = @json(__('weekly.analysis_error'));
         document.getElementById('ai-error').style.display = 'block';
     });
 }

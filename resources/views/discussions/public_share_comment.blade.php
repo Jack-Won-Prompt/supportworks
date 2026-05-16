@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>공유된 의견 — {{ $discussion->title }}</title>
+<title>{{ __('discussions.public_title', ['title' => $discussion->title]) }}</title>
 <style>
     body { margin:0;padding:0;background:#f0eeff;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;min-height:100vh;color:#1f2937; }
     .topbar { background:#1a1730;padding:0 18px;height:50px;display:flex;align-items:center;gap:10px;color:#e5e7eb;flex-shrink:0; }
@@ -54,7 +54,7 @@
     <span class="topbar-title">{{ $discussion->title }}</span>
     <span class="topbar-shared">
         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-        공유된 의견
+        {{ __('discussions.public_shared_label') }}
     </span>
 </div>
 
@@ -63,13 +63,13 @@
         <div class="card-head">
             <h1>
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                공유된 의견
+                {{ __('discussions.public_shared_label') }}
             </h1>
             <h2>{{ $discussion->title }}</h2>
             <div class="card-meta">
-                <span>프로젝트 <b>{{ $discussion->project->name ?? '' }}</b></span>
+                <span>{{ __('discussions.public_project') }}<b>{{ $discussion->project->name ?? '' }}</b></span>
                 <span>·</span>
-                <span>논의 작성자 <b>{{ $discussion->author->name ?? '' }}</b></span>
+                <span>{{ __('discussions.public_author') }}<b>{{ $discussion->author->name ?? '' }}</b></span>
                 @if($discussion->created_at)
                 <span>·</span>
                 <span>{{ $discussion->created_at->format('Y-m-d') }}</span>
@@ -81,7 +81,7 @@
             <div class="author-row">
                 <div class="avatar">{{ mb_substr($comment->user->name ?? '?', 0, 1) }}</div>
                 <div class="author-info" style="flex:1;min-width:0;">
-                    <p class="author-name">{{ $comment->user->name ?? '알 수 없음' }}</p>
+                    <p class="author-name">{{ $comment->user->name ?? __('discussions.public_unknown') }}</p>
                     <p class="author-time">{{ optional($comment->created_at)->format('Y-m-d H:i') }}</p>
                 </div>
             </div>
@@ -90,14 +90,14 @@
 
             @if($discussion->content)
             <div class="ctx">
-                <p class="ctx-label">논의 본문 (참고)</p>
+                <p class="ctx-label">{{ __('discussions.public_context_label') }}</p>
                 <div id="ctx-content" class="content" style="font-size:13px;color:#4b5563;" data-md="{{ $discussion->content }}"></div>
             </div>
             @endif
         </div>
     </div>
 
-    <p class="footer">SupportWorks · <a href="{{ url('/') }}">로그인하여 의견 남기기</a></p>
+    <p class="footer">SupportWorks · <a href="{{ url('/') }}">{{ __('discussions.public_login_cta') }}</a></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

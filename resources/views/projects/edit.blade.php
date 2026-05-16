@@ -75,8 +75,8 @@
                            {{ old('si_mode_enabled', $project->si_mode_enabled) ? 'checked' : '' }}
                            style="width:16px;height:16px;accent-color:var(--t500);">
                     <div>
-                        <span style="font-size:13px;font-weight:600;color:#374151;">SI 계약 모드</span>
-                        <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">활성화 시 요구사항에서 유형·출처·고객승인 등 SI 전용 필드가 표시됩니다.</p>
+                        <span style="font-size:13px;font-weight:600;color:#374151;">{{ __('projects.si_mode_title') }}</span>
+                        <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">{{ __('projects.si_mode_desc') }}</p>
                     </div>
                 </label>
             </div>
@@ -88,18 +88,18 @@
                            {{ old('sm_mode_enabled', $project->sm_mode_enabled) ? 'checked' : '' }}
                            style="width:16px;height:16px;accent-color:var(--t500);">
                     <div>
-                        <span style="font-size:13px;font-weight:600;color:#374151;">SM 유지보수 모드</span>
-                        <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">활성화 시 이슈에서 SLA 마감·위반 등 SM 전용 필드가 표시됩니다.</p>
+                        <span style="font-size:13px;font-weight:600;color:#374151;">{{ __('projects.sm_mode_title') }}</span>
+                        <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">{{ __('projects.sm_mode_desc') }}</p>
                     </div>
                 </label>
             </div>
 
             {{-- 웍스 분석 모델 기본값 --}}
             <div style="border-top:1px solid #f3f4f6;padding-top:16px;">
-                <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 10px;">웍스 요구사항 분석 기본 모델</p>
+                <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 10px;">{{ __('projects.works_model_title') }}</p>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
-                        <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">제공자</label>
+                        <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">{{ __('projects.llm_provider') }}</label>
                         <select name="preferred_llm_provider" id="edit_llm_provider"
                                 style="width:100%;padding:7px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;"
                                 onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"
@@ -113,7 +113,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">모델</label>
+                        <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">{{ __('projects.llm_model') }}</label>
                         <select name="preferred_llm_model" id="edit_llm_model"
                                 style="width:100%;padding:7px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;"
                                 onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">

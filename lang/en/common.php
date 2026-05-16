@@ -88,6 +88,7 @@ return [
     'no_data'        => 'No data available.',
     'no_results'     => 'No results found.',
     'error'          => 'An error occurred.',
+    'network_error'  => 'A network error occurred.',
     'success'        => 'Done.',
     'confirm_delete' => 'Are you sure you want to delete this?',
     'required'       => 'Required',
@@ -98,4 +99,11 @@ return [
     'pagination_prev'    => 'Previous',
     'pagination_next'    => 'Next',
     'pagination_showing' => ':from–:to of :total',
+
+    // ── Dialog
+    'dialog_alert'   => 'Notice',
+    'dialog_confirm' => 'Confirm',
+    'dialog_prompt'  => 'Input',
+    'dialog_error'   => 'Error',
+    'dialog_success' => 'Done',
 ];

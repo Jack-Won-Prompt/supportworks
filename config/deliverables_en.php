@@ -43,6 +43,8 @@ return [
     'deliverables' => [
 
         'USR' => [
+            'name'   => 'User Requirement Specifications',
+            'timing' => 'Contract Analysis & Execution',
             'steps' => [
                 1 => ['title' => 'Business Background',                 'description' => 'Project background, rationale',
                       'fields' => ['background'    => 'Background and Rationale']],
@@ -64,6 +66,8 @@ return [
         ],
 
         'FRS' => [
+            'name'   => 'Functional Requirement Specifications',
+            'timing' => 'Before Development / Configuration Work Begins',
             'steps' => [
                 1 => ['title' => 'URS Integration',                     'description' => 'Auto-import URS items',
                       'fields' => ['ursRef'          => 'URS Reference']],
@@ -81,6 +85,8 @@ return [
         ],
 
         'InfoSec' => [
+            'name'   => 'Information Security Assessment',
+            'timing' => 'Before Contract Execution (OneTrust)',
             'steps' => [
                 1 => ['title' => 'Asset & Data Classification',         'description' => 'Asset and sensitivity input (A)',
                       'fields' => ['assets'           => 'Asset List']],
@@ -96,6 +102,8 @@ return [
         ],
 
         'RoPA' => [
+            'name'   => 'Record of Processing Activities',
+            'timing' => 'Before Contract Execution (OneTrust)',
             'steps' => [
                 1 => ['title' => 'Processing Purpose & Legal Basis',    'description' => 'A input',
                       'fields' => ['purpose'           => 'Processing Purpose and Legal Basis']],
@@ -113,6 +121,8 @@ return [
         ],
 
         'Access' => [
+            'name'   => 'Access Controls',
+            'timing' => 'Before Development / Configuration Work Begins',
             'steps' => [
                 1 => ['title' => 'Role Definition',                     'description' => 'A business roles',
                       'fields' => ['roles'             => 'Role List']],
@@ -130,6 +140,8 @@ return [
         ],
 
         'Audit' => [
+            'name'   => 'Audit Trail and Logs',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Log Target Identification',           'description' => 'Transactions and data',
                       'fields' => ['logTargets'        => 'Log Target List']],
@@ -145,6 +157,8 @@ return [
         ],
 
         'PhySec' => [
+            'name'   => 'Physical Security',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Data Center / Facility Information',  'description' => 'Location, certifications (ISO 27001, etc.)',
                       'fields' => ['facilityInfo'      => 'Facility Information']],
@@ -160,6 +174,8 @@ return [
         ],
 
         'Backup' => [
+            'name'   => 'Backup and Recovery',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'RPO / RTO Definition',               'description' => 'A business requirements',
                       'fields' => ['rpoRto'             => 'RPO / RTO Values']],
@@ -177,6 +193,8 @@ return [
         ],
 
         'BCP' => [
+            'name'   => 'Business Continuity',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Critical Business Identification',    'description' => 'A BIA',
                       'fields' => ['criticalBiz'        => 'Critical Business List']],
@@ -194,6 +212,8 @@ return [
         ],
 
         'Mon' => [
+            'name'   => 'Platform/System Monitoring',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Monitoring Targets',                  'description' => 'Systems, services, metrics',
                       'fields' => ['targets'             => 'Monitoring Target List']],
@@ -209,6 +229,8 @@ return [
         ],
 
         'Jobs' => [
+            'name'   => 'Scheduled Jobs',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Job List',                            'description' => 'B automated tasks',
                       'fields' => ['jobList'              => 'Scheduled Job List']],
@@ -224,6 +246,8 @@ return [
         ],
 
         'Retention' => [
+            'name'   => 'Data Retention & Archiving',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Data Classification',                 'description' => 'A business data',
                       'fields' => ['dataClasses'          => 'Data Classification List']],
@@ -239,6 +263,8 @@ return [
         ],
 
         'Review' => [
+            'name'   => 'Periodic Review / Checks',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Review Item Identification',          'description' => 'A+B auto-extract from other deliverables',
                       'fields' => ['reviewItems'          => 'Review Items']],
@@ -254,6 +280,8 @@ return [
         ],
 
         'Config' => [
+            'name'   => 'Configuration Information List',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Hardware Configuration',              'description' => 'B CMDB standards',
                       'fields' => ['hardware'              => 'Hardware List']],
@@ -271,6 +299,8 @@ return [
         ],
 
         'Test' => [
+            'name'   => 'Test Scripts and Test Report',
+            'timing' => 'Before UAT Begins',
             'steps' => [
                 1 => ['title' => 'Test Scenario Definition',            'description' => 'Based on URS / FRS',
                       'fields' => ['scenarios'              => 'Test Scenarios']],
@@ -286,6 +316,8 @@ return [
         ],
 
         'Deploy' => [
+            'name'   => 'Deployment Document',
+            'timing' => 'Before Deployment to Production Environment',
             'steps' => [
                 1 => ['title' => 'Deployment Scope',                    'description' => 'Target modules, environment',
                       'fields' => ['scope'                  => 'Deployment Scope']],
@@ -303,6 +335,8 @@ return [
         ],
 
         'Train' => [
+            'name'   => 'Training Plan and Materials',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Curriculum by Role',                  'description' => 'A+B role-based item mapping',
                       'fields' => ['curriculum'             => 'Training Curriculum']],
@@ -320,6 +354,8 @@ return [
         ],
 
         'SLA' => [
+            'name'   => 'Service Level Agreement',
+            'timing' => 'Contract Analysis & Execution',
             'steps' => [
                 1 => ['title' => 'Service Scope',                       'description' => 'A+B contract scope mapping',
                       'fields' => ['serviceScope'           => 'Service Scope']],
@@ -339,6 +375,8 @@ return [
         ],
 
         'Escal' => [
+            'name'   => 'Escalation Matrix',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Service Tier Definition',             'description' => 'A+B L1 / L2 / L3',
                       'fields' => ['tiers'                  => 'Service Tiers']],
@@ -356,6 +394,8 @@ return [
         ],
 
         'Change' => [
+            'name'   => 'Change Management',
+            'timing' => 'Before Project Handover',
             'steps' => [
                 1 => ['title' => 'Change Type Definition',              'description' => 'A+B Std / Normal / Emergency',
                       'fields' => ['changeTypes'            => 'Change Type Definition']],

@@ -398,4 +398,5 @@ return [
     'enter_request'         => 'Please enter your request.',
     'refine_fail'           => 'Refinement failed',
     'php_date_format'       => 'Y-m-d H:i',
+    'php_date_short'        => 'Y-m-d',
 ];

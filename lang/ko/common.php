@@ -88,6 +88,7 @@ return [
     'no_data'        => '데이터가 없습니다.',
     'no_results'     => '검색 결과가 없습니다.',
     'error'          => '오류가 발생했습니다.',
+    'network_error'  => '네트워크 오류가 발생했습니다.',
     'success'        => '처리되었습니다.',
     'confirm_delete' => '정말 삭제하시겠습니까?',
     'required'       => '필수',
@@ -98,4 +99,11 @@ return [
     'pagination_prev'    => '이전',
     'pagination_next'    => '다음',
     'pagination_showing' => ':from–:to / 총 :total건',
+
+    // ── 다이얼로그
+    'dialog_alert'   => '알림',
+    'dialog_confirm' => '확인',
+    'dialog_prompt'  => '입력',
+    'dialog_error'   => '오류',
+    'dialog_success' => '완료',
 ];

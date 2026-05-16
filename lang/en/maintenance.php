@@ -172,6 +172,38 @@ return [
     'meeting_edit'          => 'Edit Meeting Minutes',
     'meeting_empty'         => 'No meeting minutes found',
     'meeting_empty_hint'    => 'Start by creating your first meeting minutes',
+    'meeting_schedule'      => 'Schedule a Meeting',
+    'minute_write'          => 'Write Minutes',
+    'minute_write_tooltip'  => 'Write meeting minutes',
+
+    // ── Meeting status filter
+    'filter_all_statuses'   => 'All Statuses',
+    'status_scheduled'      => 'Scheduled',
+    'status_completed_meeting' => 'Completed',
+    'scheduled_meeting'     => 'Scheduled Meetings',
+
+    // ── Meeting list count
+    'action_count'          => ':count action item(s)',
+
+    // ── Meeting modal / form additions
+    'form_project_none'     => 'No project (general meeting)',
+    'attendee_search_ph'    => 'Search by name or email, or type and press Enter',
+    'attendee_external_hint'=> 'For external attendees who are not team members, type the name and press Enter to add.',
+    'attendee_remove'       => 'Remove',
+    'attendee_manual_add'   => 'Add ":name" directly',
+    'attendee_manual_label' => 'Entered manually',
+    'owner_unassigned'      => 'No assignee',
+    'action_item_add_btn'   => '+ Add Action Item',
+    'action_item_task_ph'   => 'Task (Action Item)',
+
+    // ── Meeting recordings
+    'recordings_section'    => 'Meeting Recordings (:count)',
+    'recording_default'     => 'Meeting Recording',
+    'recording_download'    => 'Download File',
+    'recording_transcript'  => 'View Transcript',
+
+    // ── Meeting minutes JS messages
+    'js_delete_error'       => 'An error occurred while deleting.',
 
     // ── Meeting minutes stats
     'stat_total'            => 'Total',

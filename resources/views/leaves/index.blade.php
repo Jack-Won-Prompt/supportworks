@@ -149,7 +149,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid #f3f4f6;cursor:pointer;user-select:none;" onclick="toggleTeamStats()">
         <div style="display:flex;align-items:center;gap:7px;">
             <svg width="13" height="13" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-            <span style="font-size:10.5px;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.07em;">팀 휴가 현황 ({{ $year }}년)</span>
+            <span style="font-size:10.5px;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.07em;">{{ __('work.leave_team_stats_heading', ['year' => $year]) }}</span>
         </div>
         <svg id="team-stats-chevron" width="14" height="14" fill="none" stroke="#9ca3af" viewBox="0 0 24 24" style="transition:transform .2s;transform:rotate(-90deg);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
     </div>
@@ -157,12 +157,12 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
         <table style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="background:#f8fafc;border-bottom:1px solid #f1f5f9;">
-                    <th style="text-align:left;padding:7px 18px;font-size:10.5px;font-weight:700;color:#64748b;letter-spacing:.04em;">멤버</th>
-                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#6366f1;letter-spacing:.04em;">연차</th>
-                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#0ea5e9;letter-spacing:.04em;">반차</th>
-                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#f59e0b;letter-spacing:.04em;">병가</th>
-                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#64748b;letter-spacing:.04em;">기타</th>
-                    <th style="text-align:center;padding:7px 18px;font-size:10.5px;font-weight:700;color:#374151;letter-spacing:.04em;">합계</th>
+                    <th style="text-align:left;padding:7px 18px;font-size:10.5px;font-weight:700;color:#64748b;letter-spacing:.04em;">{{ __('work.leave_col_member') }}</th>
+                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#6366f1;letter-spacing:.04em;">{{ __('work.leave_legend_annual') }}</th>
+                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#0ea5e9;letter-spacing:.04em;">{{ __('work.leave_legend_half') }}</th>
+                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#f59e0b;letter-spacing:.04em;">{{ __('work.leave_legend_sick') }}</th>
+                    <th style="text-align:center;padding:7px 12px;font-size:10.5px;font-weight:700;color:#64748b;letter-spacing:.04em;">{{ __('work.leave_legend_other') }}</th>
+                    <th style="text-align:center;padding:7px 18px;font-size:10.5px;font-weight:700;color:#374151;letter-spacing:.04em;">{{ __('work.leave_team_col_total') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -172,33 +172,33 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
                         <div style="display:flex;align-items:center;gap:7px;">
                             <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#c4b5fd,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">{{ mb_substr($stat['user_name'], 0, 1) }}</div>
                             <span style="font-size:12.5px;font-weight:500;color:#1e293b;">{{ $stat['user_name'] }}</span>
-                            @if($stat['user_id'] === $myId)<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-weight:600;margin-left:2px;">나</span>@endif
+                            @if($stat['user_id'] === $myId)<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-weight:600;margin-left:2px;">{{ __('work.leave_self_badge') }}</span>@endif
                         </div>
                     </td>
                     <td style="text-align:center;padding:7px 12px;">
                         <span style="font-size:13px;font-weight:700;color:#6366f1;">{{ $fmtDays($stat['used']['annual']) }}</span>
                         @if($stat['upcoming']['annual'] > 0)<span style="font-size:10px;color:#a78bfa;margin-left:2px;">+{{ $fmtDays($stat['upcoming']['annual']) }}</span>@endif
-                        <div style="font-size:9px;color:#cbd5e1;">일</div>
+                        <div style="font-size:9px;color:#cbd5e1;">{{ __('work.leave_unit_days') }}</div>
                     </td>
                     <td style="text-align:center;padding:7px 12px;">
                         <span style="font-size:13px;font-weight:700;color:#0ea5e9;">{{ $stat['used']['half'] }}</span>
                         @if($stat['upcoming']['half'] > 0)<span style="font-size:10px;color:#7dd3fc;margin-left:2px;">+{{ $stat['upcoming']['half'] }}</span>@endif
-                        <div style="font-size:9px;color:#cbd5e1;">회</div>
+                        <div style="font-size:9px;color:#cbd5e1;">{{ __('work.leave_unit_times') }}</div>
                     </td>
                     <td style="text-align:center;padding:7px 12px;">
                         <span style="font-size:13px;font-weight:700;color:#f59e0b;">{{ $fmtDays($stat['used']['sick']) }}</span>
                         @if($stat['upcoming']['sick'] > 0)<span style="font-size:10px;color:#fcd34d;margin-left:2px;">+{{ $fmtDays($stat['upcoming']['sick']) }}</span>@endif
-                        <div style="font-size:9px;color:#cbd5e1;">일</div>
+                        <div style="font-size:9px;color:#cbd5e1;">{{ __('work.leave_unit_days') }}</div>
                     </td>
                     <td style="text-align:center;padding:7px 12px;">
                         <span style="font-size:13px;font-weight:700;color:#64748b;">{{ $fmtDays($stat['used']['other']) }}</span>
                         @if($stat['upcoming']['other'] > 0)<span style="font-size:10px;color:#94a3b8;margin-left:2px;">+{{ $fmtDays($stat['upcoming']['other']) }}</span>@endif
-                        <div style="font-size:9px;color:#cbd5e1;">일</div>
+                        <div style="font-size:9px;color:#cbd5e1;">{{ __('work.leave_unit_days') }}</div>
                     </td>
                     <td style="text-align:center;padding:7px 18px;">
                         <span style="font-size:13px;font-weight:800;color:#374151;">{{ $fmtDays($stat['used']['total']) }}</span>
                         @if($stat['upcoming']['total'] > 0)<span style="font-size:10.5px;color:#a78bfa;margin-left:2px;">+{{ $fmtDays($stat['upcoming']['total']) }}</span>@endif
-                        <div style="font-size:9px;color:#cbd5e1;">일</div>
+                        <div style="font-size:9px;color:#cbd5e1;">{{ __('work.leave_unit_days') }}</div>
                     </td>
                 </tr>
                 @endforeach
@@ -312,7 +312,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
         <svg width="15" height="15" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.96L13.75 4a2 2 0 00-3.5 0L3.25 16.04A2 2 0 005.07 19z"/></svg>
         <span style="font-size:13px;font-weight:700;color:#92400e;">
             @if($isManager)
-            전체 미결 휴무 ({{ $pendingForMe->count() }}건)
+            {{ __('work.leave_all_pending_heading', ['count' => $pendingForMe->count()]) }}
             @else
             {{ __('work.leave_pending_approvals', ['count' => $pendingForMe->count()]) }}
             @endif
@@ -336,13 +336,13 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
             @if($isManager)
             <select id="leave-member-filter" onchange="filterLeaveByMember(this.value)"
                 style="padding:4px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:12px;color:#374151;background:#fff;outline:none;">
-                <option value="">전체 멤버</option>
+                <option value="">{{ __('work.leave_filter_all_members') }}</option>
                 @foreach($members as $m)
                 <option value="{{ $m->user_id }}">{{ $m->user->name }}</option>
                 @endforeach
             </select>
             @endif
-            <span style="font-size:12px;color:#94a3b8;">{{ $leaves->count() }}건</span>
+            <span style="font-size:12px;color:#94a3b8;">{{ __('work.leave_count', ['count' => $leaves->count()]) }}</span>
         </div>
     </div>
     <table style="width:100%;border-collapse:collapse;">

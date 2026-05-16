@@ -840,7 +840,7 @@ $_mmData = $project->projectMembers->map(function($m) {
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9300;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f4f4f5;">
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;">프로젝트 삭제</h3>
+            <h3 style="font-size:15px;font-weight:700;color:#18181b;">{{ __('projects.delete_modal_title') }}</h3>
             <button onclick="closeProjectDeleteModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -851,19 +851,19 @@ $_mmData = $project->projectMembers->map(function($m) {
                     <svg width="18" height="18" fill="none" stroke="#dc2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                 </div>
                 <div>
-                    <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 4px;">정말 삭제하시겠습니까?</p>
+                    <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 4px;">{{ __('projects.delete_confirm_heading') }}</p>
                     <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.5;">
-                        <strong style="color:#374151;">{{ $project->name }}</strong> 프로젝트와 연결된 모든 데이터가 삭제됩니다.<br>이 작업은 되돌릴 수 없습니다.
+                        {!! __('projects.delete_modal_warning', ['name' => '<strong style="color:#374151;">' . e($project->name) . '</strong>']) !!}<br>{{ __('projects.delete_modal_irreversible') }}
                     </p>
                 </div>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
-                <button onclick="closeProjectDeleteModal()" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">취소</button>
+                <button onclick="closeProjectDeleteModal()" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <form method="POST" action="{{ route('projects.destroy', $project) }}" style="margin:0;">
                     @csrf
                     @method('DELETE')
                     <button type="submit" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#dc2626;border:none;border-radius:8px;cursor:pointer;"
-                            onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">삭제 확인</button>
+                            onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">{{ __('projects.delete_confirm_btn') }}</button>
                 </form>
             </div>
         </div>

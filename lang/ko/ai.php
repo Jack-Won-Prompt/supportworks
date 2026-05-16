@@ -398,4 +398,5 @@ return [
     'enter_request'         => '요청 내용을 입력하세요.',
     'refine_fail'           => '정제 실패',
     'php_date_format'       => 'Y년 m월 d일 H:i',
+    'php_date_short'        => 'Y년 m월 d일',
 ];

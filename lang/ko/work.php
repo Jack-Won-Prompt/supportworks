@@ -236,4 +236,9 @@ return [
     'leave_half_day_unit'        => '0.5일',
     'leave_month_format'         => 'YYYY년 M월',
     'leave_month_name_format'    => 'M월',
+    'leave_team_stats_heading'   => '팀 휴가 현황 (:year년)',
+    'leave_team_col_total'       => '합계',
+    'leave_self_badge'           => '나',
+    'leave_all_pending_heading'  => '전체 미결 휴무 (:count건)',
+    'leave_filter_all_members'   => '전체 멤버',
 ];

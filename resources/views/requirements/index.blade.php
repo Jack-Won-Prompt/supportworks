@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', $project->name . ' - 요구사항')
+@section('title', $project->name . ' - ' . __('requirements.requirements'))
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">요구사항</span>
+<span style="color:#374151;font-weight:500;">{{ __('requirements.requirements') }}</span>
 @endsection
 
 @section('header-actions')@endsection
@@ -15,13 +15,13 @@
 @section('page-actions')
     <a href="{{ route('projects.requirements.export', $project) }}"
        style="padding:6px 13px;font-size:12px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;text-decoration:none;background:#fff;"
-       onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">CSV 내보내기</a>
+       onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('requirements.csv_export') }}</a>
     <button onclick="openAiModal()"
             style="padding:6px 13px;font-size:12px;font-weight:500;color:#7c3aed;border:1.5px solid #ddd6fe;border-radius:8px;background:#faf5ff;cursor:pointer;"
-            onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">요구사항 웍스 분석</button>
+            onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">{{ __('requirements.ai_analysis') }}</button>
     <button onclick="openReqModal()"
             style="padding:6px 14px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;"
-            onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">+ 새 요구사항</button>
+            onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">{{ __('requirements.new_requirement') }}</button>
 @endsection
 
 @section('content')
@@ -29,13 +29,13 @@
 
 {{-- 필터 바 --}}
 <form method="GET" id="filter-form" style="background:#fff;border:1px solid #f3f4f6;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
-    <input type="text" name="search" value="{{ request('search') }}" placeholder="제목 검색..."
+    <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('requirements.search_title_placeholder') }}"
            style="flex:1;min-width:160px;padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;outline:none;"
            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
 
     <select name="status" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 상태</option>
+        <option value="">{{ __('requirements.filter_all_status') }}</option>
         @foreach(\App\Models\Requirement::STATUS_LABELS as $val => $label)
             <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
@@ -43,7 +43,7 @@
 
     <select name="priority" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 우선순위</option>
+        <option value="">{{ __('requirements.filter_all_priority') }}</option>
         @foreach(\App\Models\Requirement::PRIORITY_LABELS as $val => $label)
             <option value="{{ $val }}" {{ request('priority') === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
@@ -51,7 +51,7 @@
 
     <select name="category" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 카테고리</option>
+        <option value="">{{ __('requirements.filter_all_category') }}</option>
         @foreach(\App\Models\Requirement::CATEGORY_LABELS as $val => $label)
             <option value="{{ $val }}" {{ request('category') === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
@@ -59,7 +59,7 @@
 
     <select name="assignee" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 담당자</option>
+        <option value="">{{ __('requirements.filter_all_assignee') }}</option>
         @foreach($members as $m)
             <option value="{{ $m->id }}" {{ request('assignee') == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
         @endforeach
@@ -68,7 +68,7 @@
     @if($project->si_mode_enabled)
     <select name="approval_status" onchange="this.form.submit()"
             style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;color:#374151;outline:none;background:#fff;">
-        <option value="">전체 승인상태</option>
+        <option value="">{{ __('requirements.filter_all_approval') }}</option>
         @foreach(\App\Models\Requirement::APPROVAL_LABELS as $val => $label)
             <option value="{{ $val }}" {{ request('approval_status') === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
@@ -77,37 +77,37 @@
 
     <button type="submit"
             style="padding:6px 14px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;background:#fff;cursor:pointer;color:#374151;"
-            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">검색</button>
+            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.search') }}</button>
     @if(request()->anyFilled(['search','status','priority','category','assignee','approval_status']))
     <a href="{{ route('projects.requirements.index', $project) }}"
-       style="padding:6px 10px;font-size:12px;color:#6b7280;text-decoration:none;">✕ 초기화</a>
+       style="padding:6px 10px;font-size:12px;color:#6b7280;text-decoration:none;">{{ __('requirements.filter_reset') }}</a>
     @endif
 </form>
 
 {{-- 일괄 액션 바 (체크 시 등장) --}}
 <div id="bulk-bar" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:10px 16px;margin-bottom:10px;align-items:center;gap:10px;flex-wrap:wrap;">
-    <span id="bulk-count" style="font-size:13px;font-weight:600;color:#1d4ed8;">0개 선택됨</span>
+    <span id="bulk-count" style="font-size:13px;font-weight:600;color:#1d4ed8;">{{ __('requirements.bulk_selected', ['n' => 0]) }}</span>
     <button id="bulk-apply-btn" onclick="openApplyModal()"
             style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:7px;cursor:pointer;transition:opacity .15s;"
             onmouseover="if(!this.disabled)this.style.background='#6d28d9'" onmouseout="if(!this.disabled)this.style.background='#7c3aed'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <span id="bulk-apply-text">기획서 추가</span>
+        <span id="bulk-apply-text">{{ __('requirements.bulk_apply_plan') }}</span>
     </button>
     <button id="bulk-gantt-btn" onclick="openGanttModal()"
             style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#0369a1;border:1.5px solid #bae6fd;border-radius:7px;background:#f0f9ff;cursor:pointer;transition:opacity .15s;"
             onmouseover="if(!this.disabled)this.style.background='#e0f2fe'" onmouseout="if(!this.disabled)this.style.background='#f0f9ff'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        <span id="bulk-gantt-text">Task 추가</span>
+        <span id="bulk-gantt-text">{{ __('requirements.bulk_add_task') }}</span>
     </button>
     <button id="bulk-delete-btn" onclick="openDeleteConfirm()"
             style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#dc2626;border:1.5px solid #fecaca;border-radius:7px;background:#fff5f5;cursor:pointer;transition:opacity .15s;"
             onmouseover="if(!this.disabled)this.style.background='#fee2e2'" onmouseout="if(!this.disabled)this.style.background='#fff5f5'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        <span id="bulk-delete-text">삭제</span>
+        <span id="bulk-delete-text">{{ __('requirements.bulk_delete') }}</span>
     </button>
     <button onclick="clearSelection()"
             style="padding:6px 12px;font-size:12px;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:7px;cursor:pointer;"
-            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">선택 해제</button>
+            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('requirements.bulk_clear') }}</button>
 </div>
 
 {{-- 테이블 --}}
@@ -115,24 +115,24 @@
     {{-- 헤더 행 --}}
     <div style="display:grid;grid-template-columns:36px 90px 1fr 80px 90px 100px 90px 32px;align-items:center;padding:8px 16px;border-bottom:1.5px solid #f3f4f6;gap:8px;background:#f9fafb;">
         <div style="text-align:center;">
-            <input type="checkbox" id="select-all-chk" title="전체 선택" style="cursor:pointer;"
+            <input type="checkbox" id="select-all-chk" title="{{ __('common.select_all') }}" style="cursor:pointer;"
                    onchange="toggleSelectAll(this)">
         </div>
-        <div style="font-size:11px;font-weight:600;color:#6b7280;">우선순위</div>
-        <div style="font-size:11px;font-weight:600;color:#6b7280;">제목</div>
-        <div style="font-size:11px;font-weight:600;color:#6b7280;text-align:center;">카테고리</div>
-        <div style="font-size:11px;font-weight:600;color:#6b7280;text-align:center;">상태</div>
-        <div style="font-size:11px;font-weight:600;color:#6b7280;text-align:center;">담당자</div>
+        <div style="font-size:11px;font-weight:600;color:#6b7280;">{{ __('requirements.col_priority') }}</div>
+        <div style="font-size:11px;font-weight:600;color:#6b7280;">{{ __('requirements.col_title') }}</div>
+        <div style="font-size:11px;font-weight:600;color:#6b7280;text-align:center;">{{ __('requirements.col_category') }}</div>
+        <div style="font-size:11px;font-weight:600;color:#6b7280;text-align:center;">{{ __('requirements.col_status') }}</div>
+        <div style="font-size:11px;font-weight:600;color:#6b7280;text-align:center;">{{ __('requirements.col_assignee') }}</div>
         <div style="font-size:11px;font-weight:600;color:#6b7280;text-align:center;">
             @if($project->si_mode_enabled)
-                승인상태
+                {{ __('requirements.col_approval') }}
             @else
                 <span style="display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;">
-                    <span style="color:#7c3aed;">기획서</span>
+                    <span style="color:#7c3aed;">{{ __('requirements.flow_plan') }}</span>
                     <span style="color:#d1d5db;">›</span>
-                    <span style="color:#0369a1;">Task</span>
+                    <span style="color:#0369a1;">{{ __('requirements.flow_task') }}</span>
                     <span style="color:#d1d5db;">›</span>
-                    <span style="color:#16a34a;">완료</span>
+                    <span style="color:#16a34a;">{{ __('requirements.flow_done') }}</span>
                 </span>
             @endif
         </div>
@@ -172,26 +172,26 @@
                onmouseover="this.style.color='var(--t500)'" onmouseout="this.style.color='#18181b'">{{ $req->title }}</a>
             <div style="font-size:11px;color:#a1a1aa;margin-top:2px;">
                 @if($req->source_type === 'ai_analyzed')
-                    <span style="display:inline-block;padding:0 5px;background:#ede9fe;color:#6d28d9;border-radius:3px;font-size:10px;font-weight:600;margin-right:4px;">웍스</span>
+                    <span style="display:inline-block;padding:0 5px;background:#ede9fe;color:#6d28d9;border-radius:3px;font-size:10px;font-weight:600;margin-right:4px;">{{ __('requirements.source_ai') }}</span>
                 @elseif($req->source_type === 'attachment_ai')
                     @php
                         preg_match('/#(\d+)/', $req->source_ref ?? '', $_srcM);
                         $_srcId = $_srcM[1] ?? null;
                     @endphp
-                    <span title="{{ $req->source_ref }}" style="display:inline-block;padding:0 5px;background:#ecfdf5;color:#059669;border-radius:3px;font-size:10px;font-weight:600;margin-right:2px;">파일웍스</span>
+                    <span title="{{ $req->source_ref }}" style="display:inline-block;padding:0 5px;background:#ecfdf5;color:#059669;border-radius:3px;font-size:10px;font-weight:600;margin-right:2px;">{{ __('requirements.source_file_ai') }}</span>
                     @if($_srcId)
                         <button onclick="event.stopPropagation(); openReqDetail({{ $_srcId }}, '{{ route('projects.requirements.show', [$project, $_srcId]) }}')"
                                 title="{{ $req->source_ref }}"
                                 style="display:inline-flex;align-items:center;gap:2px;padding:0 5px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:3px;font-size:10px;font-weight:600;color:#16a34a;cursor:pointer;margin-right:4px;"
                                 onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                            출처 #{{ $_srcId }}
+                            {{ __('requirements.source_ref_prefix', ['id' => $_srcId]) }}
                         </button>
                     @elseif($req->source_ref)
                         <span style="display:inline-block;padding:0 5px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:3px;font-size:10px;color:#16a34a;margin-right:4px;">{{ $req->source_ref }}</span>
                     @endif
                 @else
-                    <span style="display:inline-block;padding:0 5px;background:#f3f4f6;color:#6b7280;border-radius:3px;font-size:10px;font-weight:500;margin-right:4px;">직접</span>
+                    <span style="display:inline-block;padding:0 5px;background:#f3f4f6;color:#6b7280;border-radius:3px;font-size:10px;font-weight:500;margin-right:4px;">{{ __('requirements.source_direct') }}</span>
                 @endif
                 {{ $req->reporter?->name }} · {{ $req->created_at->format('Y-m-d') }}
                 @if($req->tags)
@@ -236,25 +236,25 @@
         <div style="text-align:center;">
             @if($req->applied_to_plan && in_array($req->id, $ganttReqIds))
                 {{-- 3단계: Task 추가 완료 --}}
-                <span title="일정 Task 추가 완료"
+                <span title="{{ __('requirements.task_done_title') }}"
                       style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;font-size:10px;font-weight:700;color:#16a34a;border:1px solid #bbf7d0;border-radius:5px;background:#f0fdf4;white-space:nowrap;">
-                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>Task 완료
+                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>{{ __('requirements.task_done') }}
                 </span>
             @elseif($req->applied_to_plan)
                 {{-- 2단계: 일정 Task 추가 --}}
                 <button onclick="openGanttModalForRow(this)"
-                        title="일정 Task 추가"
+                        title="{{ __('requirements.add_task_title') }}"
                         style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;font-size:10px;font-weight:600;color:#0369a1;border:1px solid #bae6fd;border-radius:5px;background:#f0f9ff;cursor:pointer;white-space:nowrap;"
                         onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f0f9ff'">
-                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Task 추가
+                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>{{ __('requirements.add_task') }}
                 </button>
             @else
                 {{-- 1단계: 기획서 추가 --}}
                 <button onclick="openApplyModal(['{{ $req->id }}'])"
-                        title="기획서에 추가"
+                        title="{{ __('requirements.add_plan_title') }}"
                         style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;font-size:10px;font-weight:600;color:#7c3aed;border:1px solid #ddd6fe;border-radius:5px;background:#faf5ff;cursor:pointer;white-space:nowrap;"
                         onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
-                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>기획서 추가
+                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>{{ __('requirements.add_plan') }}
                 </button>
             @endif
         </div>
@@ -264,7 +264,7 @@
         <div style="text-align:center;">
             @if($req->reporter_id === auth()->id() || auth()->user()->isAdmin())
             <button onclick="event.stopPropagation(); deleteOneReq({{ $req->id }}, '{{ route('projects.requirements.destroy', [$project, $req]) }}')"
-                    title="삭제"
+                    title="{{ __('requirements.delete_title') }}"
                     style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:none;border:1px solid transparent;border-radius:6px;color:#d1d5db;cursor:pointer;transition:all .15s;padding:0;"
                     onmouseover="this.style.color='#dc2626';this.style.background='#fef2f2';this.style.borderColor='#fecaca'"
                     onmouseout="this.style.color='#d1d5db';this.style.background='none';this.style.borderColor='transparent'">
@@ -276,10 +276,10 @@
     @empty
     <div style="padding:60px 20px;text-align:center;">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin:0 auto 12px;display:block;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <p style="color:#9ca3af;font-size:13px;margin-bottom:12px;">아직 등록된 요구사항이 없습니다.</p>
+        <p style="color:#9ca3af;font-size:13px;margin-bottom:12px;">{{ __('requirements.no_requirements') }}</p>
         <button onclick="openReqModal()"
                 style="padding:8px 18px;background:var(--t500);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;"
-                onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">+ 새 요구사항 만들기</button>
+                onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">{{ __('requirements.new_requirement_create') }}</button>
     </div>
     @endforelse
 </div>
@@ -292,51 +292,51 @@
 <div id="apply-overlay" onclick="closeApplyModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10100;"></div>
 <div id="apply-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10101;background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.18);width:600px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
-        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">기획서에 요구사항 적용</h3>
+        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.apply_modal_title') }}</h3>
         <button onclick="closeApplyModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
     </div>
 
     <div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px;">
         {{-- 선택된 요구사항 목록 --}}
         <div>
-            <p style="font-size:12px;font-weight:600;color:#374151;margin:0 0 6px;">선택된 요구사항 <span id="apply-req-count" style="color:var(--t500);">0</span>개</p>
+            <p style="font-size:12px;font-weight:600;color:#374151;margin:0 0 6px;">{{ __('requirements.apply_selected_reqs') }} <span id="apply-req-count" style="color:var(--t500);">0</span></p>
             <ul id="apply-req-list" style="margin:0;padding:0;list-style:none;max-height:120px;overflow-y:auto;border:1px solid #f3f4f6;border-radius:8px;padding:8px 12px;font-size:12px;color:#52525b;display:flex;flex-direction:column;gap:4px;"></ul>
         </div>
 
         {{-- 대상 기획서 --}}
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">대상 기획서 <span style="color:#ef4444;">*</span></label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.apply_target_plan') }} <span style="color:#ef4444;">*</span></label>
             <select id="apply-plan-sel"
                     style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;"
                     onchange="onPlanChange(this)">
-                <option value="">기획서 선택...</option>
+                <option value="">{{ __('requirements.apply_plan_placeholder') }}</option>
             </select>
         </div>
 
         {{-- 삽입 위치 --}}
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">삽입 위치</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">{{ __('requirements.apply_position') }}</label>
             <div style="display:flex;flex-direction:column;gap:6px;">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#374151;">
-                    <input type="radio" name="apply-position" value="end" checked onchange="onPositionChange()"> 기획서 끝에 추가
+                    <input type="radio" name="apply-position" value="end" checked onchange="onPositionChange()"> {{ __('requirements.apply_position_end') }}
                 </label>
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#374151;">
-                    <input type="radio" name="apply-position" value="beginning" onchange="onPositionChange()"> 기획서 처음에 추가
+                    <input type="radio" name="apply-position" value="beginning" onchange="onPositionChange()"> {{ __('requirements.apply_position_beginning') }}
                 </label>
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#374151;">
-                    <input type="radio" name="apply-position" value="after_section" onchange="onPositionChange()"> 특정 섹션 다음에
+                    <input type="radio" name="apply-position" value="after_section" onchange="onPositionChange()"> {{ __('requirements.apply_position_section') }}
                 </label>
             </div>
         </div>
 
         {{-- 섹션 선택 (after_section일 때만) --}}
         <div id="section-anchor-wrap" style="display:none;">
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">삽입할 섹션 선택</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.apply_section_select') }}</label>
             <select id="apply-anchor-sel"
                     style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;">
-                <option value="">섹션 선택...</option>
+                <option value="">{{ __('requirements.apply_section_placeholder') }}</option>
             </select>
-            <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">선택한 섹션의 다음 위치에 삽입됩니다. 섹션을 찾지 못하면 끝에 추가됩니다.</p>
+            <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">{{ __('requirements.apply_section_hint') }}</p>
         </div>
 
         {{-- 이미 적용된 항목 경고 --}}
@@ -345,12 +345,12 @@
         {{-- 미리보기 --}}
         <div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                <label style="font-size:12px;font-weight:600;color:#374151;">미리보기</label>
+                <label style="font-size:12px;font-weight:600;color:#374151;">{{ __('requirements.apply_preview') }}</label>
                 <button onclick="loadPreview()"
                         style="padding:3px 10px;font-size:11px;border:1.5px solid #e4e4e7;border-radius:6px;background:#fff;cursor:pointer;color:#374151;"
-                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">새로고침</button>
+                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.refresh') }}</button>
             </div>
-            <pre id="apply-preview" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:11px;color:#475569;overflow-x:auto;max-height:160px;white-space:pre-wrap;word-break:break-word;margin:0;">선택 후 미리보기가 여기에 표시됩니다.</pre>
+            <pre id="apply-preview" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:11px;color:#475569;overflow-x:auto;max-height:160px;white-space:pre-wrap;word-break:break-word;margin:0;">{{ __('requirements.apply_preview_placeholder') }}</pre>
         </div>
 
         {{-- 에러 --}}
@@ -359,10 +359,10 @@
         <div style="display:flex;gap:8px;padding-top:4px;border-top:1px solid #f3f4f6;">
             <button onclick="doApply()" id="apply-btn"
                     style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:9px;cursor:pointer;"
-                    onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">적용</button>
+                    onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">{{ __('requirements.apply_btn') }}</button>
             <button onclick="closeApplyModal()"
                     style="padding:9px 20px;font-size:13px;font-weight:600;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;"
-                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         </div>
     </div>
 </div>
@@ -373,7 +373,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
         <div>
             <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $project->name }}</p>
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">새 요구사항 등록</h3>
+            <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.req_modal_title') }}</h3>
         </div>
         <button onclick="closeReqModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
     </div>
@@ -381,22 +381,22 @@
     <form id="req-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:13px;">
         @csrf
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">제목 <span style="color:#ef4444;">*</span></label>
-            <input type="text" name="title" required placeholder="요구사항 제목을 입력하세요"
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.title') }} <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="title" required placeholder="{{ __('requirements.req_title_placeholder') }}"
                    style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;"
                    onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
         </div>
 
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">설명</label>
-            <textarea name="description" rows="4" placeholder="요구사항에 대한 상세 설명을 입력하세요"
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.description') }}</label>
+            <textarea name="description" rows="4" placeholder="{{ __('requirements.req_desc_placeholder') }}"
                       style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;"
                       onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">우선순위 <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.priority') }} <span style="color:#ef4444;">*</span></label>
                 <select name="priority" style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;"
                         onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
                     @foreach(\App\Models\Requirement::PRIORITY_LABELS as $val => $label)
@@ -405,7 +405,7 @@
                 </select>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">카테고리 <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.category') }} <span style="color:#ef4444;">*</span></label>
                 <select name="category" style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;"
                         onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
                     @foreach(\App\Models\Requirement::CATEGORY_LABELS as $val => $label)
@@ -416,10 +416,10 @@
         </div>
 
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">담당자</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.assignee') }}</label>
             <select name="assignee_id" style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;"
                     onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
-                <option value="">담당자 없음</option>
+                <option value="">{{ __('requirements.rd_no_assignee') }}</option>
                 @foreach($members as $m)
                     <option value="{{ $m->id }}">{{ $m->name }}</option>
                 @endforeach
@@ -427,18 +427,18 @@
         </div>
 
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">태그 <span style="font-weight:400;color:#9ca3af;">(쉼표로 구분)</span></label>
-            <input type="text" name="tags" placeholder="예: 로그인, 인증, API"
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.tags_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('requirements.tags_hint') }}</span></label>
+            <input type="text" name="tags" placeholder="{{ __('requirements.tags_placeholder') }}"
                    style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;"
                    onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
         </div>
 
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">첨부 파일 <span style="font-weight:400;color:#9ca3af;">(최대 10MB · 여러 파일 선택 가능)</span></label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.attachments_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('requirements.attachments_hint') }}</span></label>
             <label id="req-file-label" style="display:flex;align-items:center;gap:8px;padding:8px 11px;border:1.5px dashed #e4e4e7;border-radius:8px;cursor:pointer;transition:border-color .15s;background:#fafafa;"
                    onmouseover="this.style.borderColor='var(--t500)'" onmouseout="this.style.borderColor='#e4e4e7'">
                 <svg width="16" height="16" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                <span id="req-file-hint" style="font-size:12.5px;color:#94a3b8;">파일을 선택하세요</span>
+                <span id="req-file-hint" style="font-size:12.5px;color:#94a3b8;">{{ __('requirements.file_select_placeholder') }}</span>
                 <input type="file" name="attachments[]" id="req-file-input" multiple
                        style="display:none;" onchange="reqFileChanged(this)">
             </label>
@@ -447,10 +447,10 @@
 
         @if($project->si_mode_enabled)
         <div style="border-top:1px solid #f3f4f6;padding-top:13px;">
-            <p style="font-size:11px;font-weight:600;color:#8b5cf6;margin:0 0 10px;">SI 계약 모드</p>
+            <p style="font-size:11px;font-weight:600;color:#8b5cf6;margin:0 0 10px;">{{ __('requirements.si_mode') }}</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">요구사항 유형</label>
+                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.requirement_type') }}</label>
                     <select name="requirement_type" style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                         @foreach(\App\Models\Requirement::TYPE_LABELS as $val => $label)
                             <option value="{{ $val }}">{{ $label }}</option>
@@ -458,8 +458,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">출처 참조 <span style="font-weight:400;color:#9ca3af;">(예: RFP 3.2.1)</span></label>
-                    <input type="text" name="source_ref" placeholder="RFP / 계약서 참조"
+                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.source_ref') }} <span style="font-weight:400;color:#9ca3af;">{{ __('requirements.source_ref_hint') }}</span></label>
+                    <input type="text" name="source_ref" placeholder="{{ __('requirements.source_ref_placeholder') }}"
                            style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
                 </div>
@@ -472,10 +472,10 @@
         <div style="display:flex;gap:8px;padding-top:4px;">
             <button type="submit" id="req-submit"
                     style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:9px;cursor:pointer;font-family:inherit;"
-                    onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">등록</button>
+                    onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">{{ __('common.register') }}</button>
             <button type="button" onclick="closeReqModal()"
                     style="padding:9px 20px;font-size:13px;font-weight:600;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;font-family:inherit;"
-                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         </div>
     </form>
 </div>
@@ -487,7 +487,7 @@
     <div style="position:sticky;top:0;z-index:1;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
         <div>
             <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $project->name }}</p>
-            <h3 id="ai-modal-title" style="font-size:15px;font-weight:700;color:#18181b;margin:0;">웍스 요구사항 분석</h3>
+            <h3 id="ai-modal-title" style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.ai_modal_title') }}</h3>
         </div>
         <button onclick="closeAiModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
     </div>
@@ -497,15 +497,15 @@
         <form id="ai-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:16px;">
             @csrf
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">문서 파일 <span style="font-weight:400;color:#9ca3af;">(선택)</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">{{ __('requirements.ai_doc_file') }} <span style="font-weight:400;color:#9ca3af;">{{ __('requirements.ai_optional') }}</span></label>
                 <div id="ai-drop-zone" onclick="document.getElementById('ai-file-input').click()"
                      style="border:2px dashed #d1d5db;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border-color .15s;"
                      onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#d1d5db'">
                     <svg style="width:32px;height:32px;margin:0 auto 6px;display:block;color:#9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
-                    <p style="font-size:13px;color:#6b7280;margin:0;">클릭하거나 파일을 드래그하세요</p>
-                    <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">docx · xlsx · pptx · pdf · txt · md (최대 20MB, 10개)</p>
+                    <p style="font-size:13px;color:#6b7280;margin:0;">{{ __('requirements.ai_drop_hint') }}</p>
+                    <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">{{ __('requirements.ai_file_types') }}</p>
                 </div>
                 <input id="ai-file-input" type="file" name="files[]" multiple
                        accept=".docx,.xlsx,.xls,.pptx,.ppt,.pdf,.txt,.md,.csv,.log"
@@ -514,10 +514,10 @@
             </div>
             <div>
                 <label for="ai-context" style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">
-                    분석 컨텍스트 메모 <span style="font-weight:400;color:#9ca3af;">(선택)</span>
+                    {{ __('requirements.ai_context_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('requirements.ai_optional') }}</span>
                 </label>
                 <textarea id="ai-context" name="context_note" rows="4" maxlength="2000"
-                          placeholder="프로젝트 배경, 분석 목적, 제외할 내용 등을 입력하세요."
+                          placeholder="{{ __('requirements.ai_context_placeholder') }}"
                           style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;"
                           onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
             </div>
@@ -525,10 +525,10 @@
             <div style="display:flex;gap:8px;padding-top:4px;">
                 <button type="submit" id="ai-submit"
                         style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:9px;cursor:pointer;font-family:inherit;"
-                        onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">분석 시작</button>
+                        onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">{{ __('requirements.ai_start') }}</button>
                 <button type="button" onclick="closeAiModal()"
                         style="padding:9px 20px;font-size:13px;font-weight:600;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;font-family:inherit;"
-                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
             </div>
         </form>
     </div>
@@ -539,8 +539,8 @@
             <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
-        <p style="font-size:15px;font-weight:600;color:#374151;margin:0 0 8px;">웍스가 문서를 분석하고 있습니다</p>
-        <p style="font-size:12px;color:#9ca3af;margin:0;">문서 분량에 따라 30초~1분 정도 소요될 수 있습니다.</p>
+        <p style="font-size:15px;font-weight:600;color:#374151;margin:0 0 8px;">{{ __('requirements.ai_step_loading_title') }}</p>
+        <p style="font-size:12px;color:#9ca3af;margin:0;">{{ __('requirements.ai_step_loading_hint') }}</p>
     </div>
 
     {{-- Step 3: 결과 검토 --}}
@@ -551,7 +551,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
                 <p id="ai-review-count" style="font-size:13px;font-weight:600;color:#374151;margin:0;"></p>
                 <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7280;cursor:pointer;">
-                    <input type="checkbox" id="ai-select-all" onchange="aiToggleAll(this)"> 전체 선택
+                    <input type="checkbox" id="ai-select-all" onchange="aiToggleAll(this)"> {{ __('requirements.ai_select_all') }}
                 </label>
             </div>
             <div id="ai-review-candidates" style="display:flex;flex-direction:column;gap:8px;padding-bottom:80px;"></div>
@@ -561,10 +561,10 @@
         <div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #f0f0f0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;">
             <button onclick="aiReject()" id="ai-reject-btn"
                     style="padding:8px 16px;font-size:13px;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;color:#6b7280;cursor:pointer;"
-                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">거부</button>
+                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('requirements.ai_reject') }}</button>
             <button onclick="aiApprove()" id="ai-approve-btn"
                     style="padding:8px 22px;font-size:13px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:8px;cursor:pointer;"
-                    onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">선택한 요구사항 등록</button>
+                    onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">{{ __('requirements.ai_approve') }}</button>
         </div>
     </div>
 
@@ -576,21 +576,21 @@
             </svg>
         </div>
         <p id="ai-success-msg" style="font-size:15px;font-weight:700;color:#18181b;margin:0 0 4px;"></p>
-        <p style="font-size:12px;color:#6b7280;margin:0 0 22px;">요구사항 목록에서 확인할 수 있습니다.</p>
+        <p style="font-size:12px;color:#6b7280;margin:0 0 22px;">{{ __('requirements.ai_success_hint') }}</p>
         <div style="background:#faf5ff;border:1.5px solid #ede9fe;border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:14px;">
-            <p style="font-size:12px;font-weight:600;color:#7c3aed;margin:0 0 8px;">기획서에 바로 적용</p>
+            <p style="font-size:12px;font-weight:600;color:#7c3aed;margin:0 0 8px;">{{ __('requirements.ai_apply_to_plan') }}</p>
             <div style="display:flex;gap:8px;">
                 <select id="ai-success-plan-sel"
                         style="flex:1;padding:7px 10px;border:1.5px solid #ddd6fe;border-radius:7px;font-size:12px;outline:none;background:#fff;"></select>
                 <button onclick="aiApplyToPlan()" id="ai-success-apply-btn"
                         style="padding:7px 16px;font-size:12px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:7px;cursor:pointer;"
-                        onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">적용</button>
+                        onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">{{ __('requirements.apply_btn') }}</button>
             </div>
             <div id="ai-success-plan-error" style="display:none;margin-top:6px;font-size:11px;color:#dc2626;"></div>
         </div>
         <button onclick="closeAiModal();location.reload();"
                 style="padding:8px 28px;font-size:13px;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
-                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">닫기</button>
+                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.close') }}</button>
     </div>
 
     {{-- Step 5: 분석 실패 --}}
@@ -600,15 +600,15 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </div>
-        <p style="font-size:14px;font-weight:700;color:#18181b;margin:0 0 6px;">분석 실패</p>
+        <p style="font-size:14px;font-weight:700;color:#18181b;margin:0 0 6px;">{{ __('requirements.ai_failed_title') }}</p>
         <p id="ai-failed-msg" style="font-size:12px;color:#dc2626;margin:0 0 22px;word-break:break-all;"></p>
         <div style="display:flex;gap:8px;justify-content:center;">
             <button onclick="showAiStep('upload')"
                     style="padding:8px 22px;font-size:13px;font-weight:600;color:#fff;background:#dc2626;border:none;border-radius:8px;cursor:pointer;"
-                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">다시 시도</button>
+                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">{{ __('requirements.ai_retry') }}</button>
             <button onclick="closeAiModal()"
                     style="padding:8px 20px;font-size:13px;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
-                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">닫기</button>
+                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.close') }}</button>
         </div>
     </div>
 </div>
@@ -622,7 +622,7 @@
         <div style="flex:1;min-width:0;">
             <div id="rd-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;"></div>
             <div id="rd-title-wrap" style="display:flex;align-items:center;gap:6px;">
-                <h2 id="rd-title" onclick="rdToggleTitle()" title="클릭하여 수정"
+                <h2 id="rd-title" onclick="rdToggleTitle()" title="{{ __('requirements.rd_title_edit_hint') }}"
                     style="font-size:17px;font-weight:700;color:#18181b;margin:0;line-height:1.4;cursor:pointer;flex:1;min-width:0;padding:2px 4px;border-radius:6px;transition:background .12s;"
                     onmouseover="this.style.background='#faf5ff'" onmouseout="this.style.background='transparent'"></h2>
             </div>
@@ -631,8 +631,8 @@
                        style="width:100%;padding:6px 10px;border:1.5px solid var(--t500);border-radius:7px;font-size:16px;font-weight:700;color:#18181b;outline:none;box-sizing:border-box;"
                        onkeydown="if(event.key==='Enter'){event.preventDefault();rdSaveTitle();}else if(event.key==='Escape'){rdToggleTitle();}">
                 <div style="display:flex;gap:6px;margin-top:6px;">
-                    <button onclick="rdSaveTitle()" style="padding:5px 12px;font-size:11px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:6px;cursor:pointer;">저장</button>
-                    <button onclick="rdToggleTitle()" style="padding:5px 12px;font-size:11px;color:#6b7280;border:1.5px solid #e4e4e7;background:#fff;border-radius:6px;cursor:pointer;">취소</button>
+                    <button onclick="rdSaveTitle()" style="padding:5px 12px;font-size:11px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:6px;cursor:pointer;">{{ __('common.save') }}</button>
+                    <button onclick="rdToggleTitle()" style="padding:5px 12px;font-size:11px;color:#6b7280;border:1.5px solid #e4e4e7;background:#fff;border-radius:6px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 </div>
             </div>
             <p id="rd-meta" style="font-size:11px;color:#9ca3af;margin:4px 0 0;"></p>
@@ -640,7 +640,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <button id="rd-delete-btn" onclick="rdDelete()" style="display:none;padding:5px 10px;font-size:11px;color:#dc2626;border:1.5px solid #fecaca;border-radius:7px;background:#fff;cursor:pointer;"
-                    onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">삭제</button>
+                    onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">{{ __('common.delete') }}</button>
             <button onclick="closeReqDetail()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:2px;line-height:1;">&times;</button>
         </div>
     </div>
@@ -654,15 +654,15 @@
             {{-- 설명 --}}
             <div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                    <p style="font-size:12px;font-weight:700;color:#374151;margin:0;">설명</p>
-                    <button onclick="rdToggleDesc()" style="font-size:12px;color:var(--t500);background:none;border:none;cursor:pointer;padding:0;">편집</button>
+                    <p style="font-size:12px;font-weight:700;color:#374151;margin:0;">{{ __('common.description') }}</p>
+                    <button onclick="rdToggleDesc()" style="font-size:12px;color:var(--t500);background:none;border:none;cursor:pointer;padding:0;">{{ __('requirements.rd_edit') }}</button>
                 </div>
                 <div id="rd-desc-view" style="font-size:13px;color:#374151;line-height:1.7;white-space:pre-wrap;min-height:40px;"></div>
                 <div id="rd-desc-edit" style="display:none;">
                     <textarea id="rd-desc-input" rows="6" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
                     <div style="display:flex;gap:8px;margin-top:6px;">
-                        <button onclick="rdSaveDesc()" style="padding:5px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:7px;cursor:pointer;">저장</button>
-                        <button onclick="rdToggleDesc()" style="padding:5px 12px;font-size:12px;color:#6b7280;border:1.5px solid #e4e4e7;background:#fff;border-radius:7px;cursor:pointer;">취소</button>
+                        <button onclick="rdSaveDesc()" style="padding:5px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:7px;cursor:pointer;">{{ __('common.save') }}</button>
+                        <button onclick="rdToggleDesc()" style="padding:5px 12px;font-size:12px;color:#6b7280;border:1.5px solid #e4e4e7;background:#fff;border-radius:7px;cursor:pointer;">{{ __('common.cancel') }}</button>
                     </div>
                 </div>
             </div>
@@ -672,16 +672,16 @@
                 <p id="rd-comment-title" style="font-size:12px;font-weight:700;color:#374151;margin:0 0 10px;"></p>
                 <div id="rd-comment-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
                 <div style="display:flex;gap:8px;align-items:flex-end;">
-                    <textarea id="rd-comment-input" rows="2" placeholder="댓글을 입력하세요..."
+                    <textarea id="rd-comment-input" rows="2" placeholder="{{ __('requirements.rd_comment_placeholder') }}"
                               style="flex:1;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:none;font-family:inherit;"
                               onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
-                    <button onclick="rdPostComment()" style="padding:8px 12px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">등록</button>
+                    <button onclick="rdPostComment()" style="padding:8px 12px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">{{ __('common.register') }}</button>
                 </div>
             </div>
 
             {{-- 변경 이력 --}}
             <div id="rd-history-wrap" style="display:none;">
-                <p style="font-size:12px;font-weight:700;color:#374151;margin:0 0 8px;">변경 이력</p>
+                <p style="font-size:12px;font-weight:700;color:#374151;margin:0 0 8px;">{{ __('requirements.rd_history') }}</p>
                 <div id="rd-history-list" style="display:flex;flex-direction:column;gap:4px;"></div>
             </div>
         </div>
@@ -691,11 +691,11 @@
 
             {{-- 세부 정보 --}}
             <div>
-                <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px;">세부 정보</p>
+                <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px;">{{ __('requirements.rd_details') }}</p>
 
                 <div style="display:flex;flex-direction:column;gap:9px;">
                     <div>
-                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">상태</label>
+                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">{{ __('common.status') }}</label>
                         <select id="rd-status" onchange="rdPatch('status', this.value)" style="width:100%;padding:6px 8px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12px;outline:none;background:#fff;">
                             @foreach(\App\Models\Requirement::STATUS_LABELS as $v => $l)
                                 <option value="{{ $v }}">{{ $l }}</option>
@@ -703,7 +703,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">우선순위</label>
+                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">{{ __('common.priority') }}</label>
                         <select id="rd-priority" onchange="rdPatch('priority', this.value)" style="width:100%;padding:6px 8px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12px;outline:none;background:#fff;">
                             @foreach(\App\Models\Requirement::PRIORITY_LABELS as $v => $l)
                                 <option value="{{ $v }}">{{ $l }}</option>
@@ -711,7 +711,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">카테고리</label>
+                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">{{ __('common.category') }}</label>
                         <select id="rd-category" onchange="rdPatch('category', this.value)" style="width:100%;padding:6px 8px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12px;outline:none;background:#fff;">
                             @foreach(\App\Models\Requirement::CATEGORY_LABELS as $v => $l)
                                 <option value="{{ $v }}">{{ $l }}</option>
@@ -719,17 +719,17 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">담당자</label>
+                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">{{ __('common.assignee') }}</label>
                         <select id="rd-assignee" onchange="rdPatch('assignee_id', this.value)" style="width:100%;padding:6px 8px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12px;outline:none;background:#fff;">
-                            <option value="">담당자 없음</option>
+                            <option value="">{{ __('requirements.rd_no_assignee') }}</option>
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">등록자</label>
+                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">{{ __('requirements.rd_reporter') }}</label>
                         <p id="rd-reporter" style="font-size:12px;color:#374151;margin:0;"></p>
                     </div>
                     <div>
-                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">태그</label>
+                        <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">{{ __('requirements.tags') }}</label>
                         <div id="rd-tags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
                     </div>
                     <button id="rd-watch-btn" onclick="rdToggleWatch()" style="width:100%;padding:6px;font-size:12px;font-weight:600;border-radius:8px;border:1.5px solid #e4e4e7;background:#fff;color:#6b7280;cursor:pointer;margin-top:2px;"></button>
@@ -738,13 +738,13 @@
 
             {{-- 첨부 파일 --}}
             <div>
-                <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">첨부 파일</p>
+                <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">{{ __('requirements.rd_attachments') }}</p>
                 <div id="rd-attachments" style="display:flex;flex-direction:column;gap:5px;"></div>
             </div>
 
             {{-- 기획서 적용 이력 --}}
             <div>
-                <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">기획서 적용 이력</p>
+                <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">{{ __('requirements.rd_plan_history') }}</p>
                 <div id="rd-plan-apps" style="display:flex;flex-direction:column;gap:6px;"></div>
             </div>
         </div>
@@ -758,21 +758,21 @@
         <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:#fee2e2;flex-shrink:0;">
             <svg width="16" height="16" fill="none" stroke="#dc2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </span>
-        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">요구사항 삭제</h3>
+        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.del_modal_title') }}</h3>
         <button onclick="closeDeleteConfirm()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
     </div>
     <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px;">
         <div id="del-info" style="font-size:13px;color:#374151;"></div>
         <div id="del-skip-warn" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:9px 12px;font-size:12px;color:#92400e;"></div>
-        <p style="font-size:12px;color:#6b7280;margin:0;">삭제된 요구사항은 연결된 기획서에서도 제거됩니다. 이 작업은 되돌릴 수 없습니다.</p>
+        <p style="font-size:12px;color:#6b7280;margin:0;">{{ __('requirements.del_warning') }}</p>
         <div id="del-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:9px 12px;font-size:12px;color:#dc2626;"></div>
         <div style="display:flex;gap:8px;padding-top:4px;">
             <button id="del-confirm-btn" onclick="doDeleteRequirements()"
                     style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#fff;background:#dc2626;border:none;border-radius:9px;cursor:pointer;"
-                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">삭제 확인</button>
+                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">{{ __('requirements.del_confirm_btn') }}</button>
             <button onclick="closeDeleteConfirm()"
                     style="padding:9px 20px;font-size:13px;font-weight:600;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;"
-                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                    onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         </div>
     </div>
 </div>
@@ -783,10 +783,10 @@
 
     {{-- 상단바 --}}
     <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:10px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
-        <span style="font-size:12px;font-weight:700;color:#c4b5fd;letter-spacing:.03em;">파일 리뷰 · 웍스 요구사항 분석</span>
+        <span style="font-size:12px;font-weight:700;color:#c4b5fd;letter-spacing:.03em;">{{ __('requirements.rfm_header') }}</span>
         <div id="rfm-tabs" style="display:flex;gap:4px;margin-left:8px;overflow-x:auto;flex:1;min-width:0;"></div>
         <button onclick="closeFileReviewModal()" style="display:inline-flex;align-items:center;gap:5px;color:#9ca3af;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='none'">
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>닫기
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>{{ __('common.close') }}
         </button>
     </div>
 
@@ -812,13 +812,13 @@
                     <button onclick="rfmOfficeNav(-1)"
                             style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>이전
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>{{ __('common.prev') }}
                     </button>
                     <span id="rfm-office-page-info" style="font-size:13px;font-weight:600;color:#e5e7eb;min-width:140px;text-align:center;"></span>
                     <button onclick="rfmOfficeNav(1)"
                             style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
-                        다음<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        {{ __('common.next') }}<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
                 {{-- 우측: 확대/축소 --}}
@@ -826,21 +826,21 @@
                     <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin-right:2px;"></div>
                     <button onclick="rfmZoom(-0.2)"
                             style="width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:16px;line-height:1;cursor:pointer;transition:background .15s;flex-shrink:0;"
-                            onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'" title="축소">−</button>
+                            onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'" title="{{ __('requirements.rfm_zoom_out') }}">−</button>
                     <span id="rfm-zoom-label" style="font-size:12px;color:#9ca3af;min-width:36px;text-align:center;font-weight:600;">100%</span>
                     <button onclick="rfmZoom(0.2)"
                             style="width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:16px;line-height:1;cursor:pointer;transition:background .15s;flex-shrink:0;"
-                            onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'" title="확대">+</button>
+                            onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'" title="{{ __('requirements.rfm_zoom_in') }}">+</button>
                     <button onclick="rfmZoomReset()"
                             style="padding:4px 9px;display:inline-flex;align-items:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#9ca3af;border-radius:6px;font-size:11px;cursor:pointer;transition:background .15s;flex-shrink:0;"
-                            onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'" title="원래 크기로">원래 크기</button>
+                            onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'" title="{{ __('requirements.rfm_zoom_reset_title') }}">{{ __('requirements.rfm_zoom_reset') }}</button>
                 </div>
             </div>
             <div id="rfm-unsupported" style="display:none;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6b7280;font-size:13px;gap:8px;z-index:1;">
                 <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>미리보기를 지원하지 않는 형식입니다</span>
+                <span>{{ __('requirements.rfm_unsupported') }}</span>
                 <a id="rfm-unsupported-dl" href="#" style="display:none;margin-top:6px;padding:7px 18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#9ca3af;font-size:12px;text-decoration:none;"
-                   onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">다운로드</a>
+                   onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">{{ __('common.download') }}</a>
             </div>
         </div>
 
@@ -851,42 +851,42 @@
             <div style="padding:14px 16px 12px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
                 <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
                     <svg width="15" height="15" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                    <span style="font-size:13px;font-weight:700;color:#1f2937;">웍스 추가 요구기능 추천</span>
+                    <span style="font-size:13px;font-weight:700;color:#1f2937;">{{ __('requirements.rfm_recommend_title') }}</span>
                     <span id="rfm-result-cnt" style="display:none;font-size:11px;background:#d1fae5;color:#065f46;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
                 </div>
                 <button id="rfm-analyze-btn" onclick="rfmAnalyze()"
                         style="width:100%;padding:8px;font-size:13px;font-weight:600;color:#fff;background:#059669;border:none;border-radius:8px;cursor:pointer;transition:background .15s;"
                         onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
-                    추가 요구기능 추천받기
+                    {{ __('requirements.rfm_recommend_btn') }}
                 </button>
                 <div id="rfm-ai-loading" style="display:none;margin-top:8px;display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280;padding:6px 0;">
                     <div style="width:14px;height:14px;border:2px solid #d1fae5;border-top-color:#059669;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;"></div>
-                    기획서·요구사항·파일 종합 분석 중...
+                    {{ __('requirements.rfm_analyzing') }}
                 </div>
                 <div id="rfm-ai-error" style="display:none;margin-top:8px;font-size:12px;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;padding:7px 10px;"></div>
             </div>
 
             {{-- 결과 목록 --}}
             <div id="rfm-results" style="flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
-                <div id="rfm-empty" style="color:#9ca3af;font-size:12px;text-align:center;padding:24px 0;line-height:1.6;">분석 버튼을 눌러<br>요구사항을 추출하세요</div>
+                <div id="rfm-empty" style="color:#9ca3af;font-size:12px;text-align:center;padding:24px 0;line-height:1.6;">{!! __('requirements.rfm_empty') !!}</div>
             </div>
 
             {{-- 하단 액션 --}}
             <div style="padding:12px 14px;border-top:1px solid #f3f4f6;flex-shrink:0;background:#fafaf9;display:flex;flex-direction:column;gap:8px;">
                 <div id="rfm-select-bar" style="display:none;display:flex;align-items:center;justify-content:space-between;">
                     <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280;cursor:pointer;">
-                        <input type="checkbox" id="rfm-select-all" onchange="rfmToggleAll(this.checked)"> 전체 선택
+                        <input type="checkbox" id="rfm-select-all" onchange="rfmToggleAll(this.checked)"> {{ __('requirements.rfm_select_all') }}
                     </label>
                     <span id="rfm-sel-cnt" style="font-size:12px;color:#059669;font-weight:600;"></span>
                 </div>
                 <button id="rfm-apply-btn" onclick="rfmApplyAndSubmit()"
                         style="width:100%;padding:9px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;transition:background .15s;"
                         onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
-                    등록 완료
+                    {{ __('requirements.rfm_register_done') }}
                 </button>
                 <button onclick="closeFileReviewModal()"
                         style="width:100%;padding:8px;font-size:12px;font-weight:600;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
-                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                        onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
             </div>
         </div>
     </div>
@@ -914,7 +914,7 @@ async function updateBulkBar() {
     const checked = getChecked();
     const bar = document.getElementById('bulk-bar');
     bar.style.display = checked.length > 0 ? 'flex' : 'none';
-    document.getElementById('bulk-count').textContent = checked.length + '개 선택됨';
+    document.getElementById('bulk-count').textContent = @json(__('requirements.bulk_selected')).replace(':n', checked.length);
 
     // 선택된 행의 상태별 카운트
     let canApply = 0, canGantt = 0;
@@ -932,13 +932,13 @@ async function updateBulkBar() {
     applyBtn.style.opacity    = canApply === 0 ? '0.35' : '1';
     applyBtn.style.cursor     = canApply === 0 ? 'not-allowed' : 'pointer';
     applyBtn.style.background = canApply === 0 ? '#a78bfa' : '#7c3aed';
-    document.getElementById('bulk-apply-text').textContent = canApply > 0 ? `기획서 추가 (${canApply}개)` : '기획서 추가';
+    document.getElementById('bulk-apply-text').textContent = canApply > 0 ? @json(__('requirements.bulk_apply_plan_count')).replace(':n', canApply) : @json(__('requirements.bulk_apply_plan'));
 
     const ganttBtn = document.getElementById('bulk-gantt-btn');
     ganttBtn.disabled = canGantt === 0;
     ganttBtn.style.opacity = canGantt === 0 ? '0.35' : '1';
     ganttBtn.style.cursor  = canGantt === 0 ? 'not-allowed' : 'pointer';
-    document.getElementById('bulk-gantt-text').textContent = canGantt > 0 ? `Task 추가 (${canGantt}개)` : 'Task 추가';
+    document.getElementById('bulk-gantt-text').textContent = canGantt > 0 ? @json(__('requirements.bulk_add_task_count')).replace(':n', canGantt) : @json(__('requirements.bulk_add_task'));
 
     let canDelete = 0;
     checked.forEach(id => {
@@ -950,7 +950,7 @@ async function updateBulkBar() {
     deleteBtn.disabled = canDelete === 0;
     deleteBtn.style.opacity = canDelete === 0 ? '0.35' : '1';
     deleteBtn.style.cursor  = canDelete === 0 ? 'not-allowed' : 'pointer';
-    document.getElementById('bulk-delete-text').textContent = canDelete > 0 ? `삭제 (${canDelete}개)` : '삭제';
+    document.getElementById('bulk-delete-text').textContent = canDelete > 0 ? @json(__('requirements.bulk_delete_count')).replace(':n', canDelete) : @json(__('requirements.bulk_delete'));
 
     // 전체선택 체크 동기화
     const all = document.querySelectorAll('.req-chk');
@@ -973,7 +973,7 @@ async function deleteOneReq(id, destroyUrl) {
     _deleteableIds = [String(id)];
 
     document.getElementById('del-info').innerHTML =
-        '<strong style="color:#dc2626;">1개</strong>의 요구사항을 삭제합니다.';
+        @json(__('requirements.del_info')).replace(':n', '<strong style="color:#dc2626;">1</strong>');
     document.getElementById('del-skip-warn').style.display = 'none';
     document.getElementById('del-error').style.display     = 'none';
     document.getElementById('del-modal').style.display     = 'block';
@@ -995,12 +995,12 @@ async function openDeleteConfirm() {
     const blockedIds = checked.filter(id => !_deleteableIds.includes(id));
 
     const infoEl = document.getElementById('del-info');
-    infoEl.innerHTML = `<strong style="color:#dc2626;">${_deleteableIds.length}개</strong>의 요구사항을 삭제합니다.`;
+    infoEl.innerHTML = @json(__('requirements.del_info')).replace(':n', `<strong style="color:#dc2626;">${_deleteableIds.length}</strong>`);
 
     const warnEl = document.getElementById('del-skip-warn');
     if (blockedIds.length > 0) {
         warnEl.style.display = 'block';
-        warnEl.textContent = `${blockedIds.length}개는 진행중·완료 일정 Task가 연결되어 있어 건너뜁니다.`;
+        warnEl.textContent = @json(__('requirements.del_skip_warn')).replace(':n', blockedIds.length);
     } else {
         warnEl.style.display = 'none';
     }
@@ -1020,7 +1020,7 @@ async function doDeleteRequirements() {
 
     const btn = document.getElementById('del-confirm-btn');
     btn.disabled = true;
-    btn.textContent = '삭제 중...';
+    btn.textContent = @json(__('requirements.js_deleting'));
 
     try {
         const res = await fetch(BULK_DESTROY_URL, {
@@ -1032,16 +1032,16 @@ async function doDeleteRequirements() {
 
         if (!res.ok || !data.ok) {
             document.getElementById('del-error').style.display = 'block';
-            document.getElementById('del-error').textContent = data.error || '삭제 중 오류가 발생했습니다.';
+            document.getElementById('del-error').textContent = data.error || @json(__('requirements.js_delete_error'));
             btn.disabled = false;
-            btn.textContent = '삭제 확인';
+            btn.textContent = @json(__('requirements.del_confirm_btn'));
             return;
         }
 
         closeDeleteConfirm();
 
         if (data.skipped && data.skipped.length > 0) {
-            alert(`${data.deleted}개 삭제 완료. ${data.skipped.length}개는 삭제되지 않았습니다.`);
+            alert(@json(__('requirements.js_delete_partial')).replace(':deleted', data.deleted).replace(':skipped', data.skipped.length));
         }
 
         // 삭제된 행 제거
@@ -1053,9 +1053,9 @@ async function doDeleteRequirements() {
 
     } catch {
         document.getElementById('del-error').style.display = 'block';
-        document.getElementById('del-error').textContent = '네트워크 오류가 발생했습니다.';
+        document.getElementById('del-error').textContent = @json(__('requirements.js_network_error'));
         btn.disabled = false;
-        btn.textContent = '삭제 확인';
+        btn.textContent = @json(__('requirements.del_confirm_btn'));
     }
 }
 
@@ -1080,7 +1080,7 @@ async function openApplyModal(overrideIds = null) {
             return row && row.dataset.applied !== '1';
         });
         if (_selectedReqIds.length === 0) {
-            alert('선택한 요구사항은 이미 모두 기획서에 적용되어 있습니다.');
+            alert(@json(__('requirements.js_already_applied')));
             return;
         }
     }
@@ -1095,20 +1095,20 @@ async function openApplyModal(overrideIds = null) {
 
     document.getElementById('apply-error').style.display = 'none';
     document.getElementById('apply-skip-warn').style.display = 'none';
-    document.getElementById('apply-preview').textContent = '선택 후 미리보기가 여기에 표시됩니다.';
+    document.getElementById('apply-preview').textContent = @json(__('requirements.apply_preview_placeholder'));
 
     // load plans
     const planSel = document.getElementById('apply-plan-sel');
-    planSel.innerHTML = '<option value="">불러오는 중...</option>';
+    planSel.innerHTML = '<option value="">' + @json(__('requirements.js_preview_loading')) + '</option>';
 
     try {
         const res = await fetch(PLANS_URL, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
         const data = await res.json();
         _planData = data.plans || [];
-        planSel.innerHTML = '<option value="">기획서 선택...</option>' +
+        planSel.innerHTML = '<option value="">' + @json(__('requirements.apply_plan_placeholder')) + '</option>' +
             _planData.map(p => `<option value="${p.id}">${p.title} (v${p.version})</option>`).join('');
     } catch {
-        planSel.innerHTML = '<option value="">기획서를 불러올 수 없습니다</option>';
+        planSel.innerHTML = '<option value="">' + @json(__('requirements.js_plans_load_failed')) + '</option>';
     }
 
     document.getElementById('apply-modal').style.display = 'block';
@@ -1125,7 +1125,7 @@ async function onPlanChange(sel) {
     const planId = sel.value;
     const plan = _planData.find(p => String(p.id) === planId);
     const anchorSel = document.getElementById('apply-anchor-sel');
-    anchorSel.innerHTML = '<option value="">섹션 선택...</option>' +
+    anchorSel.innerHTML = '<option value="">' + @json(__('requirements.apply_section_placeholder')) + '</option>' +
         (plan?.headings || []).map(h => `<option value="${h}">${h}</option>`).join('');
     loadPreview();
 }
@@ -1139,7 +1139,7 @@ async function onPositionChange() {
 async function loadPreview() {
     const preview = document.getElementById('apply-preview');
     if (_selectedReqIds.length === 0) return;
-    preview.textContent = '불러오는 중...';
+    preview.textContent = @json(__('requirements.js_preview_loading'));
     try {
         const res = await fetch(PREVIEW_URL, {
             method: 'POST',
@@ -1149,13 +1149,13 @@ async function loadPreview() {
         const data = await res.json();
         preview.textContent = data.markdown || '';
     } catch {
-        preview.textContent = '미리보기를 불러오지 못했습니다.';
+        preview.textContent = @json(__('requirements.js_preview_failed'));
     }
 }
 
 async function doApply() {
     const planId = document.getElementById('apply-plan-sel').value;
-    if (!planId) { alert('기획서를 선택해주세요.'); return; }
+    if (!planId) { alert(@json(__('requirements.js_select_plan'))); return; }
 
     const position = document.querySelector('input[name="apply-position"]:checked').value;
     const anchor   = position === 'after_section'
@@ -1163,7 +1163,7 @@ async function doApply() {
         : null;
 
     const btn = document.getElementById('apply-btn');
-    btn.disabled = true; btn.textContent = '적용 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_applying'));
     document.getElementById('apply-error').style.display = 'none';
 
     try {
@@ -1179,7 +1179,7 @@ async function doApply() {
         const data = await res.json();
 
         if (!res.ok) {
-            throw new Error(data.message || '적용에 실패했습니다.');
+            throw new Error(data.message || @json(__('requirements.js_apply_failed')));
         }
 
         const skipped = data.skipped?.length || 0;
@@ -1188,12 +1188,12 @@ async function doApply() {
 
         if (skipped > 0) {
             const warn = document.getElementById('apply-skip-warn');
-            warn.textContent = `이미 적용된 요구사항 ${skipped}개는 건너뛰었습니다.`;
+            warn.textContent = @json(__('requirements.js_apply_skip')).replace(':n', skipped);
             warn.style.display = 'block';
         }
 
         if (failed > 0) {
-            throw new Error(`${failed}개 항목 적용에 실패했습니다.`);
+            throw new Error(@json(__('requirements.js_apply_partial_failed')).replace(':n', failed));
         }
 
         if (applied > 0) {
@@ -1206,7 +1206,7 @@ async function doApply() {
         errEl.textContent = e.message;
         errEl.style.display = 'block';
     } finally {
-        btn.disabled = false; btn.textContent = '적용';
+        btn.disabled = false; btn.textContent = @json(__('requirements.apply_btn'));
     }
 }
 
@@ -1214,7 +1214,7 @@ async function openReqModal() {
     document.getElementById('req-form').reset();
     document.getElementById('req-error').style.display = 'none';
     document.getElementById('req-file-list').innerHTML = '';
-    document.getElementById('req-file-hint').textContent = '파일을 선택하세요';
+    document.getElementById('req-file-hint').textContent = @json(__('requirements.file_select_placeholder'));
     document.getElementById('req-modal').style.display = 'block';
     document.getElementById('req-overlay').style.display = 'block';
 }
@@ -1229,8 +1229,8 @@ async function reqFileChanged(input) {
     const listEl = document.getElementById('req-file-list');
     const hintEl = document.getElementById('req-file-hint');
     listEl.innerHTML = '';
-    if (!files.length) { hintEl.textContent = '파일을 선택하세요'; return; }
-    hintEl.textContent = files.length + '개 파일 선택됨';
+    if (!files.length) { hintEl.textContent = @json(__('requirements.file_select_placeholder')); return; }
+    hintEl.textContent = @json(__('requirements.files_selected')).replace(':n', files.length);
     files.forEach(f => {
         const size = f.size >= 1048576 ? (f.size/1048576).toFixed(1)+' MB' : f.size >= 1024 ? (f.size/1024).toFixed(1)+' KB' : f.size+' B';
         const row = document.createElement('div');
@@ -1260,13 +1260,13 @@ let _rfmSheetIdx    = 0;       // current sheet index
 let _rfmZoom        = 1.0;     // Office 뷰어 확대 배율
 
 async function _rfmResetPanel() {
-    document.getElementById('rfm-results').innerHTML = '<div id="rfm-empty" style="color:#9ca3af;font-size:12px;text-align:center;padding:24px 0;line-height:1.6;">분석 버튼을 눌러<br>요구사항을 추출하세요</div>';
+    document.getElementById('rfm-results').innerHTML = '<div id="rfm-empty" style="color:#9ca3af;font-size:12px;text-align:center;padding:24px 0;line-height:1.6;">' + @json(__('requirements.rfm_empty')) + '</div>';
     document.getElementById('rfm-result-cnt').style.display  = 'none';
     document.getElementById('rfm-ai-loading').style.display  = 'none';
     document.getElementById('rfm-ai-error').style.display    = 'none';
     document.getElementById('rfm-select-bar').style.display  = 'none';
     document.getElementById('rfm-analyze-btn').disabled      = false;
-    document.getElementById('rfm-analyze-btn').textContent   = '추가 요구기능 추천받기';
+    document.getElementById('rfm-analyze-btn').textContent   = @json(__('requirements.rfm_recommend_btn'));
 }
 
 async function _rfmBuildTabs(names) {
@@ -1304,7 +1304,7 @@ async function openFileReviewModal(formEl, files) {
     _rfmResetPanel();
     _rfmBuildTabs(files.map(f => f.name));
 
-    document.getElementById('rfm-apply-btn').textContent = '등록 완료';
+    document.getElementById('rfm-apply-btn').textContent = @json(__('requirements.rfm_register_done'));
     rfmSwitchFile(0);
     document.getElementById('rfm-overlay').style.display = 'flex';
 }
@@ -1323,7 +1323,7 @@ async function openSavedAttachmentReviewModal(reqId, showUrl) {
 
     _rfmResetPanel();
     document.getElementById('rfm-tabs').innerHTML = '';
-    document.getElementById('rfm-apply-btn').textContent = '웍스 추천 요구사항 등록';
+    document.getElementById('rfm-apply-btn').textContent = @json(__('requirements.rfm_register_ai'));
     document.getElementById('rfm-overlay').style.display = 'flex';
 
     // 로딩 상태
@@ -1340,7 +1340,7 @@ async function openSavedAttachmentReviewModal(reqId, showUrl) {
         if (!atts.length) {
             document.getElementById('rfm-loading').style.display = 'none';
             document.getElementById('rfm-unsupported').style.display = 'flex';
-            document.getElementById('rfm-unsupported').querySelector('span').textContent = '첨부파일이 없습니다.';
+            document.getElementById('rfm-unsupported').querySelector('span').textContent = @json(__('requirements.rfm_no_attachments'));
             return;
         }
 
@@ -1432,7 +1432,7 @@ async function rfmRenderFile(file, blobUrl) {
         if (typeof XLSX === 'undefined') {
             loading.style.display = 'none';
             unsupp.style.display  = 'flex';
-            unsupp.querySelector('span').textContent = 'SheetJS 라이브러리 로딩 중 오류가 발생했습니다.';
+            unsupp.querySelector('span').textContent = @json(__('requirements.rfm_sheetjs_error'));
             return;
         }
         const reader = new FileReader();
@@ -1446,7 +1446,7 @@ async function rfmRenderFile(file, blobUrl) {
             } catch(err) {
                 loading.style.display = 'none';
                 unsupp.style.display  = 'flex';
-                unsupp.querySelector('span').textContent = '엑셀 파일을 읽는 중 오류가 발생했습니다.';
+                unsupp.querySelector('span').textContent = @json(__('requirements.rfm_excel_error'));
             }
         };
         reader.readAsArrayBuffer(file);
@@ -1454,7 +1454,7 @@ async function rfmRenderFile(file, blobUrl) {
         if (typeof mammoth === 'undefined') {
             loading.style.display = 'none';
             unsupp.style.display  = 'flex';
-            unsupp.querySelector('span').textContent = 'Mammoth 라이브러리 로딩 중 오류가 발생했습니다.';
+            unsupp.querySelector('span').textContent = @json(__('requirements.rfm_mammoth_error'));
             return;
         }
         const reader = new FileReader();
@@ -1472,7 +1472,7 @@ async function rfmRenderFile(file, blobUrl) {
                     #rfm-excel li{margin:.2em 0;}
                     </style>
                     <div style="padding:28px 36px;max-width:860px;margin:0 auto;font-family:'Segoe UI',sans-serif;font-size:14px;color:#1f2937;line-height:1.7;">
-                        ${result.value || '<p style="color:#6b7280;">문서 내용이 없습니다.</p>'}
+                        ${result.value || '<p style="color:#6b7280;">' + @json(__('requirements.rfm_doc_empty')) + '</p>'}
                     </div>`;
                 excelEl.style.bottom = '44px';
                 excelEl.style.display = 'block';
@@ -1486,20 +1486,20 @@ async function rfmRenderFile(file, blobUrl) {
             } catch(err) {
                 loading.style.display = 'none';
                 unsupp.style.display  = 'flex';
-                unsupp.querySelector('span').textContent = 'Word 파일을 읽는 중 오류가 발생했습니다.';
+                unsupp.querySelector('span').textContent = @json(__('requirements.rfm_word_error'));
             }
         };
         reader.readAsArrayBuffer(file);
     } else if (isPpt) {
         loading.style.display = 'none';
         unsupp.style.display  = 'flex';
-        unsupp.querySelector('span').textContent = 'PowerPoint 미리보기는 지원하지 않습니다. 다운로드 후 확인해주세요.';
+        unsupp.querySelector('span').textContent = @json(__('requirements.rfm_ppt_unsupported'));
         const dlLink = document.getElementById('rfm-unsupported-dl');
         if (dlLink && blobUrl) { dlLink.href = blobUrl; dlLink.download = file.name; dlLink.style.display = 'inline-block'; }
     } else {
         loading.style.display = 'none';
         unsupp.style.display  = 'flex';
-        unsupp.querySelector('span').textContent = `미리보기 미지원 형식 (.${ext||'?'}) — 다운로드 후 확인해주세요`;
+        unsupp.querySelector('span').textContent = @json(__('requirements.rfm_unsupported_ext')).replace(':ext', ext||'?');
         const dlLink = document.getElementById('rfm-unsupported-dl');
         if (dlLink && blobUrl) { dlLink.href = blobUrl; dlLink.download = file.name; dlLink.style.display = 'inline-block'; }
     }
@@ -1516,10 +1516,10 @@ async function rfmRenderExcelSheet() {
     const total      = sheetNames.length;
     const sheetName  = sheetNames[_rfmSheetIdx] || '';
     const sheet      = _rfmWorkbook.Sheets[sheetName];
-    let htmlTable = '<p style="color:#6b7280;padding:16px;">빈 시트입니다.</p>';
+    let htmlTable = '<p style="color:#6b7280;padding:16px;">' + @json(__('requirements.rfm_sheet_empty')) + '</p>';
     if (sheet && sheet['!ref']) {
         try { htmlTable = XLSX.utils.sheet_to_html(sheet); }
-        catch(e) { htmlTable = '<p style="color:#dc2626;padding:16px;">시트를 표시하는 중 오류가 발생했습니다.</p>'; }
+        catch(e) { htmlTable = '<p style="color:#dc2626;padding:16px;">' + @json(__('requirements.rfm_sheet_error')) + '</p>'; }
     }
 
     excelEl.innerHTML = `<style>
@@ -1641,14 +1641,14 @@ async function rfmZoomReset() {
 
 async function rfmAnalyze() {
     const file = _rfmFiles[_rfmIdx];
-    if (!file) { document.getElementById('rfm-ai-error').textContent = '먼저 파일 탭을 선택하세요.'; document.getElementById('rfm-ai-error').style.display = 'block'; return; }
+    if (!file) { document.getElementById('rfm-ai-error').textContent = @json(__('requirements.rfm_select_tab_first')); document.getElementById('rfm-ai-error').style.display = 'block'; return; }
 
     const btn       = document.getElementById('rfm-analyze-btn');
     const loadEl    = document.getElementById('rfm-ai-loading');
     const errEl     = document.getElementById('rfm-ai-error');
     const resultsEl = document.getElementById('rfm-results');
 
-    btn.disabled = true; btn.textContent = '분석 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_analyzing'));
     loadEl.style.display = 'flex';
     errEl.style.display  = 'none';
     resultsEl.innerHTML  = '';
@@ -1667,9 +1667,10 @@ async function rfmAnalyze() {
                 wb = XLSX.read(new Uint8Array(ab), { type: 'array' });
             }
             // 전체 시트를 CSV로 변환 (시트명 헤더 포함)
+            const sheetLabel = @json(__('requirements.rfm_sheet_prefix'));
             const parts = wb.SheetNames.map(sn => {
                 const csv = XLSX.utils.sheet_to_csv(wb.Sheets[sn]);
-                return `=== 시트: ${sn} ===\n${csv}`;
+                return `=== ${sheetLabel}: ${sn} ===\n${csv}`;
             });
             const txtName = file.name.replace(/\.[^.]+$/, '.txt');
             analysisFile  = new File([parts.join('\n\n')], txtName, { type: 'text/plain' });
@@ -1708,16 +1709,16 @@ async function rfmAnalyze() {
     try {
         const res  = await fetch(ANALYZE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }, body: fd });
         const data = await res.json();
-        if (!data.ok) throw new Error(data.error || '분석 실패');
+        if (!data.ok) throw new Error(data.error || @json(__('requirements.ai_failed_title')));
         _rfmAiReqs = data.requirements || [];
         rfmRenderResults(_rfmAiReqs);
     } catch(e) {
-        errEl.textContent = e.message || '오류가 발생했습니다.';
+        errEl.textContent = e.message || @json(__('requirements.js_error_occurred'));
         errEl.style.display = 'block';
-        resultsEl.innerHTML = '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:16px 0;">분석 결과가 없습니다.</div>';
+        resultsEl.innerHTML = '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:16px 0;">' + @json(__('requirements.rfm_no_results')) + '</div>';
     } finally {
         loadEl.style.display = 'none';
-        btn.disabled = false; btn.textContent = '추가 요구기능 추천받기';
+        btn.disabled = false; btn.textContent = @json(__('requirements.rfm_recommend_btn'));
     }
 }
 
@@ -1727,17 +1728,17 @@ async function rfmRenderResults(reqs) {
     const bar   = document.getElementById('rfm-select-bar');
 
     if (!reqs.length) {
-        el.innerHTML = '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:16px 0;">추출된 요구사항이 없습니다.</div>';
+        el.innerHTML = '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:16px 0;">' + @json(__('requirements.rfm_no_candidates')) + '</div>';
         cntEl.style.display = 'none'; bar.style.display = 'none'; return;
     }
 
-    cntEl.textContent = reqs.length + '개';
+    cntEl.textContent = @json(__('requirements.rfm_count')).replace(':n', reqs.length);
     cntEl.style.display = 'inline-block';
     bar.style.display = 'flex';
 
-    const PRIORITY_LABELS = { high:'높음', medium:'보통', low:'낮음' };
+    const PRIORITY_LABELS = { high:@json(__('requirements.pri_high')), medium:@json(__('requirements.pri_medium')), low:@json(__('requirements.pri_low')) };
     const PRIORITY_COLORS = { high:'#fee2e2;color:#991b1b', medium:'#fef9c3;color:#713f12', low:'#dbeafe;color:#1e40af' };
-    const CATEGORY_LABELS = { functional:'기능', non_functional:'비기능', ui:'UI/UX', data:'데이터', security:'보안' };
+    const CATEGORY_LABELS = { functional:@json(__('requirements.cat_functional')), non_functional:@json(__('requirements.cat_non_functional')), ui:@json(__('requirements.cat_ui')), data:@json(__('requirements.cat_data')), security:@json(__('requirements.cat_security')) };
 
     el.innerHTML = reqs.map((r, i) => `
         <label style="display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:#f9fafb;border:1px solid #e4e4e7;border-radius:8px;cursor:pointer;transition:background .1s;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='#f9fafb'">
@@ -1763,7 +1764,7 @@ async function rfmToggleAll(checked) {
 async function rfmUpdateSelCount() {
     const total    = document.querySelectorAll('.rfm-chk').length;
     const selected = document.querySelectorAll('.rfm-chk:checked').length;
-    document.getElementById('rfm-sel-cnt').textContent = `${selected}/${total} 선택`;
+    document.getElementById('rfm-sel-cnt').textContent = @json(__('requirements.rfm_select_count')).replace(':selected', selected).replace(':total', total);
     document.getElementById('rfm-select-all').checked  = selected === total && total > 0;
 }
 
@@ -1773,7 +1774,7 @@ async function rfmApplyAndSubmit() {
     const checked   = [...document.querySelectorAll('.rfm-chk:checked')];
 
     applyBtn.disabled = true;
-    applyBtn.textContent = '등록 중...';
+    applyBtn.textContent = @json(__('requirements.js_registering'));
 
     let sourceReqId = _rfmReqId;
 
@@ -1783,17 +1784,17 @@ async function rfmApplyAndSubmit() {
             const res  = await fetch(STORE_URL, { method:'POST', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}, body: new FormData(_rfmFormEl) });
             const data = await res.json();
             if (!res.ok) {
-                const msgs = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message||'저장 실패');
+                const msgs = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message||@json(__('requirements.js_save_failed_short')));
                 errEl.textContent = msgs; errEl.style.display = 'block';
-                applyBtn.disabled = false; applyBtn.textContent = '등록 완료'; return;
+                applyBtn.disabled = false; applyBtn.textContent = @json(__('requirements.rfm_register_done')); return;
             }
             sourceReqId = data.id;
-        } catch { applyBtn.disabled = false; applyBtn.textContent = '등록 완료'; return; }
+        } catch { applyBtn.disabled = false; applyBtn.textContent = @json(__('requirements.rfm_register_done')); return; }
     }
 
     // 웍스 추출 요구사항 등록
     if (checked.length) {
-        const sourceRef = sourceReqId ? `요구사항 #${sourceReqId}의 첨부파일 웍스 분석` : '첨부파일 웍스 분석';
+        const sourceRef = sourceReqId ? @json(__('requirements.js_source_ref_with_id')).replace(':id', sourceReqId) : @json(__('requirements.js_source_ref'));
         for (const chk of checked) {
             const req = _rfmAiReqs[parseInt(chk.dataset.idx)];
             if (!req) continue;
@@ -1833,7 +1834,7 @@ document.getElementById('req-form').addEventListener('submit', async function(e)
     e.preventDefault();
     const btn   = document.getElementById('req-submit');
     const errEl = document.getElementById('req-error');
-    btn.disabled = true; btn.textContent = '저장 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_saving'));
     errEl.style.display = 'none';
     try {
         const res = await fetch(STORE_URL, {
@@ -1844,13 +1845,13 @@ document.getElementById('req-form').addEventListener('submit', async function(e)
         if (res.ok) { closeReqModal(); location.reload(); }
         else {
             const data = await res.json().catch(() => ({}));
-            const msgs = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || '저장에 실패했습니다.');
+            const msgs = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || @json(__('requirements.js_save_failed')));
             errEl.textContent = msgs; errEl.style.display = 'block';
         }
     } catch {
-        errEl.textContent = '네트워크 오류가 발생했습니다.'; errEl.style.display = 'block';
+        errEl.textContent = @json(__('requirements.js_network_error')); errEl.style.display = 'block';
     } finally {
-        btn.disabled = false; btn.textContent = '등록';
+        btn.disabled = false; btn.textContent = @json(__('common.register'));
     }
 });
 
@@ -1861,18 +1862,18 @@ let _aiSuccessReqIds = [];
 let _aiPlanData2   = [];
 
 const AI_STEP_TITLES = {
-    upload:  '웍스 요구사항 분석',
-    loading: '웍스 분석 중...',
-    review:  '분석 결과 검토',
-    success: '요구사항 등록 완료',
-    failed:  '분석 실패',
+    upload:  @json(__('requirements.ai_step_title_upload')),
+    loading: @json(__('requirements.ai_step_title_loading')),
+    review:  @json(__('requirements.ai_step_title_review')),
+    success: @json(__('requirements.ai_step_title_success')),
+    failed:  @json(__('requirements.ai_step_title_failed')),
 };
 
 async function showAiStep(name) {
     ['upload','loading','review','success','failed'].forEach(s => {
         document.getElementById('ai-step-' + s).style.display = (s === name) ? '' : 'none';
     });
-    document.getElementById('ai-modal-title').textContent = AI_STEP_TITLES[name] || '웍스 분석';
+    document.getElementById('ai-modal-title').textContent = AI_STEP_TITLES[name] || @json(__('requirements.ai_step_title_default'));
     document.getElementById('ai-modal').style.width = (name === 'review') ? '740px' : '560px';
 }
 
@@ -1923,7 +1924,7 @@ document.getElementById('ai-form').addEventListener('submit', async function(e) 
     e.preventDefault();
     document.getElementById('ai-error').style.display = 'none';
     const btn = document.getElementById('ai-submit');
-    btn.disabled = true; btn.textContent = '분석 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_analyzing'));
     showAiStep('loading');
 
     try {
@@ -1936,7 +1937,7 @@ document.getElementById('ai-form').addEventListener('submit', async function(e) 
 
         if (!res.ok) {
             showAiStep('upload');
-            const msg = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || '오류가 발생했습니다.');
+            const msg = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || @json(__('requirements.js_error_occurred')));
             document.getElementById('ai-error').textContent = msg;
             document.getElementById('ai-error').style.display = 'block';
             return;
@@ -1949,18 +1950,18 @@ document.getElementById('ai-form').addEventListener('submit', async function(e) 
             aiRenderReview(data);
             showAiStep('review');
         } else if (data.status === 'failed') {
-            document.getElementById('ai-failed-msg').textContent = data.error_message || '알 수 없는 오류';
+            document.getElementById('ai-failed-msg').textContent = data.error_message || @json(__('requirements.js_unknown_error'));
             showAiStep('failed');
         } else {
-            document.getElementById('ai-failed-msg').textContent = `예상치 못한 상태: ${data.status}`;
+            document.getElementById('ai-failed-msg').textContent = @json(__('requirements.js_unexpected_status')).replace(':status', data.status);
             showAiStep('failed');
         }
     } catch {
         showAiStep('upload');
-        document.getElementById('ai-error').textContent = '네트워크 오류가 발생했습니다.';
+        document.getElementById('ai-error').textContent = @json(__('requirements.js_network_error'));
         document.getElementById('ai-error').style.display = 'block';
     } finally {
-        btn.disabled = false; btn.textContent = '분석 시작';
+        btn.disabled = false; btn.textContent = @json(__('requirements.ai_start'));
     }
 });
 
@@ -1970,8 +1971,8 @@ async function aiEsc(s) {
 }
 
 async function aiRenderReview(data) {
-    const catLabels = {functional:'기능',non_functional:'비기능',constraint:'제약',ui_ux:'UI/UX',
-                       integration:'연동',performance:'성능',security:'보안',other:'기타'};
+    const catLabels = {functional:@json(__('requirements.cat_functional')),non_functional:@json(__('requirements.cat_non_functional')),constraint:@json(__('requirements.cat_constraint')),ui_ux:@json(__('requirements.cat_ui_ux')),
+                       integration:@json(__('requirements.cat_integration')),performance:@json(__('requirements.cat_performance')),security:@json(__('requirements.cat_security')),other:@json(__('requirements.cat_other'))};
     const priStyle  = {
         critical: 'background:#fef2f2;color:#dc2626;',
         high:     'background:#fff7ed;color:#ea580c;',
@@ -1982,19 +1983,19 @@ async function aiRenderReview(data) {
     const summaryEl = document.getElementById('ai-review-summary');
     summaryEl.innerHTML = data.summary
         ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
-               <p style="font-size:11px;font-weight:600;color:#1d4ed8;margin:0 0 3px;">웍스 요약</p>
+               <p style="font-size:11px;font-weight:600;color:#1d4ed8;margin:0 0 3px;">${@json(__('requirements.analysis_summary'))}</p>
                <p style="font-size:12px;color:#374151;margin:0;">${aiEsc(data.summary)}</p>
            </div>` : '';
 
     const warningsEl = document.getElementById('ai-review-warnings');
     warningsEl.innerHTML = (data.warnings && data.warnings.length)
         ? `<div style="background:#fefce8;border:1px solid #fef08a;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
-               <p style="font-size:11px;font-weight:600;color:#713f12;margin:0 0 4px;">경고</p>
+               <p style="font-size:11px;font-weight:600;color:#713f12;margin:0 0 4px;">${@json(__('requirements.analysis_warnings'))}</p>
                <ul style="margin:0;padding:0 0 0 16px;font-size:12px;color:#374151;">${data.warnings.map(w=>`<li>${aiEsc(w)}</li>`).join('')}</ul>
            </div>` : '';
 
     const candidates = (data.candidates || []).slice(0, 30);
-    document.getElementById('ai-review-count').textContent = `추출된 요구사항 후보 ${candidates.length}개`;
+    document.getElementById('ai-review-count').textContent = @json(__('requirements.analysis_candidates_count')) + ' ' + candidates.length + @json(__('requirements.analysis_candidates_unit'));
     document.getElementById('ai-select-all').checked = true;
 
     document.getElementById('ai-review-candidates').innerHTML = candidates.map((c, idx) => {
@@ -2008,9 +2009,9 @@ async function aiRenderReview(data) {
                 <div style="flex:1;min-width:0;">
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
                         <span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;${ps}">${c.priority||'medium'}</span>
-                        <span style="padding:2px 8px;border-radius:4px;font-size:11px;background:#f3f4f6;color:#6b7280;">${catLabels[c.category]||'기타'}</span>
-                        <span style="font-size:11px;color:#9ca3af;">신뢰도 ${conf}%</span>
-                        ${c.source_ref ? `<span style="font-size:11px;color:#9ca3af;">출처: ${aiEsc(c.source_ref)}</span>` : ''}
+                        <span style="padding:2px 8px;border-radius:4px;font-size:11px;background:#f3f4f6;color:#6b7280;">${catLabels[c.category]||@json(__('requirements.cat_other'))}</span>
+                        <span style="font-size:11px;color:#9ca3af;">${@json(__('requirements.analysis_confidence'))} ${conf}%</span>
+                        ${c.source_ref ? `<span style="font-size:11px;color:#9ca3af;">${@json(__('requirements.analysis_source'))}: ${aiEsc(c.source_ref)}</span>` : ''}
                     </div>
                     <p style="font-size:13px;font-weight:600;color:#18181b;margin:0 0 3px;">${aiEsc(c.title)}</p>
                     ${c.description ? `<p style="font-size:12px;color:#6b7280;margin:0 0 4px;line-height:1.5;">${aiEsc(c.description)}</p>` : ''}
@@ -2034,11 +2035,11 @@ async function aiSyncSelectAll() {
 // Step 3 → 등록
 async function aiApprove() {
     const selected = [...document.querySelectorAll('.ai-cand-chk:checked')].map(c => Number(c.dataset.idx));
-    if (!selected.length) { alert('등록할 요구사항을 선택해주세요.'); return; }
+    if (!selected.length) { alert(@json(__('requirements.js_select_reqs'))); return; }
 
     const btn   = document.getElementById('ai-approve-btn');
     const errEl = document.getElementById('ai-review-error');
-    btn.disabled = true; btn.textContent = '등록 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_registering'));
     errEl.style.display = 'none';
 
     try {
@@ -2048,23 +2049,23 @@ async function aiApprove() {
             body:    JSON.stringify({ selected }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.message || '등록 실패');
+        if (!res.ok) throw new Error(data.message || @json(__('requirements.js_register_failed')));
 
         _aiSuccessReqIds = data.requirement_ids || [];
-        document.getElementById('ai-success-msg').textContent = `${data.created}개 요구사항이 등록되었습니다.`;
+        document.getElementById('ai-success-msg').textContent = @json(__('requirements.js_created')).replace(':n', data.created);
         await aiLoadSuccessPlans();
         showAiStep('success');
     } catch(e) {
         errEl.textContent = e.message;
         errEl.style.display = 'block';
     } finally {
-        btn.disabled = false; btn.textContent = '선택한 요구사항 등록';
+        btn.disabled = false; btn.textContent = @json(__('requirements.ai_approve'));
     }
 }
 
 // Step 3 → 거부
 async function aiReject() {
-    if (!await __confirm('이 분석 결과를 거부하시겠습니까?')) return;
+    if (!await __confirm(@json(__('requirements.js_confirm_reject')))) return;
     const btn = document.getElementById('ai-reject-btn');
     btn.disabled = true;
     try {
@@ -2082,26 +2083,26 @@ async function aiReject() {
 // Step 4: 기획서 목록 로드
 async function aiLoadSuccessPlans() {
     const sel = document.getElementById('ai-success-plan-sel');
-    sel.innerHTML = '<option value="">불러오는 중...</option>';
+    sel.innerHTML = '<option value="">' + @json(__('requirements.js_preview_loading')) + '</option>';
     try {
         const res  = await fetch(PLANS_URL, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
         const data = await res.json();
         _aiPlanData2 = data.plans || [];
-        sel.innerHTML = '<option value="">기획서 선택...</option>' +
+        sel.innerHTML = '<option value="">' + @json(__('requirements.apply_plan_placeholder')) + '</option>' +
             _aiPlanData2.map(p => `<option value="${p.id}">${p.title} (v${p.version})</option>`).join('');
     } catch {
-        sel.innerHTML = '<option value="">불러올 수 없습니다</option>';
+        sel.innerHTML = '<option value="">' + @json(__('requirements.js_load_failed')) + '</option>';
     }
 }
 
 // Step 4 → 기획서 적용
 async function aiApplyToPlan() {
     const planId = document.getElementById('ai-success-plan-sel').value;
-    if (!planId) { alert('기획서를 선택해주세요.'); return; }
+    if (!planId) { alert(@json(__('requirements.js_select_plan'))); return; }
 
     const btn   = document.getElementById('ai-success-apply-btn');
     const errEl = document.getElementById('ai-success-plan-error');
-    btn.disabled = true; btn.textContent = '적용 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_applying'));
     errEl.style.display = 'none';
 
     try {
@@ -2111,14 +2112,14 @@ async function aiApplyToPlan() {
             body:    JSON.stringify({ requirement_ids: _aiSuccessReqIds.map(Number), position: 'end' }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.message || '적용 실패');
+        if (!res.ok) throw new Error(data.message || @json(__('requirements.js_apply_failed')));
 
         closeAiModal();
         window.location.href = `${APPLY_BASE}/${planId}`;
     } catch(e) {
         errEl.textContent = e.message;
         errEl.style.display = 'block';
-        btn.disabled = false; btn.textContent = '적용';
+        btn.disabled = false; btn.textContent = @json(__('requirements.apply_btn'));
     }
 }
 
@@ -2142,7 +2143,7 @@ async function openReqDetail(reqId, showUrl) {
     document.getElementById('rd-overlay').style.display = 'block';
 
     // 로딩 표시
-    document.getElementById('rd-title').textContent = '불러오는 중...';
+    document.getElementById('rd-title').textContent = @json(__('requirements.rd_loading'));
     document.getElementById('rd-badges').innerHTML = '';
     document.getElementById('rd-desc-view').textContent = '';
 
@@ -2152,7 +2153,7 @@ async function openReqDetail(reqId, showUrl) {
         _rd = data;
         rdRender(data);
     } catch {
-        document.getElementById('rd-title').textContent = '불러오기 실패';
+        document.getElementById('rd-title').textContent = @json(__('requirements.rd_load_failed'));
     }
 }
 
@@ -2171,11 +2172,11 @@ async function rdRender(data) {
         `<span style="padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:${req.priority_color.bg};color:${req.priority_color.text};">${rdEsc(req.priority_label)}</span>
          <span style="padding:2px 8px;border-radius:5px;font-size:11px;background:${req.status_color.bg};color:${req.status_color.text};">${rdEsc(req.status_label)}</span>
          <span style="font-size:11px;color:#9ca3af;">${rdEsc(req.category_label)}</span>
-         ${req.source_type === 'ai_analyzed'    ? `<span style="padding:1px 7px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-size:11px;font-weight:600;">웍스 분석${req.ai_confidence ? ' ' + Math.round(req.ai_confidence*100)+'%' : ''}</span>` : ''}
-         ${req.source_type === 'attachment_ai' ? `<span style="padding:1px 7px;border-radius:4px;background:#ecfdf5;color:#059669;font-size:11px;font-weight:600;">파일웍스</span>` : ''}`;
+         ${req.source_type === 'ai_analyzed'    ? `<span style="padding:1px 7px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-size:11px;font-weight:600;">${@json(__('requirements.rd_ai_badge'))}${req.ai_confidence ? ' ' + Math.round(req.ai_confidence*100)+'%' : ''}</span>` : ''}
+         ${req.source_type === 'attachment_ai' ? `<span style="padding:1px 7px;border-radius:4px;background:#ecfdf5;color:#059669;font-size:11px;font-weight:600;">${@json(__('requirements.source_file_ai'))}</span>` : ''}`;
 
-    let metaStr = `${rdEsc(req.reporter_name ?? '')} 등록 · ${rdEsc(req.created_at)}`;
-    if (req.created_at !== req.updated_at) metaStr += ` · 수정 ${rdEsc(req.updated_at)}`;
+    let metaStr = @json(__('requirements.rd_registered_by')).replace(':name', rdEsc(req.reporter_name ?? '')).replace(':date', rdEsc(req.created_at));
+    if (req.created_at !== req.updated_at) metaStr += ' ' + @json(__('requirements.rd_updated_suffix')).replace(':date', rdEsc(req.updated_at));
     document.getElementById('rd-meta').textContent = metaStr;
 
     // 파일웍스 출처 표시
@@ -2188,7 +2189,7 @@ async function rdRender(data) {
                 ? `<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                    ${rdEsc(req.source_ref)} &nbsp;
                    <button onclick="closeReqDetail(); openReqDetail(${srcId}, '{{ url('/') }}/projects/{{ $project->id }}/requirements/${srcId}')"
-                           style="padding:1px 7px;background:#dcfce7;border:1px solid #86efac;border-radius:4px;font-size:10px;font-weight:600;color:#16a34a;cursor:pointer;">출처 열기</button>`
+                           style="padding:1px 7px;background:#dcfce7;border:1px solid #86efac;border-radius:4px;font-size:10px;font-weight:600;color:#16a34a;cursor:pointer;">${@json(__('requirements.rd_source_open'))}</button>`
                 : `<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                    ${rdEsc(req.source_ref)}`;
             srcBannerEl.style.display = 'flex';
@@ -2201,13 +2202,13 @@ async function rdRender(data) {
     document.getElementById('rd-delete-btn').style.display = data.can_delete ? '' : 'none';
 
     // 설명
-    document.getElementById('rd-desc-view').textContent = req.description || '설명이 없습니다.';
+    document.getElementById('rd-desc-view').textContent = req.description || @json(__('requirements.rd_no_description'));
     document.getElementById('rd-desc-input').value = req.description ?? '';
     document.getElementById('rd-desc-edit').style.display = 'none';
     document.getElementById('rd-desc-view').style.display = 'block';
 
     // 댓글
-    document.getElementById('rd-comment-title').textContent = `댓글 (${data.comments.length})`;
+    document.getElementById('rd-comment-title').textContent = @json(__('requirements.rd_comments_count')).replace(':n', data.comments.length);
     const cl = document.getElementById('rd-comment-list');
     cl.innerHTML = data.comments.map(c =>
         `<div style="padding:10px 12px;background:#f9fafb;border-radius:8px;">
@@ -2228,9 +2229,9 @@ async function rdRender(data) {
             `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#6b7280;padding:5px 0;border-bottom:1px solid #f3f4f6;flex-wrap:wrap;">
                 <span style="font-weight:600;color:#374151;">${rdEsc(h.changed_by)}</span>
                 <span><b>${rdEsc(h.field_name)}</b></span>
-                <span style="background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:3px;">${rdEsc(h.old_value||'없음')}</span>
+                <span style="background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:3px;">${rdEsc(h.old_value||@json(__('requirements.rd_no_tags')))}</span>
                 <span>→</span>
-                <span style="background:#d1fae5;color:#065f46;padding:1px 5px;border-radius:3px;">${rdEsc(h.new_value||'없음')}</span>
+                <span style="background:#d1fae5;color:#065f46;padding:1px 5px;border-radius:3px;">${rdEsc(h.new_value||@json(__('requirements.rd_no_tags')))}</span>
                 <span style="margin-left:auto;white-space:nowrap;">${rdEsc(h.changed_at)}</span>
             </div>`
         ).join('');
@@ -2246,7 +2247,7 @@ async function rdRender(data) {
     setVal('rd-category', req.category);
 
     const assignSel = document.getElementById('rd-assignee');
-    assignSel.innerHTML = '<option value="">담당자 없음</option>' +
+    assignSel.innerHTML = '<option value="">' + @json(__('requirements.rd_no_assignee')) + '</option>' +
         data.members.map(m => `<option value="${m.id}" ${m.id == req.assignee_id ? 'selected' : ''}>${rdEsc(m.name)}</option>`).join('');
 
     document.getElementById('rd-reporter').textContent = req.reporter_name ?? '-';
@@ -2254,7 +2255,7 @@ async function rdRender(data) {
     const tagsEl = document.getElementById('rd-tags');
     tagsEl.innerHTML = (req.tags && req.tags.length)
         ? req.tags.map(t => `<span style="padding:2px 8px;background:#f3f4f6;border-radius:5px;font-size:11px;color:#6b7280;">${rdEsc(t)}</span>`).join('')
-        : '<span style="font-size:12px;color:#9ca3af;">없음</span>';
+        : '<span style="font-size:12px;color:#9ca3af;">' + @json(__('requirements.rd_no_tags')) + '</span>';
 
     // 구독 버튼
     rdSetWatchBtn(data.is_watching);
@@ -2274,7 +2275,7 @@ async function rdRender(data) {
                     <span style="font-size:11px;color:#9ca3af;flex-shrink:0;">${rdEsc(a.size_human)}</span>
                 </a>`;
           }).join('')
-        : '<p style="font-size:12px;color:#9ca3af;margin:0;">첨부 파일 없음</p>';
+        : '<p style="font-size:12px;color:#9ca3af;margin:0;">' + @json(__('requirements.rd_no_attachments')) + '</p>';
 
     // 기획서 적용 이력
     const pa = document.getElementById('rd-plan-apps');
@@ -2287,12 +2288,12 @@ async function rdRender(data) {
                 <p style="font-size:11px;color:#9ca3af;margin:3px 0 0;">${rdEsc(a.applied_by)} · ${rdEsc(a.applied_at)}</p>
             </div>`
           ).join('')
-        : '<p style="font-size:12px;color:#9ca3af;margin:0;">아직 적용되지 않았습니다.</p>';
+        : '<p style="font-size:12px;color:#9ca3af;margin:0;">' + @json(__('requirements.rd_no_plan_applied')) + '</p>';
 }
 
 async function rdSetWatchBtn(watching) {
     const btn = document.getElementById('rd-watch-btn');
-    btn.textContent       = watching ? '🔔 알림 구독 중' : '🔕 알림 받기';
+    btn.textContent       = watching ? @json(__('requirements.watch_subscribed')) : @json(__('requirements.watch_subscribe'));
     btn.style.borderColor = watching ? '#c7d2fe' : '#e4e4e7';
     btn.style.background  = watching ? '#eef2ff' : '#fff';
     btn.style.color       = watching ? 'var(--t600)' : '#6b7280';
@@ -2337,13 +2338,13 @@ function rdToggleTitle() {
 async function rdSaveTitle() {
     if (!_rd) return;
     const val = document.getElementById('rd-title-input').value.trim();
-    if (!val) { alert('제목은 비워둘 수 없습니다.'); return; }
+    if (!val) { alert(@json(__('requirements.js_title_required'))); return; }
     if (val === _rd.requirement.title) { rdToggleTitle(); return; }
     const body = new FormData();
     body.append('_method', 'PATCH');
     body.append('title', val);
     const res = await fetch(_rd.urls.update, { method:'POST', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}, body });
-    if (!res.ok) { alert('제목 저장에 실패했습니다.'); return; }
+    if (!res.ok) { alert(@json(__('requirements.js_title_save_failed'))); return; }
     document.getElementById('rd-title').textContent = val;
     _rd.requirement.title = val;
     rdToggleTitle();
@@ -2361,7 +2362,7 @@ async function rdSaveDesc() {
     body.append('description', val);
     const res = await fetch(_rd.urls.update, { method:'POST', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}, body });
     if (res.ok) {
-        document.getElementById('rd-desc-view').textContent = val || '설명이 없습니다.';
+        document.getElementById('rd-desc-view').textContent = val || @json(__('requirements.rd_no_description'));
         _rd.requirement.description = val;
         rdToggleDesc();
     }
@@ -2399,7 +2400,7 @@ async function rdToggleWatch() {
 }
 
 async function rdDelete() {
-    if (!_rd || !await __confirm('이 요구사항을 삭제하시겠습니까?')) return;
+    if (!_rd || !await __confirm(@json(__('requirements.js_confirm_delete')))) return;
     const body = new FormData();
     body.append('_method', 'DELETE');
     const res = await fetch(_rd.urls.destroy, { method:'POST', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}, body });
@@ -2443,7 +2444,7 @@ async function openGanttModal(overrideReqs = null) {
                 };
             });
         if (_ganttReqs.length === 0) {
-            alert('간트에 추가할 수 있는 요구사항이 없습니다.\n기획서에 반영된 요구사항만 간트에 추가할 수 있습니다.');
+            alert(@json(__('requirements.js_no_gantt_reqs')));
             return;
         }
     }
@@ -2451,17 +2452,17 @@ async function openGanttModal(overrideReqs = null) {
     document.getElementById('gantt-start').value = '';
     document.getElementById('gantt-end').value   = '';
     document.getElementById('gantt-error').style.display = 'none';
-    document.getElementById('gantt-info').textContent = _ganttReqs.length + '개 요구사항을 일정으로 등록합니다.';
+    document.getElementById('gantt-info').textContent = @json(__('requirements.js_gantt_info')).replace(':n', _ganttReqs.length);
 
     const firstAssigneeId = _ganttReqs[0].assigneeId || '';
     const assigneeSel = document.getElementById('gantt-assignee');
-    assigneeSel.innerHTML = '<option value="">없음</option>' +
+    assigneeSel.innerHTML = '<option value="">' + @json(__('requirements.rd_no_tags')) + '</option>' +
         GANTT_MEMBERS.map(m =>
             `<option value="${m.id}" ${m.id == firstAssigneeId ? 'selected' : ''}>${m.name}</option>`
         ).join('');
 
     const groupSel = document.getElementById('gantt-group');
-    groupSel.innerHTML = '<option value="">불러오는 중...</option>';
+    groupSel.innerHTML = '<option value="">' + @json(__('requirements.js_group_loading')) + '</option>';
     try {
         const res  = await fetch(GANTT_TREE, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
         const tree = await res.json();
@@ -2475,10 +2476,10 @@ async function openGanttModal(overrideReqs = null) {
             opts.push(`<option value="${g.id}">${g.title}</option>`);
         });
         groupSel.innerHTML = opts.length
-            ? '<option value="">그룹 선택...</option>' + opts.join('')
-            : '<option value="">등록된 작업 그룹이 없습니다</option>';
+            ? '<option value="">' + @json(__('requirements.js_group_placeholder')) + '</option>' + opts.join('')
+            : '<option value="">' + @json(__('requirements.js_no_groups')) + '</option>';
     } catch {
-        groupSel.innerHTML = '<option value="">그룹 로드 실패</option>';
+        groupSel.innerHTML = '<option value="">' + @json(__('requirements.js_group_load_failed')) + '</option>';
     }
 
     document.getElementById('gantt-overlay').style.display = 'block';
@@ -2497,12 +2498,12 @@ async function submitGanttModal() {
     const errEl   = document.getElementById('gantt-error');
     errEl.style.display = 'none';
 
-    if (!groupId) { errEl.textContent = '작업 그룹을 선택해주세요.'; errEl.style.display = 'block'; return; }
-    if (!start)   { errEl.textContent = '시작일을 선택해주세요.';     errEl.style.display = 'block'; return; }
-    if (!end)     { errEl.textContent = '종료일을 선택해주세요.';     errEl.style.display = 'block'; return; }
+    if (!groupId) { errEl.textContent = @json(__('requirements.js_select_group')); errEl.style.display = 'block'; return; }
+    if (!start)   { errEl.textContent = @json(__('requirements.js_select_start')); errEl.style.display = 'block'; return; }
+    if (!end)     { errEl.textContent = @json(__('requirements.js_select_end'));   errEl.style.display = 'block'; return; }
 
     const btn = document.getElementById('gantt-submit-btn');
-    btn.disabled = true; btn.textContent = '등록 중...';
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_registering'));
 
     const assigneeId = document.getElementById('gantt-assignee').value;
     let success = 0, fail = 0;
@@ -2528,9 +2529,9 @@ async function submitGanttModal() {
         } catch { fail++; }
     }
 
-    btn.disabled = false; btn.textContent = '일정 등록';
+    btn.disabled = false; btn.textContent = @json(__('requirements.gantt_register'));
     closeGanttModal();
-    alert(success + '개 일정이 간트에 등록되었습니다.' + (fail ? ` (${fail}개 실패)` : ''));
+    alert(@json(__('requirements.js_gantt_done')).replace(':success', success) + (fail ? @json(__('requirements.js_gantt_done_fail')).replace(':n', fail) : ''));
     clearSelection();
 }
 </script>
@@ -2542,43 +2543,43 @@ async function submitGanttModal() {
 <div id="gantt-overlay" onclick="closeGanttModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10200;"></div>
 <div id="gantt-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10201;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);width:460px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;">
     <div style="padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
-        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">간트 일정에 추가</h3>
+        <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.gantt_modal_title') }}</h3>
         <button onclick="closeGanttModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:2px;line-height:1;">&times;</button>
     </div>
     <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
         <div id="gantt-info" style="padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:13px;color:#0369a1;font-weight:600;"></div>
         <div id="gantt-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:13px;color:#dc2626;"></div>
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">작업 그룹 <span style="color:#ef4444;">*</span></label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.gantt_work_group') }} <span style="color:#ef4444;">*</span></label>
             <select id="gantt-group" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
-                <option value="">불러오는 중...</option>
+                <option value="">{{ __('requirements.js_group_loading') }}</option>
             </select>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">시작일 <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.start_date') }} <span style="color:#ef4444;">*</span></label>
                 <input id="gantt-start" type="date" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                        onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">종료일 <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.end_label') }} <span style="color:#ef4444;">*</span></label>
                 <input id="gantt-end" type="date" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                        onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
             </div>
         </div>
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">담당자</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.assignee') }}</label>
             <select id="gantt-assignee" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
-                <option value="">없음</option>
+                <option value="">{{ __('requirements.rd_no_tags') }}</option>
             </select>
         </div>
-        <p style="font-size:12px;color:#9ca3af;margin:0;">시작일·종료일·담당자는 선택한 모든 요구사항에 동일하게 적용됩니다.</p>
+        <p style="font-size:12px;color:#9ca3af;margin:0;">{{ __('requirements.gantt_assignee_hint') }}</p>
     </div>
     <div style="padding:0 22px 20px;display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="closeGanttModal()" style="padding:8px 18px;font-size:13px;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
-                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">취소</button>
+                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         <button onclick="submitGanttModal()" id="gantt-submit-btn" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#0284c7;border:none;border-radius:8px;cursor:pointer;"
-                onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">일정 등록</button>
+                onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">{{ __('requirements.gantt_register') }}</button>
     </div>
 </div>
 @endsection

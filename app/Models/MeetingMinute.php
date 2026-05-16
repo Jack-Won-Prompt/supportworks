@@ -50,6 +50,11 @@ class MeetingMinute extends Model
         return $this->hasMany(MeetingActionItem::class, 'minute_id')->orderBy('priority')->orderBy('due_date');
     }
 
+    public function recordings()
+    {
+        return $this->hasMany(MeetingRecording::class, 'meeting_minute_id')->latest('recorded_at');
+    }
+
     public function scopeCompanyOf(Builder $query, User $user): Builder
     {
         if ($user->company_group_id) {

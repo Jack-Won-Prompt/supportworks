@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
-@section('title', $project->name . ' - 일정 관리')
+@section('title', $project->name . ' - ' . __('projects.schedule_management'))
 
 @section('header-actions')@endsection
 
 @section('page-actions')
     <button onclick="openMilestoneModal()"
             style="padding:6px 14px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;"
-            onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">+ 마일스톤 추가</button>
+            onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">{{ __('projects.add_milestone') }}</button>
 @endsection
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">일정 관리</span>
+<span style="color:#374151;font-weight:500;">{{ __('projects.schedule_management') }}</span>
 @endsection
 
 @section('content')
@@ -52,12 +52,12 @@ $_gc = [
             @endphp
             <span class="px-2 py-0.5 text-xs rounded-full bg-{{ $statusColor }}-100 text-{{ $statusColor }}-700">{{ $statusLabel }}</span>
             @if($milestone->target_date)
-                <span class="text-xs text-gray-400">목표: {{ $milestone->target_date->format('Y-m-d') }}</span>
+                <span class="text-xs text-gray-400">{{ __('projects.milestone_target', ['date' => $milestone->target_date->format('Y-m-d')]) }}</span>
             @endif
         </div>
         <div class="flex items-center gap-2" onclick="event.stopPropagation()">
             <button onclick="openGroupModal({{ $milestone->id }})"
-                    class="px-3 py-1 text-xs text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-50">+ 그룹</button>
+                    class="px-3 py-1 text-xs text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-50">{{ __('projects.add_group') }}</button>
             <button onclick="openEditMilestone({{ $milestone->id }}, '{{ addslashes($milestone->title) }}', '{{ $milestone->status }}', '{{ $milestone->target_date?->format('Y-m-d') ?? '' }}')"
                     class="p-1 text-gray-400 hover:text-gray-600 rounded">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -87,11 +87,11 @@ $_gc = [
                 </svg>
                 <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:{{ $gc['dot'] }};"></span>
                 <span class="text-sm font-semibold" style="color:{{ $gc['title'] }};">{{ $group->title }}</span>
-                <span class="text-xs" style="color:{{ $gc['dot'] }};opacity:.7;">({{ $group->subTasks->count() }}개)</span>
+                <span class="text-xs" style="color:{{ $gc['dot'] }};opacity:.7;">({{ __('projects.task_count', ['count' => $group->subTasks->count()]) }})</span>
             </div>
             <div class="flex items-center gap-2" onclick="event.stopPropagation()">
                 <button onclick="openTaskModal({{ $group->id }}, {{ $milestone->id }})"
-                        class="px-2.5 py-1 text-xs text-green-600 border border-green-200 rounded hover:bg-green-50">+ 태스크</button>
+                        class="px-2.5 py-1 text-xs text-green-600 border border-green-200 rounded hover:bg-green-50">{{ __('projects.add_task') }}</button>
                 <button onclick="openEditGroup({{ $group->id }}, '{{ addslashes($group->title) }}', {{ $milestone->id }})"
                         class="p-1 text-gray-300 hover:text-gray-600 rounded">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -116,7 +116,7 @@ $_gc = [
                     <span class="text-sm text-gray-800">{{ $task->title }}</span>
                     @if($task->files->count() > 0)
                     <span onclick="event.stopPropagation();openListFileChip({{ $task->id }}, event)"
-                          title="첨부파일 보기"
+                          title="{{ __('projects.view_attachments') }}"
                           style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         {{ $task->files->count() }}
@@ -132,7 +132,7 @@ $_gc = [
                 @if($task->assignee)
                     <span class="text-xs text-gray-500 flex-shrink-0">{{ $task->assignee->name }}</span>
                 @else
-                    <span class="text-xs text-gray-300 flex-shrink-0">미배정</span>
+                    <span class="text-xs text-gray-300 flex-shrink-0">{{ __('projects.unassigned') }}</span>
                 @endif
                 <div class="flex items-center gap-1 flex-shrink-0">
                     <button onclick="openEditTask({{ $task->id }}, {{ $group->id }}, {{ $milestone->id }})"
@@ -146,19 +146,19 @@ $_gc = [
                 </div>
             </div>
             @empty
-            <div class="px-5 py-2 text-xs text-gray-400 italic">태스크 없음</div>
+            <div class="px-5 py-2 text-xs text-gray-400 italic">{{ __('projects.no_tasks') }}</div>
             @endforelse
         </div>
     </div>
     @empty
-    <div class="px-10 py-3 text-sm text-gray-400">그룹이 없습니다. 위 "그룹 추가" 버튼을 클릭하세요.</div>
+    <div class="px-10 py-3 text-sm text-gray-400">{{ __('projects.no_groups_hint') }}</div>
     @endforelse
     </div>
 </div>
 @empty
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center text-gray-500">
-    <p class="text-sm">등록된 마일스톤이 없습니다.</p>
-    <button onclick="openMilestoneModal()" class="mt-3 px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">마일스톤 추가</button>
+    <p class="text-sm">{{ __('projects.no_milestones') }}</p>
+    <button onclick="openMilestoneModal()" class="mt-3 px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">{{ __('projects.milestone_add_btn') }}</button>
 </div>
 @endforelse
 
@@ -166,7 +166,7 @@ $_gc = [
 @if($tree['ungrouped']->isNotEmpty())
 <div class="mb-4 bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden">
     <div class="px-5 py-3 bg-orange-50 border-b border-orange-100">
-        <span class="font-semibold text-orange-700 text-sm">미분류 그룹</span>
+        <span class="font-semibold text-orange-700 text-sm">{{ __('projects.ungrouped_groups') }}</span>
     </div>
     @foreach($tree['ungrouped'] as $group)
     @php $gc = $_gc[$group->id % count($_gc)]; @endphp
@@ -183,11 +183,11 @@ $_gc = [
                 </svg>
                 <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:{{ $gc['dot'] }};"></span>
                 <span class="text-sm font-semibold" style="color:{{ $gc['title'] }};">{{ $group->title }}</span>
-                <span class="text-xs" style="color:{{ $gc['dot'] }};opacity:.7;">({{ $group->subTasks->count() }}개)</span>
+                <span class="text-xs" style="color:{{ $gc['dot'] }};opacity:.7;">({{ __('projects.task_count', ['count' => $group->subTasks->count()]) }})</span>
             </div>
             <div class="flex items-center gap-2" onclick="event.stopPropagation()">
                 <button onclick="openTaskModal({{ $group->id }}, null)"
-                        class="px-2.5 py-1 text-xs text-green-600 border border-green-200 rounded hover:bg-green-50">+ 태스크</button>
+                        class="px-2.5 py-1 text-xs text-green-600 border border-green-200 rounded hover:bg-green-50">{{ __('projects.add_task') }}</button>
                 <button onclick="deleteGroup({{ $group->id }})"
                         class="p-1 text-gray-300 hover:text-red-500 rounded">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -203,7 +203,7 @@ $_gc = [
                     <span class="text-sm text-gray-800">{{ $task->title }}</span>
                     @if($task->files->count() > 0)
                     <span onclick="event.stopPropagation();openListFileChip({{ $task->id }}, event)"
-                          title="첨부파일 보기"
+                          title="{{ __('projects.view_attachments') }}"
                           style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         {{ $task->files->count() }}
@@ -232,8 +232,8 @@ $_gc = [
 @if($tree['loose']->isNotEmpty())
 <div class="mb-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
     <div class="px-5 py-3 bg-gray-50 border-b border-gray-100">
-        <span class="font-semibold text-gray-600 text-sm">미분류 태스크</span>
-        <span class="ml-2 text-xs text-gray-400">(그룹 없음)</span>
+        <span class="font-semibold text-gray-600 text-sm">{{ __('projects.ungrouped_tasks') }}</span>
+        <span class="ml-2 text-xs text-gray-400">{{ __('projects.no_group') }}</span>
     </div>
     @foreach($tree['loose'] as $task)
     @php $sc = \App\Models\SubTask::STATUS_COLORS[$task->status] ?? 'gray'; $sl = \App\Models\SubTask::STATUS_LABELS[$task->status] ?? $task->status; @endphp
@@ -243,7 +243,7 @@ $_gc = [
             <span class="text-sm text-gray-800">{{ $task->title }}</span>
             @if($task->files->count() > 0)
             <span onclick="openListFileChip({{ $task->id }}, event)"
-                  title="첨부파일 보기"
+                  title="{{ __('projects.view_attachments') }}"
                   style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                 {{ $task->files->count() }}
@@ -275,7 +275,7 @@ $_gc = [
 <div id="milestone-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
     <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-        <h3 id="ms-modal-title" class="text-sm font-semibold text-gray-800">마일스톤 추가</h3>
+        <h3 id="ms-modal-title" class="text-sm font-semibold text-gray-800">{{ __('projects.milestone_add_modal') }}</h3>
         <button onclick="closeMilestoneModal()" class="p-1 text-gray-400 hover:text-gray-600 rounded-full">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -283,28 +283,28 @@ $_gc = [
     <form id="milestone-form" onsubmit="submitMilestone(event)" class="px-5 py-4 space-y-3">
         <input type="hidden" id="ms-id" value="">
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">제목 <span class="text-red-500">*</span></label>
-            <input id="ms-title" type="text" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="마일스톤 제목">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.milestone_title') }} <span class="text-red-500">*</span></label>
+            <input id="ms-title" type="text" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="{{ __('projects.milestone_title_placeholder') }}">
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">상태</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.milestone_status') }}</label>
                 <select id="ms-status" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="planned">계획</option>
-                    <option value="in_progress">진행중</option>
-                    <option value="completed">완료</option>
-                    <option value="cancelled">취소</option>
+                    <option value="planned">{{ __('projects.ms_status_planned') }}</option>
+                    <option value="in_progress">{{ __('projects.ms_status_in_progress') }}</option>
+                    <option value="completed">{{ __('projects.ms_status_completed') }}</option>
+                    <option value="cancelled">{{ __('projects.ms_status_cancelled') }}</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">목표일</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.milestone_target_date') }}</label>
                 <input id="ms-target-date" type="date" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
         </div>
         <div id="ms-error" class="hidden text-xs text-red-500"></div>
         <div class="flex justify-end gap-2 pt-2">
-            <button type="button" onclick="closeMilestoneModal()" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">취소</button>
-            <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">저장</button>
+            <button type="button" onclick="closeMilestoneModal()" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">{{ __('common.cancel') }}</button>
+            <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">{{ __('common.save') }}</button>
         </div>
     </form>
 </div>
@@ -314,7 +314,7 @@ $_gc = [
 <div id="group-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xs">
     <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-        <h3 id="grp-modal-title" class="text-sm font-semibold text-gray-800">그룹 추가</h3>
+        <h3 id="grp-modal-title" class="text-sm font-semibold text-gray-800">{{ __('projects.group_add_modal') }}</h3>
         <button onclick="closeGroupModal()" class="p-1 text-gray-400 hover:text-gray-600 rounded-full">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -323,13 +323,13 @@ $_gc = [
         <input type="hidden" id="grp-id" value="">
         <input type="hidden" id="grp-milestone-id" value="">
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">그룹명 <span class="text-red-500">*</span></label>
-            <input id="grp-title" type="text" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="그룹명">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.group_name_label') }} <span class="text-red-500">*</span></label>
+            <input id="grp-title" type="text" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="{{ __('projects.group_name_placeholder') }}">
         </div>
         <div id="grp-error" class="hidden text-xs text-red-500"></div>
         <div class="flex justify-end gap-2 pt-2">
-            <button type="button" onclick="closeGroupModal()" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">취소</button>
-            <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">저장</button>
+            <button type="button" onclick="closeGroupModal()" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">{{ __('common.cancel') }}</button>
+            <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">{{ __('common.save') }}</button>
         </div>
     </form>
 </div>
@@ -339,7 +339,7 @@ $_gc = [
 <div id="task-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
     <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-        <h3 id="task-modal-title" class="text-sm font-semibold text-gray-800">태스크 추가</h3>
+        <h3 id="task-modal-title" class="text-sm font-semibold text-gray-800">{{ __('projects.task_add_modal') }}</h3>
         <button onclick="closeTaskModal()" class="p-1 text-gray-400 hover:text-gray-600 rounded-full">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -348,37 +348,37 @@ $_gc = [
         <input type="hidden" id="task-id" value="">
         <input type="hidden" id="task-group-id" value="">
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">제목 <span class="text-red-500">*</span></label>
-            <input id="task-title" type="text" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="태스크 제목">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.task_title') }} <span class="text-red-500">*</span></label>
+            <input id="task-title" type="text" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="{{ __('projects.task_title_placeholder') }}">
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">설명</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.task_description') }}</label>
             <textarea id="task-desc" rows="2" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
         </div>
         <div class="grid grid-cols-2 gap-2">
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">시작일 <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.task_start_date') }} <span class="text-red-500">*</span></label>
                 <input id="task-start" type="date" required class="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">종료일 <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.task_end_date') }} <span class="text-red-500">*</span></label>
                 <input id="task-end" type="date" required class="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">상태</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.milestone_status') }}</label>
                 <select id="task-status" class="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="not_started">미시작</option>
-                    <option value="in_progress">진행중</option>
-                    <option value="completed">완료</option>
-                    <option value="blocked">블로킹</option>
+                    <option value="not_started">{{ __('projects.gantt_status_not_started') }}</option>
+                    <option value="in_progress">{{ __('projects.gantt_status_in_progress') }}</option>
+                    <option value="completed">{{ __('projects.gantt_status_completed') }}</option>
+                    <option value="blocked">{{ __('projects.gantt_status_blocked') }}</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">담당자</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.assignee') }}</label>
                 <select id="task-assignee" class="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">미배정</option>
+                    <option value="">{{ __('projects.unassigned') }}</option>
                     @foreach($members as $m)
                     <option value="{{ $m->id }}">{{ $m->name }}</option>
                     @endforeach
@@ -386,13 +386,13 @@ $_gc = [
             </div>
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">진행률 <span class="text-gray-400">(0~100)</span></label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('projects.task_progress') }} <span class="text-gray-400">{{ __('projects.task_progress_hint') }}</span></label>
             <input id="task-progress" type="number" min="0" max="100" value="0" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
         <div id="task-error" class="hidden text-xs text-red-500"></div>
         <div class="flex justify-end gap-2 pt-1">
-            <button type="button" onclick="closeTaskModal()" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">취소</button>
-            <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">저장</button>
+            <button type="button" onclick="closeTaskModal()" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">{{ __('common.cancel') }}</button>
+            <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">{{ __('common.save') }}</button>
         </div>
     </form>
 </div>
@@ -445,6 +445,18 @@ foreach ($tree['loose'] as $st) {
 }
 @endphp
 <script>
+const SCHED_STR = {
+    milestoneAdd:           @json(__('projects.milestone_add_modal')),
+    milestoneEdit:          @json(__('projects.milestone_edit_modal')),
+    groupAdd:               @json(__('projects.group_add_modal')),
+    groupEdit:              @json(__('projects.group_edit_modal')),
+    taskAdd:                @json(__('projects.task_add_modal')),
+    taskEdit:               @json(__('projects.task_edit_modal')),
+    error:                  @json(__('projects.error_occurred')),
+    deleteMilestoneConfirm: @json(__('projects.delete_milestone_confirm')),
+    deleteGroupConfirm:     @json(__('projects.delete_group_confirm')),
+    deleteTaskConfirm:      @json(__('projects.delete_subtask_confirm')),
+};
 const PROJECT_ID    = {{ $project->id }};
 const LIST_FILES    = @json($_listFilesMap);
 const MS_STORE_URL  = '{{ route('projects.milestones.store', $project) }}';
@@ -475,7 +487,7 @@ async function openMilestoneModal() {
     document.getElementById('ms-title').value = '';
     document.getElementById('ms-status').value = 'planned';
     document.getElementById('ms-target-date').value = '';
-    document.getElementById('ms-modal-title').textContent = '마일스톤 추가';
+    document.getElementById('ms-modal-title').textContent = SCHED_STR.milestoneAdd;
     document.getElementById('ms-error').classList.add('hidden');
     document.getElementById('milestone-modal').classList.remove('hidden');
 }
@@ -484,7 +496,7 @@ async function openEditMilestone(id, title, status, targetDate) {
     document.getElementById('ms-title').value = title;
     document.getElementById('ms-status').value = status;
     document.getElementById('ms-target-date').value = targetDate;
-    document.getElementById('ms-modal-title').textContent = '마일스톤 수정';
+    document.getElementById('ms-modal-title').textContent = SCHED_STR.milestoneEdit;
     document.getElementById('ms-error').classList.add('hidden');
     document.getElementById('milestone-modal').classList.remove('hidden');
 }
@@ -508,14 +520,14 @@ async function submitMilestone(e) {
     });
     if (!r.ok) {
         const d = await r.json();
-        document.getElementById('ms-error').textContent = d.message || '오류';
+        document.getElementById('ms-error').textContent = d.message || SCHED_STR.error;
         document.getElementById('ms-error').classList.remove('hidden');
         return;
     }
     location.reload();
 }
 async function deleteMilestone(id) {
-    if (!await __confirm('마일스톤을 삭제합니까? 하위 그룹/태스크도 함께 삭제됩니다.')) return;
+    if (!await __confirm(SCHED_STR.deleteMilestoneConfirm)) return;
     const r = await fetch(`${MS_BASE_URL}/${id}`, {
         method: 'DELETE',
         headers: {'X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
@@ -528,7 +540,7 @@ async function openGroupModal(milestoneId) {
     document.getElementById('grp-id').value = '';
     document.getElementById('grp-title').value = '';
     document.getElementById('grp-milestone-id').value = milestoneId;
-    document.getElementById('grp-modal-title').textContent = '그룹 추가';
+    document.getElementById('grp-modal-title').textContent = SCHED_STR.groupAdd;
     document.getElementById('grp-error').classList.add('hidden');
     document.getElementById('group-modal').classList.remove('hidden');
 }
@@ -536,7 +548,7 @@ async function openEditGroup(id, title, milestoneId) {
     document.getElementById('grp-id').value = id;
     document.getElementById('grp-title').value = title;
     document.getElementById('grp-milestone-id').value = milestoneId;
-    document.getElementById('grp-modal-title').textContent = '그룹 수정';
+    document.getElementById('grp-modal-title').textContent = SCHED_STR.groupEdit;
     document.getElementById('grp-error').classList.add('hidden');
     document.getElementById('group-modal').classList.remove('hidden');
 }
@@ -560,14 +572,14 @@ async function submitGroup(e) {
     });
     if (!r.ok) {
         const d = await r.json();
-        document.getElementById('grp-error').textContent = d.message || '오류';
+        document.getElementById('grp-error').textContent = d.message || SCHED_STR.error;
         document.getElementById('grp-error').classList.remove('hidden');
         return;
     }
     location.reload();
 }
 async function deleteGroup(id) {
-    if (!await __confirm('그룹을 삭제합니까? 하위 태스크도 함께 삭제됩니다.')) return;
+    if (!await __confirm(SCHED_STR.deleteGroupConfirm)) return;
     const r = await fetch(`${GRP_BASE_URL}/${id}`, {
         method: 'DELETE',
         headers: {'X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
@@ -586,7 +598,7 @@ async function openTaskModal(groupId, milestoneId) {
     document.getElementById('task-status').value = 'not_started';
     document.getElementById('task-progress').value = '0';
     document.getElementById('task-assignee').value = '';
-    document.getElementById('task-modal-title').textContent = '태스크 추가';
+    document.getElementById('task-modal-title').textContent = SCHED_STR.taskAdd;
     document.getElementById('task-error').classList.add('hidden');
     document.getElementById('task-modal').classList.remove('hidden');
 }
@@ -604,7 +616,7 @@ async function openEditTask(taskId, groupId, milestoneId) {
     document.getElementById('task-status').value = t.status;
     document.getElementById('task-progress').value = t.progress;
     document.getElementById('task-assignee').value = t.assignee_id ?? '';
-    document.getElementById('task-modal-title').textContent = '태스크 수정';
+    document.getElementById('task-modal-title').textContent = SCHED_STR.taskEdit;
     document.getElementById('task-error').classList.add('hidden');
     document.getElementById('task-modal').classList.remove('hidden');
 }
@@ -634,14 +646,14 @@ async function submitTask(e) {
     });
     if (!r.ok) {
         const d = await r.json();
-        document.getElementById('task-error').textContent = d.message || '오류';
+        document.getElementById('task-error').textContent = d.message || SCHED_STR.error;
         document.getElementById('task-error').classList.remove('hidden');
         return;
     }
     location.reload();
 }
 async function deleteTask(id) {
-    if (!await __confirm('태스크를 삭제합니까?')) return;
+    if (!await __confirm(SCHED_STR.deleteTaskConfirm)) return;
     const r = await fetch(`${TASK_BASE_URL}/${id}`, {
         method: 'DELETE',
         headers: {'X-CSRF-TOKEN':CSRF,'Accept':'application/json'},

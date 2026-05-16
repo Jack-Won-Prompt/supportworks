@@ -207,6 +207,7 @@ class PublicFileShareController extends Controller
             'guest_name' => 'required|string|max:100',
             'content'    => 'required|string|max:1000',
             'page'       => 'nullable|integer|min:1|max:9999',
+            'video_time' => 'nullable|numeric|min:0',
         ]);
 
         $comment = FileComment::create([
@@ -214,6 +215,7 @@ class PublicFileShareController extends Controller
             'user_id'         => null,
             'guest_name'      => trim($request->guest_name),
             'page'            => $request->page ?: null,
+            'video_time'      => $request->filled('video_time') ? (float) $request->video_time : null,
             'content'         => $request->content,
             'parent_id'       => null,
         ]);
@@ -395,6 +397,7 @@ class PublicFileShareController extends Controller
         $data = [
             'id'         => $c->id,
             'page'       => $c->page,
+            'video_time' => $c->video_time !== null ? (float) $c->video_time : null,
             'content'    => $c->content,
             'user_name'  => $c->user?->name ?? $c->guest_name ?? '외부 리뷰어',
             'user_id'    => $c->user_id,

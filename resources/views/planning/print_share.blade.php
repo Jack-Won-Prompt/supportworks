@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $doc->title }} — 기획서</title>
+    <title>{{ $doc->title }} — {{ __('planning.doc_suffix') }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { background: #fff; font-family: 'Malgun Gothic', '맑은 고딕', -apple-system, sans-serif; font-size: 12pt; color: #1f2937; }
@@ -89,13 +89,13 @@
     <div class="cover-page">
         <div class="cover-logo">SupportWorks</div>
         <div class="cover-title">{{ $doc->title }}</div>
-        <div class="cover-sub">프로젝트 기획서</div>
+        <div class="cover-sub">{{ __('planning.project_planning') }}</div>
         <div class="cover-meta">
-            <span>프로젝트: {{ $doc->project->name }}</span>
-            <span>버전: v{{ $doc->version }}</span>
-            <span>상태: {{ $doc->status_label }}</span>
+            <span>{{ __('planning.meta_project', ['name' => $doc->project->name]) }}</span>
+            <span>{{ __('planning.meta_version', ['version' => $doc->version]) }}</span>
+            <span>{{ __('planning.meta_status', ['status' => $doc->status_label]) }}</span>
             @if($doc->approved_at)
-            <span>승인일: {{ $doc->approved_at->format('Y.m.d') }}</span>
+            <span>{{ __('planning.meta_approved', ['date' => $doc->approved_at->format('Y.m.d')]) }}</span>
             @endif
         </div>
     </div>
@@ -104,19 +104,19 @@
     @if($doc->content)
     <div class="md-body" id="md-body"></div>
     @else
-    <div class="md-body" style="color:#9ca3af;text-align:center;padding:40px;">기획서 내용이 없습니다.</div>
+    <div class="md-body" style="color:#9ca3af;text-align:center;padding:40px;">{{ __('planning.empty_content') }}</div>
     @endif
 
-    <div class="print-footer">SupportWorks · 외부 공유 링크로 생성된 문서입니다.</div>
+    <div class="print-footer">{{ __('planning.print_footer') }}</div>
 
     {{-- 인쇄 버튼 (화면에서만 표시) --}}
     <div class="print-bar">
-        <button class="btn-close" onclick="window.close()">닫기</button>
+        <button class="btn-close" onclick="window.close()">{{ __('common.close') }}</button>
         <button class="btn-print" onclick="window.print()">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
             </svg>
-            PDF로 저장 / 인쇄
+            {{ __('planning.btn_print_save') }}
         </button>
     </div>
 

@@ -174,4 +174,34 @@ return [
     'ai_action_assignee'        => 'Assignee',
     'ai_action_promote_fail'    => 'Failed to create the Action Item.',
     'action_source_message'     => 'Source message',
+
+    // ── Group chat members / invitations
+    'view_members'              => 'View members',
+    'mention_add'               => 'Add mention to input',
+    'mention_self_disabled'     => 'You cannot mention yourself',
+    'member_count'              => ':count members',
+    'invite'                    => 'Invite',
+    'invite_to_room'            => 'Invite to chat',
+    'search_name_email'         => 'Search by name or email',
+    'no_invite_candidates'      => 'No members available to invite.',
+    'no_invite_candidates_hint' => '(Only non-participating members of the same project can be invited)',
+    'invite_select_at_least'    => 'Select at least one member to invite.',
+    'inviting'                  => 'Inviting...',
+    'invite_fail'               => 'Failed to invite.',
+    'mention_prefix'            => 'To :name: ',
+
+    // ── File email sending
+    'file_email_send'           => 'Send File by Email',
+    'file_email_confirm'        => 'Send this file by email to :count of the chat (excluding yourself)?',
+    'share_file_email_title'    => 'Send to chat members by email',
+    'send_email'                => 'Send',
+    'sending'                   => 'Sending...',
+    'email_sent'                => 'The email has been sent.',
+    'email_send_fail'           => 'Failed to send the email.',
+    'attached_file_fallback'    => '(attached file)',
+
+    // ── Translation
+    'original_text'             => 'Original',
+    'translate_fail'            => 'Translation failed.',
+    'translate_req_error'       => 'An error occurred during the translation request.',
 ];

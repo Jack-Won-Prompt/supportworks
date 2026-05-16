@@ -182,7 +182,7 @@
                 @csrf
                 <button type="submit" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-right:6px;">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                    로그아웃
+                    {{ __('app.nav_logout') }}
                 </button>
             </form>
             <button onclick="window.close()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
@@ -299,7 +299,7 @@
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
-                            <span class="gsb-hide">내업무</span>
+                            <span class="gsb-hide">{{ __('app.nav_my_work') }}</span>
                             @if($myWorkOverdue > 0)
                             <span class="gsb-hide" style="margin-left:auto;min-width:18px;height:18px;padding:0 5px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:9px;display:flex;align-items:center;justify-content:center;">{{ $myWorkOverdue > 99 ? '99+' : $myWorkOverdue }}</span>
                             @endif
@@ -338,7 +338,7 @@
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            <span class="gsb-hide">위클리</span>
+                            <span class="gsb-hide">{{ __('app.nav_weekly') }}</span>
                         </a>
                         @endif {{-- weekly_reports feature --}}
                         @if(auth()->user()->hasFeature('teams'))
@@ -440,23 +440,23 @@
                         </div>
                         <a href="{{ route('builder.new') }}" class="sidebar-item {{ request()->routeIs('builder.new') || request()->routeIs('builder.wizard.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            <span class="gsb-hide">새 빌더 시작</span>
+                            <span class="gsb-hide">{{ __('app.nav_builder_new') }}</span>
                         </a>
                         <a href="{{ route('builder.sequences.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.sequences.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                            <span class="gsb-hide">빌더 시퀀스</span>
+                            <span class="gsb-hide">{{ __('app.nav_builder_sequences') }}</span>
                         </a>
                         <a href="{{ route('builder.history.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.history.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span class="gsb-hide">빌더 이력</span>
+                            <span class="gsb-hide">{{ __('app.nav_builder_history') }}</span>
                         </a>
                         <a href="{{ route('builder.feedback.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.feedback.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
-                            <span class="gsb-hide">결과 피드백</span>
+                            <span class="gsb-hide">{{ __('app.nav_builder_feedback') }}</span>
                         </a>
                         <a href="{{ route('builder.templates.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.templates.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                            <span class="gsb-hide">빌더 템플릿</span>
+                            <span class="gsb-hide">{{ __('app.nav_builder_templates') }}</span>
                         </a>
                     </div>
                     @endif {{-- prompt_builder feature --}}
@@ -466,24 +466,24 @@
                     {{-- 웍스 도구 섹션 --}}
                     <div style="margin-bottom:4px;">
                         <div class="gsb-hide" style="padding:6px 10px 4px;">
-                            <span class="section-label">웍스 도구</span>
+                            <span class="section-label">{{ __('app.nav_works_tools') }}</span>
                         </div>
                         @if(auth()->user()->hasFeature('ai_chat'))
                         <a href="{{ route('ai.index') }}" class="sidebar-item {{ request()->routeIs('ai.index') || (request()->routeIs('ai.*') && !request()->routeIs('ai-agent.*')) ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-                            <span class="gsb-hide">웍스 채팅</span>
+                            <span class="gsb-hide">{{ __('app.nav_works_chat') }}</span>
                         </a>
                         @endif {{-- ai_chat feature --}}
                         @if(auth()->user()->hasFeature('prompt_agent'))
                         <a href="{{ route('prompt-refiner.index') }}" class="sidebar-item {{ request()->routeIs('prompt-refiner.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                            <span class="gsb-hide">프롬프트 Agent</span>
+                            <span class="gsb-hide">{{ __('app.nav_prompt_agent') }}</span>
                         </a>
                         @endif {{-- prompt_agent feature --}}
                         @if(auth()->user()->hasFeature('ai_agent'))
                         <a href="{{ route('ai-agent.dashboard', ['force_home' => 1]) }}" class="sidebar-item {{ request()->routeIs('ai-agent.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                            <span class="gsb-hide">웍스 개발 Agent</span>
+                            <span class="gsb-hide">{{ __('app.nav_works_dev_agent') }}</span>
                         </a>
                         @endif {{-- ai_agent feature --}}
                     </div>
@@ -573,7 +573,7 @@
                         <div id="phone-notice-wrap" style="position:relative;">
                             <a id="phone-notice-btn" href="{{ route('profile.edit') }}#phone"
                                onclick="event.preventDefault(); togglePhoneNotice();"
-                               title="휴대폰 번호를 등록해 주세요"
+                               title="{{ __('app.phone_register_prompt') }}"
                                style="position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:#fff7ed;color:#ea580c;text-decoration:none;transition:background .12s;"
                                onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff7ed'">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -585,20 +585,20 @@
                                 <div style="padding:12px 14px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border-bottom:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;gap:8px;">
                                     <div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#9a3412;">
                                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                        휴대폰 번호 미등록
+                                        {{ __('app.phone_not_registered') }}
                                     </div>
-                                    <button onclick="dismissPhoneNotice(event)" title="닫기"
+                                    <button onclick="dismissPhoneNotice(event)" title="{{ __('common.close') }}"
                                         style="background:none;border:none;cursor:pointer;color:#9a3412;font-size:18px;line-height:1;padding:2px 4px;border-radius:5px;transition:background .12s;"
                                         onmouseover="this.style.background='rgba(154,52,18,.12)'" onmouseout="this.style.background='none'">&times;</button>
                                 </div>
                                 <div style="padding:12px 14px;font-size:12px;color:#57534e;line-height:1.55;">
-                                    승인 요청 · 검토 요청 등 주요 알림을 <b style="color:#9a3412;">SMS</b>로도 받으려면 휴대폰 번호를 등록하세요.
+                                    {!! __('app.phone_notice_desc') !!}
                                 </div>
                                 <div style="padding:0 14px 12px;">
                                     <a href="{{ route('profile.edit') }}#phone"
                                        style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:linear-gradient(135deg,#ea580c,#c2410c);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:opacity .12s;"
                                        onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-                                        지금 등록하기
+                                        {{ __('app.phone_register_now') }}
                                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                     </a>
                                 </div>
@@ -628,7 +628,7 @@
                         {{-- 공지사항 아이콘 --}}
                         @php $__announcements = \App\Models\Announcement::active()->latest()->get(); @endphp
                         <div style="position:relative;" id="ann-icon-wrap">
-                            <button id="ann-icon-btn" onclick="toggleAnnDropdown()" title="공지사항"
+                            <button id="ann-icon-btn" onclick="toggleAnnDropdown()" title="{{ __('app.announcements') }}"
                                 style="position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;transition:background .12s,color .12s;"
                                 onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
                                 onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
@@ -641,21 +641,21 @@
                                 <div style="padding:12px 16px 10px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                                     <span style="display:flex;align-items:center;gap:6px;">
                                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-                                        공지사항
+                                        {{ __('app.announcements') }}
                                     </span>
                                     @if($__announcements->isNotEmpty())
-                                    <button onclick="dismissAllAnn()" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:3px 7px;border-radius:6px;transition:background .1s;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">모두 닫기</button>
+                                    <button onclick="dismissAllAnn()" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:3px 7px;border-radius:6px;transition:background .1s;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">{{ __('app.dismiss_all') }}</button>
                                     @endif
                                 </div>
                                 <div style="overflow-y:auto;flex:1;">
                                 @if($__announcements->isEmpty())
-                                <div style="padding:28px 16px;text-align:center;color:#94a3b8;font-size:13px;">공지사항이 없습니다</div>
+                                <div style="padding:28px 16px;text-align:center;color:#94a3b8;font-size:13px;">{{ __('app.no_announcements') }}</div>
                                 @else
                                 @foreach($__announcements as $__ann2)
                                 @php
                                     $__ac=['info'=>['#eff6ff','#bfdbfe','#1d4ed8'],'warning'=>['#fffbeb','#fde68a','#b45309'],'maintenance'=>['#fef2f2','#fecaca','#dc2626'],'update'=>['#f5f3ff','#ddd6fe','#6d28d9']];
                                     [$__ab,$__abo,$__at]=$__ac[$__ann2->type]??['#f8fafc','#e2e8f0','#334155'];
-                                    $__al2=['info'=>'안내','warning'=>'주의','maintenance'=>'점검','update'=>'업데이트'][$__ann2->type]??$__ann2->type;
+                                    $__al2=['info'=>__('app.ann_type_info'),'warning'=>__('app.ann_type_warning'),'maintenance'=>__('app.ann_type_maintenance'),'update'=>__('app.ann_type_update')][$__ann2->type]??$__ann2->type;
                                 @endphp
                                 <div data-ann-drop="{{ $__ann2->id }}" style="padding:12px 16px;border-bottom:1px solid #f4f4f5;display:flex;align-items:flex-start;gap:10px;transition:background .1s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
                                     <div style="flex:1;min-width:0;">
@@ -666,7 +666,7 @@
                                         <div style="font-size:13px;font-weight:600;color:#18181b;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $__ann2->title }}</div>
                                         <div style="font-size:12px;color:#71717a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $__ann2->body }}</div>
                                     </div>
-                                    <button onclick="dismissAnn({{ $__ann2->id }})" title="닫기" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:17px;line-height:1;padding:1px 2px;margin-top:-1px;">&times;</button>
+                                    <button onclick="dismissAnn({{ $__ann2->id }})" title="{{ __('common.close') }}" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:17px;line-height:1;padding:1px 2px;margin-top:-1px;">&times;</button>
                                 </div>
                                 @endforeach
                                 @endif
@@ -676,7 +676,7 @@
 
                         {{-- 이메일 보내기 (팝오버) --}}
                         <div style="position:relative;" id="mail-compose-wrap">
-                            <button id="mail-compose-btn" type="button" onclick="mailComposeToggle()" title="이메일 보내기"
+                            <button id="mail-compose-btn" type="button" onclick="mailComposeToggle()" title="{{ __('app.mail_send') }}"
                                 style="position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;transition:background .12s,color .12s;"
                                 onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
                                 onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
@@ -688,45 +688,45 @@
                                 <div style="padding:13px 16px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                                     <span style="display:flex;align-items:center;gap:6px;">
                                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                        이메일 보내기
+                                        {{ __('app.mail_send') }}
                                     </span>
                                     <button type="button" onclick="mailComposeClose()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;padding:2px 4px;">&times;</button>
                                 </div>
                                 <form id="mail-compose-form" onsubmit="return mailComposeSend(event)" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:visible;">
                                     <div>
-                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">보낸 사람</label>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('app.mail_from') }}</label>
                                         <div style="padding:8px 10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;">
                                             {{ auth()->user()?->name }} <span style="color:#9ca3af;font-size:12px;">&lt;{{ auth()->user()?->email }}&gt;</span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">받는 사람</label>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('app.mail_to') }}</label>
                                         <div style="display:flex;gap:6px;margin-bottom:6px;">
                                             <select id="mail-compose-pick" style="flex:1;padding:7px 9px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;">
-                                                <option value="">구성원에서 선택…</option>
+                                                <option value="">{{ __('app.mail_pick_member') }}</option>
                                             </select>
-                                            <button type="button" onclick="mailComposeAddPicked()" style="padding:6px 14px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 1px 3px rgba(124,58,237,.25);transition:filter .12s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">추가</button>
+                                            <button type="button" onclick="mailComposeAddPicked()" style="padding:6px 14px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 1px 3px rgba(124,58,237,.25);transition:filter .12s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">{{ __('common.add') }}</button>
                                         </div>
-                                        <input id="mail-compose-direct" type="text" placeholder="직접 입력: name@example.com (Enter 또는 쉼표로 추가)"
+                                        <input id="mail-compose-direct" type="text" placeholder="{{ __('app.mail_direct_placeholder') }}"
                                             onkeydown="mailComposeOnDirectKey(event)"
                                             style="width:100%;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;box-sizing:border-box;">
                                         <div id="mail-compose-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:4px;"></div>
                                     </div>
                                     <div>
-                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">제목</label>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('common.title') }}</label>
                                         <input id="mail-compose-subject" type="text" maxlength="200" required
                                             style="width:100%;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;color:#374151;box-sizing:border-box;">
                                     </div>
                                     <div>
-                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">내용</label>
+                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('common.content') }}</label>
                                         <textarea id="mail-compose-body" rows="6" maxlength="50000" required
                                             style="width:100%;padding:9px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;color:#374151;box-sizing:border-box;resize:vertical;line-height:1.6;font-family:inherit;"></textarea>
                                     </div>
                                     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:4px;">
                                         <span id="mail-compose-status" style="font-size:11.5px;color:#94a3b8;"></span>
                                         <div style="display:flex;gap:6px;">
-                                            <button type="button" onclick="mailComposeClose()" style="padding:7px 14px;background:#fff;border:1px solid var(--t200,#e5e7eb);color:var(--tText,#6b7280);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='#fff'">취소</button>
-                                            <button type="submit" id="mail-compose-send" style="padding:7px 18px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(124,58,237,.3);transition:filter .12s,transform .08s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">발송</button>
+                                            <button type="button" onclick="mailComposeClose()" style="padding:7px 14px;background:#fff;border:1px solid var(--t200,#e5e7eb);color:var(--tText,#6b7280);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
+                                            <button type="submit" id="mail-compose-send" style="padding:7px 18px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(124,58,237,.3);transition:filter .12s,transform .08s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">{{ __('app.mail_dispatch') }}</button>
                                         </div>
                                     </div>
                                 </form>
@@ -758,7 +758,7 @@
                                     if (!sel) return;
                                     console.log('[mail-compose v3] fetching recipients…');
                                     // 기존 옵션 모두 제거 후 첫 placeholder만 남기기
-                                    sel.innerHTML = '<option value="">구성원에서 선택…</option>';
+                                    sel.innerHTML = '<option value="">' + @json(__('app.mail_pick_member')) + '</option>';
                                     try {
                                         const r = await fetch('{{ route('email-compose.recipients') }}?_=' + Date.now(), {
                                             headers: { 'Accept': 'application/json' },
@@ -771,7 +771,7 @@
                                             const opt = document.createElement('option');
                                             opt.value = '';
                                             opt.disabled = true;
-                                            opt.textContent = '참여한 프로젝트의 구성원이 없습니다 (직접 입력)';
+                                            opt.textContent = @json(__('app.mail_no_members'));
                                             sel.appendChild(opt);
                                             return;
                                         }
@@ -779,7 +779,7 @@
                                             const opt = document.createElement('option');
                                             opt.value = `${u.name || ''}|${u.email || ''}|${u.phone || ''}`;
                                             const co = (u.company && u.company !== '-') ? ` · ${u.company}` : '';
-                                            opt.textContent = `${u.name || '(이름없음)'}${co} <${u.email || ''}>`;
+                                            opt.textContent = `${u.name || @json(__('app.no_name'))}${co} <${u.email || ''}>`;
                                             sel.appendChild(opt);
                                         });
                                     } catch (e) { console.warn('[mail-compose v3] fetch failed', e); }
@@ -840,18 +840,18 @@
 
                                     if (!_mcRecipients.length) {
                                         status.style.color = '#dc2626';
-                                        status.textContent = '받는 사람을 1명 이상 추가하세요.';
+                                        status.textContent = @json(__('app.mail_need_recipient'));
                                         return false;
                                     }
                                     if (!subject || !body.trim()) {
                                         status.style.color = '#dc2626';
-                                        status.textContent = '제목과 내용을 입력하세요.';
+                                        status.textContent = @json(__('app.mail_need_subject_body'));
                                         return false;
                                     }
 
                                     btn.disabled = true;
                                     const orig = btn.textContent;
-                                    btn.textContent = '발송 중…';
+                                    btn.textContent = @json(__('app.mail_sending'));
                                     status.style.color = '#6b7280';
                                     status.textContent = '';
 
@@ -870,10 +870,10 @@
                                             }),
                                         });
                                         const d = await r.json();
-                                        if (!d.ok) throw new Error(d.message || '발송 실패');
+                                        if (!d.ok) throw new Error(d.message || @json(__('app.mail_send_failed')));
 
                                         status.style.color = '#15803d';
-                                        status.textContent = d.message || '발송 완료';
+                                        status.textContent = d.message || @json(__('app.mail_send_done'));
                                         document.getElementById('mail-compose-subject').value = '';
                                         document.getElementById('mail-compose-body').value = '';
                                         document.getElementById('mail-compose-direct').value = '';
@@ -882,7 +882,7 @@
                                         setTimeout(() => { mailComposeClose(); status.textContent = ''; }, 1200);
                                     } catch (e) {
                                         status.style.color = '#dc2626';
-                                        status.textContent = '발송 실패: ' + e.message;
+                                        status.textContent = @json(__('app.mail_send_failed')) + ': ' + e.message;
                                     }
                                     btn.disabled = false;
                                     btn.textContent = orig;
@@ -944,26 +944,26 @@
                         </div>
                         {{-- 메모 버튼 --}}
                         @if(auth()->user()->hasFeature('memos'))
-                        <button id="memo-btn" onclick="memoPopupToggle()" title="메모"
+                        <button id="memo-btn" onclick="memoPopupToggle()" title="{{ __('app.nav_memos') }}"
                             style="display:flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
                             onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
                             onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
-                            <span>메모</span>
+                            <span>{{ __('app.nav_memos') }}</span>
                         </button>
                         @endif {{-- memos feature --}}
 
                         {{-- 프롬프트 변환 버튼 --}}
-                        <button id="quick-prompt-btn" onclick="qpPopupToggle()" title="프롬프트 변환"
+                        <button id="quick-prompt-btn" onclick="qpPopupToggle()" title="{{ __('app.prompt_convert') }}"
                             style="display:flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
                             onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
                             onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
-                            <span>프롬프트</span>
+                            <span>{{ __('app.prompt_label') }}</span>
                         </button>
 
                         @include('partials.collab-widget')
@@ -976,7 +976,7 @@
                 @php
                     $__annColors = ['info'=>['#eff6ff','#bfdbfe','#1d4ed8'],'warning'=>['#fffbeb','#fde68a','#b45309'],'maintenance'=>['#fef2f2','#fecaca','#dc2626'],'update'=>['#f5f3ff','#ddd6fe','#6d28d9']];
                     [$__bg,$__border,$__text] = $__annColors[$__ann->type] ?? ['#f8fafc','#e2e8f0','#334155'];
-                    $__annLabel = ['info'=>'안내','warning'=>'주의','maintenance'=>'점검','update'=>'업데이트'][$__ann->type] ?? $__ann->type;
+                    $__annLabel = ['info'=>__('app.ann_type_info'),'warning'=>__('app.ann_type_warning'),'maintenance'=>__('app.ann_type_maintenance'),'update'=>__('app.ann_type_update')][$__ann->type] ?? $__ann->type;
                 @endphp
                 <div style="background:{{ $__bg }};border-bottom:1px solid {{ $__border }};padding:9px 24px;display:flex;align-items:center;gap:10px;" data-announcement-id="{{ $__ann->id }}">
                     <span style="flex-shrink:0;background:{{ $__border }};color:{{ $__text }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;">{{ $__annLabel }}</span>
@@ -1036,7 +1036,7 @@
                     <svg width="16" height="16" fill="none" stroke="var(--tText)" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
-                    <span style="font-size:14px;font-weight:700;color:#18181b;">메모</span>
+                    <span style="font-size:14px;font-weight:700;color:#18181b;">{{ __('app.nav_memos') }}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;">
                     <button onclick="memoShowAddForm()" id="memo-add-btn"
@@ -1045,7 +1045,7 @@
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
-                        메모 추가
+                        {{ __('app.memo_add') }}
                     </button>
                     <button onclick="memoPopupClose()"
                         style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:6px;"
@@ -1057,32 +1057,32 @@
 
             {{-- 메모 추가 폼 --}}
             <div id="memo-add-form" style="display:none;padding:12px 14px;border-bottom:1px solid #f0eeff;background:#fafaff;flex-shrink:0;">
-                <input id="memo-input-title" type="text" placeholder="제목 (선택)"
+                <input id="memo-input-title" type="text" placeholder="{{ __('app.memo_title_placeholder') }}"
                     style="width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;outline:none;background:#fff;color:#18181b;margin-bottom:8px;box-sizing:border-box;"
                     onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
-                <textarea id="memo-input-content" placeholder="메모 내용을 입력하세요..." rows="4"
+                <textarea id="memo-input-content" placeholder="{{ __('app.memo_content_placeholder') }}" rows="4"
                     style="width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;outline:none;background:#fff;color:#18181b;resize:vertical;margin-bottom:8px;box-sizing:border-box;line-height:1.55;"
                     onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
                 <div style="display:flex;align-items:center;justify-content:space-between;">
                     <div style="display:flex;gap:7px;align-items:center;" id="memo-color-picker">
                         <button class="memo-color-dot" data-color="yellow" onclick="memoSelectColor(this)"
-                            style="width:20px;height:20px;border-radius:50%;background:#fde047;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="노랑"></button>
+                            style="width:20px;height:20px;border-radius:50%;background:#fde047;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="{{ __('app.color_yellow') }}"></button>
                         <button class="memo-color-dot" data-color="green" onclick="memoSelectColor(this)"
-                            style="width:20px;height:20px;border-radius:50%;background:#86efac;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="초록"></button>
+                            style="width:20px;height:20px;border-radius:50%;background:#86efac;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="{{ __('app.color_green') }}"></button>
                         <button class="memo-color-dot" data-color="blue" onclick="memoSelectColor(this)"
-                            style="width:20px;height:20px;border-radius:50%;background:#93c5fd;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="파랑"></button>
+                            style="width:20px;height:20px;border-radius:50%;background:#93c5fd;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="{{ __('app.color_blue') }}"></button>
                         <button class="memo-color-dot" data-color="pink" onclick="memoSelectColor(this)"
-                            style="width:20px;height:20px;border-radius:50%;background:#f9a8d4;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="핑크"></button>
+                            style="width:20px;height:20px;border-radius:50%;background:#f9a8d4;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="{{ __('app.color_pink') }}"></button>
                         <button class="memo-color-dot" data-color="purple" onclick="memoSelectColor(this)"
-                            style="width:20px;height:20px;border-radius:50%;background:#c4b5fd;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="보라"></button>
+                            style="width:20px;height:20px;border-radius:50%;background:#c4b5fd;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="{{ __('app.color_purple') }}"></button>
                     </div>
                     <div style="display:flex;gap:6px;">
                         <button onclick="memoHideAddForm()"
                             style="height:28px;padding:0 12px;border:1.5px solid #e5e7eb;background:#fff;border-radius:7px;font-size:12px;color:#6b7280;cursor:pointer;"
-                            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">취소</button>
+                            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
                         <button onclick="memoSave()"
                             style="height:28px;padding:0 12px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;"
-                            onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">저장</button>
+                            onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">{{ __('common.save') }}</button>
                     </div>
                 </div>
             </div>
@@ -1099,10 +1099,10 @@
                     <svg width="16" height="16" fill="none" stroke="var(--tText)" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
-                    <span style="font-size:14px;font-weight:700;color:#18181b;">프롬프트 변환</span>
+                    <span style="font-size:14px;font-weight:700;color:#18181b;">{{ __('app.prompt_convert') }}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:4px;">
-                    <button onclick="qpSuffixManageOpen()" id="qp-suffix-manage-btn" type="button" title="추가 문구 관리"
+                    <button onclick="qpSuffixManageOpen()" id="qp-suffix-manage-btn" type="button" title="{{ __('app.suffix_manage') }}"
                         style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .12s;"
                         onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'" onmouseout="this.style.background='none';this.style.color='#a1a1aa'">
                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -1117,7 +1117,7 @@
 
             {{-- 입력 영역 --}}
             <div style="padding:12px 14px;border-bottom:1px solid #f0eeff;background:#fafaff;flex-shrink:0;">
-                <textarea id="qp-input" placeholder="변환하고 싶은 내용을 입력하세요..." rows="5"
+                <textarea id="qp-input" placeholder="{{ __('app.qp_input_placeholder') }}" rows="5"
                     style="width:100%;padding:9px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fff;color:#18181b;resize:vertical;margin-bottom:10px;box-sizing:border-box;line-height:1.55;font-family:inherit;"
                     onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
 
@@ -1127,7 +1127,7 @@
                         style="height:30px;padding:0 14px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .12s;"
                         onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        프롬프트 변환
+                        {{ __('app.prompt_convert') }}
                     </button>
                 </div>
             </div>
@@ -1141,14 +1141,14 @@
             <div style="padding:13px 14px 11px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                 <span style="font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;gap:7px;">
                     <svg width="13" height="13" fill="none" stroke="var(--tText)" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    추가 문구 관리
+                    {{ __('app.suffix_manage') }}
                 </span>
                 <div style="display:flex;align-items:center;gap:5px;">
                     <button onclick="qpSuffixManageNew()" id="qp-suffix-new-btn" type="button"
                         style="display:flex;align-items:center;gap:4px;height:26px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .12s;"
                         onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
                         <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        새 문구
+                        {{ __('app.suffix_new') }}
                     </button>
                     <button onclick="qpSuffixManageClose()" type="button"
                         style="width:26px;height:26px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:5px;"
@@ -1161,17 +1161,17 @@
             {{-- 폼 (토글) --}}
             <div id="qp-suffix-form" style="display:none;padding:11px 12px;background:#fafaff;border-bottom:1px solid #f0eeff;flex-shrink:0;">
                 <input id="qp-suffix-form-id" type="hidden" value="">
-                <input id="qp-suffix-form-label" type="text" maxlength="100" placeholder="라벨 (예: 단계별 설명 포함)"
+                <input id="qp-suffix-form-label" type="text" maxlength="100" placeholder="{{ __('app.suffix_label_placeholder') }}"
                     style="width:100%;padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;outline:none;background:#fff;color:#18181b;margin-bottom:7px;box-sizing:border-box;"
                     onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
-                <textarea id="qp-suffix-form-body" rows="4" maxlength="2000" placeholder="프롬프트 끝에 추가할 문구"
+                <textarea id="qp-suffix-form-body" rows="4" maxlength="2000" placeholder="{{ __('app.suffix_body_placeholder') }}"
                     style="width:100%;padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;outline:none;background:#fff;color:#18181b;resize:vertical;box-sizing:border-box;line-height:1.55;font-family:inherit;margin-bottom:8px;"
                     onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
                 <div style="display:flex;justify-content:flex-end;gap:5px;">
                     <button onclick="qpSuffixHideForm()" type="button"
-                        style="height:26px;padding:0 11px;border:1.5px solid #e5e7eb;background:#fff;border-radius:6px;font-size:11.5px;color:#6b7280;cursor:pointer;">취소</button>
+                        style="height:26px;padding:0 11px;border:1.5px solid #e5e7eb;background:#fff;border-radius:6px;font-size:11.5px;color:#6b7280;cursor:pointer;">{{ __('common.cancel') }}</button>
                     <button onclick="qpSuffixSave()" id="qp-suffix-save-btn" type="button"
-                        style="height:26px;padding:0 12px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">저장</button>
+                        style="height:26px;padding:0 12px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">{{ __('common.save') }}</button>
                 </div>
             </div>
 
@@ -1183,7 +1183,7 @@
         <div id="memo-drop-hint" style="display:none;position:fixed;inset:0;z-index:9980;pointer-events:none;align-items:center;justify-content:center;">
             <div style="background:rgba(124,58,237,.13);border:2.5px dashed var(--t400);border-radius:16px;padding:18px 32px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(2px);">
                 <svg width="22" height="22" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                <span style="font-size:14px;font-weight:600;color:var(--t700);">여기에 놓으면 화면에 고정됩니다</span>
+                <span style="font-size:14px;font-weight:600;color:var(--t700);">{{ __('app.memo_drop_hint') }}</span>
             </div>
         </div>
 
@@ -1193,14 +1193,14 @@
                 <div style="padding:16px 18px 12px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                     <div style="display:flex;align-items:center;gap:8px;">
                         <svg width="16" height="16" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                        <span style="font-size:15px;font-weight:700;color:#18181b;">메모 공유</span>
+                        <span style="font-size:15px;font-weight:700;color:#18181b;">{{ __('app.memo_share') }}</span>
                     </div>
                     <button onclick="memoShareModalClose()" style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#a1a1aa;display:flex;align-items:center;justify-content:center;border-radius:6px;" onmouseover="this.style.background='#f3f0ff'" onmouseout="this.style.background='none'">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
                 <div style="padding:10px 16px;border-bottom:1px solid #f0eeff;flex-shrink:0;">
-                    <input id="memo-share-search" type="text" placeholder="멤버 검색..."
+                    <input id="memo-share-search" type="text" placeholder="{{ __('app.member_search_placeholder') }}"
                         style="width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;background:#fafaff;color:#18181b;box-sizing:border-box;"
                         onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"
                         oninput="memoShareFilterMembers(this.value)">
@@ -1209,8 +1209,8 @@
                 <div style="padding:12px 16px;border-top:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                     <span id="memo-share-count" style="font-size:12px;color:#7c3aed;font-weight:600;"></span>
                     <div style="display:flex;gap:8px;">
-                        <button onclick="memoShareModalClose()" style="height:32px;padding:0 14px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-size:13px;color:#6b7280;cursor:pointer;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">취소</button>
-                        <button id="memo-share-confirm-btn" onclick="memoShareConfirm()" style="height:32px;padding:0 16px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">공유하기</button>
+                        <button onclick="memoShareModalClose()" style="height:32px;padding:0 14px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-size:13px;color:#6b7280;cursor:pointer;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
+                        <button id="memo-share-confirm-btn" onclick="memoShareConfirm()" style="height:32px;padding:0 16px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">{{ __('app.memo_share_confirm') }}</button>
                     </div>
                 </div>
             </div>
@@ -1232,23 +1232,23 @@
             <div class="pinned-memo-note" data-id="{{ $pm->id }}"
                 style="position:fixed;right:24px;bottom:{{ 80 + $loop->index * 230 }}px;z-index:9988;background:{{ $pc['bg'] }};border:1.5px solid {{ $pc['border'] }};border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;">
                 <div class="pinned-memo-header" style="padding:6px 8px;background:{{ $pc['header'] }};border-bottom:1px solid {{ $pc['border'] }};border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">
-                    <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $pm->title ?: '메모' }}</span>
+                    <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $pm->title ?: __('app.nav_memos') }}</span>
                     <div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">
-                        <button onclick="memoTogglePin({{ $pm->id }})" title="고정 해제"
+                        <button onclick="memoTogglePin({{ $pm->id }})" title="{{ __('app.memo_unpin') }}"
                             style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
                             onmouseover="this.style.background='#fde047';this.style.color='#92400e'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                         </button>
 
-                        <button onclick="memoDelete({{ $pm->id }})" title="삭제"
+                        <button onclick="memoDelete({{ $pm->id }})" title="{{ __('common.delete') }}"
                             style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
                             onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                     </div>
                 </div>
-                <div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="클릭하여 수정">{{ $pm->content }}</div>
-                <div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">
+                <div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="{{ __('app.memo_edit_hint') }}">{{ $pm->content }}</div>
+                <div class="pinned-memo-resize" title="{{ __('app.memo_resize') }}" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">
                     <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round">
                         <line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/>
                     </svg>
@@ -1265,9 +1265,9 @@
             <div class="pinned-memo-note" data-id="{{ $psm->id }}" data-share-id="{{ $ps->id }}"
                 style="position:fixed;right:24px;bottom:{{ 80 + $psIdx * 230 }}px;z-index:9988;background:{{ $pc2['bg'] }};border:1.5px solid {{ $pc2['border'] }};border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;">
                 <div class="pinned-memo-header" style="padding:6px 8px;background:{{ $pc2['header'] }};border-bottom:1px solid {{ $pc2['border'] }};border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">
-                    <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $psm->title ?: '메모' }}</span>
+                    <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $psm->title ?: __('app.nav_memos') }}</span>
                     <div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">
-                        <button onclick="memoToggleSharedPin({{ $ps->id }})" title="고정 해제"
+                        <button onclick="memoToggleSharedPin({{ $ps->id }})" title="{{ __('app.memo_unpin') }}"
                             style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
                             onmouseover="this.style.background='#fde047';this.style.color='#92400e'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
@@ -1275,10 +1275,10 @@
                     </div>
                 </div>
                 <div style="padding:3px 10px 0;font-size:10px;color:#7c3aed;font-weight:600;background:{{ $pc2['header'] }};border-bottom:1px solid {{ $pc2['border'] }};flex-shrink:0;">
-                    {{ $ps->sharedByUser->name ?? '' }} 공유
+                    {{ __('app.shared_by', ['name' => $ps->sharedByUser->name ?? '']) }}
                 </div>
                 <div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:default;">{{ $psm->content }}</div>
-                <div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">
+                <div class="pinned-memo-resize" title="{{ __('app.memo_resize') }}" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">
                     <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round">
                         <line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/>
                     </svg>
@@ -1435,7 +1435,7 @@
                 { label:'{{ __("app.search_label_messages") }}',  url:'{{ route("messages.index") }}',   icon:'💬' },
                 { label:'{{ __("app.search_label_team") }}',      url:'{{ route("team.index") }}',       icon:'👥' },
                 { label:'Teams',                                   url:'{{ route("teams.index") }}',      icon:'🔗' },
-                { label:'웍스 Agent',                                url:'{{ route("ai.index") }}',         icon:'🤖' },
+                { label:'{{ __("app.search_label_works_agent") }}',                                url:'{{ route("ai.index") }}',         icon:'🤖' },
                 { label:'{{ __("app.search_label_community") }}', url:'{{ route("community.index") }}',  icon:'🌐' },
                 { label:'{{ __("app.search_label_inquiry") }}',   url:'{{ route("inquiry.index") }}',    icon:'❓' },
                 { label:'{{ __("app.search_label_minutes") }}',   url:'{{ route("meeting-minutes.index") }}', icon:'📋' },
@@ -1797,14 +1797,14 @@
                 if (data.ok && data.redirect) {
                     location.href = data.redirect;
                 } else {
-                    const msgs = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || '오류가 발생했습니다.');
+                    const msgs = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || @json(__('common.error')));
                     errBox.textContent   = msgs;
                     errBox.style.display = 'block';
                     btn.disabled    = false;
                     btn.textContent = '{{ __("projects.create_project") }}';
                 }
             } catch (err) {
-                errBox.textContent   = '오류가 발생했습니다. 다시 시도해 주세요.';
+                errBox.textContent   = @json(__('app.error_retry'));
                 errBox.style.display = 'block';
                 btn.disabled    = false;
                 btn.textContent = '{{ __("projects.create_project") }}';
@@ -1912,6 +1912,33 @@
                 pink:   { bg:'#fce7f3', border:'#f9a8d4', header:'#fbcfe8' },
                 purple: { bg:'#ede9fe', border:'#c4b5fd', header:'#ddd6fe' },
             };
+            var MT = {
+                loading:        @json(__('app.loading')),
+                no_memos:       @json(__('app.memo_empty')),
+                no_memos_hint:  @json(__('app.memo_empty_hint')),
+                error:          @json(__('common.error')),
+                shared_memos:   @json(__('app.memo_shared_received')),
+                shared_members: @json(__('app.memo_shared_members')),
+                memo:           @json(__('app.nav_memos')),
+                unpin:          @json(__('app.memo_unpin')),
+                pin:            @json(__('app.memo_pin')),
+                share:          @json(__('common.share')),
+                del:            @json(__('common.delete')),
+                edit_hint:      @json(__('app.memo_edit_hint')),
+                resize:         @json(__('app.memo_resize')),
+                confirm_del:    @json(__('app.memo_confirm_delete')),
+                confirm_del_shared: @json(__('app.memo_confirm_remove_shared')),
+                share_loading:  @json(__('app.loading')),
+                no_share_members: @json(__('app.memo_no_share_members')),
+                shared_now:     @json(__('app.memo_shared_now')),
+                count_selected: @json(__('app.memo_count_selected')),
+                sharing:        @json(__('app.memo_sharing')),
+                share_confirm:  @json(__('app.memo_share_confirm')),
+                saving:         @json(__('app.saving_status')),
+                saved:          @json(__('app.saved_status')),
+                save_failed:    @json(__('app.save_failed_status')),
+                shared_by:      @json(__('app.shared_suffix')),
+            };
 
             function esc(s) {
                 return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1979,7 +2006,7 @@
             async function memoLoadList() {
                 var list = document.getElementById('memo-list');
                 if (!list) return;
-                list.innerHTML = '<div style="text-align:center;padding:28px;color:#a1a1aa;font-size:13px;">불러오는 중...</div>';
+                list.innerHTML = '<div style="text-align:center;padding:28px;color:#a1a1aa;font-size:13px;">' + esc(MT.loading) + '</div>';
                 fetch(MEMO_URL, {
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
                 }).then(async function(r) { return r.json(); }).then(async function(data) {
@@ -1989,18 +2016,18 @@
                     window._memoCache = {};
                     all.forEach(async function(m) { window._memoCache[m.id] = m; });
                     if (!all.length) {
-                        list.innerHTML = '<div style="text-align:center;padding:34px 20px;color:#a1a1aa;font-size:13px;line-height:1.7;">메모가 없습니다.<br><span style="font-size:12px;">위의 메모 추가 버튼을 클릭하세요.</span></div>';
+                        list.innerHTML = '<div style="text-align:center;padding:34px 20px;color:#a1a1aa;font-size:13px;line-height:1.7;">' + esc(MT.no_memos) + '<br><span style="font-size:12px;">' + esc(MT.no_memos_hint) + '</span></div>';
                         return;
                     }
                     var html = '';
                     if (mine.length) html += mine.map(function(m) { return renderMemoCard(m); }).join('');
                     if (shared.length) {
-                        html += '<div style="margin:8px 0 4px;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;">공유 받은 메모</div>';
+                        html += '<div style="margin:8px 0 4px;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;">' + esc(MT.shared_memos) + '</div>';
                         html += shared.map(function(m) { return renderMemoCard(m); }).join('');
                     }
                     list.innerHTML = html;
                 }).catch(async function() {
-                    list.innerHTML = '<div style="text-align:center;padding:28px;color:#ef4444;font-size:13px;">오류가 발생했습니다.</div>';
+                    list.innerHTML = '<div style="text-align:center;padding:28px;color:#ef4444;font-size:13px;">' + esc(MT.error) + '</div>';
                 });
             }
 
@@ -2023,7 +2050,7 @@
                 // 공유된 멤버 아바타 (내 메모)
                 var sharedAvatars = '';
                 if (!m.is_received && m.shared_with && m.shared_with.length) {
-                    sharedAvatars = '<div style="display:flex;align-items:center;gap:2px;margin-right:4px;" title="공유된 멤버">';
+                    sharedAvatars = '<div style="display:flex;align-items:center;gap:2px;margin-right:4px;" title="' + esc(MT.shared_members) + '">';
                     m.shared_with.slice(0, 3).forEach(async function(u) {
                         var letter = (u.name || '?').charAt(0).toUpperCase();
                         sharedAvatars += '<span style="width:20px;height:20px;border-radius:50%;background:var(--t500);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;">' + esc(letter) + '</span>';
@@ -2035,7 +2062,7 @@
                 var pinFill  = m.is_pinned ? 'currentColor' : 'none';
                 var pinBg    = m.is_pinned ? '#fde047' : 'transparent';
                 var pinCol   = m.is_pinned ? '#92400e' : '#9ca3af';
-                var pinTitle = m.is_pinned ? '고정 해제' : '고정';
+                var pinTitle = m.is_pinned ? MT.unpin : MT.pin;
 
                 // 공유 버튼 (내 메모에만)
                 var shareBtnHtml = '';
@@ -2043,7 +2070,7 @@
                     var shareActive = m.shared_with && m.shared_with.length > 0;
                     var shareBg     = shareActive ? 'rgba(124,58,237,.12)' : 'transparent';
                     var shareCol    = shareActive ? '#7c3aed' : '#9ca3af';
-                    shareBtnHtml = '<button onclick="memoShareOpen(' + m.id + ')" title="공유" '
+                    shareBtnHtml = '<button onclick="memoShareOpen(' + m.id + ')" title="' + esc(MT.share) + '" '
                         + 'style="width:26px;height:26px;border-radius:6px;border:none;background:' + shareBg + ';cursor:pointer;display:flex;align-items:center;justify-content:center;color:' + shareCol + ';transition:background .12s,color .12s;" '
                         + 'onmouseover="this.style.background=\'rgba(124,58,237,.15)\';this.style.color=\'#7c3aed\'" '
                         + 'onmouseout="this.style.background=\'' + shareBg + '\';this.style.color=\'' + shareCol + '\'">'
@@ -2075,7 +2102,7 @@
                         +   '<svg width="13" height="13" viewBox="0 0 24 24" fill="' + pinFill + '" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
                         +   '</button>'
                     )
-                    +     '<button onclick="memoDelete(' + m.id + ')" title="삭제" '
+                    +     '<button onclick="memoDelete(' + m.id + ')" title="' + esc(MT.del) + '" '
                     +       'style="width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#9ca3af;transition:background .12s,color .12s;" '
                     +       'onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" '
                     +       'onmouseout="this.style.background=\'transparent\';this.style.color=\'#9ca3af\'">'
@@ -2206,18 +2233,18 @@
                 div.style.cssText = 'position:fixed;left:' + lx + 'px;top:' + ty + 'px;z-index:9988;background:' + c.bg + ';border:1.5px solid ' + c.border + ';border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;';
                 div.innerHTML =
                     '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
-                    + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || '메모') + '</span>'
+                    + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || MT.memo) + '</span>'
                     + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
-                    +   '<button onclick="memoTogglePin(' + memo.id + ')" title="고정 해제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                    +   '<button onclick="memoTogglePin(' + memo.id + ')" title="' + esc(MT.unpin) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                     +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
                     +   '</button>'
-                    +   '<button onclick="memoDelete(' + memo.id + ')" title="삭제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                    +   '<button onclick="memoDelete(' + memo.id + ')" title="' + esc(MT.del) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                     +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
                     +   '</button>'
                     + '</div>'
                     + '</div>'
-                    + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="클릭하여 수정">' + esc(memo.content) + '</div>'
-                    + '<div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
+                    + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="' + esc(MT.edit_hint) + '">' + esc(memo.content) + '</div>'
+                    + '<div class="pinned-memo-resize" title="' + esc(MT.resize) + '" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
                     +   '<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/></svg>'
                     + '</div>';
                 document.body.appendChild(div);
@@ -2239,7 +2266,7 @@
 
             // ── 삭제 ───────────────────────────────────────────
             window.memoDelete = async function(id) {
-                if (!await __confirm('메모를 삭제하시겠습니까?')) return;
+                if (!await __confirm(MT.confirm_del)) return;
                 fetch(MEMO_URL + '/' + id, {
                     method: 'DELETE',
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
@@ -2264,7 +2291,7 @@
                 _shareAlreadyShared = {};
                 document.getElementById('memo-share-search').value = '';
                 document.getElementById('memo-share-member-list').innerHTML =
-                    '<div style="text-align:center;padding:24px;color:#a1a1aa;font-size:13px;">불러오는 중...</div>';
+                    '<div style="text-align:center;padding:24px;color:#a1a1aa;font-size:13px;">' + esc(MT.loading) + '</div>';
                 document.getElementById('memo-share-modal').style.display = 'flex';
 
                 // 현재 카드의 기존 공유 멤버 파악
@@ -2291,7 +2318,7 @@
             async function memoShareRenderMembers(members) {
                 var list = document.getElementById('memo-share-member-list');
                 if (!members.length) {
-                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#a1a1aa;font-size:13px;">공유 가능한 멤버가 없습니다.</div>';
+                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#a1a1aa;font-size:13px;">' + esc(MT.no_share_members) + '</div>';
                     return;
                 }
                 list.innerHTML = members.map(async function(u) {
@@ -2309,7 +2336,7 @@
                         +   '<div style="font-size:13px;font-weight:600;color:#18181b;">' + esc(u.name) + '</div>'
                         +   '<div style="font-size:11.5px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(u.email) + '</div>'
                         + '</div>'
-                        + (isOld ? '<span style="font-size:10.5px;color:#7c3aed;font-weight:600;background:#ede9fe;border-radius:20px;padding:2px 8px;margin-right:6px;">공유중</span>' : '')
+                        + (isOld ? '<span style="font-size:10.5px;color:#7c3aed;font-weight:600;background:#ede9fe;border-radius:20px;padding:2px 8px;margin-right:6px;">' + esc(MT.shared_now) + '</span>' : '')
                         + '<div class="memo-share-checkbox" style="width:20px;height:20px;border-radius:5px;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;' + checkStyle + '">'
                         + (checked ? '<svg width="11" height="11" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : '')
                         + '</div>'
@@ -2336,7 +2363,7 @@
             async function memoShareUpdateCount() {
                 var cnt = Object.values(_shareSelected).filter(Boolean).length;
                 var el = document.getElementById('memo-share-count');
-                el.textContent = cnt > 0 ? cnt + '명 선택됨' : '';
+                el.textContent = cnt > 0 ? MT.count_selected.replace(':count', cnt) : '';
             }
 
             window.memoShareFilterMembers = async function(q) {
@@ -2369,7 +2396,7 @@
 
                 var btn = document.getElementById('memo-share-confirm-btn');
                 btn.disabled = true;
-                btn.textContent = '공유 중...';
+                btn.textContent = MT.sharing;
 
                 var tasks = [];
                 if (newIds.length) {
@@ -2389,7 +2416,7 @@
 
                 Promise.all(tasks).then(async function() {
                     btn.disabled = false;
-                    btn.textContent = '공유하기';
+                    btn.textContent = MT.share_confirm;
                     memoShareModalClose();
                     memoLoadList();
                 });
@@ -2397,7 +2424,7 @@
 
             // 공유 받은 메모 삭제 (share 레코드만 제거)
             window.memoDeleteShared = async function(shareId) {
-                if (!await __confirm('공유 받은 메모를 목록에서 제거하시겠습니까?')) return;
+                if (!await __confirm(MT.confirm_del_shared)) return;
                 // share_id 기반 삭제는 별도 엔드포인트 없이 간단히 목록 갱신
                 memoLoadList();
             };
@@ -2416,19 +2443,19 @@
                     div.style.cssText = 'position:fixed;right:24px;bottom:' + (80 + noteCount * 230) + 'px;z-index:9988;background:' + c.bg + ';border:1.5px solid ' + c.border + ';border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;';
                     div.innerHTML =
                         '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
-                        + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || '메모') + '</span>'
+                        + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || MT.memo) + '</span>'
                         + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
-                        +   '<button onclick="memoTogglePin(' + memo.id + ')" title="고정 해제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                        +   '<button onclick="memoTogglePin(' + memo.id + ')" title="' + esc(MT.unpin) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                         +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
                         +   '</button>'
 
-                        +   '<button onclick="memoDelete(' + memo.id + ')" title="삭제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                        +   '<button onclick="memoDelete(' + memo.id + ')" title="' + esc(MT.del) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                         +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
                         +   '</button>'
                         + '</div>'
                         + '</div>'
-                        + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="클릭하여 수정">' + esc(memo.content) + '</div>'
-                        + '<div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
+                        + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:text;" title="' + esc(MT.edit_hint) + '">' + esc(memo.content) + '</div>'
+                        + '<div class="pinned-memo-resize" title="' + esc(MT.resize) + '" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
                         +   '<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/></svg>'
                         + '</div>';
                     document.body.appendChild(div);
@@ -2456,16 +2483,16 @@
                     div.style.cssText = 'position:fixed;right:24px;bottom:' + (80 + noteCount * 230) + 'px;z-index:9988;background:' + c.bg + ';border:1.5px solid ' + c.border + ';border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;';
                     div.innerHTML =
                         '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
-                        + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || '메모') + '</span>'
+                        + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || MT.memo) + '</span>'
                         + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
-                        +   '<button onclick="memoToggleSharedPin(' + memo.share_id + ',' + memo.id + ')" title="고정 해제" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
+                        +   '<button onclick="memoToggleSharedPin(' + memo.share_id + ',' + memo.id + ')" title="' + esc(MT.unpin) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                         +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
                         +   '</button>'
                         + '</div>'
                         + '</div>'
-                        + '<div style="padding:3px 10px 0;font-size:10px;color:#7c3aed;font-weight:600;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';flex-shrink:0;">' + esc(memo.shared_by_name || '') + ' 공유</div>'
+                        + '<div style="padding:3px 10px 0;font-size:10px;color:#7c3aed;font-weight:600;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';flex-shrink:0;">' + esc(memo.shared_by_name || '') + ' ' + esc(MT.shared_by) + '</div>'
                         + '<div class="pinned-memo-body" style="flex:1;padding:8px 10px;font-size:12px;color:#374151;line-height:1.55;overflow-y:auto;white-space:pre-wrap;word-break:break-word;min-height:60px;cursor:default;">' + esc(memo.content) + '</div>'
-                        + '<div class="pinned-memo-resize" title="크기 조절" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
+                        + '<div class="pinned-memo-resize" title="' + esc(MT.resize) + '" style="position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0.45;">'
                         +   '<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="1" y2="8"/><line x1="8" y1="5" x2="5" y2="8"/></svg>'
                         + '</div>';
                     document.body.appendChild(div);
@@ -2663,7 +2690,7 @@
                         status.style.opacity = '0';
                         return;
                     }
-                    showStatus('저장 중...', 0);
+                    showStatus(MT.saving, 0);
                     fetch(MEMO_URL + '/' + el.dataset.id, {
                         method: 'PATCH',
                         headers: {
@@ -2674,11 +2701,11 @@
                         body: JSON.stringify({ content: content })
                     }).then(async function(r) { return r.json(); }).then(async function(memo) {
                         lastContent = memo.content;
-                        showStatus('✓ 저장됨', 1800);
+                        showStatus('✓ ' + MT.saved, 1800);
                         var popup = document.getElementById('memo-popup');
                         if (popup && popup.style.display === 'flex') memoLoadList();
                     }).catch(async function() {
-                        showStatus('저장 실패', 2500);
+                        showStatus(MT.save_failed, 2500);
                     });
                 }
 
@@ -2729,6 +2756,35 @@
             var QP_URL  = '{{ url("/quick-prompts") }}';
             var SFX_URL = '{{ url("/prompt-suffixes") }}';
             var CSRF    = '{{ csrf_token() }}';
+
+            var QT = {
+                converting:       @json(__('app.qp_converting')),
+                works_organizing: @json(__('app.qp_works_organizing')),
+                convert_failed:   @json(__('app.qp_convert_failed')),
+                works_done:       @json(__('app.qp_works_done')),
+                convert_done:     @json(__('app.qp_convert_done')),
+                convert_error:    @json(__('app.qp_convert_error')),
+                no_suffixes:      @json(__('app.qp_no_suffixes')),
+                no_suffixes_hint: @json(__('app.qp_no_suffixes_hint')),
+                edit:             @json(__('common.edit')),
+                del:              @json(__('common.delete')),
+                saving:           @json(__('app.saving_status')),
+                save_failed:      @json(__('app.qp_save_failed')),
+                save_error:       @json(__('app.qp_save_error')),
+                confirm_del_suffix: @json(__('app.qp_confirm_del_suffix')),
+                no_prompts:       @json(__('app.qp_no_prompts')),
+                no_prompts_hint:  @json(__('app.qp_no_prompts_hint')),
+                list_failed:      @json(__('app.qp_list_failed')),
+                works_badge:      @json(__('app.qp_works_badge')),
+                fallback_title:   @json(__('app.qp_fallback_title')),
+                add_prefix:       @json(__('app.qp_add_prefix')),
+                view_original:    @json(__('app.qp_view_original')),
+                toggle_failed:    @json(__('app.qp_toggle_failed')),
+                toggle_error:     @json(__('app.qp_toggle_error')),
+                copied:           @json(__('app.qp_copied')),
+                copy_failed:      @json(__('app.qp_copy_failed')),
+                confirm_del_prompt: @json(__('app.qp_confirm_del_prompt')),
+            };
 
             // 마지막으로 받은 suffix 목록 캐시 (id → 객체) — 결과 카드 칩 렌더링에 사용
             var qpSuffixCache = {};
@@ -2784,9 +2840,9 @@
 
                 btn.disabled = true;
                 var origHTML = btn.innerHTML;
-                btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="9" stroke-opacity=".3"/><path d="M12 3a9 9 0 019 9" stroke-linecap="round"/></svg> 변환 중...';
+                btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="9" stroke-opacity=".3"/><path d="M12 3a9 9 0 019 9" stroke-linecap="round"/></svg> ' + qpEsc(QT.converting);
                 status.style.color = '#6b7280';
-                status.textContent = '웍스가 프롬프트를 정리하고 있습니다...';
+                status.textContent = QT.works_organizing;
 
                 try {
                     var r = await fetch(QP_URL, {
@@ -2799,19 +2855,19 @@
                         body: JSON.stringify({ original_input: text })
                     });
                     var d = await r.json();
-                    if (!r.ok || !d.ok) throw new Error(d.message || '변환 실패');
+                    if (!r.ok || !d.ok) throw new Error(d.message || QT.convert_failed);
 
                     ta.value = '';
                     status.style.color = '#15803d';
-                    status.textContent = '✓ 웍스 변환 완료';
+                    status.textContent = '✓ ' + QT.works_done;
                     qpLoadList();
 
                     setTimeout(function() {
-                        if (status.textContent.indexOf('변환 완료') === 0) status.textContent = '';
+                        if (status.textContent.indexOf(QT.convert_done) >= 0) status.textContent = '';
                     }, 2500);
                 } catch (e) {
                     status.style.color = '#dc2626';
-                    status.textContent = e.message || '변환에 실패했습니다.';
+                    status.textContent = e.message || QT.convert_error;
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = origHTML;
@@ -2866,7 +2922,7 @@
                 if (!box) return;
                 var arr = qpSortedSuffixes();
                 if (arr.length === 0) {
-                    box.innerHTML = '<div style="text-align:center;padding:28px 14px;color:#a1a1aa;font-size:12px;line-height:1.7;">등록된 추가 문구가 없습니다.<br><span style="font-size:11.5px;">상단 “새 문구” 버튼으로 등록하세요.</span></div>';
+                    box.innerHTML = '<div style="text-align:center;padding:28px 14px;color:#a1a1aa;font-size:12px;line-height:1.7;">' + qpEsc(QT.no_suffixes) + '<br><span style="font-size:11.5px;">' + qpEsc(QT.no_suffixes_hint) + '</span></div>';
                     return;
                 }
                 box.innerHTML = arr.map(qpRenderManageRow).join('');
@@ -2880,13 +2936,13 @@
                     +   '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">'
                     +     '<div style="font-size:12.5px;font-weight:700;color:#18181b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + qpEsc(s.label) + '</div>'
                     +     '<div style="display:flex;gap:3px;flex-shrink:0;">'
-                    +       '<button type="button" onclick="qpSuffixEdit(' + s.id + ')" title="수정" '
+                    +       '<button type="button" onclick="qpSuffixEdit(' + s.id + ')" title="' + qpEsc(QT.edit) + '" '
                     +         'style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;color:#9ca3af;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:all .12s;" '
                     +         'onmouseover="this.style.background=\'var(--t50)\';this.style.color=\'var(--t700)\';this.style.borderColor=\'var(--t300)\'" '
                     +         'onmouseout="this.style.background=\'#fff\';this.style.color=\'#9ca3af\';this.style.borderColor=\'#e5e7eb\'">'
                     +         '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
                     +       '</button>'
-                    +       '<button type="button" onclick="qpSuffixDelete(' + s.id + ')" title="삭제" '
+                    +       '<button type="button" onclick="qpSuffixDelete(' + s.id + ')" title="' + qpEsc(QT.del) + '" '
                     +         'style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;color:#9ca3af;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:all .12s;" '
                     +         'onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\';this.style.borderColor=\'#fecaca\'" '
                     +         'onmouseout="this.style.background=\'#fff\';this.style.color=\'#9ca3af\';this.style.borderColor=\'#e5e7eb\'">'
@@ -2926,7 +2982,7 @@
                 var btn  = document.getElementById('qp-suffix-save-btn');
                 btn.disabled = true;
                 var orig = btn.textContent;
-                btn.textContent = '저장 중…';
+                btn.textContent = QT.saving;
 
                 try {
                     var url    = id ? (SFX_URL + '/' + id) : SFX_URL;
@@ -2941,14 +2997,14 @@
                         body: JSON.stringify({ label: label, body: body })
                     });
                     var d = await r.json();
-                    if (!r.ok || !d.ok) throw new Error(d.message || '저장 실패');
+                    if (!r.ok || !d.ok) throw new Error(d.message || QT.save_failed);
 
                     qpSuffixHideForm();
                     await qpLoadSuffixes();
                     // 신규/수정된 suffix 가 결과 카드 칩에도 반영되도록 목록 새로고침
                     if (typeof qpLoadList === 'function') qpLoadList();
                 } catch (e) {
-                    qpToast(e.message || '저장에 실패했습니다.');
+                    qpToast(e.message || QT.save_error);
                 } finally {
                     btn.disabled = false;
                     btn.textContent = orig;
@@ -2957,8 +3013,8 @@
 
             window.qpSuffixDelete = async function(id) {
                 var ok = (typeof window.__confirm === 'function')
-                    ? await window.__confirm('이 추가 문구를 삭제하시겠습니까?')
-                    : confirm('이 추가 문구를 삭제하시겠습니까?');
+                    ? await window.__confirm(QT.confirm_del_suffix)
+                    : confirm(QT.confirm_del_suffix);
                 if (!ok) return;
                 try {
                     var r = await fetch(SFX_URL + '/' + id, {
@@ -2982,22 +3038,22 @@
                     });
                     var arr = await r.json();
                     if (!Array.isArray(arr) || arr.length === 0) {
-                        list.innerHTML = '<div style="text-align:center;padding:34px 20px;color:#a1a1aa;font-size:13px;line-height:1.7;">변환된 프롬프트가 없습니다.<br><span style="font-size:12px;">위에 내용을 입력하고 변환해보세요.</span></div>';
+                        list.innerHTML = '<div style="text-align:center;padding:34px 20px;color:#a1a1aa;font-size:13px;line-height:1.7;">' + qpEsc(QT.no_prompts) + '<br><span style="font-size:12px;">' + qpEsc(QT.no_prompts_hint) + '</span></div>';
                         return;
                     }
                     list.innerHTML = arr.map(qpRenderItem).join('');
                 } catch (e) {
-                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#dc2626;font-size:12px;">목록을 불러오지 못했습니다.</div>';
+                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#dc2626;font-size:12px;">' + qpEsc(QT.list_failed) + '</div>';
                 }
             }
             window.qpLoadList = qpLoadList;
 
             function qpRenderItem(it) {
                 var providerBadge = it.provider_used
-                    ? '<span style="display:inline-block;padding:1px 6px;background:#ede9fe;color:#6d28d9;font-size:10px;font-weight:700;border-radius:4px;letter-spacing:.02em;">웍스</span>'
+                    ? '<span style="display:inline-block;padding:1px 6px;background:#ede9fe;color:#6d28d9;font-size:10px;font-weight:700;border-radius:4px;letter-spacing:.02em;">' + qpEsc(QT.works_badge) + '</span>'
                     : '';
                 var fbBadge = it.fallback_reason
-                    ? '<span title="웍스 폴백 사용됨" style="display:inline-block;padding:1px 6px;background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;border-radius:4px;margin-left:4px;">FB</span>'
+                    ? '<span title="' + qpEsc(QT.fallback_title) + '" style="display:inline-block;padding:1px 6px;background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;border-radius:4px;margin-left:4px;">FB</span>'
                     : '';
 
                 // 결과 카드별 추가 문구 칩 (클릭으로 즉시 토글)
@@ -3006,7 +3062,7 @@
                 var chipsHtml   = '';
                 if (allSuffixes.length > 0) {
                     chipsHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;align-items:center;">'
-                        + '<span style="font-size:10.5px;color:#9ca3af;font-weight:600;margin-right:2px;">+추가:</span>'
+                        + '<span style="font-size:10.5px;color:#9ca3af;font-weight:600;margin-right:2px;">' + qpEsc(QT.add_prefix) + '</span>'
                         + allSuffixes.map(function(s) {
                             var on   = appliedSet.has(s.id);
                             var bg   = on ? 'var(--t600, #7c3aed)' : '#fff';
@@ -3035,7 +3091,7 @@
                     +   '<details style="margin-bottom:7px;">'
                     +     '<summary style="font-size:11px;color:#6b7280;cursor:pointer;outline:none;list-style:none;display:flex;align-items:center;gap:4px;user-select:none;">'
                     +       '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>'
-                    +       '원본 입력 보기'
+                    +       qpEsc(QT.view_original)
                     +     '</summary>'
                     +     '<div style="margin-top:6px;padding:8px 10px;background:#f9fafb;border:1px solid #f0eeff;border-radius:7px;font-size:12px;color:#4b5563;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:140px;overflow-y:auto;">' + qpEsc(it.original_input) + '</div>'
                     +   '</details>'
@@ -3048,7 +3104,7 @@
                     +       '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>'
                     +       'Copy'
                     +     '</button>'
-                    +     '<button onclick="qpDelete(' + it.id + ')" title="삭제" '
+                    +     '<button onclick="qpDelete(' + it.id + ')" title="' + qpEsc(QT.del) + '" '
                     +       'style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fff;color:#9ca3af;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:all .12s;" '
                     +       'onmouseover="this.style.background=\'#fee2e2\';this.style.color=\'#ef4444\';this.style.borderColor=\'#fecaca\'" '
                     +       'onmouseout="this.style.background=\'#fff\';this.style.color=\'#9ca3af\';this.style.borderColor=\'#e5e7eb\'">'
@@ -3075,7 +3131,7 @@
                         body: JSON.stringify({ suffix_id: suffixId })
                     });
                     var d = await r.json();
-                    if (!r.ok || !d.ok) throw new Error(d.message || '토글 실패');
+                    if (!r.ok || !d.ok) throw new Error(d.message || QT.toggle_failed);
 
                     // 해당 카드만 in-place 교체
                     var card = document.querySelector('.qp-item[data-id="' + promptId + '"]');
@@ -3089,7 +3145,7 @@
                 } catch (e) {
                     btn.style.opacity = '';
                     btn.disabled = false;
-                    qpToast(e.message || '토글에 실패했습니다.');
+                    qpToast(e.message || QT.toggle_error);
                 }
             };
 
@@ -3110,21 +3166,21 @@
                         document.body.removeChild(ta);
                     }
                     var orig = btn.innerHTML;
-                    btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> 복사됨';
+                    btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> ' + qpEsc(QT.copied);
                     btn.style.background = '#16a34a';
                     setTimeout(function() {
                         btn.innerHTML = orig;
                         btn.style.background = 'var(--t600)';
                     }, 1500);
                 } catch (e) {
-                    qpToast('복사에 실패했습니다.');
+                    qpToast(QT.copy_failed);
                 }
             };
 
             window.qpDelete = async function(id) {
                 var ok = (typeof window.__confirm === 'function')
-                    ? await window.__confirm('이 프롬프트를 삭제하시겠습니까?')
-                    : confirm('이 프롬프트를 삭제하시겠습니까?');
+                    ? await window.__confirm(QT.confirm_del_prompt)
+                    : confirm(QT.confirm_del_prompt);
                 if (!ok) return;
                 try {
                     var r = await fetch(QP_URL + '/' + id, {

@@ -35,4 +35,23 @@ return [
     'screen_share_declined' => ' declined the screen share request.',
     'screen_popup_waiting'  => 'Waiting for the other party to accept...',
     'screen_popup_blocked'  => 'Popup blocked. Please allow popups in the address bar and try again.',
+
+    // Session expiry notices
+    'session_expired'       => 'Your login session has expired.',
+    'csrf_expired'          => 'The CSRF token has expired.',
+    'reload_page'           => 'Reload Page →',
+
+    // WebRTC status messages
+    'screen_no_signal'      => '⚠ No signal received from the other party — please check their console.',
+    'webrtc_sharer_ready'   => '① Sharer ready — creating offer...',
+    'webrtc_offer_sent'     => '② Offer sent — waiting for answer...',
+    'webrtc_ice_connecting' => '④ Connecting ICE...',
+    'webrtc_connected'      => '⑤ Connected — waiting for video...',
+    'webrtc_failed'         => ' — please try again.',
+    'webrtc_error'          => 'Error: ',
+
+    // Screen share popup
+    'popup_title_suffix'    => ' Screen Share',
+    'remote_control'        => 'Remote Control',
+    'remote_control_toggle' => 'Toggle remote control mode on/off',
 ];

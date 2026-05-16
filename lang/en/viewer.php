@@ -98,4 +98,102 @@ return [
     'pdfjs_not_loaded'       => 'PDF.js is not loaded.',
     'jspdf_not_loaded'       => 'jsPDF is not loaded.',
     'file_type_fallback'     => 'File',
+
+    // ── Toolbar buttons/titles (file-preview-modal.blade.php)
+    'compare_versions'          => 'Compare Versions',
+    'compare_versions_title'    => 'Compare two versions side by side',
+    'upload_revision'           => 'Upload Revision',
+    'upload_revision_title'     => 'Upload a revised file reflecting comments (new version)',
+    'fullwindow'                => 'Full Window',
+    'fullwindow_title'          => 'Full window view (F11)',
+    'download_with_comments'    => 'Download with Comments',
+    'download_with_comments_title' => 'Download comments and replies of the current version in original format (or PDF report)',
+    'url_download_comments_title'  => 'Download current comments and replies as a PDF report',
+
+    // ── Video controls
+    'vid_back_10'               => 'Back 10s',
+    'vid_forward_10'            => 'Forward 10s',
+    'vid_play_pause'            => 'Play/Pause',
+    'vid_add_comment'           => 'Comment Here',
+    'vid_add_comment_title'     => 'Add a comment at the current time',
+    'vid_comment_at_time'       => 'Enter a comment for the [:time] mark...',
+    'vid_seek_to'               => 'Jump to :time in the video',
+    'vid_err_aborted'           => 'Playback was aborted by the user.',
+    'vid_err_network'           => 'Download failed due to a network error.',
+    'vid_err_decode'            => 'The video could not be decoded (unsupported codec).',
+    'vid_err_src'               => 'The video source could not be found or the format is not supported.',
+    'vid_err_generic'           => 'Playback error',
+    'vid_err_cannot_play'       => 'Cannot play.',
+    'vid_cannot_play_title'     => 'This video cannot be played',
+
+    // ── PDF navigation
+    'pdf_first_page'            => 'First page',
+    'pdf_page_input_title'      => 'Enter a page number and press Enter',
+    'pdf_goto'                  => 'Go',
+    'pdf_goto_input_title'      => 'Go to the entered page',
+    'goto_page_suffix'          => ' — go to page',
+
+    // ── Comment panel handles
+    'open_comment_panel'        => 'Open comment panel',
+    'show_comments'             => 'Show Comments',
+    'collapse_comment_panel'    => 'Collapse comment panel',
+    'resize_comment_panel'      => 'Drag to resize the comment panel',
+
+    // ── Version comparison modal
+    'compare_frame_left'        => 'Version comparison - left',
+    'compare_frame_right'       => 'Version comparison - right',
+    'sync_same_page'            => 'Same page',
+    'sync_same_video'           => 'Same playback position',
+    'sync_same_format_only'     => 'Sync is only available for the same format (PDF with PDF, video with video).',
+    'cmp_pick_versions'         => 'Select versions to compare',
+    'cmp_pick_hint'             => '(up to 2)',
+    'cmp_select_prompt'         => 'Select a version',
+    'cmp_view_one'              => 'View v:version',
+    'cmp_compare_two'           => 'Compare v:a ↔ v:b',
+    'cmp_current'               => 'Current',
+    'cmp_current_version'       => 'Current version',
+
+    // ── Comment → discussion conversion
+    'register_as_discussion'    => 'Register as Discussion',
+    'confirm_register_discussion' => 'Register this comment as a project discussion?',
+    'discussion'                => 'Discussion',
+    'conclusion'                => 'Conclusion',
+    'open_in_discussions'       => 'Open in Discussions page',
+    'view_discussion'           => 'View the registered discussion',
+    'register_discussion'       => 'Register this comment as a project discussion',
+    'register_doing'            => 'Registering...',
+    'already_discussion'        => 'This comment is already registered as a discussion.',
+    'discussion_reg_failed'     => 'Failed to register the discussion.',
+    'discussion_load_failed'    => 'Failed to load the discussion.',
+    'meta_author'               => 'Author',
+    'meta_discussion_date'      => 'Discussion date',
+    'meta_registered'           => 'Registered',
+    'no_content'                => 'No content.',
+    'file_info_missing'         => 'File information could not be verified.',
+
+    // ── Upload revision dialog
+    'upload_revision_heading'   => 'Upload Revision (New Version)',
+    'upload_revision_desc'      => 'Upload a revised file reflecting the comments.',
+    'upload_revision_note'      => 'All currently registered comments will be marked as :done.',
+    'applied_done'              => 'Resolved',
+    'new_file_label'            => 'New file *',
+    'choose_file'               => 'Choose file',
+    'drop_file_here'            => 'or drag and drop into this area',
+    'file_selected'             => 'File selected',
+    'change_note_label'         => 'Change note (optional)',
+    'change_note_placeholder'   => 'Describe the key changes made in this version.',
+    'select_file_alert'         => 'Please select a file.',
+    'upload_confirm'            => 'Uploading a revision will mark all existing comments as "Resolved" and refresh the preview to the new version. Continue?',
+    'uploading'                 => 'Uploading...',
+    'upload_failed'             => 'Upload failed',
+    'upload_done'               => 'Uploaded successfully.',
+
+    // ── Version history dialog
+    'version_history'           => 'Version History',
+    'loading_ellipsis'          => 'Loading...',
+    'no_version_history'        => 'No version history.',
+    'load_failed_short'         => 'Failed to load',
+
+    // ── Delete confirmation popover
+    'confirm_delete_short'      => 'Delete this?',
 ];

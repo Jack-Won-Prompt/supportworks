@@ -36,7 +36,7 @@
 
             <div style="margin-bottom:16px;">
                 <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">{{ __('common.title') }} <span style="color:#ef4444;">*</span></label>
-                <input type="text" name="title" required value="{{ old('title', $project->name . ' 기획서') }}"
+                <input type="text" name="title" required value="{{ old('title', __('planning.default_title', ['name' => $project->name])) }}"
                     style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;"
                     onfocus="this.style.borderColor='var(--t400)';this.style.outline='none'" onblur="this.style.borderColor='#d1d5db'">
             </div>
@@ -50,7 +50,7 @@
 
             <div style="margin-bottom:24px;">
                 <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">{{ __('work.planning_form_content_label') }}</label>
-                <textarea name="content" rows="6" placeholder="# {{ __('work.planning_title') }}&#10;&#10;## 1. "
+                <textarea name="content" rows="6" placeholder="# {{ __('work.planning_title') }}&#10;&#10;## {{ __('planning.content_section_label') }}"
                     style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-family:monospace;resize:vertical;box-sizing:border-box;"
                     onfocus="this.style.borderColor='var(--t400)';this.style.outline='none'" onblur="this.style.borderColor='#d1d5db'">{{ old('content') }}</textarea>
                 <p style="margin-top:4px;font-size:11px;color:#9ca3af;">{{ __('work.planning_form_md_hint') }}</p>

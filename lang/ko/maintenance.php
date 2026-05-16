@@ -172,6 +172,38 @@ return [
     'meeting_edit'          => '회의록 수정',
     'meeting_empty'         => '회의록이 없습니다',
     'meeting_empty_hint'    => '첫 회의록을 작성해보세요',
+    'meeting_schedule'      => '회의 일정 등록',
+    'minute_write'          => '회의록 작성',
+    'minute_write_tooltip'  => '회의록 작성하기',
+
+    // ── 회의록 상태 필터
+    'filter_all_statuses'   => '전체 상태',
+    'status_scheduled'      => '예정',
+    'status_completed_meeting' => '완료',
+    'scheduled_meeting'     => '예정 회의',
+
+    // ── 회의록 목록 카운트
+    'action_count'          => 'Action :count건',
+
+    // ── 회의록 모달 / 폼 추가
+    'form_project_none'     => '프로젝트 없음 (일반 회의)',
+    'attendee_search_ph'    => '이름·이메일로 검색하거나 입력 후 Enter',
+    'attendee_external_hint'=> '팀원이 아닌 외부 참석자는 이름을 입력하고 Enter 키를 눌러 추가하세요.',
+    'attendee_remove'       => '제거',
+    'attendee_manual_add'   => '"' . ':name' . '" 직접 추가',
+    'attendee_manual_label' => '직접 입력',
+    'owner_unassigned'      => '담당자 미지정',
+    'action_item_add_btn'   => '+ Action Item 추가',
+    'action_item_task_ph'   => '할 일 (Action Item)',
+
+    // ── 회의 녹음
+    'recordings_section'    => '회의 녹음 (:count건)',
+    'recording_default'     => '회의 녹음',
+    'recording_download'    => '파일 다운로드',
+    'recording_transcript'  => '녹취록 보기',
+
+    // ── 회의록 JS 메시지
+    'js_delete_error'       => '삭제 중 오류가 발생했습니다.',
 
     // ── 회의록 통계
     'stat_total'            => '전체',

@@ -12,7 +12,7 @@ $currentVersion = $currentVersion ?? null;
 $isEmbed        = $isEmbed        ?? false;
 @endphp
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -178,6 +178,7 @@ $isEmbed        = $isEmbed        ?? false;
         .vcmp-meta{display:flex;flex-direction:column;min-width:0;}
         .vcmp-name{font-size:12px;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .vcmp-sub{font-size:10px;color:#8b85a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
     </style>
 </head>
 <body>
@@ -204,11 +205,11 @@ $isEmbed        = $isEmbed        ?? false;
     <span class="topbar-badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
     @if(!$isEmbed && count($versions) >= 2)
     <button id="cmp-open-btn" type="button" onclick="openVersionCompareMenu(event)"
-            title="두 버전을 나란히 비교"
+            title="{{ __('files.compare_versions_title') }}"
             style="display:inline-flex;align-items:center;gap:5px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
             onmouseover="this.style.background='rgba(125,211,252,.1)'" onmouseout="this.style.background='none'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
-        버전 비교
+        {{ __('files.compare_versions') }}
     </button>
     @endif
     @if($hasAnnotation)
@@ -228,16 +229,16 @@ $isEmbed        = $isEmbed        ?? false;
             style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
             onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-        <span id="share-copy-label">공유 링크 복사</span>
+        <span id="share-copy-label">{{ __('files.copy_share_link') }}</span>
     </button>
 
     {{-- 전체창 토글 --}}
-    <button id="fs-toggle-btn" type="button" onclick="toggleFullscreen()" title="전체창 보기"
+    <button id="fs-toggle-btn" type="button" onclick="toggleFullscreen()" title="{{ __('files.fullscreen_title') }}"
             style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
             onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
         <svg id="fs-icon-on"  width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5H5m14 4V5h-4M9 15v4H5m14-4v4h-4"/></svg>
         <svg id="fs-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4m12-4v4h-4"/></svg>
-        <span id="fs-toggle-label">전체창</span>
+        <span id="fs-toggle-label">{{ __('files.fullscreen') }}</span>
     </button>
 
     {{-- SupportWorks 가입하기 (비로그인 시) --}}
@@ -246,7 +247,7 @@ $isEmbed        = $isEmbed        ?? false;
        style="display:inline-flex;align-items:center;gap:5px;color:#fff;font-size:12px;font-weight:700;padding:6px 12px;background:linear-gradient(135deg,#7c3aed,#6366f1);border-radius:7px;text-decoration:none;flex-shrink:0;transition:opacity .15s;"
        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-        SupportWorks 가입하기
+        {{ __('files.signup') }}
     </a>
     @endguest
     @endif
@@ -346,29 +347,74 @@ $isEmbed        = $isEmbed        ?? false;
             <iframe id="viewer-frame" src="{{ $officeUrl }}" onload="onFrameLoad()"></iframe>
 
         @elseif($previewType === 'video')
-            <div id="viewer-video" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;">
-                <video id="vid-el" src="{{ $_serveUrl }}" controls playsinline preload="metadata"
-                       style="max-width:100%;max-height:100%;display:block;"></video>
+            {{-- 프로젝트 파일 뷰어와 동일한 커스텀 동영상 컨트롤 바 --}}
+            <div id="viewer-video" style="position:absolute;inset:0;display:flex;flex-direction:column;background:#000;">
+                <div id="vid-wrap" style="flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;background:#000;">
+                    <video id="vid-el" src="{{ $_serveUrl }}" preload="metadata" playsinline
+                           style="max-width:100%;max-height:100%;display:block;"></video>
+                    {{-- 재생 중 해당 시점 의견 토스트 --}}
+                    <div id="vid-comment-toast" style="display:none;position:absolute;top:18px;left:18px;right:18px;max-width:560px;margin:0 auto;background:rgba(15,12,30,.94);border:1px solid rgba(196,181,253,.35);color:#fff;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.4);z-index:5;"></div>
+                </div>
+                {{-- 컨트롤 바 --}}
+                <div style="background:#111827;border-top:1px solid rgba(255,255,255,.07);padding:8px 14px 10px;flex-shrink:0;">
+                    {{-- 타임라인 + 의견 시점 마커 --}}
+                    <div id="vid-track-wrap" style="position:relative;height:18px;margin-bottom:8px;cursor:pointer;user-select:none;">
+                        <div id="vid-track" style="position:absolute;top:7px;left:0;right:0;height:5px;background:rgba(255,255,255,.14);border-radius:3px;transition:height .15s,top .15s;pointer-events:none;"></div>
+                        <div id="vid-progress" style="position:absolute;top:7px;left:0;width:0;height:5px;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:3px;pointer-events:none;transition:height .15s,top .15s;"></div>
+                        <div id="vid-thumb" style="display:none;position:absolute;top:50%;transform:translate(-50%,-50%);width:13px;height:13px;background:#fff;border:2px solid #7c3aed;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4);pointer-events:none;"></div>
+                        <div id="vid-hover-time" style="display:none;position:absolute;bottom:22px;transform:translateX(-50%);background:rgba(15,12,30,.95);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;pointer-events:none;font-variant-numeric:tabular-nums;white-space:nowrap;"></div>
+                        <div id="vid-markers" style="position:absolute;inset:0;pointer-events:none;"></div>
+                    </div>
+                    {{-- 컨트롤 버튼 --}}
+                    <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                        <button type="button" onclick="vidSeekRelative(-10)" title="10초 뒤로"
+                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 17l-5-5 5-5"/></svg>
+                            10초 뒤로
+                        </button>
+                        <button type="button" id="vid-play-btn" onclick="vidTogglePlay()" title="재생/일시정지"
+                                style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;background:linear-gradient(135deg,#7c3aed,#9b8afb);border:none;color:#fff;border-radius:50%;cursor:pointer;flex-shrink:0;box-shadow:0 4px 14px rgba(124,58,237,.45);"
+                                onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+                            <svg id="vid-play-icon" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
+                        <button type="button" onclick="vidSeekRelative(10)" title="10초 앞으로"
+                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
+                            10초 앞으로
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17l5-5-5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 17l5-5-5-5"/></svg>
+                        </button>
+                        <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
+                        <span id="vid-time-label" style="font-size:12px;color:#9ca3af;font-variant-numeric:tabular-nums;min-width:90px;text-align:center;">0:00 / 0:00</span>
+                        <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
+                        <button type="button" onclick="vidPauseAndAddComment()" title="현재 시점에 의견 추가"
+                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(196,181,253,.15);border:1px solid rgba(196,181,253,.3);color:#c4b5fd;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                onmouseover="this.style.background='rgba(196,181,253,.25)'" onmouseout="this.style.background='rgba(196,181,253,.15)'">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            이 시점 의견
+                        </button>
+                    </div>
+                </div>
             </div>
         @endif
     </div>
 
     {{-- 패널 접힘 시 보이는 좌측 핸들 --}}
-    <button id="comment-panel-handle" onclick="toggleCommentPanel()" title="의견 영역 열기"
+    <button id="comment-panel-handle" onclick="toggleCommentPanel()" title="{{ __('files.open_comment_panel') }}"
             style="display:none;width:28px;flex-shrink:0;background:#ede9fe;border:none;border-left:1px solid #c4b5fd;cursor:pointer;align-items:center;justify-content:center;color:#6d28d9;padding:0;writing-mode:vertical-rl;font-size:11px;font-weight:700;letter-spacing:.05em;">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transform:rotate(-90deg);margin-bottom:8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-        의견 보기
+        {{ __('files.show_comments') }}
     </button>
 
     {{-- 가로 리사이저 (의견 영역 폭 조절) --}}
-    <div id="cp-resizer" title="드래그하여 의견 영역 폭 조절"></div>
+    <div id="cp-resizer" title="{{ __('files.resize_comment_panel') }}"></div>
 
     <div id="comment-panel">
         <div class="cp-header">
             <div class="cp-title">
                 <svg width="15" height="15" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 {{ __('team.opinion_count') }} <span id="comment-count"></span>
-                <button onclick="toggleCommentPanel()" title="의견 영역 접기"
+                <button onclick="toggleCommentPanel()" title="{{ __('files.collapse_comment_panel') }}"
                         style="margin-left:auto;background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px 4px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;"
                         onmouseover="this.style.color='#6d28d9';this.style.background='#f5f3ff'" onmouseout="this.style.color='#9ca3af';this.style.background='none'">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
@@ -483,6 +529,21 @@ const STR = {
     review_suffix:      '{{ __("team.review_suffix") }}',
     zoom_fit:           '{{ __("team.zoom_fit") }}',
     external_reviewer:  '{{ __("team.unknown_inviter") }}',
+    copy_share_link:        @json(__('files.copy_share_link')),
+    copy_share_link_done:   @json(__('files.copy_share_link_done')),
+    copy_share_link_prompt: @json(__('files.copy_share_link_prompt')),
+    fullscreen:             @json(__('files.fullscreen')),
+    fullscreen_exit:        @json(__('files.fullscreen_exit')),
+    fullscreen_title_f11:   @json(__('files.fullscreen_title_f11')),
+    fullscreen_exit_title:  @json(__('files.fullscreen_exit_title')),
+    cmp_current:            @json(__('files.cmp_current')),
+    cmp_current_version:    @json(__('files.cmp_current_version')),
+    cmp_sync_pages:         @json(__('files.cmp_sync_pages')),
+    cmp_sync_video:         @json(__('files.cmp_sync_video')),
+    cmp_sync_note:          @json(__('files.cmp_sync_note')),
+    cmp_pick_versions:      @json(__('files.cmp_pick_versions')),
+    cmp_pick_hint:          @json(__('files.cmp_pick_hint')),
+    cmp_select_prompt:      @json(__('files.cmp_select_prompt')),
 };
 
 // ── state ────────────────────────────────────────────────────
@@ -790,15 +851,24 @@ function renderCommentList() {
         visible = _comments.filter(c => c.page == null || c.page == _pdfPage);
     count.textContent = _comments.length || '';
     list.querySelectorAll('.comment-card').forEach(c => c.remove());
+    if (PREVIEW_TYPE === 'video') renderVidMarkers();
     if (!visible.length) { if (empty) empty.style.display = 'block'; return; }
     if (empty) empty.style.display = 'none';
     visible.forEach(c => {
-        const bg = c.page ? '#ede9fe' : '#dcfce7', fg = c.page ? '#6d28d9' : '#166534';
+        let badge;
+        if (PREVIEW_TYPE === 'video') {
+            badge = (c.video_time != null)
+                ? `<button onclick="vidSeekTo(${c.video_time})" class="page-badge" style="background:#ddd6fe;color:#5b21b6;border:none;cursor:pointer;" title="이 시점으로 이동">▶ ${vidFmtTime(c.video_time)}</button>`
+                : '';
+        } else {
+            const bg = c.page ? '#ede9fe' : '#dcfce7', fg = c.page ? '#6d28d9' : '#166534';
+            badge = `<span class="page-badge" style="background:${bg};color:${fg};">${c.page?'p.'+c.page:STR.comment_all_pages}</span>`;
+        }
         list.insertAdjacentHTML('beforeend',
             `<div class="comment-card">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
                     <span style="font-size:12px;font-weight:700;color:#374151;">${esc(c.user_name)}</span>
-                    <span class="page-badge" style="background:${bg};color:${fg};">${c.page?'p.'+c.page:STR.comment_all_pages}</span>
+                    ${badge}
                     <span style="font-size:10px;color:#9ca3af;margin-left:auto;">${esc(c.created_at)}</span>
                 </div>
                 <div style="font-size:13px;color:#374151;line-height:1.6;white-space:pre-wrap;">${esc(c.content)}</div>
@@ -817,9 +887,10 @@ function submitComment() {
     btn.disabled = true; if (btnName) btnName.disabled = true;
     const body = { guest_name:name, content:txt };
     if (pageEl) body.page = parseInt(pageEl.value)||null;
+    if (PREVIEW_TYPE === 'video' && _vidPendingTime != null) body.video_time = _vidPendingTime;
     fetch(COMMENT_POST,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':CSRF},body:JSON.stringify(body)})
         .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-        .then(d=>{ if(!_comments.some(c=>c.id===d.id))_comments.unshift(d); txtEl.value=''; if(pageEl)pageEl.value=''; renderCommentList(); })
+        .then(d=>{ if(!_comments.some(c=>c.id===d.id))_comments.unshift(d); txtEl.value=''; if(pageEl)pageEl.value=''; vidClearTime(); renderCommentList(); })
         .catch(()=>alert(STR.comment_fail))
         .finally(()=>{ btn.disabled=false; if (btnName) btnName.disabled=false; });
 }
@@ -1490,8 +1561,8 @@ function _updateFsBtnState() {
     const btn     = document.getElementById('fs-toggle-btn');
     if (iconOn)  iconOn.style.display  = inFs ? 'inline' : 'none';
     if (iconOff) iconOff.style.display = inFs ? 'none'   : 'inline';
-    if (label)   label.textContent     = inFs ? '전체창 종료' : '전체창';
-    if (btn)     btn.title             = inFs ? '전체창 종료 (Esc)' : '전체창 보기 (F11)';
+    if (label)   label.textContent     = inFs ? STR.fullscreen_exit : STR.fullscreen;
+    if (btn)     btn.title             = inFs ? STR.fullscreen_exit_title : STR.fullscreen_title_f11;
 }
 document.addEventListener('fullscreenchange',       _updateFsBtnState);
 document.addEventListener('webkitfullscreenchange', _updateFsBtnState);
@@ -1510,8 +1581,8 @@ function copyShareLink() {
     const label = document.getElementById('share-copy-label');
     const done = () => {
         if (!label) return;
-        const orig = '공유 링크 복사';
-        label.textContent = '✓ 복사됨';
+        const orig = STR.copy_share_link;
+        label.textContent = STR.copy_share_link_done;
         setTimeout(() => { label.textContent = orig; }, 1500);
     };
     if (navigator.clipboard && window.isSecureContext) {
@@ -1523,7 +1594,7 @@ function copyShareLink() {
         const ta = document.createElement('textarea');
         ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
         document.body.appendChild(ta); ta.select();
-        try { document.execCommand('copy'); done(); } catch (_) { prompt('복사할 링크', url); }
+        try { document.execCommand('copy'); done(); } catch (_) { prompt(STR.copy_share_link_prompt, url); }
         document.body.removeChild(ta);
     }
 }
@@ -1535,28 +1606,28 @@ function copyShareLink() {
     <div class="cmp-topbar">
         <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;">
             <svg width="15" height="15" fill="none" stroke="#7dd3fc" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
-            버전 비교
+            {{ __('files.compare_versions') }}
         </span>
         <span id="cmp-title" style="flex:1;overflow:hidden;font-size:12px;color:#9ca3af;white-space:nowrap;text-overflow:ellipsis;">{{ $file->original_name }}</span>
         <label id="cmp-sync-wrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
             <input type="checkbox" id="cmp-sync-pages" onchange="onCmpSyncToggle()" disabled style="width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;">
-            <span id="cmp-sync-label">페이지 동일함</span>
+            <span id="cmp-sync-label">{{ __('files.cmp_sync_pages') }}</span>
         </label>
         <span id="cmp-sync-note" style="display:none;font-size:11px;color:#6b7280;flex-shrink:0;"></span>
         <button onclick="closeCompare()" type="button"
                 style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            닫기
+            {{ __('files.cmp_close') }}
         </button>
     </div>
     <div class="cmp-body">
         <div class="cmp-pane cmp-left">
             <div id="cmp-label-a" class="cmp-pane-label"></div>
-            <iframe id="cmp-frame-a" class="cmp-frame" title="버전 비교 - 좌측"></iframe>
+            <iframe id="cmp-frame-a" class="cmp-frame" title="{{ __('files.cmp_frame_left') }}"></iframe>
         </div>
         <div class="cmp-pane">
             <div id="cmp-label-b" class="cmp-pane-label"></div>
-            <iframe id="cmp-frame-b" class="cmp-frame" title="버전 비교 - 우측"></iframe>
+            <iframe id="cmp-frame-b" class="cmp-frame" title="{{ __('files.cmp_frame_right') }}"></iframe>
         </div>
     </div>
 </div>
@@ -1589,15 +1660,41 @@ function _cmpGotoPage(n){
     if (n !== pdfPage) renderPdfPage(n);
 }
 
-/* ── 동영상 뷰어 + 비교 동기화 ── */
+/* ══════════ 동영상 뷰어 (커스텀 컨트롤 + 시점 의견) ══════════ */
+/* 프로젝트 파일 뷰어와 동일한 컨트롤 바·타임라인·마커·토스트 */
+let _vidPendingTime     = null;   // "이 시점 의견"으로 캡처된 재생 시점
+let _vidLastToastId     = null;
+let _vidScrubbing       = false;
+let _vidOrigPlaceholder = '';
+
 function initVideo(){
     const vid = document.getElementById('vid-el');
     if (!vid) return;
-    const hideLoading = () => { const l = document.getElementById('viewer-loading'); if (l) l.style.display = 'none'; };
-    vid.addEventListener('loadeddata', hideLoading);
-    vid.addEventListener('canplay',    hideLoading);
-    vid.addEventListener('error',      hideLoading);
-    if (vid.readyState >= 2) hideLoading();  // 이미 로드된 경우(캐시 등)
+    const loading = document.getElementById('viewer-loading');
+    if (loading) loading.style.display = 'none';
+
+    const ta = document.getElementById('comment-input');
+    if (ta) _vidOrigPlaceholder = ta.placeholder;
+
+    vid.addEventListener('loadedmetadata', () => { vidUpdateTime(); renderVidMarkers(); });
+    vid.addEventListener('timeupdate',     () => { vidUpdateTime(); vidShowCommentToast(); });
+    vid.addEventListener('play',  () => { const i=document.getElementById('vid-play-icon'); if(i) i.innerHTML='<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>'; });
+    vid.addEventListener('pause', () => { const i=document.getElementById('vid-play-icon'); if(i) i.innerHTML='<path d="M8 5v14l11-7z"/>'; });
+    vid.addEventListener('error', () => {
+        const wrapInner = document.getElementById('vid-wrap');
+        if (wrapInner && !document.getElementById('vid-err-msg')) {
+            const e = document.createElement('div');
+            e.id = 'vid-err-msg';
+            e.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,17,35,.92);color:#f9a8a8;font-size:13px;gap:8px;padding:24px;text-align:center;';
+            e.innerHTML = '<div style="font-size:32px;">🎬</div><div style="font-weight:700;">동영상을 재생할 수 없습니다</div><div style="color:#fca5a5;font-size:12px;">형식이 지원되지 않거나 파일을 찾을 수 없습니다.</div>';
+            wrapInner.appendChild(e);
+        }
+    });
+
+    vidSetupTrack();
+    if (vid.readyState >= 1) { vidUpdateTime(); renderVidMarkers(); }
+
+    // 버전 비교 임베드 — 재생/탐색 동기화
     if (CMP_IS_EMBED){
         const post = (action) => {
             if (_cmpVidApplying) return;
@@ -1607,6 +1704,164 @@ function initVideo(){
         vid.addEventListener('pause',  () => post('pause'));
         vid.addEventListener('seeked', () => post('seek'));
     }
+}
+
+function vidFmtTime(t){
+    if (!isFinite(t) || t < 0) t = 0;
+    const m = Math.floor(t/60), s = Math.floor(t%60);
+    return m + ':' + String(s).padStart(2,'0');
+}
+
+function vidSetupTrack(){
+    const wrap  = document.getElementById('vid-track-wrap');
+    const thumb = document.getElementById('vid-thumb');
+    const hover = document.getElementById('vid-hover-time');
+    const track = document.getElementById('vid-track');
+    const prog  = document.getElementById('vid-progress');
+    if (!wrap || wrap._vidBound) return;
+    wrap._vidBound = true;
+
+    const seekFromEvent = (e) => {
+        const vid = document.getElementById('vid-el');
+        if (!vid) return;
+        const dur = vid.duration;
+        if (!isFinite(dur) || dur <= 0) return;
+        const r = wrap.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        vid.currentTime = Math.max(0, Math.min(1, x / r.width)) * dur;
+    };
+    const updateHover = (e) => {
+        const vid = document.getElementById('vid-el');
+        const dur = vid?.duration;
+        if (!isFinite(dur) || dur <= 0) return;
+        const r = wrap.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, ((e.touches?e.touches[0].clientX:e.clientX) - r.left) / r.width));
+        hover.style.left = (pct*100) + '%';
+        hover.textContent = vidFmtTime(pct*dur);
+        hover.style.display = 'block';
+    };
+    wrap.addEventListener('click', seekFromEvent);
+    wrap.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        _vidScrubbing = true;
+        track.style.height='7px'; track.style.top='6px';
+        prog.style.height='7px';  prog.style.top='6px';
+        seekFromEvent(e);
+    });
+    window.addEventListener('mousemove', (e) => { if (_vidScrubbing){ seekFromEvent(e); updateHover(e); } });
+    window.addEventListener('mouseup', () => {
+        if (!_vidScrubbing) return;
+        _vidScrubbing = false;
+        track.style.height='5px'; track.style.top='7px';
+        prog.style.height='5px';  prog.style.top='7px';
+        hover.style.display='none';
+    });
+    wrap.addEventListener('mousemove', updateHover);
+    wrap.addEventListener('mouseleave', () => { if (!_vidScrubbing){ hover.style.display='none'; thumb.style.display='none'; } });
+    wrap.addEventListener('mouseenter', () => {
+        const vid = document.getElementById('vid-el');
+        if (vid && isFinite(vid.duration) && vid.duration>0) thumb.style.display='block';
+    });
+    wrap.addEventListener('touchstart', (e)=>{ seekFromEvent(e); updateHover(e); }, {passive:true});
+    wrap.addEventListener('touchmove',  (e)=>{ seekFromEvent(e); updateHover(e); }, {passive:true});
+    wrap.addEventListener('touchend',   ()=>{ hover.style.display='none'; });
+}
+
+function vidTogglePlay(){
+    const vid = document.getElementById('vid-el');
+    if (!vid) return;
+    if (vid.paused){ const p = vid.play(); if (p && p.catch) p.catch(()=>{}); }
+    else vid.pause();
+}
+function vidSeekRelative(delta){
+    const vid = document.getElementById('vid-el');
+    if (!vid) return;
+    const dur = vid.duration;
+    if (!isFinite(dur) || dur <= 0) return;
+    vid.currentTime = Math.max(0, Math.min(dur, (vid.currentTime||0) + delta));
+}
+function vidSeekTo(time){
+    const vid = document.getElementById('vid-el');
+    if (!vid || !vid.duration) return;
+    vid.currentTime = Math.max(0, Math.min(vid.duration, time));
+    if (vid.paused) vid.play().catch(()=>{});
+}
+function vidUpdateTime(){
+    const vid = document.getElementById('vid-el');
+    if (!vid) return;
+    const dur = vid.duration || 0, cur = vid.currentTime || 0;
+    const lbl = document.getElementById('vid-time-label');
+    if (lbl) lbl.textContent = vidFmtTime(cur) + ' / ' + vidFmtTime(dur);
+    const prog = document.getElementById('vid-progress');
+    if (prog) prog.style.width = (dur ? (cur/dur*100) : 0) + '%';
+}
+function renderVidMarkers(){
+    const vid = document.getElementById('vid-el');
+    const markersEl = document.getElementById('vid-markers');
+    if (!markersEl || !vid) return;
+    const dur = vid.duration || 0;
+    markersEl.innerHTML = '';
+    if (!dur) return;
+    _comments.filter(c => c.video_time != null).forEach(c => {
+        const pct = Math.max(0, Math.min(100, (c.video_time / dur) * 100));
+        const m = document.createElement('div');
+        m.title = vidFmtTime(c.video_time) + ' — ' + (c.user_name || '') + ': ' + (c.content || '');
+        m.style.cssText = `position:absolute;left:${pct}%;top:-2px;width:22px;height:22px;margin-left:-11px;cursor:pointer;pointer-events:auto;display:flex;align-items:center;justify-content:center;`;
+        m.innerHTML = '<span style="display:block;width:14px;height:14px;background:#a78bfa;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:transform .12s,background .12s;pointer-events:none;"></span>';
+        m.addEventListener('mouseenter', () => {
+            m.firstElementChild.style.background = '#7c3aed';
+            m.firstElementChild.style.transform  = 'scale(1.25)';
+            const hover = document.getElementById('vid-hover-time');
+            if (hover){ hover.style.left=pct+'%'; hover.textContent=vidFmtTime(c.video_time)+' — '+(c.user_name||''); hover.style.display='block'; }
+        });
+        m.addEventListener('mouseleave', () => {
+            m.firstElementChild.style.background = '#a78bfa';
+            m.firstElementChild.style.transform  = 'scale(1)';
+        });
+        const stop = (e) => e.stopPropagation();
+        m.addEventListener('mousedown', stop);
+        m.addEventListener('mouseup',   stop);
+        m.addEventListener('mousemove', stop);
+        m.addEventListener('touchstart', stop, {passive:true});
+        m.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); vidSeekTo(c.video_time); });
+        markersEl.appendChild(m);
+    });
+}
+function vidShowCommentToast(){
+    const vid   = document.getElementById('vid-el');
+    const toast = document.getElementById('vid-comment-toast');
+    if (!vid || !toast) return;
+    const cur = vid.currentTime || 0;
+    const hit = _comments.find(c => c.video_time != null
+        && Math.abs(c.video_time - cur) <= 0.6 && c.id !== _vidLastToastId);
+    if (!hit) return;
+    _vidLastToastId = hit.id;
+    toast.innerHTML = `<div style="display:flex;gap:8px;align-items:flex-start;">
+        <span style="flex-shrink:0;font-size:11px;font-weight:700;color:#c4b5fd;background:rgba(196,181,253,.15);padding:2px 8px;border-radius:10px;">${vidFmtTime(hit.video_time)}</span>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:2px;">${esc(hit.user_name)}</div>
+            <div style="color:#e5e7eb;white-space:pre-wrap;word-break:break-word;">${esc(hit.content)}</div>
+        </div>
+        <button onclick="document.getElementById('vid-comment-toast').style.display='none'" style="flex-shrink:0;background:none;border:none;color:#9ca3af;font-size:16px;line-height:1;cursor:pointer;">×</button>
+    </div>`;
+    toast.style.display = 'block';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toast.style.display = 'none'; _vidLastToastId = null; }, 4000);
+}
+function vidPauseAndAddComment(){
+    const vid = document.getElementById('vid-el');
+    if (!vid) return;
+    vid.pause();
+    _vidPendingTime = +(vid.currentTime || 0).toFixed(2);
+    const panel = document.getElementById('comment-panel');
+    if (panel && panel.style.display === 'none') toggleCommentPanel();
+    const ta = document.getElementById('comment-input');
+    if (ta){ ta.placeholder = vidFmtTime(_vidPendingTime) + ' 시점에 의견을 작성하세요...'; ta.focus(); }
+}
+function vidClearTime(){
+    _vidPendingTime = null;
+    const ta = document.getElementById('comment-input');
+    if (ta && _vidOrigPlaceholder) ta.placeholder = _vidOrigPlaceholder;
 }
 function _cmpApplyVideo(action, time){
     const vid = document.getElementById('vid-el');
@@ -1628,7 +1883,7 @@ function openVersionCompareMenu(ev){
     const btn = document.getElementById('cmp-open-btn');
     if (!btn || !CMP_VERSIONS.length) return;
     const rows = [...CMP_VERSIONS].reverse().map(v => {
-        const sub = (v.uploader || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · 현재' : '');
+        const sub = (v.uploader || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · ' + STR.cmp_current : '');
         const pre = (v.version === CMP_ACTIVE_VER) ? ' checked' : '';
         return `<label class="vcmp-row${pre?' is-checked':''}" data-version="${v.version}">
             <input type="checkbox" value="${v.version}" onchange="onVersionCompareCheck()"${pre}>
@@ -1639,7 +1894,7 @@ function openVersionCompareMenu(ev){
     const pop = document.createElement('div');
     pop.id = 'version-compare-pop';
     pop.style.cssText = 'position:fixed;z-index:10011;background:#241f3d;border:1px solid rgba(196,181,253,.25);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.55);padding:10px;width:288px;';
-    pop.innerHTML = `<div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">비교할 버전 선택 <span style="font-weight:500;color:#8b85a8;">(최대 2개)</span></div>
+    pop.innerHTML = `<div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">${_cmpEsc(STR.cmp_pick_versions)} <span style="font-weight:500;color:#8b85a8;">${_cmpEsc(STR.cmp_pick_hint)}</span></div>
         <div style="display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;">${rows}</div>
         <button id="vcmp-go" type="button" onclick="confirmVersionCompare()" style="margin-top:9px;width:100%;padding:8px;border:none;border-radius:7px;font-size:12px;font-weight:700;"></button>`;
     document.body.appendChild(pop);
@@ -1671,14 +1926,14 @@ function onVersionCompareCheck(){
     });
     const go = document.getElementById('vcmp-go');
     if (checked.length === 0){
-        go.disabled = true; go.textContent = '버전을 선택하세요';
+        go.disabled = true; go.textContent = STR.cmp_select_prompt;
         go.style.background = '#3a3357'; go.style.color = '#8b85a8'; go.style.cursor = 'not-allowed';
     } else if (checked.length === 1){
-        go.disabled = false; go.textContent = 'v' + checked[0].value + ' 보기';
+        go.disabled = false; go.textContent = @json(__('files.cmp_view_one')).replace(':version', checked[0].value);
         go.style.background = 'linear-gradient(135deg,#7c3aed,#a78bfa)'; go.style.color = '#fff'; go.style.cursor = 'pointer';
     } else {
         const s = checked.map(b=>parseInt(b.value,10)).sort((a,b)=>a-b);
-        go.disabled = false; go.textContent = 'v' + s[0] + ' ↔ v' + s[1] + ' 비교';
+        go.disabled = false; go.textContent = @json(__('files.cmp_compare_two')).replace(':a', s[0]).replace(':b', s[1]);
         go.style.background = 'linear-gradient(135deg,#0ea5e9,#7dd3fc)'; go.style.color = '#08233a'; go.style.cursor = 'pointer';
     }
 }
@@ -1698,7 +1953,7 @@ function confirmVersionCompare(){
 /* ── 비교 모달 ── */
 function _cmpLabelHtml(v){
     if (!v) return '';
-    const sub = (v.uploader || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · 현재 버전' : '');
+    const sub = (v.uploader || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · ' + STR.cmp_current_version : '');
     return `<span style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;padding:2px 9px;border-radius:5px;font-size:11px;flex-shrink:0;">v${v.version}</span>
         <span style="color:#e5e7eb;overflow:hidden;text-overflow:ellipsis;">${_cmpEsc(v.name)}</span>
         <span style="color:#8b85a8;font-weight:500;flex-shrink:0;">${_cmpEsc(sub)}</span>`;
@@ -1742,13 +1997,13 @@ function _cmpUpdateSyncAvailability(){
     const bothPdf   = _cmpState.ptypeA === 'pdf'   && _cmpState.ptypeB === 'pdf';
     const bothVideo = _cmpState.ptypeA === 'video' && _cmpState.ptypeB === 'video';
     _cmpSyncMode = bothPdf ? 'page' : (bothVideo ? 'video' : null);
-    if (label) label.textContent = bothVideo ? '재생 위치 동일함' : '페이지 동일함';
+    if (label) label.textContent = bothVideo ? STR.cmp_sync_video : STR.cmp_sync_pages;
     const enabled = !!_cmpSyncMode;
     sync.disabled = !enabled;
     wrap.style.opacity = enabled ? '1' : '.5';
     if (!enabled){
         sync.checked = false;
-        note.textContent = '같은 형식(PDF끼리·동영상끼리)일 때만 동기화할 수 있습니다.';
+        note.textContent = STR.cmp_sync_note;
         note.style.display = 'inline';
     } else {
         note.style.display = 'none';

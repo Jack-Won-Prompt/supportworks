@@ -160,7 +160,7 @@ body {
         </div>
         <div class="ps-step-body">
             @if(empty($step['fields']))
-                <span class="ps-empty">이 단계는 입력 필드가 없습니다.</span>
+                <span class="ps-empty">{{ __('deliverables.ps_empty_step') }}</span>
             @else
                 @foreach($step['fields'] as $field)
                 @php
@@ -171,7 +171,7 @@ body {
                     @if($val)
                         <div class="ps-field-value" data-md="{{ $val }}"></div>
                     @else
-                        <div class="ps-empty">(미입력)</div>
+                        <div class="ps-empty">{{ __('deliverables.ps_empty_field') }}</div>
                     @endif
                 </div>
                 @endforeach
@@ -181,7 +181,7 @@ body {
     @endforeach
 
     <div class="ps-footer">
-        공유 링크로 접근한 읽기 전용 뷰어입니다. · SupportWorks
+        {{ __('deliverables.ps_footer') }}
     </div>
 </div>
 

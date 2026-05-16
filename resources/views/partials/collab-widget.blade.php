@@ -263,9 +263,9 @@ async function _handleExpiry(status) {
     const banner = document.createElement('div');
     banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#18181b;color:#fff;text-align:center;padding:10px 16px;font-size:13px;z-index:99999;box-shadow:0 2px 12px rgba(0,0,0,.4);';
     banner.innerHTML = (status === 401
-        ? '로그인 세션이 만료되었습니다.'
-        : 'CSRF 토큰이 만료되었습니다.')
-        + ' &nbsp;<a href="javascript:location.reload()" style="color:#8b5cf6;font-weight:700;text-decoration:none;">페이지 새로고침 →</a>';
+        ? @json(__('collab.session_expired'))
+        : @json(__('collab.csrf_expired')))
+        + ' &nbsp;<a href="javascript:location.reload()" style="color:#8b5cf6;font-weight:700;text-decoration:none;">{{ __('collab.reload_page') }}</a>';
     document.body.prepend(banner);
 }
 
@@ -695,7 +695,7 @@ window.collabRequestScreenShare = async function() {
 
     // 30초 내에 offer가 오지 않으면 팝업에 안내
     const offerTimeout = setTimeout(() => {
-        if (!screenState.active) _setPopupMsg('⚠ 상대방으로부터 신호가 없습니다 — 상대방 콘솔을 확인하세요.');
+        if (!screenState.active) _setPopupMsg(@json(__('collab.screen_no_signal')));
     }, 30000);
     // _cleanupScreenShare 시 타임아웃 해제 (closure)
     const _origCleanup = screenState._offerTimeout;
@@ -812,7 +812,7 @@ async function _startAsViewer() {
     if (!key) { console.warn('[Screen] _startAsViewer: no sessionKey, aborting'); return; }
 
     if (screenState._offerTimeout) { clearTimeout(screenState._offerTimeout); screenState._offerTimeout = null; }
-    _setPopupMsg('① sharer 준비됨 — offer 생성 중...');
+    _setPopupMsg(@json(__('collab.webrtc_sharer_ready')));
     screenState.role       = 'viewer';
     screenState.active     = true;
     screenState.pendingIce = [];
@@ -860,10 +860,10 @@ async function _startAsViewer() {
     pc.onconnectionstatechange = () => {
         console.log('[Screen] viewer connectionState:', pc.connectionState);
         const s = pc.connectionState;
-        if (s === 'connecting')                          _setPopupMsg('④ ICE 연결 중...');
-        else if (s === 'connected')                      _setPopupMsg('⑤ 연결됨 — 영상 수신 대기 중...');
+        if (s === 'connecting')                          _setPopupMsg(@json(__('collab.webrtc_ice_connecting')));
+        else if (s === 'connected')                      _setPopupMsg(@json(__('collab.webrtc_connected')));
         else if (s === 'failed' || s === 'disconnected') {
-            _setPopupMsg('연결 실패 (' + s + ') — 다시 시도해 주세요.');
+            _setPopupMsg(@json(__('collab.request_fail')) + ' (' + s + ')' + @json(__('collab.webrtc_failed')));
             try {
                 const popup = screenState.popup;
                 if (popup && !popup.closed) {
@@ -878,11 +878,11 @@ async function _startAsViewer() {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         console.log('[Screen] viewer offer created and set, sending to sharer');
-        _setPopupMsg('② offer 전송됨 — answer 대기 중...');
+        _setPopupMsg(@json(__('collab.webrtc_offer_sent')));
         _sendScreenSignal(key, 'offer', { type: offer.type, sdp: offer.sdp });
     } catch (err) {
         console.error('[Screen] _startAsViewer offer error:', err);
-        _setPopupMsg('오류: ' + err.message);
+        _setPopupMsg(@json(__('collab.webrtc_error')) + err.message);
         return;
     }
 
@@ -896,7 +896,7 @@ async function _renderPopupWaiting(popup, partnerName) {
     popup.document.open();
     popup.document.write(`<!DOCTYPE html><html lang="ko"><head>
 <meta charset="UTF-8">
-<title>${safe} 화면 공유</title>
+<title>${safe}{{ __('collab.popup_title_suffix') }}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#09090b;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden}
@@ -928,11 +928,11 @@ body{background:#09090b;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
   </div>
   <button id="ctrl-btn"
     onclick="window.opener&&window.opener._popupToggleControl&&window.opener._popupToggleControl()"
-    title="원격 조작 모드 on/off">
+    title="{{ __('collab.remote_control_toggle') }}">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
-    원격 조작
+    {{ __('collab.remote_control') }}
   </button>
-  <button id="end-btn" onclick="window.opener&&window.opener.collabEndScreenShare?window.opener.collabEndScreenShare():window.close()">닫기</button>
+  <button id="end-btn" onclick="window.opener&&window.opener.collabEndScreenShare?window.opener.collabEndScreenShare():window.close()">{{ __('common.close') }}</button>
 </div>
 <div id="video-wrap">
   <div id="collab-popup-loading">

@@ -3,11 +3,11 @@
 @section('title', '#' . $issue->id . ' ' . $issue->title)
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">프로젝트</a>
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<a href="{{ route('projects.issues.index', $project) }}" class="hover:text-indigo-500 transition-colors">이슈</a>
+<a href="{{ route('projects.issues.index', $project) }}" class="hover:text-indigo-500 transition-colors">{{ __('issues.breadcrumb_issue') }}</a>
 <span>›</span>
 <span style="color:#374151;font-weight:500;">#{{ $issue->id }}</span>
 @endsection
@@ -18,7 +18,7 @@
     @if(!$issue->isResolved())
     <button onclick="openResolveModal()"
             style="padding:6px 14px;font-size:13px;font-weight:600;color:#fff;background:#059669;border:none;border-radius:8px;cursor:pointer;"
-            onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">해결 처리</button>
+            onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">{{ __('issues.resolve_action') }}</button>
     @endif
 @endsection
 
@@ -55,7 +55,7 @@
                 <h1 style="font-size:20px;font-weight:700;color:#111827;margin:0;" id="issue-title-display">{{ $issue->title }}</h1>
             </div>
             @if($isManager || auth()->id() === $issue->reporter_id)
-            <button onclick="openEditModal()" style="padding:6px 14px;font-size:12px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;flex-shrink:0;">수정</button>
+            <button onclick="openEditModal()" style="padding:6px 14px;font-size:12px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;flex-shrink:0;">{{ __('issues.edit_issue_btn') }}</button>
             @endif
         </div>
 
@@ -76,7 +76,7 @@
     @if($issue->isResolved() && $issue->resolution)
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <span style="font-size:14px;font-weight:700;color:#15803d;">✓ 해결 완료</span>
+            <span style="font-size:14px;font-weight:700;color:#15803d;">{{ __('issues.resolved_done') }}</span>
             @if($issue->resolvedBy)
             <span style="font-size:12px;color:#6b7280;">{{ $issue->resolvedBy->name }} · {{ $issue->resolved_at?->format('Y-m-d H:i') }}</span>
             @endif
@@ -88,21 +88,21 @@
     {{-- SM 모드: SLA 정보 --}}
     @if($project->sm_mode_enabled)
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;">
-        <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0 0 14px;">SLA 정보</h3>
+        <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0 0 14px;">{{ __('issues.sla_info') }}</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-                <p style="font-size:11px;color:#9ca3af;font-weight:600;margin:0 0 4px;">SLA 마감</p>
+                <p style="font-size:11px;color:#9ca3af;font-weight:600;margin:0 0 4px;">{{ __('issues.sla_due') }}</p>
                 <p style="font-size:13px;color:#111827;margin:0;" id="sla-due-display">
                     {{ $issue->sla_due ? $issue->sla_due->format('Y-m-d H:i') : '-' }}
                 </p>
             </div>
             <div>
-                <p style="font-size:11px;color:#9ca3af;font-weight:600;margin:0 0 4px;">SLA 위반</p>
+                <p style="font-size:11px;color:#9ca3af;font-weight:600;margin:0 0 4px;">{{ __('issues.sla_breach') }}</p>
                 <p style="font-size:13px;margin:0;" id="sla-breached-display">
                     @if($issue->sla_breached)
-                    <span style="color:#dc2626;font-weight:600;">위반</span>
+                    <span style="color:#dc2626;font-weight:600;">{{ __('issues.sla_breached') }}</span>
                     @else
-                    <span style="color:#6b7280;">정상</span>
+                    <span style="color:#6b7280;">{{ __('issues.sla_normal') }}</span>
                     @endif
                 </p>
             </div>
@@ -114,10 +114,10 @@
                    onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
             <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#374151;">
                 <input type="checkbox" id="sla-breached-check" {{ $issue->sla_breached ? 'checked' : '' }}>
-                SLA 위반 표시
+                {{ __('issues.sla_breach_label') }}
             </label>
             <button onclick="saveSla()"
-                    style="padding:6px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:7px;cursor:pointer;">저장</button>
+                    style="padding:6px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:7px;cursor:pointer;">{{ __('common.save') }}</button>
         </div>
         @endif
     </div>
@@ -126,25 +126,25 @@
     {{-- 연결된 요구사항 --}}
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0;">연결된 요구사항</h3>
+            <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0;">{{ __('issues.linked_requirement') }}</h3>
             @if($isManager && !$issue->linkedRequirement)
             <button onclick="document.getElementById('link-req-form').style.display='flex'"
-                    style="font-size:11px;color:var(--t600);background:none;border:none;cursor:pointer;font-weight:600;">+ 연결</button>
+                    style="font-size:11px;color:var(--t600);background:none;border:none;cursor:pointer;font-weight:600;">{{ __('issues.link_add') }}</button>
             @endif
         </div>
 
         <div id="link-req-form" style="display:none;gap:8px;align-items:center;margin-bottom:12px;">
             <select id="link-req-select"
                     style="flex:1;padding:7px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;outline:none;background:#fff;">
-                <option value="">요구사항 선택...</option>
+                <option value="">{{ __('issues.select_requirement') }}</option>
                 @foreach($requirements as $req)
                 <option value="{{ $req->id }}">{{ $req->title }}</option>
                 @endforeach
             </select>
             <button onclick="linkReq()"
-                    style="padding:7px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:7px;cursor:pointer;">연결</button>
+                    style="padding:7px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:7px;cursor:pointer;">{{ __('issues.link_btn') }}</button>
             <button onclick="document.getElementById('link-req-form').style.display='none'"
-                    style="padding:7px 10px;font-size:12px;color:#6b7280;background:#f3f4f6;border:none;border-radius:7px;cursor:pointer;">취소</button>
+                    style="padding:7px 10px;font-size:12px;color:#6b7280;background:#f3f4f6;border:none;border-radius:7px;cursor:pointer;">{{ __('common.cancel') }}</button>
         </div>
 
         <div id="linked-req-display">
@@ -158,11 +158,11 @@
             @if($isManager)
             <button onclick="unlinkReq()"
                     style="font-size:11px;color:#9ca3af;background:none;border:none;cursor:pointer;"
-                    onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#9ca3af'">연결 해제</button>
+                    onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#9ca3af'">{{ __('issues.unlink_btn') }}</button>
             @endif
         </div>
         @else
-        <p style="font-size:13px;color:#9ca3af;">연결된 요구사항이 없습니다.</p>
+        <p style="font-size:13px;color:#9ca3af;">{{ __('issues.no_linked_requirement') }}</p>
         @endif
         </div>
     </div>
@@ -170,7 +170,7 @@
     {{-- Q&A 출처 --}}
     @if($issue->convertedFromQuestion)
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;">
-        <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0 0 10px;">Q&A에서 전환</h3>
+        <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0 0 10px;">{{ __('issues.converted_from_qa') }}</h3>
         <a href="{{ route('projects.questions.show', $issue->convertedFromQuestion) }}"
            style="font-size:13px;color:var(--t600);text-decoration:none;"
            onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
@@ -181,7 +181,7 @@
 
     {{-- 댓글 --}}
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;">
-        <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0 0 14px;">댓글 ({{ $issue->comments->count() }})</h3>
+        <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0 0 14px;">{{ __('issues.comments_title', ['count' => $issue->comments->count()]) }}</h3>
 
         <div id="comments-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
             @foreach($issue->comments as $comment)
@@ -201,11 +201,11 @@
         </div>
 
         <div style="display:flex;gap:8px;align-items:flex-start;">
-            <textarea id="comment-input" rows="2" placeholder="댓글 입력..."
+            <textarea id="comment-input" rows="2" placeholder="{{ __('issues.comment_placeholder') }}"
                       style="flex:1;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:none;"
                       onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
             <button onclick="submitComment()"
-                    style="padding:8px 16px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;">등록</button>
+                    style="padding:8px 16px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;">{{ __('issues.comment_submit') }}</button>
         </div>
     </div>
 
@@ -217,7 +217,7 @@
     {{-- 상태 변경 --}}
     @if($isManager || auth()->id() === $issue->reporter_id || auth()->id() === $issue->assignee_id)
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:18px;">
-        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 10px;">상태 변경</p>
+        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 10px;">{{ __('issues.status_change') }}</p>
         <select id="status-select" onchange="changeStatus(this.value)"
                 style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;">
             @foreach(\App\Models\Issue::STATUS_LABELS as $val => $label)
@@ -229,23 +229,23 @@
 
     {{-- 이슈 정보 --}}
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:18px;">
-        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 12px;">이슈 정보</p>
+        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 12px;">{{ __('issues.issue_info') }}</p>
         <div style="display:flex;flex-direction:column;gap:10px;">
             <div>
-                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">담당자</p>
-                <p style="font-size:13px;color:#374151;margin:0;font-weight:500;">{{ $issue->assignee?->name ?? '미배정' }}</p>
+                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">{{ __('issues.info_assignee') }}</p>
+                <p style="font-size:13px;color:#374151;margin:0;font-weight:500;">{{ $issue->assignee?->name ?? __('issues.unassigned') }}</p>
             </div>
             <div>
-                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">등록자</p>
+                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">{{ __('issues.info_reporter') }}</p>
                 <p style="font-size:13px;color:#374151;margin:0;">{{ $issue->reporter?->name ?? '-' }}</p>
             </div>
             <div>
-                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">등록일</p>
+                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">{{ __('issues.info_created_at') }}</p>
                 <p style="font-size:13px;color:#374151;margin:0;">{{ $issue->created_at->format('Y-m-d H:i') }}</p>
             </div>
             @if($issue->resolved_at)
             <div>
-                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">해결일</p>
+                <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">{{ __('issues.info_resolved_at') }}</p>
                 <p style="font-size:13px;color:#374151;margin:0;">{{ $issue->resolved_at->format('Y-m-d H:i') }}</p>
             </div>
             @endif
@@ -255,10 +255,10 @@
     {{-- 담당자 변경 --}}
     @if($isManager)
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:18px;">
-        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 10px;">담당자 변경</p>
+        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 10px;">{{ __('issues.assignee_change') }}</p>
         <select id="assignee-select" onchange="changeAssignee(this.value)"
                 style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;">
-            <option value="">미배정</option>
+            <option value="">{{ __('issues.unassigned') }}</option>
             @foreach($members as $m)
             <option value="{{ $m->id }}" {{ $issue->assignee_id == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
             @endforeach
@@ -268,28 +268,29 @@
 
     {{-- 구독 --}}
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:18px;">
-        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 10px;">알림</p>
+        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 10px;">{{ __('issues.notification') }}</p>
         <button id="watch-btn" onclick="toggleWatch()"
                 style="width:100%;padding:8px;font-size:13px;font-weight:500;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;
                        {{ $isWatching ? 'background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;' : 'color:#374151;' }}">
-            {{ $isWatching ? '✓ 구독 중' : '구독하기' }}
+            {{ $isWatching ? __('issues.watching') : __('issues.watch') }}
         </button>
-        <p style="font-size:11px;color:#9ca3af;text-align:center;margin:6px 0 0;">{{ $issue->watchers->count() }}명 구독 중</p>
+        <p style="font-size:11px;color:#9ca3af;text-align:center;margin:6px 0 0;">{{ __('issues.watcher_count', ['count' => $issue->watchers->count()]) }}</p>
     </div>
 
     {{-- 변경 이력 --}}
     @if($issue->changeHistories->isNotEmpty())
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:18px;">
-        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 12px;">변경 이력</p>
+        <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 12px;">{{ __('issues.change_history') }}</p>
         <div style="display:flex;flex-direction:column;gap:8px;">
             @foreach($issue->changeHistories->take(10) as $history)
             <div style="font-size:11px;color:#6b7280;display:flex;gap:6px;align-items:flex-start;">
                 <span style="flex-shrink:0;color:#9ca3af;">{{ $history->changed_at->format('m-d H:i') }}</span>
-                <span>
-                    <b>{{ $history->changedBy?->name }}</b>이(가)
-                    <b>{{ $history->field_name }}</b>을 변경:
-                    {{ $history->old_value ?: '(없음)' }} → {{ $history->new_value ?: '(없음)' }}
-                </span>
+                <span>{!! __('issues.history_changed', [
+                    'user'  => '<b>' . e($history->changedBy?->name) . '</b>',
+                    'field' => '<b>' . e($history->field_name) . '</b>',
+                    'old'   => e($history->old_value ?: __('issues.history_empty_value')),
+                    'new'   => e($history->new_value ?: __('issues.history_empty_value')),
+                ]) !!}</span>
             </div>
             @endforeach
         </div>
@@ -303,31 +304,31 @@
 <div id="resolve-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:14px;padding:28px;width:480px;max-width:95vw;position:relative;">
         <button onclick="closeResolveModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;">✕</button>
-        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">해결 처리</h3>
+        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">{{ __('issues.resolve_modal_title') }}</h3>
         <div style="display:flex;flex-direction:column;gap:14px;">
             <div>
-                <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">해결 내용 *</label>
-                <textarea id="resolution-input" rows="4" placeholder="해결 방법, 조치 내용을 입력하세요..."
+                <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.resolution_label') }}</label>
+                <textarea id="resolution-input" rows="4" placeholder="{{ __('issues.resolution_placeholder') }}"
                           style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;"
                           onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
             </div>
             <div>
-                <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">최종 상태</label>
+                <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.final_status') }}</label>
                 <div style="display:flex;gap:10px;">
                     <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
-                        <input type="radio" name="resolve-status" value="해결" checked> 해결
+                        <input type="radio" name="resolve-status" value="해결" checked> {{ __('issues.resolve_status_resolved') }}
                     </label>
                     <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
-                        <input type="radio" name="resolve-status" value="종결"> 종결
+                        <input type="radio" name="resolve-status" value="종결"> {{ __('issues.resolve_status_closed') }}
                     </label>
                 </div>
             </div>
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
             <button onclick="closeResolveModal()"
-                    style="padding:8px 18px;font-size:13px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;">취소</button>
+                    style="padding:8px 18px;font-size:13px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;">{{ __('common.cancel') }}</button>
             <button onclick="submitResolve()" id="resolve-btn"
-                    style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#059669;border:none;border-radius:8px;cursor:pointer;">처리</button>
+                    style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#059669;border:none;border-radius:8px;cursor:pointer;">{{ __('issues.resolve_submit') }}</button>
         </div>
     </div>
 </div>
@@ -336,25 +337,25 @@
 <div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:14px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;">
         <button onclick="closeEditModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;">✕</button>
-        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">이슈 수정</h3>
+        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">{{ __('issues.edit_modal_title') }}</h3>
         <form id="edit-form" onsubmit="submitEdit(event)">
             @method('PATCH')
             <div style="display:flex;flex-direction:column;gap:14px;">
                 <div>
-                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">제목</label>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.edit_field_title') }}</label>
                     <input name="title" value="{{ $issue->title }}"
                            style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
                 </div>
                 <div>
-                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">설명</label>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_description') }}</label>
                     <textarea name="description" rows="4"
                               style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;"
                               onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">{{ $issue->description }}</textarea>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">분류</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.edit_field_category') }}</label>
                         <select name="category" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             @foreach(\App\Models\Issue::CATEGORY_LABELS as $v => $l)
                             <option value="{{ $v }}" {{ $issue->category === $v ? 'selected' : '' }}>{{ $l }}</option>
@@ -362,7 +363,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">우선순위</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.edit_field_priority') }}</label>
                         <select name="priority" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             @foreach(\App\Models\Issue::PRIORITY_LABELS as $v => $l)
                             <option value="{{ $v }}" {{ $issue->priority === $v ? 'selected' : '' }}>{{ $l }}</option>
@@ -372,7 +373,7 @@
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">심각도</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_severity') }}</label>
                         <select name="severity" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             <option value="">-</option>
                             @foreach(\App\Models\Issue::SEVERITY_LABELS as $v => $l)
@@ -381,7 +382,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">환경</label>
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_environment') }}</label>
                         <select name="environment" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
                             <option value="">-</option>
                             @foreach(\App\Models\Issue::ENVIRONMENT_LABELS as $v => $l)
@@ -391,7 +392,7 @@
                     </div>
                 </div>
                 <div>
-                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">태그 (쉼표 구분)</label>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_tags') }}</label>
                     <input name="tags" value="{{ is_array($issue->tags) ? implode(', ', $issue->tags) : '' }}"
                            style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
@@ -399,9 +400,9 @@
             </div>
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
                 <button type="button" onclick="closeEditModal()"
-                        style="padding:8px 18px;font-size:13px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;">취소</button>
+                        style="padding:8px 18px;font-size:13px;font-weight:500;color:#374151;border:1.5px solid #e4e4e7;border-radius:8px;background:#fff;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button type="submit" id="edit-save-btn"
-                        style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;">저장</button>
+                        style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;">{{ __('common.save') }}</button>
             </div>
         </form>
     </div>
@@ -409,6 +410,7 @@
 
 <script>
 const CSRF = '{{ csrf_token() }}';
+const COMMENT_ME = @json(__('issues.comment_me'));
 const ISSUE_UPDATE_URL = '{{ route('projects.issues.update', [$project, $issue]) }}';
 const COMMENT_URL      = '{{ route('projects.issues.comments.store', [$project, $issue]) }}';
 const WATCH_URL        = '{{ route('projects.issues.watch', [$project, $issue]) }}';
@@ -453,10 +455,10 @@ async function submitComment() {
         const c = data.comment;
         const div = document.createElement('div');
         div.style.cssText = 'display:flex;gap:10px;padding:12px;background:#f9fafb;border-radius:8px;';
-        div.innerHTML = `<div style="width:30px;height:30px;background:#e0e7ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#4f46e5;flex-shrink:0;">나</div>
+        div.innerHTML = `<div style="width:30px;height:30px;background:#e0e7ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#4f46e5;flex-shrink:0;">${COMMENT_ME}</div>
             <div style="flex:1;">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                    <span style="font-size:12px;font-weight:600;color:#374151;">나</span>
+                    <span style="font-size:12px;font-weight:600;color:#374151;">${COMMENT_ME}</span>
                     <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
                 </div>
                 <p style="font-size:13px;color:#374151;margin:0;white-space:pre-line;">${c.content}</p>
@@ -474,12 +476,12 @@ async function toggleWatch() {
     const data = await res.json();
     const btn = document.getElementById('watch-btn');
     if (data.watching) {
-        btn.textContent = '✓ 구독 중';
+        btn.textContent = @json(__('issues.watching'));
         btn.style.background = '#eef2ff';
         btn.style.color = '#4f46e5';
         btn.style.borderColor = '#c7d2fe';
     } else {
-        btn.textContent = '구독하기';
+        btn.textContent = @json(__('issues.watch'));
         btn.style.background = '#fff';
         btn.style.color = '#374151';
         btn.style.borderColor = '#e4e4e7';
@@ -491,17 +493,17 @@ async function closeResolveModal() { document.getElementById('resolve-modal').st
 
 async function submitResolve() {
     const resolution = document.getElementById('resolution-input').value.trim();
-    if (!resolution) { alert('해결 내용을 입력해주세요.'); return; }
+    if (!resolution) { alert(@json(__('issues.resolution_required'))); return; }
     const status = document.querySelector('input[name="resolve-status"]:checked').value;
     const btn = document.getElementById('resolve-btn');
-    btn.disabled = true; btn.textContent = '처리 중...';
+    btn.disabled = true; btn.textContent = @json(__('issues.resolving'));
     const res = await fetch(RESOLVE_URL, {
         method: 'POST',
         headers: {'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json'},
         body: JSON.stringify({resolution, status}),
     });
     if (res.ok) location.reload();
-    else { alert('오류가 발생했습니다.'); btn.disabled = false; btn.textContent = '처리'; }
+    else { alert(@json(__('issues.error_occurred'))); btn.disabled = false; btn.textContent = @json(__('issues.resolve_submit')); }
 }
 
 async function openEditModal() { document.getElementById('edit-modal').style.display = 'flex'; }
@@ -510,7 +512,7 @@ async function closeEditModal() { document.getElementById('edit-modal').style.di
 async function submitEdit(e) {
     e.preventDefault();
     const btn = document.getElementById('edit-save-btn');
-    btn.disabled = true; btn.textContent = '저장 중...';
+    btn.disabled = true; btn.textContent = @json(__('issues.saving'));
     const fd = new FormData(e.target);
     fd.append('_method', 'PATCH');
     const res = await fetch(ISSUE_UPDATE_URL, {
@@ -519,7 +521,7 @@ async function submitEdit(e) {
         body: fd,
     });
     if (res.ok) location.reload();
-    else { alert('저장 실패'); btn.disabled = false; btn.textContent = '저장'; }
+    else { alert(@json(__('issues.save_failed'))); btn.disabled = false; btn.textContent = @json(__('common.save')); }
 }
 
 async function linkReq() {
@@ -535,7 +537,7 @@ async function linkReq() {
 }
 
 async function unlinkReq() {
-    if (!await __confirm('연결을 해제할까요?')) return;
+    if (!await __confirm(@json(__('issues.confirm_unlink')))) return;
     const res = await fetch(UNLINK_REQ_URL, {
         method: 'DELETE',
         headers: {'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json'},
