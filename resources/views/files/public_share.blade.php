@@ -5,6 +5,11 @@ $_commentPostUrl = $customCommentPost   ?? route('files.public-comments.store', 
 $_annGetUrl      = $customAnnGet        ?? route('files.public-annotations.index', $token);
 $_annPostUrl     = $customAnnPost       ?? route('files.public-annotations.store', $token);
 $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations") . '/');
+// 버전 비교 — 유지보수 파일 공유 등 다른 컨트롤러에서 렌더될 때를 위한 기본값
+$versions       = $versions       ?? [];
+$activeVersion  = $activeVersion  ?? null;
+$currentVersion = $currentVersion ?? null;
+$isEmbed        = $isEmbed        ?? false;
 @endphp
 <!DOCTYPE html>
 <html lang="ko">
@@ -155,6 +160,24 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
         .sw-dlp-fill.sw-dlp-indet{width:38%;animation:sw-dlp-slide 1.1s infinite ease-in-out;transition:none;}
         @keyframes sw-dlp-slide{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
         .sw-dlp-pct{display:block;font-size:10px;color:#a78bfa;font-weight:700;text-align:right;margin-top:2px;line-height:1;white-space:nowrap;}
+
+        /* ── 버전 비교 ── */
+        #compare-modal{display:none;position:fixed;inset:0;z-index:10006;background:#0d0a1c;flex-direction:column;}
+        .cmp-topbar{height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:14px;padding:0 16px;flex-shrink:0;}
+        .cmp-body{display:flex;flex:1;min-height:0;}
+        .cmp-pane{flex:1;min-width:0;display:flex;flex-direction:column;}
+        .cmp-pane.cmp-left{border-right:2px solid #2d2748;}
+        .cmp-pane-label{flex-shrink:0;height:32px;display:flex;align-items:center;gap:8px;padding:0 14px;background:rgba(124,58,237,.13);border-bottom:1px solid rgba(196,181,253,.14);font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;}
+        .cmp-frame{flex:1;width:100%;border:none;background:#1a1730;}
+        .vcmp-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;transition:background .12s;}
+        .vcmp-row:hover{background:rgba(196,181,253,.1);}
+        .vcmp-row.is-checked{background:rgba(125,211,252,.14);}
+        .vcmp-row.is-disabled{opacity:.4;cursor:not-allowed;}
+        .vcmp-row input{width:15px;height:15px;accent-color:#0ea5e9;cursor:pointer;flex-shrink:0;}
+        .vcmp-vtag{font-size:11px;font-weight:700;color:#c4b5fd;background:rgba(196,181,253,.15);padding:2px 7px;border-radius:4px;flex-shrink:0;}
+        .vcmp-meta{display:flex;flex-direction:column;min-width:0;}
+        .vcmp-name{font-size:12px;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .vcmp-sub{font-size:10px;color:#8b85a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     </style>
 </head>
 <body>
@@ -179,6 +202,15 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
         $hasAnnotation = in_array($previewType, ['image','pdf']);
     @endphp
     <span class="topbar-badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
+    @if(!$isEmbed && count($versions) >= 2)
+    <button id="cmp-open-btn" type="button" onclick="openVersionCompareMenu(event)"
+            title="두 버전을 나란히 비교"
+            style="display:inline-flex;align-items:center;gap:5px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
+            onmouseover="this.style.background='rgba(125,211,252,.1)'" onmouseout="this.style.background='none'">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
+        버전 비교
+    </button>
+    @endif
     @if($hasAnnotation)
     <button id="ann-dl-btn" onclick="downloadAnnotatedPdf()" style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -190,6 +222,7 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
         {{ __('team.shared_file') }}
     </span>
 
+    @if(!$isEmbed)
     {{-- 공유 링크 복사 --}}
     <button id="share-copy-btn" onclick="copyShareLink()" type="button"
             style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
@@ -216,6 +249,7 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
         SupportWorks 가입하기
     </a>
     @endguest
+    @endif
 </div>
 
 @if($hasAnnotation)
@@ -310,6 +344,12 @@ $_annUpdateBase  = $customAnnBase       ?? (url("share/file/{$token}/annotations
         @elseif($previewType === 'office')
             @php $officeUrl='https://view.officeapps.live.com/op/embed.aspx?src='.urlencode($_serveUrl); @endphp
             <iframe id="viewer-frame" src="{{ $officeUrl }}" onload="onFrameLoad()"></iframe>
+
+        @elseif($previewType === 'video')
+            <div id="viewer-video" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;">
+                <video id="vid-el" src="{{ $_serveUrl }}" controls playsinline preload="metadata"
+                       style="max-width:100%;max-height:100%;display:block;"></video>
+            </div>
         @endif
     </div>
 
@@ -702,6 +742,7 @@ function renderPdfPage(num) {
             if (pdfPending) { const p = pdfPending; pdfPending = null; renderPdfPage(p); return; }
             const pageChanged = (num !== pdfPage);
             pdfPage = num; _pdfPage = num;
+            if (CMP_IS_EMBED) _cmpPostPage(num);
             document.getElementById('pdf-page-info').textContent = `${num} / ${pdfTotal}`;
             document.getElementById('pdf-prev-btn').disabled = num <= 1;
             document.getElementById('pdf-next-btn').disabled = num >= pdfTotal;
@@ -1486,6 +1527,287 @@ function copyShareLink() {
         document.body.removeChild(ta);
     }
 }
+</script>
+
+@if(!$isEmbed && count($versions) >= 2)
+{{-- ════════ 버전 비교 모달 ════════ --}}
+<div id="compare-modal">
+    <div class="cmp-topbar">
+        <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;">
+            <svg width="15" height="15" fill="none" stroke="#7dd3fc" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
+            버전 비교
+        </span>
+        <span id="cmp-title" style="flex:1;overflow:hidden;font-size:12px;color:#9ca3af;white-space:nowrap;text-overflow:ellipsis;">{{ $file->original_name }}</span>
+        <label id="cmp-sync-wrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
+            <input type="checkbox" id="cmp-sync-pages" onchange="onCmpSyncToggle()" disabled style="width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;">
+            <span id="cmp-sync-label">페이지 동일함</span>
+        </label>
+        <span id="cmp-sync-note" style="display:none;font-size:11px;color:#6b7280;flex-shrink:0;"></span>
+        <button onclick="closeCompare()" type="button"
+                style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            닫기
+        </button>
+    </div>
+    <div class="cmp-body">
+        <div class="cmp-pane cmp-left">
+            <div id="cmp-label-a" class="cmp-pane-label"></div>
+            <iframe id="cmp-frame-a" class="cmp-frame" title="버전 비교 - 좌측"></iframe>
+        </div>
+        <div class="cmp-pane">
+            <div id="cmp-label-b" class="cmp-pane-label"></div>
+            <iframe id="cmp-frame-b" class="cmp-frame" title="버전 비교 - 우측"></iframe>
+        </div>
+    </div>
+</div>
+@endif
+
+<script>
+/* ══════════ 버전 비교 (Version Comparison) ══════════ */
+const SHARE_BASE_URL = @json(route('files.public-share', $token));
+const CMP_VERSIONS   = @json($versions);
+const CMP_IS_EMBED   = {{ $isEmbed ? 'true' : 'false' }};
+const CMP_ACTIVE_VER = {{ $activeVersion !== null ? (int) $activeVersion : 'null' }};
+
+function _cmpFresh(){ return { readyA:false, readyB:false, ptypeA:null, ptypeB:null, pageA:1, pageB:1, vidA:null, vidB:null }; }
+let _cmpState       = _cmpFresh();
+let _cmpSyncMode    = null;   // 'page' | 'video' | null
+let _cmpVidApplying = false;
+
+function _cmpEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ── 임베드 → 부모 메시지 ── */
+function _cmpPostToParent(msg){
+    if (!CMP_IS_EMBED || window.parent === window) return;
+    try { window.parent.postMessage(msg, location.origin); } catch(_){}
+}
+function _cmpPostPage(num){ _cmpPostToParent({ type:'sw-cmp-page', page:num, total:pdfTotal }); }
+function _cmpPostReady(){ _cmpPostToParent({ type:'sw-cmp-ready', ptype:PREVIEW_TYPE, page:1 }); }
+function _cmpGotoPage(n){
+    if (!pdfDoc) return;
+    n = Math.max(1, Math.min(pdfTotal||1, parseInt(n,10)||1));
+    if (n !== pdfPage) renderPdfPage(n);
+}
+
+/* ── 동영상 뷰어 + 비교 동기화 ── */
+function initVideo(){
+    const vid = document.getElementById('vid-el');
+    if (!vid) return;
+    const hideLoading = () => { const l = document.getElementById('viewer-loading'); if (l) l.style.display = 'none'; };
+    vid.addEventListener('loadeddata', hideLoading);
+    vid.addEventListener('canplay',    hideLoading);
+    vid.addEventListener('error',      hideLoading);
+    if (vid.readyState >= 2) hideLoading();  // 이미 로드된 경우(캐시 등)
+    if (CMP_IS_EMBED){
+        const post = (action) => {
+            if (_cmpVidApplying) return;
+            _cmpPostToParent({ type:'sw-cmp-vid', action:action, time:vid.currentTime });
+        };
+        vid.addEventListener('play',   () => post('play'));
+        vid.addEventListener('pause',  () => post('pause'));
+        vid.addEventListener('seeked', () => post('seek'));
+    }
+}
+function _cmpApplyVideo(action, time){
+    const vid = document.getElementById('vid-el');
+    if (!vid) return;
+    _cmpVidApplying = true;
+    if (typeof time === 'number' && isFinite(time) && Math.abs(vid.currentTime - time) > 0.3){
+        vid.currentTime = time;
+    }
+    if (action === 'play')  vid.play().catch(()=>{});
+    if (action === 'pause') vid.pause();
+    clearTimeout(_cmpApplyVideo._t);
+    _cmpApplyVideo._t = setTimeout(() => { _cmpVidApplying = false; }, 500);
+}
+
+/* ── 버전 선택 팝오버 ── */
+function openVersionCompareMenu(ev){
+    if (ev) ev.stopPropagation();
+    closeVersionCompareMenu();
+    const btn = document.getElementById('cmp-open-btn');
+    if (!btn || !CMP_VERSIONS.length) return;
+    const rows = [...CMP_VERSIONS].reverse().map(v => {
+        const sub = (v.uploader || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · 현재' : '');
+        const pre = (v.version === CMP_ACTIVE_VER) ? ' checked' : '';
+        return `<label class="vcmp-row${pre?' is-checked':''}" data-version="${v.version}">
+            <input type="checkbox" value="${v.version}" onchange="onVersionCompareCheck()"${pre}>
+            <span class="vcmp-vtag">v${v.version}</span>
+            <span class="vcmp-meta"><span class="vcmp-name">${_cmpEsc(v.name)}</span><span class="vcmp-sub">${_cmpEsc(sub)}</span></span>
+        </label>`;
+    }).join('');
+    const pop = document.createElement('div');
+    pop.id = 'version-compare-pop';
+    pop.style.cssText = 'position:fixed;z-index:10011;background:#241f3d;border:1px solid rgba(196,181,253,.25);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.55);padding:10px;width:288px;';
+    pop.innerHTML = `<div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">비교할 버전 선택 <span style="font-weight:500;color:#8b85a8;">(최대 2개)</span></div>
+        <div style="display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;">${rows}</div>
+        <button id="vcmp-go" type="button" onclick="confirmVersionCompare()" style="margin-top:9px;width:100%;padding:8px;border:none;border-radius:7px;font-size:12px;font-weight:700;"></button>`;
+    document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect();
+    pop.style.top  = (r.bottom + 6) + 'px';
+    pop.style.left = Math.max(8, r.right - 288) + 'px';
+    onVersionCompareCheck();
+    setTimeout(() => document.addEventListener('mousedown', _vcmpOutside), 0);
+}
+function _vcmpOutside(e){
+    const pop = document.getElementById('version-compare-pop');
+    if (pop && !pop.contains(e.target) && !e.target.closest('#cmp-open-btn')) closeVersionCompareMenu();
+}
+function closeVersionCompareMenu(){
+    const pop = document.getElementById('version-compare-pop');
+    if (pop) pop.remove();
+    document.removeEventListener('mousedown', _vcmpOutside);
+}
+function onVersionCompareCheck(){
+    const pop = document.getElementById('version-compare-pop');
+    if (!pop) return;
+    const boxes = [...pop.querySelectorAll('input[type=checkbox]')];
+    const checked = boxes.filter(b => b.checked);
+    boxes.forEach(b => { b.disabled = !b.checked && checked.length >= 2; });
+    pop.querySelectorAll('.vcmp-row').forEach(row => {
+        const cb = row.querySelector('input');
+        row.classList.toggle('is-checked', cb.checked);
+        row.classList.toggle('is-disabled', cb.disabled);
+    });
+    const go = document.getElementById('vcmp-go');
+    if (checked.length === 0){
+        go.disabled = true; go.textContent = '버전을 선택하세요';
+        go.style.background = '#3a3357'; go.style.color = '#8b85a8'; go.style.cursor = 'not-allowed';
+    } else if (checked.length === 1){
+        go.disabled = false; go.textContent = 'v' + checked[0].value + ' 보기';
+        go.style.background = 'linear-gradient(135deg,#7c3aed,#a78bfa)'; go.style.color = '#fff'; go.style.cursor = 'pointer';
+    } else {
+        const s = checked.map(b=>parseInt(b.value,10)).sort((a,b)=>a-b);
+        go.disabled = false; go.textContent = 'v' + s[0] + ' ↔ v' + s[1] + ' 비교';
+        go.style.background = 'linear-gradient(135deg,#0ea5e9,#7dd3fc)'; go.style.color = '#08233a'; go.style.cursor = 'pointer';
+    }
+}
+function confirmVersionCompare(){
+    const pop = document.getElementById('version-compare-pop');
+    if (!pop) return;
+    const checked = [...pop.querySelectorAll('input[type=checkbox]:checked')].map(b=>parseInt(b.value,10)).sort((a,b)=>a-b);
+    closeVersionCompareMenu();
+    if (checked.length === 1){
+        // 1개 선택 → 해당 버전 단일 보기
+        window.location = SHARE_BASE_URL + '?version=' + checked[0];
+    } else if (checked.length === 2){
+        openCompare(checked[0], checked[1]);
+    }
+}
+
+/* ── 비교 모달 ── */
+function _cmpLabelHtml(v){
+    if (!v) return '';
+    const sub = (v.uploader || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · 현재 버전' : '');
+    return `<span style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;padding:2px 9px;border-radius:5px;font-size:11px;flex-shrink:0;">v${v.version}</span>
+        <span style="color:#e5e7eb;overflow:hidden;text-overflow:ellipsis;">${_cmpEsc(v.name)}</span>
+        <span style="color:#8b85a8;font-weight:500;flex-shrink:0;">${_cmpEsc(sub)}</span>`;
+}
+function openCompare(vA, vB){
+    const va = CMP_VERSIONS.find(v=>v.version===vA);
+    const vb = CMP_VERSIONS.find(v=>v.version===vB);
+    _cmpState = _cmpFresh(); _cmpSyncMode = null;
+    document.getElementById('cmp-label-a').innerHTML = _cmpLabelHtml(va);
+    document.getElementById('cmp-label-b').innerHTML = _cmpLabelHtml(vb);
+    const sync = document.getElementById('cmp-sync-pages');
+    sync.checked = false; sync.disabled = true;
+    document.getElementById('cmp-sync-wrap').style.opacity = '.5';
+    document.getElementById('cmp-sync-note').style.display = 'none';
+    document.getElementById('cmp-frame-a').src = SHARE_BASE_URL + '?embed=1&version=' + vA;
+    document.getElementById('cmp-frame-b').src = SHARE_BASE_URL + '?embed=1&version=' + vB;
+    document.getElementById('compare-modal').style.display = 'flex';
+}
+function closeCompare(){
+    const m = document.getElementById('compare-modal');
+    if (m) m.style.display = 'none';
+    const fa = document.getElementById('cmp-frame-a'), fb = document.getElementById('cmp-frame-b');
+    if (fa) fa.src = 'about:blank';
+    if (fb) fb.src = 'about:blank';
+    _cmpState = _cmpFresh(); _cmpSyncMode = null;
+}
+function _cmpSendGoto(which, page){
+    const fr = document.getElementById(which === 'a' ? 'cmp-frame-a' : 'cmp-frame-b');
+    if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type:'sw-cmp-goto', page:page }, location.origin);
+}
+function _cmpSendVid(which, action, time){
+    const fr = document.getElementById(which === 'a' ? 'cmp-frame-a' : 'cmp-frame-b');
+    if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type:'sw-cmp-vid-apply', action:action, time:time }, location.origin);
+}
+function _cmpUpdateSyncAvailability(){
+    if (!_cmpState.readyA || !_cmpState.readyB) return;
+    const sync  = document.getElementById('cmp-sync-pages');
+    const wrap  = document.getElementById('cmp-sync-wrap');
+    const note  = document.getElementById('cmp-sync-note');
+    const label = document.getElementById('cmp-sync-label');
+    const bothPdf   = _cmpState.ptypeA === 'pdf'   && _cmpState.ptypeB === 'pdf';
+    const bothVideo = _cmpState.ptypeA === 'video' && _cmpState.ptypeB === 'video';
+    _cmpSyncMode = bothPdf ? 'page' : (bothVideo ? 'video' : null);
+    if (label) label.textContent = bothVideo ? '재생 위치 동일함' : '페이지 동일함';
+    const enabled = !!_cmpSyncMode;
+    sync.disabled = !enabled;
+    wrap.style.opacity = enabled ? '1' : '.5';
+    if (!enabled){
+        sync.checked = false;
+        note.textContent = '같은 형식(PDF끼리·동영상끼리)일 때만 동기화할 수 있습니다.';
+        note.style.display = 'inline';
+    } else {
+        note.style.display = 'none';
+    }
+}
+function onCmpSyncToggle(){
+    const sync = document.getElementById('cmp-sync-pages');
+    if (!sync.checked || sync.disabled) return;
+    if (_cmpSyncMode === 'page'){
+        _cmpSendGoto('b', _cmpState.pageA);
+        _cmpState.pageB = _cmpState.pageA;
+    } else if (_cmpSyncMode === 'video' && _cmpState.vidA){
+        _cmpSendVid('b', _cmpState.vidA.action, _cmpState.vidA.time);
+    }
+}
+
+/* ── 부모 ↔ 임베드 메시지 통신 ── */
+window.addEventListener('message', function(e){
+    if (e.origin !== location.origin) return;
+    const d = e.data;
+    if (!d || typeof d.type !== 'string') return;
+    if (CMP_IS_EMBED){
+        if (d.type === 'sw-cmp-goto' && typeof d.page === 'number') _cmpGotoPage(d.page);
+        else if (d.type === 'sw-cmp-vid-apply') _cmpApplyVideo(d.action, d.time);
+        return;
+    }
+    const fA = document.getElementById('cmp-frame-a');
+    const fB = document.getElementById('cmp-frame-b');
+    let which = null;
+    if (fA && e.source === fA.contentWindow)      which = 'a';
+    else if (fB && e.source === fB.contentWindow) which = 'b';
+    if (!which) return;
+    if (d.type === 'sw-cmp-ready'){
+        if (which === 'a'){ _cmpState.readyA = true; _cmpState.ptypeA = d.ptype; _cmpState.pageA = d.page||1; }
+        else              { _cmpState.readyB = true; _cmpState.ptypeB = d.ptype; _cmpState.pageB = d.page||1; }
+        _cmpUpdateSyncAvailability();
+    } else if (d.type === 'sw-cmp-page' && typeof d.page === 'number'){
+        if (which === 'a') _cmpState.pageA = d.page; else _cmpState.pageB = d.page;
+        const sync = document.getElementById('cmp-sync-pages');
+        if (sync && sync.checked && !sync.disabled && _cmpSyncMode === 'page') _cmpSendGoto(which === 'a' ? 'b' : 'a', d.page);
+    } else if (d.type === 'sw-cmp-vid'){
+        const st = { action:d.action, time:d.time };
+        if (which === 'a') _cmpState.vidA = st; else _cmpState.vidB = st;
+        const sync = document.getElementById('cmp-sync-pages');
+        if (sync && sync.checked && !sync.disabled && _cmpSyncMode === 'video') _cmpSendVid(which === 'a' ? 'b' : 'a', d.action, d.time);
+    }
+});
+
+/* ── 임베드 모드 준비 통보 + 동영상 초기화 + ESC 처리 ── */
+document.addEventListener('DOMContentLoaded', function(){
+    if (PREVIEW_TYPE === 'video') initVideo();
+    if (CMP_IS_EMBED) _cmpPostReady();
+});
+document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){
+        const m = document.getElementById('compare-modal');
+        if (m && m.style.display === 'flex') closeCompare();
+    }
+});
 </script>
 </body>
 </html>

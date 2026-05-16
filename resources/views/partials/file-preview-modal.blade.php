@@ -38,12 +38,19 @@
 
     {{-- 상단바 --}}
     <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
-        <button onclick="closePreview()" style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
+        <button id="modal-close-btn" onclick="closePreview()" style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             {{ __('viewer.close') }}
         </button>
         <span id="modal-filename" style="flex:1;overflow:hidden;font-size:13px;font-weight:600;color:#e5e7eb;white-space:nowrap;text-overflow:ellipsis;"></span>
         <span id="modal-version-bar" style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;"></span>
+        <button id="modal-compare-btn" type="button" onclick="openVersionCompareMenu(event)"
+                title="두 버전을 나란히 비교"
+                style="display:none;align-items:center;gap:5px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;"
+                onmouseover="this.style.background='rgba(125,211,252,.1)'" onmouseout="this.style.background='none'">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
+            버전 비교
+        </button>
         <span id="modal-badge" style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;flex-shrink:0;"></span>
         <button id="modal-upload-version" type="button" onclick="openUploadVersionModal()" style="display:inline-flex;align-items:center;gap:5px;color:#fde68a;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(253,230,138,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(253,230,138,.1)'" onmouseout="this.style.background='none'" title="의견을 반영한 수정본 업로드 (새 버전)">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -319,6 +326,41 @@
         </div>
     </div>
 </div>
+</div>
+
+{{-- ============================  버전 비교 모달  ============================ --}}
+<div id="compare-modal" style="display:none;position:fixed;inset:0;z-index:10006;background:#0d0a1c;flex-direction:column;">
+    {{-- 상단바 --}}
+    <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:14px;padding:0 16px;flex-shrink:0;">
+        <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;">
+            <svg width="15" height="15" fill="none" stroke="#7dd3fc" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
+            버전 비교
+        </span>
+        <span id="compare-title" style="flex:1;overflow:hidden;font-size:12px;color:#9ca3af;white-space:nowrap;text-overflow:ellipsis;"></span>
+        <label id="compare-sync-wrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
+            <input type="checkbox" id="compare-sync-pages" onchange="onCompareSyncToggle()" disabled
+                   style="width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;">
+            <span id="compare-sync-label">페이지 동일함</span>
+        </label>
+        <span id="compare-sync-note" style="display:none;font-size:11px;color:#6b7280;flex-shrink:0;"></span>
+        <button onclick="closeCompare()"
+                style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;transition:background .15s;"
+                onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            닫기
+        </button>
+    </div>
+    {{-- 본문: 두 뷰어 나란히 --}}
+    <div style="display:flex;flex:1;min-height:0;">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;border-right:2px solid #2d2748;">
+            <div id="compare-label-a" class="compare-pane-label"></div>
+            <iframe id="compare-frame-a" title="버전 비교 - 좌측" style="flex:1;width:100%;border:none;background:#1a1730;"></iframe>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+            <div id="compare-label-b" class="compare-pane-label"></div>
+            <iframe id="compare-frame-b" title="버전 비교 - 우측" style="flex:1;width:100%;border:none;background:#1a1730;"></iframe>
+        </div>
+    </div>
 </div>
 
 {{-- ============================  URL 뷰어 팝업  ============================ --}}
@@ -639,6 +681,30 @@ body.cmt-resizing iframe { pointer-events: none; }
 .ann-tool-btn.active { background:rgba(196,181,253,.28); color:#c4b5fd; border-color:rgba(196,181,253,.45); }
 .ann-item { cursor:default; }
 .ann-item[data-can-delete="1"] { cursor:pointer; }
+
+/* ── 버전 비교 ── */
+.compare-pane-label {
+    flex-shrink:0; height:32px;
+    display:flex; align-items:center; gap:8px;
+    padding:0 14px;
+    background:rgba(124,58,237,.13);
+    border-bottom:1px solid rgba(196,181,253,.14);
+    font-size:12px; font-weight:700;
+    white-space:nowrap; overflow:hidden;
+}
+.vcmp-row {
+    display:flex; align-items:center; gap:8px;
+    padding:6px 8px; border-radius:7px;
+    cursor:pointer; transition:background .12s;
+}
+.vcmp-row:hover { background:rgba(196,181,253,.1); }
+.vcmp-row.is-checked { background:rgba(125,211,252,.14); }
+.vcmp-row.is-disabled { opacity:.4; cursor:not-allowed; }
+.vcmp-row input { width:15px; height:15px; accent-color:#0ea5e9; cursor:pointer; flex-shrink:0; }
+.vcmp-vtag { font-size:11px; font-weight:700; color:#c4b5fd; background:rgba(196,181,253,.15); padding:2px 7px; border-radius:4px; flex-shrink:0; }
+.vcmp-meta { display:flex; flex-direction:column; min-width:0; }
+.vcmp-name { font-size:12px; color:#e5e7eb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vcmp-sub  { font-size:10px; color:#8b85a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 </style>
 
 {{-- PDF.js --}}
@@ -700,6 +766,9 @@ const FM_STR = {
 };
 let currentFileId    = null;
 let currentProjectId = null;
+
+// 버전 비교 모달의 iframe 안에서 로드된 임베드 뷰어인지 여부
+const IS_EMBED = new URLSearchParams(location.search).get('embed') === '1';
 
 // ── PDF.js 상태 ──────────────────────────────────
 let pdfDoc        = null;
@@ -846,6 +915,7 @@ function openPreview(fileId, projectId, customPreviewDataUrl, customDownloadUrl)
 
         document.getElementById('modal-filename').textContent = data.fileName;
         renderVersionBar(data.versions || [], data.version || 1);
+        refreshCompareButton(data.versions || []);
         window._currentVersion = data.version || 1;
         const _annDlBtn = document.getElementById('ann-dl-btn');
         if (_annDlBtn) _annDlBtn.style.display = (data.previewType === 'pdf' || data.previewType === 'image') ? 'inline-flex' : 'none';
@@ -892,6 +962,11 @@ function openPreview(fileId, projectId, customPreviewDataUrl, customDownloadUrl)
         renderComments(data.comments);
         loadAnnotations();
         document.getElementById('ann-toolbar').style.display = 'flex';
+
+        // 임베드 모드 → 부모(비교 모달)에 준비 완료 통보
+        if (IS_EMBED) {
+            _postEmbedToParent({ type: 'sw-cmp-ready', ptype: _annPreviewType, page: 1 });
+        }
     })
     .catch(() => { clearTimeout(_convTimer); alert(FM_STR.load_failed); closePreview(); });
 }
@@ -929,6 +1004,8 @@ function resetViewers() {
     _currentFileName   = null;
     const _annDlBtn = document.getElementById('ann-dl-btn');
     if (_annDlBtn) _annDlBtn.style.display = 'none';
+    const _cmpBtn = document.getElementById('modal-compare-btn');
+    if (_cmpBtn) _cmpBtn.style.display = 'none';
     annTool = null; annSelected = null; annList = [];
     annDrawing = false; annMoveActive = false;
     if (annDragEl) { annDragEl.remove(); annDragEl = null; }
@@ -1033,8 +1110,9 @@ function toggleUrlPreviewFullscreen() {
     });
 })();
 // ESC 로 전체창 해제 (모달 닫기는 별도 처리)
+// 임베드 모드는 항상 전체창이어야 하므로 해제하지 않는다.
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' && !IS_EMBED) {
         document.getElementById('preview-modal')?.classList.remove('is-fullscreen');
         document.getElementById('url-viewer-modal')?.classList.remove('is-fullscreen');
     }
@@ -1132,6 +1210,7 @@ async function renderPdfPage(num) {
         await page.render({ canvasContext: ctx, viewport }).promise;
 
         pdfPage = num;
+        if (IS_EMBED) _postEmbedToParent({ type: 'sw-cmp-page', page: num, total: pdfTotal });
         _updateSvgPosition();  // SVG를 새 캔버스 크기에 맞게 재배치 후 도형 렌더
         renderAnnotations();
         renderAllComments();   // 의견 패널을 현재 페이지 기준으로 갱신
@@ -1342,9 +1421,11 @@ document.getElementById('img-scroll-wrap').addEventListener('wheel', e => {
 // ── 키보드 단축키 ─────────────────────────────────
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+        const cmpM = document.getElementById('compare-modal');
+        if (cmpM && cmpM.style.display === 'flex') { closeCompare(); return; }
         if (annSelected) { selectAnnotation(null); return; }
         if (annTool)     { setAnnTool(annTool); return; } // toggle off
-        closePreview(); closeComments();
+        if (!IS_EMBED) { closePreview(); closeComments(); }
     }
     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
     if (!pdfDoc) return;
@@ -1461,6 +1542,262 @@ function switchToVersion(version) {
     const baseUrl = _previewDataUrlBase || `${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/preview-data`;
     const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'version=' + version;
     openPreview(currentFileId, currentProjectId, url);
+}
+
+// ══════════════════════════════════════════════════════════
+//  버전 비교 (Version Comparison)
+// ══════════════════════════════════════════════════════════
+let _cmpVersionList = [];   // previewData.versions (현재 파일의 전체 버전 목록)
+function _cmpFresh() {
+    return { readyA:false, readyB:false, ptypeA:null, ptypeB:null, pageA:1, pageB:1, vidA:null, vidB:null };
+}
+let _cmpState    = _cmpFresh();
+let _cmpSyncMode = null;   // 'page' | 'video' | null
+let _cmpVidApplying = false;
+
+// 부모(비교 모달)로 메시지 전송 — 임베드 뷰어 전용
+function _postEmbedToParent(msg) {
+    if (!IS_EMBED || window.parent === window) return;
+    try { window.parent.postMessage(msg, location.origin); } catch (_) {}
+}
+
+// "버전 비교" 버튼 표시 여부 갱신 (openPreview 에서 호출)
+function refreshCompareButton(versions) {
+    _cmpVersionList = Array.isArray(versions) ? versions : [];
+    const btn = document.getElementById('modal-compare-btn');
+    if (!btn) return;
+    // 숨김 조건: 임베드 모드 · SR(유지보수) 파일 · 버전 2개 미만
+    const show = !IS_EMBED
+              && !_commentApiBase
+              && _cmpVersionList.length >= 2;
+    btn.style.display = show ? 'inline-flex' : 'none';
+}
+
+// ── 버전 선택 팝오버 ─────────────────────────────
+function openVersionCompareMenu(ev) {
+    if (ev) ev.stopPropagation();
+    closeVersionCompareMenu();
+    const btn = document.getElementById('modal-compare-btn');
+    if (!btn || !_cmpVersionList.length) return;
+
+    const activeVersion = window._currentVersion || null;
+    const rows = [..._cmpVersionList].reverse().map(v => {
+        const sub = (v.uploader?.name || '—') + (v.created_at ? ' · ' + v.created_at : '') + (v.is_current ? ' · 현재' : '');
+        const pre = (v.version === activeVersion) ? ' checked' : '';
+        return `<label class="vcmp-row${pre ? ' is-checked' : ''}" data-version="${v.version}">
+            <input type="checkbox" value="${v.version}" onchange="onVersionCompareCheck()"${pre}>
+            <span class="vcmp-vtag">v${v.version}</span>
+            <span class="vcmp-meta">
+                <span class="vcmp-name">${escHtml(v.name || '')}</span>
+                <span class="vcmp-sub">${escHtml(sub)}</span>
+            </span>
+        </label>`;
+    }).join('');
+
+    const pop = document.createElement('div');
+    pop.id = 'version-compare-pop';
+    pop.style.cssText = 'position:fixed;z-index:10010;background:#241f3d;border:1px solid rgba(196,181,253,.25);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.55);padding:10px;width:288px;';
+    pop.innerHTML = `
+        <div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">비교할 버전 선택 <span style="font-weight:500;color:#8b85a8;">(최대 2개)</span></div>
+        <div style="display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;">${rows}</div>
+        <button id="vcmp-go" type="button" onclick="confirmVersionCompare()"
+            style="margin-top:9px;width:100%;padding:8px;border:none;border-radius:7px;font-size:12px;font-weight:700;"></button>`;
+    document.body.appendChild(pop);
+
+    const r = btn.getBoundingClientRect();
+    let left = r.right - 288;
+    if (left < 8) left = 8;
+    pop.style.top  = (r.bottom + 6) + 'px';
+    pop.style.left = left + 'px';
+
+    onVersionCompareCheck();  // 버튼 상태 초기화
+    setTimeout(() => document.addEventListener('mousedown', _vcmpOutside), 0);
+}
+
+function _vcmpOutside(e) {
+    const pop = document.getElementById('version-compare-pop');
+    if (pop && !pop.contains(e.target) && !e.target.closest('#modal-compare-btn')) {
+        closeVersionCompareMenu();
+    }
+}
+
+function closeVersionCompareMenu() {
+    const pop = document.getElementById('version-compare-pop');
+    if (pop) pop.remove();
+    document.removeEventListener('mousedown', _vcmpOutside);
+}
+
+// 체크박스 변경 — 2개 초과 선택 방지 + 확인 버튼 갱신
+function onVersionCompareCheck() {
+    const pop = document.getElementById('version-compare-pop');
+    if (!pop) return;
+    const boxes   = [...pop.querySelectorAll('input[type=checkbox]')];
+    const checked = boxes.filter(b => b.checked);
+
+    boxes.forEach(b => { b.disabled = !b.checked && checked.length >= 2; });
+    pop.querySelectorAll('.vcmp-row').forEach(row => {
+        const cb = row.querySelector('input');
+        row.classList.toggle('is-checked', cb.checked);
+        row.classList.toggle('is-disabled', cb.disabled);
+    });
+
+    const go = document.getElementById('vcmp-go');
+    if (checked.length === 0) {
+        go.disabled = true;
+        go.textContent = '버전을 선택하세요';
+        go.style.background = '#3a3357'; go.style.color = '#8b85a8'; go.style.cursor = 'not-allowed';
+    } else if (checked.length === 1) {
+        go.disabled = false;
+        go.textContent = 'v' + checked[0].value + ' 보기';
+        go.style.background = 'linear-gradient(135deg,#7c3aed,#a78bfa)'; go.style.color = '#fff'; go.style.cursor = 'pointer';
+    } else {
+        const sorted = checked.map(b => parseInt(b.value, 10)).sort((a, b) => a - b);
+        go.disabled = false;
+        go.textContent = 'v' + sorted[0] + ' ↔ v' + sorted[1] + ' 비교';
+        go.style.background = 'linear-gradient(135deg,#0ea5e9,#7dd3fc)'; go.style.color = '#08233a'; go.style.cursor = 'pointer';
+    }
+}
+
+function confirmVersionCompare() {
+    const pop = document.getElementById('version-compare-pop');
+    if (!pop) return;
+    const checked = [...pop.querySelectorAll('input[type=checkbox]:checked')]
+        .map(b => parseInt(b.value, 10)).sort((a, b) => a - b);
+    closeVersionCompareMenu();
+    if (checked.length === 1) {
+        switchToVersion(checked[0]);          // 1개 선택 → 단일 버전 보기 (기존 동작과 동일)
+    } else if (checked.length === 2) {
+        openCompare(checked[0], checked[1]);  // 2개 선택 → 나란히 비교
+    }
+}
+
+// ── 비교 모달 ────────────────────────────────────
+function _compareLabelHtml(v) {
+    if (!v) return '';
+    const sub = (v.uploader?.name || '—')
+              + (v.created_at ? ' · ' + v.created_at : '')
+              + (v.is_current ? ' · 현재 버전' : '');
+    return `<span style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;padding:2px 9px;border-radius:5px;font-size:11px;flex-shrink:0;">v${v.version}</span>
+            <span style="color:#e5e7eb;overflow:hidden;text-overflow:ellipsis;">${escHtml(v.name || '')}</span>
+            <span style="color:#8b85a8;font-weight:500;flex-shrink:0;">${escHtml(sub)}</span>`;
+}
+
+function openCompare(vA, vB) {
+    if (!currentProjectId || !currentFileId) return;
+    const embedBase = `${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/viewer-embed`;
+    const va = _cmpVersionList.find(v => v.version === vA);
+    const vb = _cmpVersionList.find(v => v.version === vB);
+
+    _cmpState    = _cmpFresh();
+    _cmpSyncMode = null;
+
+    document.getElementById('compare-label-a').innerHTML = _compareLabelHtml(va);
+    document.getElementById('compare-label-b').innerHTML = _compareLabelHtml(vb);
+    document.getElementById('compare-title').textContent = _currentFileName || '';
+
+    const sync = document.getElementById('compare-sync-pages');
+    sync.checked  = false;
+    sync.disabled = true;
+    document.getElementById('compare-sync-wrap').style.opacity = '.5';
+    document.getElementById('compare-sync-note').style.display = 'none';
+
+    document.getElementById('compare-frame-a').src = `${embedBase}?embed=1&version=${vA}`;
+    document.getElementById('compare-frame-b').src = `${embedBase}?embed=1&version=${vB}`;
+
+    document.getElementById('compare-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCompare() {
+    document.getElementById('compare-modal').style.display = 'none';
+    document.getElementById('compare-frame-a').src = 'about:blank';
+    document.getElementById('compare-frame-b').src = 'about:blank';
+    _cmpState    = _cmpFresh();
+    _cmpSyncMode = null;
+    // 비교 모달 아래의 미리보기 모달은 그대로 유지된다.
+}
+
+// 동기화 사용 가능 여부 갱신
+//  · 양쪽 PDF   → 'page'  모드 (페이지 동일함)
+//  · 양쪽 동영상 → 'video' 모드 (재생 위치 동일함)
+//  · 그 외(혼합·이미지) → 비활성
+function _compareUpdateSyncAvailability() {
+    if (!_cmpState.readyA || !_cmpState.readyB) return;
+    const sync  = document.getElementById('compare-sync-pages');
+    const wrap  = document.getElementById('compare-sync-wrap');
+    const note  = document.getElementById('compare-sync-note');
+    const label = document.getElementById('compare-sync-label');
+
+    const bothPdf   = _cmpState.ptypeA === 'pdf'   && _cmpState.ptypeB === 'pdf';
+    const bothVideo = _cmpState.ptypeA === 'video' && _cmpState.ptypeB === 'video';
+    _cmpSyncMode = bothPdf ? 'page' : (bothVideo ? 'video' : null);
+
+    if (label) label.textContent = bothVideo ? '재생 위치 동일함' : '페이지 동일함';
+
+    const enabled = !!_cmpSyncMode;
+    sync.disabled = !enabled;
+    wrap.style.opacity = enabled ? '1' : '.5';
+    if (!enabled) {
+        sync.checked = false;
+        note.textContent = '같은 형식(PDF끼리·동영상끼리)일 때만 동기화할 수 있습니다.';
+        note.style.display = 'inline';
+    } else {
+        note.style.display = 'none';
+    }
+}
+
+// 동기화 토글 — 켜는 즉시 좌측 상태로 우측을 맞춘다.
+function onCompareSyncToggle() {
+    const sync = document.getElementById('compare-sync-pages');
+    if (!sync.checked || sync.disabled) return;
+    if (_cmpSyncMode === 'page') {
+        _compareSendGoto('b', _cmpState.pageA);
+        _cmpState.pageB = _cmpState.pageA;
+    } else if (_cmpSyncMode === 'video' && _cmpState.vidA) {
+        _compareSendVid('b', _cmpState.vidA.action, _cmpState.vidA.time);
+    }
+}
+
+// 동영상 재생 명령을 반대편 임베드로 전달
+function _compareSendVid(which, action, time) {
+    const fr = document.getElementById(which === 'a' ? 'compare-frame-a' : 'compare-frame-b');
+    if (fr && fr.contentWindow) {
+        fr.contentWindow.postMessage({ type: 'sw-cmp-vid-apply', action: action, time: time }, location.origin);
+    }
+}
+
+function _compareSendGoto(which, page) {
+    const fr = document.getElementById(which === 'a' ? 'compare-frame-a' : 'compare-frame-b');
+    if (fr && fr.contentWindow) {
+        fr.contentWindow.postMessage({ type: 'sw-cmp-goto', page: page }, location.origin);
+    }
+}
+
+// ── 임베드 동영상 동기화 ──────────────────────────
+// 임베드 뷰어에서 재생/일시정지/탐색이 일어나면 부모로 통보
+function _cmpBindEmbedVideo(vid) {
+    if (!IS_EMBED || !vid || vid._cmpBound) return;
+    vid._cmpBound = true;
+    const post = (action) => {
+        if (_cmpVidApplying) return;
+        _postEmbedToParent({ type: 'sw-cmp-vid', action: action, time: vid.currentTime });
+    };
+    vid.addEventListener('play',   () => post('play'));
+    vid.addEventListener('pause',  () => post('pause'));
+    vid.addEventListener('seeked', () => post('seek'));
+}
+// 부모로부터 받은 재생 명령 적용 (역전파 방지 플래그 사용)
+function _cmpApplyVideo(action, time) {
+    const vid = document.getElementById('vid-el');
+    if (!vid) return;
+    _cmpVidApplying = true;
+    if (typeof time === 'number' && isFinite(time) && Math.abs(vid.currentTime - time) > 0.3) {
+        vid.currentTime = time;
+    }
+    if (action === 'play')  vid.play().catch(() => {});
+    if (action === 'pause') vid.pause();
+    clearTimeout(_cmpApplyVideo._t);
+    _cmpApplyVideo._t = setTimeout(() => { _cmpVidApplying = false; }, 500);
 }
 
 // 의견·답글을 원본 파일 형식 또는 PDF 보고서로 다운로드 (현재 선택된 버전 기준)
@@ -3295,6 +3632,9 @@ function vidInit(src) {
     // 타임라인 클릭/드래그/호버 → 탐색
     vidSetupTrack();
 
+    // 버전 비교 임베드 모드 — 재생/탐색 동기화
+    _cmpBindEmbedVideo(vid);
+
     // 이전 에러 토스트 제거 + src 재설정
     document.getElementById('vid-err-msg')?.remove();
     vid.src = src;
@@ -3564,5 +3904,62 @@ function applyCommentPanelState() {
         panel.style.display = 'flex';
         handle.style.display = 'none';
     }
+}
+
+// ── 버전 비교: 부모 ↔ 임베드 뷰어 메시지 통신 ──────────
+window.addEventListener('message', function (e) {
+    if (e.origin !== location.origin) return;
+    const d = e.data;
+    if (!d || typeof d.type !== 'string') return;
+
+    if (IS_EMBED) {
+        // 임베드(자식) 뷰어 — 부모로부터 동기화 지시 수신
+        if (d.type === 'sw-cmp-goto' && typeof d.page === 'number') {
+            if (typeof pdfDoc !== 'undefined' && pdfDoc) gotoPage(d.page);
+        } else if (d.type === 'sw-cmp-vid-apply') {
+            _cmpApplyVideo(d.action, d.time);
+        }
+        return;
+    }
+
+    // 부모(비교 모달) — 어느 iframe 에서 온 메시지인지 판별
+    const fA = document.getElementById('compare-frame-a');
+    const fB = document.getElementById('compare-frame-b');
+    let which = null;
+    if (fA && e.source === fA.contentWindow)      which = 'a';
+    else if (fB && e.source === fB.contentWindow) which = 'b';
+    if (!which) return;
+
+    if (d.type === 'sw-cmp-ready') {
+        if (which === 'a') { _cmpState.readyA = true; _cmpState.ptypeA = d.ptype; _cmpState.pageA = d.page || 1; }
+        else               { _cmpState.readyB = true; _cmpState.ptypeB = d.ptype; _cmpState.pageB = d.page || 1; }
+        _compareUpdateSyncAvailability();
+    } else if (d.type === 'sw-cmp-page' && typeof d.page === 'number') {
+        if (which === 'a') _cmpState.pageA = d.page;
+        else               _cmpState.pageB = d.page;
+        // 페이지 동일함 → 반대편 뷰어로 같은 페이지 전파
+        const sync = document.getElementById('compare-sync-pages');
+        if (sync && sync.checked && !sync.disabled && _cmpSyncMode === 'page') {
+            _compareSendGoto(which === 'a' ? 'b' : 'a', d.page);
+        }
+    } else if (d.type === 'sw-cmp-vid') {
+        const st = { action: d.action, time: d.time };
+        if (which === 'a') _cmpState.vidA = st;
+        else               _cmpState.vidB = st;
+        // 재생 위치 동일함 → 반대편 뷰어로 재생/탐색 전파
+        const sync = document.getElementById('compare-sync-pages');
+        if (sync && sync.checked && !sync.disabled && _cmpSyncMode === 'video') {
+            _compareSendVid(which === 'a' ? 'b' : 'a', d.action, d.time);
+        }
+    }
+});
+
+// ── 임베드 모드 초기화 — 비교 모달 iframe 안에서 로드된 경우 ──
+if (IS_EMBED) {
+    document.getElementById('preview-modal')?.classList.add('is-fullscreen');
+    ['modal-close-btn', 'modal-compare-btn', 'modal-upload-version', 'preview-fs-btn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
 }
 </script>

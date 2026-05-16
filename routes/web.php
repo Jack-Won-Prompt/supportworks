@@ -624,6 +624,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [ProjectFileController::class, 'store'])->name('store');
         Route::get('/{file}/preview', [ProjectFileController::class, 'preview'])->name('preview');
         Route::get('/{file}/preview-data', [FileCommentController::class, 'previewData'])->name('preview-data');
+        Route::get('/{file}/viewer-embed', [ProjectFileController::class, 'viewerEmbed'])->name('viewer-embed');
         Route::get('/{file}/comments', [FileCommentController::class, 'index'])->name('comments.index');
         Route::post('/{file}/comments', [FileCommentController::class, 'store'])->name('comments.store');
         Route::delete('/{file}/comments/{comment}', [FileCommentController::class, 'destroy'])->name('comments.destroy');
@@ -1248,6 +1249,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{meetingMinute}/action-items',              [MeetingActionItemController::class, 'store'])->name('action-items.store');
         Route::patch('/action-items/{meetingActionItem}/status',  [MeetingActionItemController::class, 'updateStatus'])->name('action-items.status');
         Route::delete('/action-items/{meetingActionItem}',        [MeetingActionItemController::class, 'destroy'])->name('action-items.destroy');
+
+        Route::get('/{meetingMinute}/recordings/{recording}/audio',    [MeetingMinuteController::class, 'recordingAudio'])->name('recordings.audio');
+        Route::get('/{meetingMinute}/recordings/{recording}/download', [MeetingMinuteController::class, 'recordingDownload'])->name('recordings.download');
     });
 
     // Tasks

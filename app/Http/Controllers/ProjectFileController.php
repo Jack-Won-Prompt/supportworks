@@ -169,6 +169,19 @@ class ProjectFileController extends Controller
         return redirect(route('projects.files.index', $project) . '?preview=' . $file->id);
     }
 
+    /**
+     * 버전 비교용 임베드 뷰어 — 비교 모달의 iframe 안에서 로드되는 단독 뷰어 페이지.
+     * 기존 미리보기 모달(partials.file-preview-modal)을 그대로 재사용한다.
+     */
+    public function viewerEmbed(Project $project, ProjectFile $file)
+    {
+        $this->authorizeProject($project);
+        abort_unless($file->project_id === $project->id, 404);
+        abort_unless($file->previewType(), 404, '이 파일 형식은 미리보기를 지원하지 않습니다.');
+
+        return view('files.viewer_embed', compact('project', 'file'));
+    }
+
     public function servePreview(ProjectFile $file, Request $request)
     {
         if (!$request->hasValidSignature()) {
