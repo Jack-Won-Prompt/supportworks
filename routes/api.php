@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Mobile\AuthController as MobileAuthController;
 use App\Http\Controllers\Api\Mobile\CalendarController as MobileCalendarController;
 use App\Http\Controllers\Api\Mobile\CommunityController as MobileCommunityController;
 use App\Http\Controllers\Api\Mobile\DashboardController as MobileDashboardController;
+use App\Http\Controllers\Api\Mobile\FileController as MobileFileController;
 use App\Http\Controllers\Api\Mobile\InquiryController as MobileInquiryController;
 use App\Http\Controllers\Api\Mobile\IssueController as MobileIssueController;
 use App\Http\Controllers\Api\Mobile\LeaveController as MobileLeaveController;
@@ -283,6 +284,12 @@ Route::prefix('mobile')->group(function () {
 
         // 캘린더
         Route::get('calendar', [MobileCalendarController::class, 'index']);
+
+        // 프로젝트 파일
+        Route::get   ('projects/{project}/files',                  [MobileFileController::class, 'index']);
+        Route::post  ('projects/{project}/files',                  [MobileFileController::class, 'store']);
+        Route::get   ('projects/{project}/files/{file}/download',  [MobileFileController::class, 'download']);
+        Route::delete('projects/{project}/files/{file}',           [MobileFileController::class, 'destroy']);
 
         // 이슈
         Route::get   ('projects/{project}/issues',                 [MobileIssueController::class, 'index']);

@@ -14,10 +14,14 @@ class ProjectController extends Controller
     {
         $user = $request->user();
 
-        $query = $user->isAdmin()
-            ? Project::companyOf($user)
-            : Project::whereHas('projectMembers', fn($q) => $q->where('user_id', $user->id))
-                ->orWhere('created_by', $user->id);
+        // 내 계정 기준 프로젝트: 멤버로 참여 + 내가 생성 + 소속 회사그룹
+        $query = Project::where(function ($q) use ($user) {
+            $q->whereHas('projectMembers', fn($m) => $m->where('user_id', $user->id))
+              ->orWhere('created_by', $user->id);
+            if ($user->company_group_id) {
+                $q->orWhere('company_group_id', $user->company_group_id);
+            }
+        });
 
         if ($request->status) {
             $query->where('status', $request->status);
