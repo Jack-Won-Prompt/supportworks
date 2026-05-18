@@ -241,6 +241,7 @@ Route::prefix('mobile')->group(function () {
         // 메시지
         Route::get ('messages',                              [MobileMessageController::class, 'index']);
         Route::post('messages',                              [MobileMessageController::class, 'store']);
+        Route::post('messages/group',                        [MobileMessageController::class, 'storeGroup']);
         Route::get ('messages/users',                        [MobileMessageController::class, 'users']);
         Route::get ('messages/{conversation}',               [MobileMessageController::class, 'show']);
         Route::post('messages/{conversation}/reply',         [MobileMessageController::class, 'reply']);
@@ -290,6 +291,9 @@ Route::prefix('mobile')->group(function () {
         Route::post  ('projects/{project}/files',                  [MobileFileController::class, 'store']);
         Route::get   ('projects/{project}/files/{file}/download',  [MobileFileController::class, 'download']);
         Route::delete('projects/{project}/files/{file}',           [MobileFileController::class, 'destroy']);
+        Route::get   ('projects/{project}/files/{file}/reviews',          [MobileFileController::class, 'reviews']);
+        Route::post  ('projects/{project}/files/{file}/review-request',   [MobileFileController::class, 'requestReview']);
+        Route::post  ('projects/{project}/files/{file}/review-complete',  [MobileFileController::class, 'completeReview']);
 
         // 이슈
         Route::get   ('projects/{project}/issues',                 [MobileIssueController::class, 'index']);

@@ -90,6 +90,44 @@ class MessageController extends Controller
         ], 201);
     }
 
+    /** POST /messages/group - 그룹 채팅 생성 */
+    public function storeGroup(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name'       => 'required|string|max:100',
+            'user_ids'   => 'required|array|min:1',
+            'user_ids.*' => 'integer|exists:users,id',
+            'body'       => 'nullable|string|max:2000',
+        ]);
+
+        $user = $request->user();
+
+        $conv = Conversation::create([
+            'is_group' => true,
+            'name'     => $request->name,
+        ]);
+
+        // 본인 + 선택한 멤버
+        $ids = array_values(array_unique([$user->id, ...$request->user_ids]));
+        $conv->participants()->attach($ids, ['last_read_at' => null]);
+
+        $message = null;
+        if ($request->filled('body')) {
+            $message = Message::create([
+                'conversation_id' => $conv->id,
+                'sender_id'       => $user->id,
+                'body'            => $request->body,
+            ]);
+        }
+
+        $conv->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
+
+        return response()->json([
+            'conversation_id' => $conv->id,
+            'message'         => $message ? $this->messageResource($message->load('sender')) : null,
+        ], 201);
+    }
+
     public function reply(Request $request, Conversation $conversation): JsonResponse
     {
         $user = $request->user();
