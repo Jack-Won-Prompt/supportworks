@@ -54,6 +54,18 @@
 .cal-more { font-size:11px; color:#94a3b8; padding:1px 4px; cursor:pointer; }
 .cal-more:hover { color:#7c6cf0; }
 
+/* 날짜별 점 + 호버 팝오버 */
+.cal-cell.has-events { cursor:pointer; }
+.cal-cell.has-events:hover { background:#f5f3ff; }
+.cal-cell.today.has-events:hover { background:#e8e3ff; }
+.cal-dots { display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-top:2px; }
+.cal-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.cal-more-dot { font-size:10px; color:#94a3b8; font-weight:600; line-height:8px; }
+#cal-hover-pop { display:none; position:fixed; z-index:9997; background:#fff; border:1px solid #e4e4e7; border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.16); padding:9px 11px; min-width:190px; max-width:300px; pointer-events:none; }
+.chp-row { display:flex; align-items:center; gap:7px; padding:3px 2px; }
+.chp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.chp-title { font-size:12px; color:#3f3f46; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
 /* Detail panel */
 #cal-detail { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; background:#fff; border:1px solid #e4e4e7; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,.15); min-width:300px; max-width:380px; max-height:80vh; flex-direction:column; overflow:hidden; }
 #cal-detail-header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px 12px; border-bottom:1px solid #f4f4f5; flex-shrink:0; }
@@ -104,7 +116,11 @@
                 $holidayName = $holidays[$key] ?? '';
                 $cellDay++;
             @endphp
-            <div class="cal-cell {{ !$isThis?'other-month':'' }} {{ $isToday?'today':'' }} {{ $isHoliday?'holiday-cell':'' }}">
+            <div class="cal-cell {{ !$isThis?'other-month':'' }} {{ $isToday?'today':'' }} {{ $isHoliday?'holiday-cell':'' }} {{ count($evts)?'has-events':'' }}"
+                 @if(count($evts))
+                 onmouseenter="calHoverShow(this,'{{ $key }}')" onmouseleave="calHoverHide()"
+                 onclick="showMore('{{ $key }}')"
+                 @endif>
                 <div class="cal-day-num {{ $isHoliday ? 'holiday' : ($dow===0?'sun':($dow===6?'sat':'')) }}"
                      style="{{ !$isThis?'opacity:.35;':'' }}"
                      title="{{ $holidayName }}">{{ $cur->day }}</div>
@@ -112,20 +128,22 @@
                 <div class="cal-holiday-name">{{ $holidayName }}</div>
                 @endif
 
-                @php $shown = 0; @endphp
-                @foreach($evts as $ei => $ev)
-                    @if($shown < 3)
-                        @php $col = $statusColor[$ev['status']] ?? '#94a3b8'; $shown++; @endphp
-                        <div class="cal-event {{ $ev['status']==='cancelled'?'cancelled':'' }}"
-                             style="background:{{ $ev['status']==='cancelled'?'#f3f4f6':$col }};"
-                             onclick="showDetail({{ json_encode($ev) }})">
-                            {{ $ev['title'] }}
-                        </div>
+                @if(count($evts))
+                <div class="cal-dots">
+                    @foreach(array_slice($evts, 0, 10) as $ev)
+                        @php
+                            $col = match($ev['type'] ?? 'schedule') {
+                                'meeting'    => '#7c3aed',
+                                'discussion' => '#0ea5e9',
+                                default      => $statusColor[$ev['status']] ?? '#94a3b8',
+                            };
+                        @endphp
+                        <span class="cal-dot" style="background:{{ $col }};"></span>
+                    @endforeach
+                    @if(count($evts) > 10)
+                    <span class="cal-more-dot">+{{ count($evts) - 10 }}</span>
                     @endif
-                @endforeach
-                @if(count($evts) > 3)
-                    @php $moreCount = count($evts) - 3; @endphp
-                    <div class="cal-more" onclick="showMore('{{ $key }}')">+{{ $moreCount }} {{ __('common.more') }}</div>
+                </div>
                 @endif
             </div>
         @endfor
@@ -142,6 +160,9 @@
     </div>
     <div id="cd-body"></div>
 </div>
+
+{{-- 호버 팝오버 (날짜 셀에 마우스 오버 시 그날 일정 미리보기) --}}
+<div id="cal-hover-pop"></div>
 
 {{-- 날짜별 전체 이벤트 JSON --}}
 <script>
@@ -162,6 +183,27 @@ const STATUS_LABEL = {
 const STR_UNASSIGNED = '{{ __('calendar.unassigned') }}';
 
 function renderEventCard(ev) {
+    // 회의·논의 카드
+    if (ev.type === 'meeting' || ev.type === 'discussion') {
+        const isM = ev.type === 'meeting';
+        const col = isM ? '#7c3aed' : '#0ea5e9';
+        const typeLabel = isM ? '회의' : '논의';
+        const sub = isM
+            ? (ev.start + (ev.time ? ' ' + ev.time : '') + (ev.location ? ' · ' + ev.location : ''))
+            : ev.start;
+        return `<a href="${ev.show_url}" style="display:block;text-decoration:none;margin-bottom:8px;">
+            <div style="border:1px solid #f4f4f5;border-radius:9px;padding:10px 12px;transition:background .1s;"
+                 onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span style="background:${col};color:#fff;font-size:11px;font-weight:500;padding:1px 7px;border-radius:4px;">${typeLabel}</span>
+                    <span style="font-size:11px;color:#94a3b8;">${ev.project || ''}</span>
+                </div>
+                <div style="font-size:13px;font-weight:600;color:#18181b;margin-bottom:3px;">${ev.title}</div>
+                <div style="font-size:11.5px;color:#71717a;">${sub}</div>
+            </div>
+        </a>`;
+    }
+
     const col   = STATUS_COLOR[ev.status] || '#94a3b8';
     const label = STATUS_LABEL[ev.status] || ev.status;
     const textCol = ev.status === 'cancelled' ? '#6b7280' : '#fff';
@@ -196,6 +238,46 @@ function showMore(dateKey) {
 function closeDetail() {
     document.getElementById('cal-overlay').style.display = 'none';
     document.getElementById('cal-detail').style.display  = 'none';
+}
+
+// ── 날짜 셀 호버 팝오버 ──────────────────────────────
+function calEsc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function calHoverShow(cell, key) {
+    const pop  = document.getElementById('cal-hover-pop');
+    const evts = ALL_EVENTS[key] || [];
+    if (!evts.length) return;
+
+    pop.innerHTML = `<div style="font-size:11px;font-weight:700;color:#52525b;margin-bottom:5px;">${key} · ${evts.length}건</div>`
+        + evts.map(ev => {
+            const col = ev.type === 'meeting'    ? '#7c3aed'
+                      : ev.type === 'discussion' ? '#0ea5e9'
+                      : (STATUS_COLOR[ev.status] || '#94a3b8');
+            const tag = ev.type === 'meeting' ? '[회의] ' : ev.type === 'discussion' ? '[논의] ' : '';
+            return `<div class="chp-row">
+                <span class="chp-dot" style="background:${col};"></span>
+                <span class="chp-title">${tag}${calEsc(ev.title)}</span>
+            </div>`;
+        }).join('');
+
+    pop.style.display = 'block';
+    // 해당 날짜의 동그라미(점) 바로 아래에 배치
+    const anchor = cell.querySelector('.cal-dots') || cell;
+    const r   = anchor.getBoundingClientRect();
+    const pw  = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = r.left;
+    let top  = r.bottom + 4;
+    if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+    if (left < 8) left = 8;
+    // 아래 공간이 부족하면 점 위쪽으로
+    if (top + ph > window.innerHeight - 8) top = r.top - ph - 4;
+    if (top < 8) top = 8;
+    pop.style.left = left + 'px';
+    pop.style.top  = top + 'px';
+}
+function calHoverHide() {
+    document.getElementById('cal-hover-pop').style.display = 'none';
 }
 </script>
 @endsection

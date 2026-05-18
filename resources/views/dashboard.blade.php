@@ -257,8 +257,10 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                 $todayNum    = $calNow->day;
                 $priDot      = ['high'=>'#ef4444','medium'=>'#f59e0b','low'=>'#22c55e'];
 
-                $schedByDay  = $calendarSchedules->groupBy(fn($s) => (int)$s->start_date->format('j'));
-                $actionByDay = $calendarActionItems->groupBy(fn($a) => (int)$a->due_date->format('j'));
+                $schedByDay      = $calendarSchedules->groupBy(fn($s) => (int)$s->start_date->format('j'));
+                $actionByDay     = $calendarActionItems->groupBy(fn($a) => (int)$a->due_date->format('j'));
+                $meetingByDay    = $calendarMeetings->groupBy(fn($m) => (int)$m->meeting_date->format('j'));
+                $discussionByDay = $calendarDiscussions->groupBy(fn($d) => (int)$d->discussion_date->format('j'));
 
                 $todayStart = $calNow->copy()->startOfDay();
                 $upcomingMerged = collect();
@@ -267,6 +269,12 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                 }
                 foreach ($calendarActionItems->filter(fn($a) => $a->due_date->gte($todayStart->toDateString())) as $a) {
                     $upcomingMerged->push(['type'=>'action','date'=>$a->due_date,'item'=>$a]);
+                }
+                foreach ($calendarMeetings->filter(fn($m) => $m->meeting_date->gte($todayStart)) as $m) {
+                    $upcomingMerged->push(['type'=>'meeting','date'=>$m->meeting_date,'item'=>$m]);
+                }
+                foreach ($calendarDiscussions->filter(fn($d) => $d->discussion_date->gte($todayStart)) as $d) {
+                    $upcomingMerged->push(['type'=>'discussion','date'=>$d->discussion_date,'item'=>$d]);
                 }
                 $upcomingMerged = $upcomingMerged->sortBy('date')->values();
                 @endphp
@@ -281,6 +289,8 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     <div style="display:flex;align-items:center;gap:6px;">
                         <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#dcfce7;color:#16a34a;font-weight:600;">{{ __('dashboard.cal_schedule_badge') }} {{ $calendarSchedules->count() }}</span>
                         <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#fff7ed;color:#f97316;font-weight:600;">Action {{ $calendarActionItems->count() }}</span>
+                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#ede9fe;color:#7c3aed;font-weight:600;">회의 {{ $calendarMeetings->count() }}</span>
+                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#e0f2fe;color:#0284c7;font-weight:600;">논의 {{ $calendarDiscussions->count() }}</span>
                         <svg class="gs-grip" width="14" height="14" fill="#c4b5fd" viewBox="0 0 14 14">
                             <circle cx="3" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
                             <circle cx="3" cy="7" r="1.5"/><circle cx="11" cy="7" r="1.5"/>
@@ -295,6 +305,8 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#7c3aed;"></div>{{ __('dashboard.legend_high') }}</div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#f59e0b;"></div>{{ __('dashboard.legend_medium') }}</div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#f97316;border:1.5px solid #fed7aa;"></div>Action</div>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#7c3aed;"></div>회의</div>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#0ea5e9;"></div>논의</div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#ef4444;"></div>{{ __('dashboard.legend_delayed') }}</div>
                     </div>
 
@@ -314,10 +326,17 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                 $dayNum      = $cell - $firstDow + 1;
                                 $isValid     = $dayNum >= 1 && $dayNum <= $daysInMonth;
                                 $isToday     = $isValid && $dayNum === $todayNum;
-                                $dayScheds   = $isValid ? ($schedByDay->get($dayNum) ?? collect()) : collect();
-                                $dayActions  = $isValid ? ($actionByDay->get($dayNum) ?? collect()) : collect();
-                                $hasAnything = $dayScheds->isNotEmpty() || $dayActions->isNotEmpty();
-                                $totalDots   = $dayScheds->count() + $dayActions->count();
+                                $dayScheds      = $isValid ? ($schedByDay->get($dayNum) ?? collect()) : collect();
+                                $dayActions     = $isValid ? ($actionByDay->get($dayNum) ?? collect()) : collect();
+                                $dayMeetings    = $isValid ? ($meetingByDay->get($dayNum) ?? collect()) : collect();
+                                $dayDiscussions = $isValid ? ($discussionByDay->get($dayNum) ?? collect()) : collect();
+                                $hasAnything = $dayScheds->isNotEmpty() || $dayActions->isNotEmpty()
+                                            || $dayMeetings->isNotEmpty() || $dayDiscussions->isNotEmpty();
+                                $dayDots = collect();
+                                foreach ($dayScheds as $ds)      $dayDots->push(['c'=>$priDot[$ds->priority] ?? '#7c3aed','b'=>false]);
+                                foreach ($dayMeetings as $dm)    $dayDots->push(['c'=>'#7c3aed','b'=>false]);
+                                foreach ($dayDiscussions as $dd) $dayDots->push(['c'=>'#0ea5e9','b'=>false]);
+                                foreach ($dayActions as $da)     $dayDots->push(['c'=>$da->isOverdue() ? '#ef4444' : '#f97316','b'=>true]);
                                 $cell++;
                                 @endphp
                                 <div onclick="{{ $hasAnything ? "showDayEvents($dayNum)" : '' }}"
@@ -329,14 +348,11 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                     <div style="font-size:12px;font-weight:{{ $isToday ? '800' : '500' }};color:{{ $isToday ? '#fff' : ($col===0 ? '#ef4444' : ($col===6 ? '#3b82f6' : '#374151')) }};line-height:1.2;">{{ $dayNum }}</div>
                                     @if($hasAnything)
                                     <div style="display:flex;justify-content:center;gap:2px;margin-top:3px;flex-wrap:wrap;align-items:center;">
-                                        @foreach($dayScheds->take(2) as $ds)
-                                        <div style="width:5px;height:5px;border-radius:50%;background:{{ $isToday ? 'rgba(255,255,255,.8)' : ($priDot[$ds->priority] ?? '#7c3aed') }};flex-shrink:0;"></div>
+                                        @foreach($dayDots->take(4) as $dot)
+                                        <div style="width:5px;height:5px;border-radius:50%;background:{{ $isToday ? 'rgba(255,255,255,.8)' : $dot['c'] }};{{ $dot['b'] && !$isToday ? 'border:1px solid rgba(249,115,22,.3);' : '' }}flex-shrink:0;"></div>
                                         @endforeach
-                                        @foreach($dayActions->take(2) as $da)
-                                        <div style="width:5px;height:5px;border-radius:50%;background:{{ $isToday ? 'rgba(255,255,255,.8)' : ($da->isOverdue() ? '#ef4444' : '#f97316') }};border:{{ $isToday ? 'none' : '1px solid rgba(249,115,22,.3)' }};flex-shrink:0;"></div>
-                                        @endforeach
-                                        @if($totalDots > 4)
-                                        <div style="font-size:8px;color:{{ $isToday ? 'rgba(255,255,255,.8)' : '#94a3b8' }};line-height:5px;">+{{ $totalDots - 4 }}</div>
+                                        @if($dayDots->count() > 4)
+                                        <div style="font-size:8px;color:{{ $isToday ? 'rgba(255,255,255,.8)' : '#94a3b8' }};line-height:5px;">+{{ $dayDots->count() - 4 }}</div>
                                         @endif
                                     </div>
                                     @endif
@@ -368,7 +384,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                             </div>
                             <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;{{ $s->status==='pending' ? 'background:#fef9c3;color:#ca8a04' : 'background:#dbeafe;color:#2563eb' }}">{{ $s->status_label }}</span>
                         </div>
-                        @else
+                        @elseif($ev['type'] === 'action')
                         @php $a = $ev['item']; @endphp
                         <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
                             <div style="width:6px;height:6px;border-radius:50%;background:{{ $a->isOverdue() ? '#ef4444' : '#f97316' }};flex-shrink:0;"></div>
@@ -377,6 +393,26 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                 <div style="font-size:10px;color:#94a3b8;">{{ __('dashboard.deadline') }} {{ $a->due_date->format(__('dashboard.date_format_day')) }}{{ $a->project ? ' · '.$a->project->name : '' }}</div>
                             </div>
                             <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;{{ $a->isOverdue() ? 'background:#fee2e2;color:#dc2626' : 'background:#fff7ed;color:#f97316' }}">{{ $a->isOverdue() ? __('dashboard.delayed') : 'Action' }}</span>
+                        </div>
+                        @elseif($ev['type'] === 'meeting')
+                        @php $m = $ev['item']; @endphp
+                        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
+                            <div style="width:6px;height:6px;border-radius:50%;background:#7c3aed;flex-shrink:0;"></div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $m->title }}</div>
+                                <div style="font-size:10px;color:#94a3b8;">{{ $m->meeting_date->format('n/j H:i') }}{{ $m->project ? ' · '.$m->project->name : '' }}</div>
+                            </div>
+                            <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;background:#ede9fe;color:#7c3aed;">회의</span>
+                        </div>
+                        @else
+                        @php $d = $ev['item']; @endphp
+                        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
+                            <div style="width:6px;height:6px;border-radius:50%;background:#0ea5e9;flex-shrink:0;"></div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $d->title }}</div>
+                                <div style="font-size:10px;color:#94a3b8;">{{ $d->discussion_date->format('n/j') }}{{ $d->project ? ' · '.$d->project->name : '' }}</div>
+                            </div>
+                            <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;background:#e0f2fe;color:#0284c7;">논의</span>
                         </div>
                         @endif
                         @endforeach
@@ -488,7 +524,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     <div style="text-align:center;padding:28px 0;color:#94a3b8;font-size:13px;">
                         <div style="font-size:28px;margin-bottom:6px;">📋</div>
                         {{ __('dashboard.no_minutes') }}<br>
-                        <a href="{{ route('meeting-minutes.create') }}" style="color:var(--t500);font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;display:inline-block;">{{ __('dashboard.write_minutes') }}</a>
+                        <a href="{{ route('meeting-minutes.index') }}?new=1" style="color:var(--t500);font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;display:inline-block;">{{ __('dashboard.write_minutes') }}</a>
                     </div>
                     @endforelse
                 </div>
@@ -743,6 +779,28 @@ foreach ($calendarActionItems as $a) {
         'badge_style' => $a->isOverdue() ? 'background:#fee2e2;color:#dc2626' : 'background:#fff7ed;color:#f97316',
     ]);
 }
+foreach ($calendarMeetings as $m) {
+    $calEventsJson->push([
+        'type'        => 'meeting',
+        'day'         => (int)$m->meeting_date->format('j'),
+        'title'       => $m->title,
+        'sub'         => $m->meeting_date->format('H:i') . (optional($m->project)->name ? ' · '.$m->project->name : '') . ($m->location ? ' · '.$m->location : ''),
+        'dot'         => '#7c3aed',
+        'badge'       => '회의',
+        'badge_style' => 'background:#ede9fe;color:#7c3aed',
+    ]);
+}
+foreach ($calendarDiscussions as $d) {
+    $calEventsJson->push([
+        'type'        => 'discussion',
+        'day'         => (int)$d->discussion_date->format('j'),
+        'title'       => $d->title,
+        'sub'         => optional($d->project)->name ?: '',
+        'dot'         => '#0ea5e9',
+        'badge'       => '논의',
+        'badge_style' => 'background:#e0f2fe;color:#0284c7',
+    ]);
+}
 @endphp
 
 <script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
@@ -763,8 +821,10 @@ async function showDayEvents(day) {
     const events = CAL_EVENTS.filter(e => e.day === day);
     if (!events.length) { detail.style.display = 'none'; return; }
 
-    const scheds  = events.filter(e => e.type === 'schedule');
-    const actions = events.filter(e => e.type === 'action');
+    const scheds      = events.filter(e => e.type === 'schedule');
+    const actions     = events.filter(e => e.type === 'action');
+    const meetings    = events.filter(e => e.type === 'meeting');
+    const discussions = events.filter(e => e.type === 'discussion');
     title.textContent = day + STR.day_events + ' (' + events.length + STR.count_unit + ')';
 
     const row = e => `
@@ -778,8 +838,10 @@ async function showDayEvents(day) {
         </div>`;
 
     let html = '';
-    if (scheds.length)  html += `<div style="font-size:10px;font-weight:700;color:#7c3aed;margin:4px 0 2px;">${STR.schedule_label}</div>` + scheds.map(row).join('');
-    if (actions.length) html += `<div style="font-size:10px;font-weight:700;color:#f97316;margin:8px 0 2px;">${STR.action_label}</div>` + actions.map(row).join('');
+    if (scheds.length)      html += `<div style="font-size:10px;font-weight:700;color:#7c3aed;margin:4px 0 2px;">${STR.schedule_label}</div>` + scheds.map(row).join('');
+    if (meetings.length)    html += `<div style="font-size:10px;font-weight:700;color:#7c3aed;margin:8px 0 2px;">회의</div>` + meetings.map(row).join('');
+    if (discussions.length) html += `<div style="font-size:10px;font-weight:700;color:#0ea5e9;margin:8px 0 2px;">논의</div>` + discussions.map(row).join('');
+    if (actions.length)     html += `<div style="font-size:10px;font-weight:700;color:#f97316;margin:8px 0 2px;">${STR.action_label}</div>` + actions.map(row).join('');
     list.innerHTML = html;
     detail.style.display = 'block';
 }

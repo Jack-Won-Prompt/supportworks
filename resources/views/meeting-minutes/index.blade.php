@@ -287,21 +287,39 @@
                 <div id="modal-content-section" style="background:#faf8ff;border:1px solid #f0eeff;border-radius:12px;padding:18px;">
                     <div style="font-size:13px;font-weight:700;color:#1e1b2e;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0eeff;">{{ __('maintenance.form_meeting_content') }}</div>
                     <div style="margin-bottom:14px;">
-                        <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.agenda') }} (Agenda)</label>
+                        <div class="mm-field-head">
+                            <label style="font-size:12px;font-weight:600;color:#64748b;">{{ __('maintenance.agenda') }} (Agenda)</label>
+                            <button type="button" class="mm-refine-btn" onclick="mmRefine('modal-agenda','agenda',this)">
+                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                웍스 정제
+                            </button>
+                        </div>
                         <textarea name="agenda" id="modal-agenda" rows="3"
                                   style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;resize:vertical;font-family:inherit;box-sizing:border-box;"
                                   placeholder="{{ __('maintenance.form_agenda_ph') }}"
                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'"></textarea>
                     </div>
                     <div class="modal-discussion-block" style="margin-bottom:14px;">
-                        <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.discussion') }} (Discussion)</label>
+                        <div class="mm-field-head">
+                            <label style="font-size:12px;font-weight:600;color:#64748b;">{{ __('maintenance.discussion') }} (Discussion)</label>
+                            <button type="button" class="mm-refine-btn" onclick="mmRefine('modal-discussion','discussion',this)">
+                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                웍스 정제
+                            </button>
+                        </div>
                         <textarea name="discussion" id="modal-discussion" rows="5"
                                   style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;resize:vertical;font-family:inherit;box-sizing:border-box;"
                                   placeholder="{{ __('maintenance.form_discussion_ph') }}"
                                   onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'"></textarea>
                     </div>
                     <div class="modal-discussion-block">
-                        <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">{{ __('maintenance.decisions') }} (Decisions)</label>
+                        <div class="mm-field-head">
+                            <label style="font-size:12px;font-weight:600;color:#64748b;">{{ __('maintenance.decisions') }} (Decisions)</label>
+                            <button type="button" class="mm-refine-btn" onclick="mmRefine('modal-decisions','decisions',this)">
+                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                웍스 정제
+                            </button>
+                        </div>
                         <textarea name="decisions" id="modal-decisions" rows="3"
                                   style="width:100%;padding:8px 12px;border:1.5px solid #e8e3ff;border-radius:8px;font-size:13px;color:#1e1b2e;outline:none;background:#fff;resize:vertical;font-family:inherit;box-sizing:border-box;"
                                   placeholder="{{ __('maintenance.form_decisions_ph') }}"
@@ -807,5 +825,18 @@ function editMinuteFromPopup(id) {
     closeMinutePopup(false);
     openEditModal(id);
 }
+
+// 진입 시 쿼리 파라미터로 회의록 모달 자동 오픈 (?new=1 작성 / ?edit={id} 수정)
+(function () {
+    const p = new URLSearchParams(location.search);
+    if (p.get('new') === '1') {
+        openMeetingModal();
+    } else if (p.get('edit')) {
+        const id = parseInt(p.get('edit'), 10);
+        if (id) openEditModal(id);
+    }
+})();
 </script>
+
+@include('meeting-minutes._refine')
 @endsection

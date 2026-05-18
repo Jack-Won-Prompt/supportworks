@@ -1232,14 +1232,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('meeting-minutes')->name('meeting-minutes.')->group(function () {
         Route::get('/',                      [MeetingMinuteController::class, 'index'])->name('index');
-        Route::get('/create',                [MeetingMinuteController::class, 'create'])->name('create');
         Route::post('/',                     [MeetingMinuteController::class, 'store'])->name('store');
         Route::post('/schedule',             [MeetingMinuteController::class, 'storeSchedule'])->name('schedule.store');
+        Route::post('/refine',               [MeetingMinuteController::class, 'refine'])->name('refine');
         Route::get('/{meetingMinute}',            [MeetingMinuteController::class, 'show'])->name('show');
         Route::get('/{meetingMinute}/popup',      [MeetingMinuteController::class, 'showPopup'])->name('popup');
         Route::get('/{meetingMinute}/download',   [MeetingMinuteController::class, 'downloadDocx'])->name('download');
         Route::get('/{meetingMinute}/json',       [MeetingMinuteController::class, 'getJson'])->name('json');
-        Route::get('/{meetingMinute}/edit',       [MeetingMinuteController::class, 'edit'])->name('edit');
         Route::patch('/{meetingMinute}',     [MeetingMinuteController::class, 'update'])->name('update');
         Route::delete('/{meetingMinute}',    [MeetingMinuteController::class, 'destroy'])->name('destroy');
 

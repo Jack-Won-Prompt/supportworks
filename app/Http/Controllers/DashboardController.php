@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActionItem;
 use App\Models\AiSession;
 use App\Models\CommunityPost;
+use App\Models\Discussion;
 use App\Models\MeetingMinute;
 use App\Models\Project;
 use App\Models\ProjectFile;
@@ -63,6 +64,28 @@ class DashboardController extends Controller
             ->orderBy('due_date')
             ->get();
 
+        // 이번달 회의 — 본인이 작성자이거나 참석자
+        $calendarMeetings = MeetingMinute::with('project')
+            ->whereNotNull('meeting_date')
+            ->whereBetween('meeting_date', [$monthStart, $monthEnd])
+            ->where(function ($q) use ($user) {
+                $q->where('author_id', $user->id)
+                  ->orWhereHas('attendees', fn($aq) => $aq->where('user_id', $user->id));
+            })
+            ->orderBy('meeting_date')
+            ->get();
+
+        // 이번달 논의 — 본인이 작성자이거나 참여자
+        $calendarDiscussions = Discussion::with('project')
+            ->whereNotNull('discussion_date')
+            ->whereBetween('discussion_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereHas('participants', fn($pq) => $pq->where('users.id', $user->id));
+            })
+            ->orderBy('discussion_date')
+            ->get();
+
         $myTasks = Task::where('user_id', $user->id)
             ->whereIn('status', ['todo', 'in_progress'])
             ->orderByRaw("FIELD(status,'in_progress','todo')")
@@ -108,6 +131,7 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'projects', 'totalProjects', 'activeProjects',
             'pendingQuestions', 'calendarSchedules', 'calendarActionItems',
+            'calendarMeetings', 'calendarDiscussions',
             'pendingActions', 'myTasks',
             'recentMinutes', 'minutesThisMonth',
             'recentAiSessions', 'totalAiSessions',

@@ -101,7 +101,14 @@
 #input-box { display:flex; gap:8px; align-items:flex-end; }
 #msg-textarea { flex:1; resize:none; border:1.5px solid var(--t100); border-radius:12px; padding:10px 14px; font-size:13.5px; outline:none; font-family:inherit; max-height:120px; overflow-y:auto; line-height:1.5; transition:border-color .15s; background:#fff; }
 #msg-textarea:focus { border-color:var(--t500); }
-#file-preview-bar { display:none; align-items:center; gap:8px; padding:8px 12px; background:var(--tBg); border-radius:8px; margin-bottom:8px; font-size:12.5px; color:#52525b; border:1px solid var(--t100); }
+#file-preview-bar { display:none; flex-wrap:wrap; gap:6px; padding:8px; background:var(--tBg); border-radius:8px; margin-bottom:8px; border:1px solid var(--t100); }
+.file-chip { display:flex; align-items:center; gap:6px; padding:5px 7px; background:#fff; border:1px solid var(--t100); border-radius:7px; font-size:12px; color:#52525b; max-width:230px; }
+.file-chip-thumb { width:28px; height:28px; object-fit:cover; border-radius:5px; flex-shrink:0; }
+.file-chip-icon { flex-shrink:0; }
+.file-chip-name { font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-chip-size { color:#9e97c0; font-size:11px; flex-shrink:0; }
+.file-chip-x { background:none; border:none; cursor:pointer; color:#9e97c0; font-size:16px; line-height:1; padding:0 2px; flex-shrink:0; }
+.file-chip-x:hover { color:#ef4444; }
 
 /* 이모지 피커 */
 #emoji-picker-wrap {
@@ -901,13 +908,8 @@
                         <span id="reply-preview-text"></span>
                         <button type="button" id="reply-preview-close" onclick="clearReply()" title="{{ __('messages.reply_cancel_title') }}">&times;</button>
                     </div>
-                    <div id="file-preview-bar">
-                        <img id="file-preview-thumb" src="" alt="" style="display:none;width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;">
-                        <svg id="file-preview-icon" width="16" height="16" fill="none" stroke="var(--t500)" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                        <span id="file-preview-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;"></span>
-                        <span id="file-preview-size" style="color:#9e97c0;font-size:11.5px;"></span>
-                        <button type="button" onclick="clearFile()" style="background:none;border:none;cursor:pointer;color:#9e97c0;font-size:18px;line-height:1;padding:0 2px;">&times;</button>
-                    </div>
+                    {{-- 첨부파일 미리보기 (멀티) — JS가 파일 칩을 채움 --}}
+                    <div id="file-preview-bar"></div>
                     <input type="hidden" name="reply_to_id" id="reply-to-id-input" value="">
                     <div id="input-box">
                         <label for="file-input" title="{{ __('messages.attach_file') }}"
@@ -950,7 +952,7 @@
                                 </div>
                             </div>
                         </div>
-                        <input id="file-input" name="file" type="file" style="display:none;" onchange="onFileSelect(this)">
+                        <input id="file-input" name="files[]" type="file" multiple style="display:none;" onchange="onFileSelect(this)">
                         <textarea id="msg-textarea" name="body" rows="1" placeholder="{{ __('messages.msg_input_hint') }}"
                             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitForm();}"
                             oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
@@ -1100,7 +1102,7 @@
         </div>
         <div style="margin-bottom:18px;">
             <label class="modal-label">{{ __('messages.file_attach_optional') }}</label>
-            <input type="file" name="file" style="font-size:13px;color:#5b5677;">
+            <input type="file" name="files[]" multiple style="font-size:13px;color:#5b5677;">
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;">
             <button type="button" onclick="closeModal('dm')" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:#52525b;cursor:pointer;">{{ __('common.cancel') }}</button>
@@ -1432,9 +1434,8 @@ async function submitForm() {
     @if(isset($conversation))
     const form      = document.getElementById('chat-form');
     const textarea  = document.getElementById('msg-textarea');
-    const fileInput = document.getElementById('file-input');
     const body      = textarea.value.trim();
-    const hasFile   = fileInput.files.length > 0;
+    const hasFile   = _pendingFiles.length > 0;
     if (!body && !hasFile) return;
 
     let finalBody      = body;
@@ -1485,11 +1486,7 @@ async function submitForm() {
     })
     .then(r => { if (!r.ok) throw r; return r.json(); })
     .then(() => {
-        const now = new Date();
-        const pad = n => String(n).padStart(2,'0');
-        const previewSrc = document.getElementById('file-preview-thumb')?.src || null;
-        const fileName   = document.getElementById('file-preview-name')?.textContent || null;
-        const fileSize   = document.getElementById('file-preview-size')?.textContent || null;
+        const now    = new Date();
         const isoNow = now.toISOString();
 
         // 답글 상태를 clearReply() 전에 캡처
@@ -1498,27 +1495,38 @@ async function submitForm() {
         const replyToName = document.getElementById('reply-preview-name').textContent || '';
         const replyToBody = document.getElementById('reply-preview-text').textContent || '';
 
-        renderMessage({
-            sender_id: MY_ID,
-            sender_name: STR_ME,
-            body: finalBody,
-            file_path: hasFile ? '_local_' : null,
-            file_name: hasFile ? fileName : null,
-            file_size: null,
-            is_image: hasFile && previewSrc && previewSrc.startsWith('data:image'),
-            file_url: hasFile && previewSrc && previewSrc.startsWith('data:image') ? previewSrc : null,
-            created_at: isoNow,
-            created_at_iso: isoNow,
-            date: isoNow.slice(0,10),
-            date_label: fmtDate(now),
-            formatted_size: fileSize || '',
-            reply_to_id:    replyToId,
-            reply_to_sender: replyToName,
-            reply_to_body:   replyToBody,
-            reply_to_file_name: null,
-            translated_body: translatedBody,
-            translate_lang:  translateLang,
-        });
+        const files = _pendingFiles.slice();
+        const base  = {
+            sender_id: MY_ID, sender_name: STR_ME,
+            file_size: null, file_path: null, file_name: null,
+            is_image: false, file_url: null, formatted_size: '',
+            created_at: isoNow, created_at_iso: isoNow, date: isoNow.slice(0,10),
+            date_label: fmtDate(now), reply_to_file_name: null,
+        };
+
+        if (!files.length) {
+            renderMessage({ ...base, body: finalBody,
+                reply_to_id: replyToId, reply_to_sender: replyToName, reply_to_body: replyToBody,
+                translated_body: translatedBody, translate_lang: translateLang });
+        } else {
+            // 파일 1건당 메시지 1건 — 본문·답글·번역은 첫 메시지에만
+            files.forEach((pf, i) => {
+                const first = i === 0;
+                renderMessage({ ...base,
+                    body: first ? finalBody : '',
+                    file_path: '_local_',
+                    file_name: pf.file.name,
+                    is_image: !!pf.dataUrl,
+                    file_url: pf.dataUrl || null,
+                    formatted_size: _fmtSize(pf.file.size),
+                    reply_to_id:     first ? replyToId : null,
+                    reply_to_sender: first ? replyToName : '',
+                    reply_to_body:   first ? replyToBody : '',
+                    translated_body: first ? translatedBody : null,
+                    translate_lang:  first ? translateLang : null,
+                });
+            });
+        }
         textarea.value = '';
         textarea.style.height = 'auto';
         clearFile();
@@ -1530,33 +1538,69 @@ async function submitForm() {
     @endif
 }
 
-async function onFileSelect(input) {
-    const file = input.files[0];
-    if (!file) return;
-    document.getElementById('file-preview-name').textContent = file.name;
-    const kb = file.size / 1024;
-    document.getElementById('file-preview-size').textContent = kb >= 1024 ? (kb/1024).toFixed(1)+' MB' : Math.round(kb)+' KB';
-    document.getElementById('file-preview-bar').style.display = 'flex';
-    const thumb = document.getElementById('file-preview-thumb');
-    const icon  = document.getElementById('file-preview-icon');
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = e => { thumb.src = e.target.result; thumb.style.display='block'; };
-        reader.readAsDataURL(file);
-        if (icon) icon.style.display = 'none';
-    } else {
-        thumb.style.display = 'none';
-        if (icon) icon.style.display = 'block';
-    }
-}
+// ── 멀티 파일 첨부 ────────────────────────────────────────
+let _pendingFiles = [];          // [{ file, dataUrl }]
+const MAX_FILES = 10;
 
-async function clearFile() {
-    document.getElementById('file-input').value = '';
-    document.getElementById('file-preview-bar').style.display = 'none';
-    const thumb = document.getElementById('file-preview-thumb');
-    const icon  = document.getElementById('file-preview-icon');
-    if (thumb) { thumb.src=''; thumb.style.display='none'; }
-    if (icon)  icon.style.display = 'block';
+function _escFile(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function _fmtSize(bytes) {
+    const kb = bytes / 1024;
+    return kb >= 1024 ? (kb/1024).toFixed(1)+' MB' : Math.round(kb)+' KB';
+}
+function _syncFileInput() {
+    const dt = new DataTransfer();
+    _pendingFiles.forEach(pf => dt.items.add(pf.file));
+    const input = document.getElementById('file-input');
+    if (input) input.files = dt.files;
+}
+function _addFiles(fileList) {
+    let over = false;
+    Array.from(fileList || []).forEach(file => {
+        if (_pendingFiles.length >= MAX_FILES) { over = true; return; }
+        const pf = { file, dataUrl: null };
+        _pendingFiles.push(pf);
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = e => { pf.dataUrl = e.target.result; renderFilePreviews(); };
+            reader.readAsDataURL(file);
+        }
+    });
+    if (over) alert('첨부파일은 최대 ' + MAX_FILES + '개까지 가능합니다.');
+    _syncFileInput();
+    renderFilePreviews();
+}
+function renderFilePreviews() {
+    const bar = document.getElementById('file-preview-bar');
+    if (!bar) return;
+    if (!_pendingFiles.length) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+    bar.style.display = 'flex';
+    bar.innerHTML = _pendingFiles.map((pf, i) => {
+        const visual = (pf.file.type.startsWith('image/') && pf.dataUrl)
+            ? `<img class="file-chip-thumb" src="${pf.dataUrl}" alt="">`
+            : `<svg class="file-chip-icon" width="15" height="15" fill="none" stroke="var(--t500)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>`;
+        return `<div class="file-chip">
+            ${visual}
+            <span class="file-chip-name">${_escFile(pf.file.name)}</span>
+            <span class="file-chip-size">${_fmtSize(pf.file.size)}</span>
+            <button type="button" class="file-chip-x" onclick="removePendingFile(${i})" title="제거">&times;</button>
+        </div>`;
+    }).join('');
+}
+function removePendingFile(idx) {
+    _pendingFiles.splice(idx, 1);
+    _syncFileInput();
+    renderFilePreviews();
+}
+function onFileSelect(input) {
+    _addFiles(input.files);
+}
+function clearFile() {
+    _pendingFiles = [];
+    const input = document.getElementById('file-input');
+    if (input) input.value = '';
+    renderFilePreviews();
 }
 
 // ── 우클릭 컨텍스트 메뉴 ──────────────────────────────────
@@ -1617,23 +1661,25 @@ async function clearReply() {
 }
 
 // ── 붙여넣기 ──────────────────────────────────────────────
-async function handlePaste(e) {
+function handlePaste(e) {
+    // paste 리스너가 textarea·inputArea 양쪽에 있어 버블링으로 두 번 호출됨 → 중복 방지
+    if (e._swPasteHandled) return;
+    e._swPasteHandled = true;
     const items = e.clipboardData?.items;
     if (!items) return;
+    const collected = [];
     for (const item of items) {
         if (item.kind !== 'file') continue;
         const raw = item.getAsFile();
         if (!raw) continue;
-        const ext  = raw.type ? raw.type.split('/')[1].replace('jpeg','jpg') : 'bin';
-        const name = (raw.name && raw.name !== 'image.png') ? raw.name : `paste-${Date.now()}.${ext}`;
-        const file = name === raw.name ? raw : new File([raw], name, { type: raw.type });
-        const dt   = new DataTransfer();
-        dt.items.add(file);
-        const input = document.getElementById('file-input');
-        input.files = dt.files;
-        onFileSelect(input);
+        const ext  = raw.type ? ((raw.type.split('/')[1] || 'bin').replace('jpeg','jpg')) : 'bin';
+        const name = (raw.name && raw.name !== 'image.png') ? raw.name
+                   : `paste-${Date.now()}-${collected.length}.${ext}`;
+        collected.push(name === raw.name ? raw : new File([raw], name, { type: raw.type }));
+    }
+    if (collected.length) {
         e.preventDefault();
-        break;
+        _addFiles(collected);   // 멀티 파일 붙여넣기 지원
     }
 }
 const textarea  = document.getElementById('msg-textarea');

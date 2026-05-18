@@ -77,10 +77,11 @@ class MessageController extends Controller
         $request->validate([
             'receiver_id' => 'required|exists:users,id|different:' . auth()->id(),
             'body'        => 'nullable|string|max:2000',
-            'file'        => 'nullable|file|max:20480',
+            'files'       => 'nullable|array|max:10',
+            'files.*'     => 'file|max:20480',
         ]);
 
-        if (!$request->filled('body') && !$request->hasFile('file')) {
+        if (!$request->filled('body') && empty($request->file('files', []))) {
             return back()->withErrors(['body' => '메시지 또는 파일을 입력하세요.']);
         }
 
@@ -98,7 +99,7 @@ class MessageController extends Controller
             $conv->participants()->attach([$user->id, $receiver->id], ['last_read_at' => null]);
         }
 
-        $this->createMessage($request, $conv->id, $user->id);
+        $this->sendMessages($request, $conv->id, $user->id);
         $conv->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
 
         return redirect()->route('messages.show', $conv);
@@ -113,10 +114,11 @@ class MessageController extends Controller
             'member_ids'   => 'required|array|min:1',
             'member_ids.*' => 'exists:users,id',
             'body'         => 'nullable|string|max:2000',
-            'file'         => 'nullable|file|max:20480',
+            'files'        => 'nullable|array|max:10',
+            'files.*'      => 'file|max:20480',
         ]);
 
-        if (!$request->filled('body') && !$request->hasFile('file')) {
+        if (!$request->filled('body') && empty($request->file('files', []))) {
             return back()->withErrors(['body' => '메시지 또는 파일을 입력하세요.']);
         }
 
@@ -137,7 +139,7 @@ class MessageController extends Controller
 
         $conv->participants()->attach($memberIds->toArray(), ['last_read_at' => null]);
 
-        $this->createMessage($request, $conv->id, $user->id);
+        $this->sendMessages($request, $conv->id, $user->id);
         $conv->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
 
         return redirect()->route('messages.show', $conv);
@@ -155,15 +157,16 @@ class MessageController extends Controller
             'body'            => 'nullable|string|max:8000',
             'translated_body' => 'nullable|string|max:8000',
             'translate_lang'  => 'nullable|string|in:ko,en,ja,zh',
-            'file'            => 'nullable|file|max:20480',
+            'files'           => 'nullable|array|max:10',
+            'files.*'         => 'file|max:20480',
             'reply_to_id'     => 'nullable|integer|exists:messages,id',
         ]);
 
-        if (!$request->filled('body') && !$request->hasFile('file')) {
+        if (!$request->filled('body') && empty($request->file('files', []))) {
             return $request->expectsJson() ? response()->json(['error' => 'empty'], 422) : back();
         }
 
-        $this->createMessage($request, $conversation->id, $user->id);
+        $this->sendMessages($request, $conversation->id, $user->id);
         $conversation->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
 
         if ($request->expectsJson()) {
@@ -311,19 +314,41 @@ class MessageController extends Controller
             ->get();
     }
 
-    private function createMessage(Request $request, int $convId, int $senderId): void
+    /**
+     * 본문 + 첨부파일(복수)을 메시지로 저장한다.
+     * 파일이 여러 개면 파일 수만큼 메시지를 만들고, 본문·답글·번역은 첫 메시지에만 싣는다.
+     */
+    private function sendMessages(Request $request, int $convId, int $senderId): void
     {
+        $files = array_values(array_filter((array) $request->file('files', [])));
+
+        if (empty($files)) {
+            $this->createMessage($request, $convId, $senderId, null, true);
+            return;
+        }
+
+        foreach ($files as $i => $file) {
+            $this->createMessage($request, $convId, $senderId, $file, $i === 0);
+        }
+    }
+
+    private function createMessage(
+        Request $request,
+        int $convId,
+        int $senderId,
+        ?\Illuminate\Http\UploadedFile $file = null,
+        bool $isFirst = true
+    ): void {
         $data = [
             'conversation_id' => $convId,
             'sender_id'       => $senderId,
-            'body'            => $request->input('body', ''),
-            'translated_body' => $request->filled('translated_body') ? trim($request->input('translated_body')) : null,
-            'translate_lang'  => $request->filled('translate_lang') ? $request->input('translate_lang') : null,
-            'reply_to_id'     => $request->input('reply_to_id') ?: null,
+            'body'            => $isFirst ? $request->input('body', '') : '',
+            'translated_body' => $isFirst && $request->filled('translated_body') ? trim($request->input('translated_body')) : null,
+            'translate_lang'  => $isFirst && $request->filled('translate_lang') ? $request->input('translate_lang') : null,
+            'reply_to_id'     => $isFirst ? ($request->input('reply_to_id') ?: null) : null,
         ];
 
-        if ($request->hasFile('file')) {
-            $file          = $request->file('file');
+        if ($file) {
             $data['file_path'] = $file->store('messages', 'public');
             $data['file_name'] = $file->getClientOriginalName();
             $data['file_size'] = $file->getSize();

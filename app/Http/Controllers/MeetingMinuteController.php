@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Mail\MeetingScheduledMail;
+use App\Models\AiSetting;
 use App\Models\MeetingActionItem;
 use App\Models\MeetingMinute;
 use App\Models\MeetingAttendee;
 use App\Models\Project;
 use App\Models\SystemErrorLog;
 use App\Models\User;
+use App\Services\AiOrchestrator;
 use App\Services\DocxWriter;
 use App\Services\SmsService;
 use Illuminate\Http\JsonResponse;
@@ -61,16 +63,6 @@ class MeetingMinuteController extends Controller
         $teammates = $this->projectTeammates($user);
 
         return view('meeting-minutes.index', compact('minutes', 'projects', 'stats', 'teammates'));
-    }
-
-    public function create(): View
-    {
-        $user = auth()->user();
-        $projects = Project::whereHas('members', fn($q) => $q->where('user_id', $user->id))
-            ->orderBy('name')->get(['id', 'name']);
-        $teammates = $this->projectTeammates($user);
-
-        return view('meeting-minutes.create', compact('projects', 'teammates'));
     }
 
     public function store(Request $request): RedirectResponse|JsonResponse
@@ -219,20 +211,6 @@ class MeetingMinuteController extends Controller
         $teammates = $this->projectTeammates($user);
 
         return view('meeting-minutes.show_popup', compact('meetingMinute', 'teammates'));
-    }
-
-    public function edit(MeetingMinute $meetingMinute): View
-    {
-        $this->authorizeMinute($meetingMinute, 'author');
-
-        $meetingMinute->load(['attendees.user', 'project']);
-
-        $user = auth()->user();
-        $projects = Project::whereHas('members', fn($q) => $q->where('user_id', $user->id))
-            ->orderBy('name')->get(['id', 'name']);
-        $teammates = $this->projectTeammates($user);
-
-        return view('meeting-minutes.edit', compact('meetingMinute', 'projects', 'teammates'));
     }
 
     public function update(Request $request, MeetingMinute $meetingMinute): RedirectResponse|JsonResponse
@@ -602,6 +580,68 @@ class MeetingMinuteController extends Controller
         $lines[] = 'END:VCALENDAR';
 
         return implode("\r\n", $lines) . "\r\n";
+    }
+
+    /**
+     * 회의록 입력 영역(안건·논의 내용·결정 사항) 웍스 정제.
+     * 논의사항 정제와 동일한 방식 — AiOrchestrator 로 텍스트를 다듬어 반환한다.
+     */
+    public function refine(Request $request): JsonResponse
+    {
+        $request->validate([
+            'content' => 'required|string|max:50000',
+            'field'   => 'nullable|string|in:agenda,discussion,decisions',
+        ]);
+
+        $aiSetting = AiSetting::current();
+        if (!$aiSetting->anthropicKey() && !$aiSetting->openaiKey()) {
+            return response()->json(['ok' => false, 'message' => '웍스 API 키가 설정되지 않았습니다.'], 503);
+        }
+
+        $original   = trim((string) $request->content);
+        $fieldGuide = match ($request->input('field')) {
+            'agenda'     => '이것은 회의 안건(Agenda)입니다. 다룰 주제를 간결한 항목 목록으로 정리하세요.',
+            'discussion' => '이것은 회의의 논의 내용(Discussion)입니다. 오간 논의를 주제별로 명확하게 정리하세요.',
+            'decisions'  => '이것은 회의의 결정 사항(Decisions)입니다. 확정된 결정을 명확한 항목 목록으로 정리하세요.',
+            default      => '이것은 회의록의 한 항목입니다.',
+        };
+
+        $systemPrompt = implode("\n", [
+            "당신은 IT 프로젝트 회의록 정제기입니다.",
+            "사용자가 빠르게 적은 회의 메모를, 나중에 읽는 사람이 이해하기 쉽게 다듬어 주세요.",
+            "",
+            $fieldGuide,
+            "",
+            "지침:",
+            "- 원문의 사실·결정·요청은 절대 변경 금지. 원문에 없는 내용 추가 금지.",
+            "- 모호한 부분은 '확인 필요'로 표시.",
+            "- 한국어, 정중한 실무 문체.",
+            "- 항목이 여러 개면 '- ' 불릿 목록으로 정리. 메모가 짧으면 억지로 늘리지 마세요.",
+            "- 결과 텍스트만 반환 (HTML 태그·코드펜스·메타 문구 금지).",
+        ]);
+        $userPrompt = "다음 회의 메모를 다듬어 주세요.\n\n원문:\n{$original}";
+
+        try {
+            $orchestrator = new AiOrchestrator(
+                $aiSetting->anthropicKey(),
+                $aiSetting->openaiKey(),
+            );
+            $result  = $orchestrator->chatRawFast(
+                [['role' => 'user', 'content' => $userPrompt]],
+                $systemPrompt
+            );
+            $refined = trim($result['text'] ?? '');
+            $refined = preg_replace('/^```(?:[a-z]+)?\s*|\s*```$/i', '', $refined);
+            $refined = trim($refined);
+
+            if ($refined === '') {
+                return response()->json(['ok' => false, 'message' => '정제 결과가 비어 있습니다.']);
+            }
+            return response()->json(['ok' => true, 'refined' => $refined]);
+        } catch (\Throwable $e) {
+            SystemErrorLog::record($e, 'warning');
+            return response()->json(['ok' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     private function authorizeMinute(MeetingMinute $minute, string $role = null): void
