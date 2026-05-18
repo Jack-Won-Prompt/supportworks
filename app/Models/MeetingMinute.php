@@ -57,10 +57,17 @@ class MeetingMinute extends Model
 
     public function scopeCompanyOf(Builder $query, User $user): Builder
     {
-        if ($user->company_group_id) {
-            return $query->where('company_group_id', $user->company_group_id);
-        }
-        return $query->where('author_id', $user->id)->whereNull('company_group_id');
+        return $query->where(function (Builder $q) use ($user) {
+            if ($user->company_group_id) {
+                $q->where('company_group_id', $user->company_group_id);
+            } else {
+                $q->where('author_id', $user->id)->whereNull('company_group_id');
+            }
+            // 참석자(계정 연결)로 등록된 회의록도 포함 — 회사가 달라도 열람 가능
+            $q->orWhereHas('attendees', function (Builder $aq) use ($user) {
+                $aq->where('user_id', $user->id);
+            });
+        });
     }
 
     public function getTypeLabelAttribute(): string

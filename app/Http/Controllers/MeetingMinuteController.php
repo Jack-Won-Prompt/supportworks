@@ -609,14 +609,19 @@ class MeetingMinuteController extends Controller
         $user = auth()->user();
         if ($user->isAdmin()) return;
 
-        if ($user->company_group_id && $minute->company_group_id) {
-            abort_if($user->company_group_id !== $minute->company_group_id, 403);
-        } else {
-            abort_if($minute->author_id !== $user->id, 403);
-        }
-
+        // 'author' 권한(수정·삭제)은 작성자 본인만
         if ($role === 'author') {
             abort_if($minute->author_id !== $user->id, 403);
+            return;
         }
+
+        // 열람 권한: 같은 회사 · 작성자 · 참석자(계정 연결)
+        $sameCompany = $user->company_group_id
+            && $minute->company_group_id
+            && $user->company_group_id === $minute->company_group_id;
+        $isAuthor   = $minute->author_id === $user->id;
+        $isAttendee = $minute->attendees()->where('user_id', $user->id)->exists();
+
+        abort_unless($sameCompany || $isAuthor || $isAttendee, 403);
     }
 }
