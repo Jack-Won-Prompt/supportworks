@@ -16,6 +16,7 @@ class SmsService
     {
         $phone = null;
         $name  = $receiverName;
+        $user  = $to instanceof User ? $to : null;
 
         if ($to instanceof User) {
             $phone = self::normalize($to->phone ?? null);
@@ -25,6 +26,8 @@ class SmsService
         }
 
         if (!$phone) {
+            // SMS는 불가하지만 사용자를 알면 FCM 푸시는 시도
+            self::pushFcm($user, null, $content);
             return false;
         }
 
@@ -44,13 +47,48 @@ class SmsService
             return false;
         }
 
+        $sent = false;
         try {
             $svc = new MessageService();
             $svc->send($phone, self::truncate($content), $name);
-            return true;
+            $sent = true;
         } catch (\Throwable $e) {
             Log::warning('[SMS] 발송 실패: ' . $e->getMessage(), ['to' => $phone]);
-            return false;
+        }
+
+        // SMS 전송 후 동일 내용을 FCM 푸시로도 발송
+        self::pushFcm($user, $phone, $content);
+
+        return $sent;
+    }
+
+    /**
+     * SMS 내용을 FCM 푸시로 전송.
+     * User 객체가 없으면 전화번호로 사용자를 조회한다.
+     */
+    private static function pushFcm(?User $user, ?string $phone, string $content): void
+    {
+        try {
+            if (!$user && $phone) {
+                // DB의 phone 값에서 숫자만 추출해 정규화된 번호와 비교
+                $user = User::whereRaw(
+                    "REPLACE(REPLACE(REPLACE(IFNULL(phone,''),'-',''),' ',''),'+','') = ?",
+                    [$phone],
+                )->first();
+            }
+            if (!$user) {
+                return; // 매칭되는 사용자 없음 — FCM 생략
+            }
+
+            $body = trim($content);
+            // "[SupportWorks] ..." 접두 형식이면 접두 제거해 본문만 표시
+            if (preg_match('/^\[SupportWorks\]\s*(.+)$/su', $body, $m)) {
+                $body = trim($m[1]);
+            }
+
+            FcmService::notifyUser($user->id, 'SupportWorks 알림', $body, ['type' => 'sms']);
+        } catch (\Throwable $e) {
+            Log::warning('[SMS→FCM] 푸시 실패: ' . $e->getMessage());
         }
     }
 

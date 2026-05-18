@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Mobile\AuthController as MobileAuthController;
 use App\Http\Controllers\Api\Mobile\CalendarController as MobileCalendarController;
 use App\Http\Controllers\Api\Mobile\CommunityController as MobileCommunityController;
 use App\Http\Controllers\Api\Mobile\DashboardController as MobileDashboardController;
+use App\Http\Controllers\Api\Mobile\DeviceTokenController as MobileDeviceTokenController;
 use App\Http\Controllers\Api\Mobile\FileController as MobileFileController;
 use App\Http\Controllers\Api\Mobile\InquiryController as MobileInquiryController;
 use App\Http\Controllers\Api\Mobile\IssueController as MobileIssueController;
@@ -192,6 +193,10 @@ Route::prefix('mobile')->group(function () {
 
         // 대시보드
         Route::get('dashboard', [MobileDashboardController::class, 'index']);
+
+        // FCM 디바이스 토큰
+        Route::post('device-tokens',        [MobileDeviceTokenController::class, 'store']);
+        Route::post('device-tokens/remove', [MobileDeviceTokenController::class, 'remove']);
 
         // 내 업무
         Route::get('my-work', [MobileMyWorkController::class, 'index']);

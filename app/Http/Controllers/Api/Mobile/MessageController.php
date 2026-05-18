@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\FcmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -146,6 +147,19 @@ class MessageController extends Controller
 
         $conversation->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
 
+        // 발신자 외 참여자에게 푸시 알림
+        $recipientIds = $conversation->participants
+            ->where('id', '!=', $user->id)
+            ->pluck('id')
+            ->all();
+        $title = $conversation->is_group
+            ? ($conversation->name ?? '그룹 채팅')
+            : $user->name;
+        FcmService::notifyUsers($recipientIds, $title, $request->body, [
+            'type'            => 'message',
+            'conversation_id' => (string) $conversation->id,
+        ]);
+
         return response()->json($this->messageResource($message->load('sender')), 201);
     }
 
@@ -159,6 +173,7 @@ class MessageController extends Controller
             'is_group'     => $c->is_group ?? false,
             'participants' => $c->participants->map(fn($p) => ['id' => $p->id, 'name' => $p->name]),
             'last_message' => $c->lastMessage ? $this->messageResource($c->lastMessage) : null,
+            'unread_count' => $c->unreadCount($currentUser->id),
         ];
     }
 

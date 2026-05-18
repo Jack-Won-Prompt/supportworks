@@ -101,6 +101,14 @@ class FileController extends Controller
         ], $request->user_ids);
         ProjectFileReviewRequest::insert($rows);
 
+        // 리뷰어들에게 푸시 알림
+        \App\Services\FcmService::notifyUsers(
+            $request->user_ids,
+            '파일 리뷰 요청',
+            "{$request->user()->name}님이 '{$file->original_name}' 파일 리뷰를 요청했습니다.",
+            ['type' => 'file_review', 'project_id' => (string) $project->id, 'file_id' => (string) $file->id],
+        );
+
         return response()->json(['message' => '리뷰 요청이 등록되었습니다.', 'count' => count($rows)]);
     }
 
