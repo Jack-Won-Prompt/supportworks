@@ -31,6 +31,17 @@ class AiError
             }
         }
 
+        // 일시적 서버 오류 (5xx · 과부하 · 타임아웃)
+        $transient = ['server had an error', 'sorry about that', 'try again',
+                      'overloaded', 'service unavailable', 'temporarily unavailable',
+                      'gateway timeout', 'bad gateway', '502', '503', '504',
+                      'internal server error'];
+        foreach ($transient as $kw) {
+            if (str_contains($low, $kw)) {
+                return '일시적인 서버 오류입니다. 잠시 후 다시 시도해 주세요. 계속되면 관리자에게 문의하세요.';
+            }
+        }
+
         return $raw;
     }
 }

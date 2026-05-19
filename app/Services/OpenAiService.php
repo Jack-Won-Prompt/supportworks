@@ -106,6 +106,9 @@ class OpenAiService
      */
     public function generateDraftFields(string $systemPrompt, string $userPrompt, array $fieldSchema): array
     {
+        // tools(function-calling) 호출 시 일부 모델(gpt-5.5)이 500 server_error를 내므로 별도 모델 사용
+        $toolsModel = config('services.openai.tools_model', 'gpt-4o');
+
         $res = Http::withOptions(['verify' => false])
             ->withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
@@ -113,7 +116,7 @@ class OpenAiService
             ])
             ->timeout(120)
             ->post(self::API, [
-                'model'    => $this->model,
+                'model'    => $toolsModel,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemPrompt],
                     ['role' => 'user',   'content' => $userPrompt],

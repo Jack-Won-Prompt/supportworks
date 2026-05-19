@@ -58,10 +58,12 @@ return [
     ],
 
     'openai' => [
-        'key'      => env('OPENAI_API_KEY'),
-        'model'    => env('OPENAI_MODEL', 'gpt-4o'),
-        'timeout'  => env('OPENAI_TIMEOUT', 30),
-        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        'key'         => env('OPENAI_API_KEY'),
+        'model'       => env('OPENAI_MODEL', 'gpt-4o'),
+        // function-calling(tools) 호출 시 사용할 모델 — gpt-5.5는 tools 호출 시 500 server_error 반환하는 버그가 있어 별도 분리
+        'tools_model' => env('OPENAI_TOOLS_MODEL', 'gpt-4o'),
+        'timeout'     => env('OPENAI_TIMEOUT', 30),
+        'base_url'    => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
     ],
 
     'llm_router' => [
