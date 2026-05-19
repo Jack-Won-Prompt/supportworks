@@ -24,6 +24,7 @@ class ProjectFileController extends Controller
         $categories = $project->fileCategories()->withCount('files')->get();
         $categoryId = $request->query('category');
         $scheduleId = $request->query('schedule');
+        $q          = trim((string) $request->query('q', ''));
 
         $query = $project->files()
             ->with('uploader', 'category', 'schedule', 'reviewRequests.reviewer')
@@ -37,8 +38,14 @@ class ProjectFileController extends Controller
         if ($scheduleId) {
             $query->where('schedule_id', $scheduleId);
         }
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('original_name', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%");
+            });
+        }
 
-        $files   = $query->paginate(20)->withQueryString();
+        $files   = $query->paginate(10)->withQueryString();
         $members = $project->members()->where('users.id', '!=', auth()->id())->get(['users.id', 'users.name', 'users.email']);
 
         $user = auth()->user();
@@ -58,7 +65,7 @@ class ProjectFileController extends Controller
 
         $activeSchedule = $scheduleId ? $project->schedules()->find($scheduleId) : null;
 
-        return view('files.index', compact('project', 'files', 'members', 'categories', 'categoryId', 'scheduleId', 'activeSchedule', 'copyableProjects', 'totalCount', 'uncategorizedCount', 'uploadableProjects', 'schedules', 'subTasks'));
+        return view('files.index', compact('project', 'files', 'members', 'categories', 'categoryId', 'scheduleId', 'q', 'activeSchedule', 'copyableProjects', 'totalCount', 'uncategorizedCount', 'uploadableProjects', 'schedules', 'subTasks'));
     }
 
     public function store(Request $request, Project $project)

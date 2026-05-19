@@ -264,7 +264,24 @@
                     </span>
                     @endif
                 </div>
-                <span id="total-file-count" style="font-size:12px;color:#9ca3af;">{{ $files->total() }}</span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    {{-- 파일 검색 --}}
+                    <form method="GET" action="{{ route('projects.files.index', $project) }}" style="display:flex;align-items:center;">
+                        @if($categoryId)<input type="hidden" name="category" value="{{ $categoryId }}">@endif
+                        @if($scheduleId)<input type="hidden" name="schedule" value="{{ $scheduleId }}">@endif
+                        <div style="position:relative;">
+                            <svg width="13" height="13" fill="none" stroke="#9ca3af" viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="{{ __('common.search') }}"
+                                   style="padding:5px 24px 5px 27px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;width:180px;outline:none;box-sizing:border-box;"
+                                   onfocus="this.style.borderColor='#a5b4fc'" onblur="this.style.borderColor='#e5e7eb'">
+                            @if(!empty($q))
+                            <a href="{{ route('projects.files.index', array_merge(['project' => $project], array_filter(['category' => $categoryId, 'schedule' => $scheduleId]))) }}"
+                               style="position:absolute;right:7px;top:50%;transform:translateY(-50%);color:#9ca3af;text-decoration:none;font-size:14px;line-height:1;" title="{{ __('common.reset') }}">&times;</a>
+                            @endif
+                        </div>
+                    </form>
+                    <span id="total-file-count" style="font-size:12px;color:#9ca3af;">{{ $files->total() }}</span>
+                </div>
             </div>
             <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead>
