@@ -9,6 +9,14 @@
 <div style="padding-top:16px;display:flex;gap:16px;align-items:flex-start;">
 
     {{-- ── 카테고리 사이드바 ── --}}
+    <style>
+        #cat-list .cat-item-view::before {
+            content:'\22EE\22EE'; letter-spacing:-3px; color:#cbd5e1; font-size:12px;
+            line-height:1; flex-shrink:0; padding:0 3px 0 1px; cursor:grab; user-select:none;
+        }
+        #cat-list .cat-item[draggable="true"] { cursor:grab; }
+        #cat-list .cat-item.cat-dragging { opacity:.4; }
+    </style>
     <div id="cat-sidebar" style="width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
 
         {{-- 전체 --}}
@@ -1003,6 +1011,7 @@
 <script>
 let   UPLOAD_URL       = '{{ route('projects.files.store', $project) }}';
 const CAT_STORE_URL    = '{{ route('projects.file-categories.store', $project) }}';
+const CAT_REORDER_URL  = '{{ route('projects.file-categories.reorder', $project) }}';
 const CAT_UPDATE_BASE  = '{{ url("projects/{$project->id}/file-categories") }}/';
 const CAT_DESTROY_BASE = '{{ url("projects/{$project->id}/file-categories") }}/';
 const PROJECTS_BASE_URL = '{{ url("projects") }}/';
@@ -1171,6 +1180,7 @@ async function addCategory() {
             </div>
         </div>`;
     document.getElementById('cat-list').appendChild(li);
+    setCatDraggable();
 
     // 파일 카테고리 팝업 배열에 추가
     ALL_CATS.push({ id: cat.id, name: cat.name, color: cat.color });
@@ -1186,6 +1196,71 @@ async function addCategory() {
     document.getElementById('cat-color-input').value = '#6366f1';
     document.getElementById('cat-form').style.display = 'none';
 }
+
+/* ── 카테고리 드래그 순서 변경 ── */
+(function () {
+    const list = document.getElementById('cat-list');
+    if (!list) return;
+    let _catDragEl = null;
+
+    window.setCatDraggable = function () {
+        list.querySelectorAll('.cat-item').forEach(it => {
+            it.setAttribute('draggable', 'true');
+            const a = it.querySelector('a.cat-filter-btn');
+            if (a) a.setAttribute('draggable', 'false');
+        });
+    };
+
+    function catDragAfter(y) {
+        const els = [...list.querySelectorAll('.cat-item')].filter(el => el !== _catDragEl);
+        let closest = null, closestOffset = -Infinity;
+        els.forEach(el => {
+            const box = el.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closestOffset) { closestOffset = offset; closest = el; }
+        });
+        return closest;
+    }
+
+    async function catSaveOrder() {
+        const ids = [...list.querySelectorAll('.cat-item')].map(it => it.dataset.id);
+        try {
+            await fetch(CAT_REORDER_URL, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ ids }),
+            });
+        } catch (e) { /* 순서 저장 실패는 조용히 무시 */ }
+    }
+
+    list.addEventListener('dragstart', e => {
+        const item = e.target.closest('.cat-item');
+        if (!item) return;
+        _catDragEl = item;
+        item.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+    });
+    list.addEventListener('dragend', () => {
+        if (_catDragEl) _catDragEl.style.opacity = '';
+        _catDragEl = null;
+    });
+    list.addEventListener('dragover', e => {
+        if (!_catDragEl) return;
+        e.preventDefault();
+        const after = catDragAfter(e.clientY);
+        if (after == null) {
+            if (list.lastElementChild !== _catDragEl) list.appendChild(_catDragEl);
+        } else if (after !== _catDragEl) {
+            list.insertBefore(_catDragEl, after);
+        }
+    });
+    list.addEventListener('drop', e => {
+        e.preventDefault();
+        catSaveOrder();
+    });
+
+    setCatDraggable();
+})();
 
 async function startEditCategory(id, name, color) {
     const item = document.querySelector(`.cat-item[data-id="${id}"]`);

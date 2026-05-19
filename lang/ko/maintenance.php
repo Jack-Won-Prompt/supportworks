@@ -13,7 +13,17 @@ return [
     'sr_empty_gantt'        => '등록된 SR이 없습니다.',
     'sr_register_first'     => '첫 요청 등록하기 →',
 
+    // ── SR 답변하기 (SR 담당자)
+    'sr_reply_btn'          => 'SR 답변하기',
+    'sr_reply_popover_title'=> 'SR 답변하기',
+    'sr_reply_request'      => 'SR 요청 내용',
+    'sr_reply_placeholder'  => '답변 내용을 입력하세요...',
+    'sr_reply_process'      => '답변 등록',
+    'weeks_refine'          => '웍스 정제',
+    'sr_reply_need_input'   => '답변 내용을 입력하거나 상태를 변경하세요.',
+
     // ── 상태
+    'field_status'          => '처리 상태',
     'status_pending'        => '접수',
     'status_in_progress'    => '처리중',
     'status_completed'      => '완료',
@@ -34,6 +44,7 @@ return [
     'col_scheduled_date'    => '처리 예정일',
     'col_replies'           => '답글',
     'col_created_at'        => '등록일',
+    'col_manage'            => '관리',
 
     // ── 뷰 전환
     'view_list'             => '리스트',
@@ -130,6 +141,7 @@ return [
 
     // ── 관리자
     'admin_label'           => '관리자',
+    'sr_agent_badge'        => '담당자',
     'admin_schedule'        => '처리 예정일 설정',
 
     // ── 확인 메시지

@@ -592,8 +592,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('answers/{answer}', [AnswerController::class, 'destroy'])->name('answers.destroy');
     Route::patch('answers/{answer}/accept', [AnswerController::class, 'accept'])->name('answers.accept');
 
-    // 유지보수
-    Route::resource('projects.maintenances', ProjectMaintenanceController::class)->shallow()->except(['edit']);
+    // SR 접수 (SR 대상 단위 — 프로젝트와 분리)
+    Route::resource('sr-targets', \App\Http\Controllers\SrTargetController::class)
+        ->only(['store', 'destroy'])
+        ->parameters(['sr-targets' => 'srTarget']);
+    Route::resource('sr-targets.maintenances', ProjectMaintenanceController::class)
+        ->shallow()->except(['edit'])
+        ->parameters(['sr-targets' => 'srTarget']);
     Route::get ('maintenances/{maintenance}/detail', [ProjectMaintenanceController::class, 'detail'])->name('maintenances.detail');
     Route::patch('maintenances/{maintenance}/status', [ProjectMaintenanceController::class, 'updateStatus'])->name('maintenances.status');
     Route::patch('maintenances/{maintenance}/dates',  [ProjectMaintenanceController::class, 'updateDates'])->name('maintenances.dates');
@@ -608,13 +613,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post  ('maintenances/{maintenance}/files/{maintenanceFile}/share',                      [\App\Http\Controllers\MaintenanceFileController::class, 'toggleShare'])->name('maintenances.files.share');
     Route::patch ('maintenances/{maintenance}/files/{maintenanceFile}/category',                   [\App\Http\Controllers\MaintenanceFileController::class, 'updateCategory'])->name('maintenances.files.update-category');
 
-    // SR 첨부파일 (SR 항목 미연결 — 프로젝트 레벨)
-    Route::post  ('projects/{project}/maintenance-files',                                              [\App\Http\Controllers\MaintenanceFileController::class, 'storeProject'])->name('projects.maintenance-files.store');
-    Route::get   ('projects/{project}/maintenance-files/{maintenanceFile}/download',                  [\App\Http\Controllers\MaintenanceFileController::class, 'downloadProject'])->name('projects.maintenance-files.download');
-    Route::get   ('projects/{project}/maintenance-files/{maintenanceFile}/preview-data',              [\App\Http\Controllers\MaintenanceFileController::class, 'previewDataProject'])->name('projects.maintenance-files.preview-data');
-    Route::delete('projects/{project}/maintenance-files/{maintenanceFile}',                           [\App\Http\Controllers\MaintenanceFileController::class, 'destroyProject'])->name('projects.maintenance-files.destroy');
-    Route::post  ('projects/{project}/maintenance-files/{maintenanceFile}/share',                     [\App\Http\Controllers\MaintenanceFileController::class, 'toggleShareProject'])->name('projects.maintenance-files.share');
-    Route::patch ('projects/{project}/maintenance-files/{maintenanceFile}/category',                  [\App\Http\Controllers\MaintenanceFileController::class, 'updateCategoryProject'])->name('projects.maintenance-files.update-category');
+    // SR 첨부파일 (SR 항목 미연결 — SR 대상 레벨)
+    Route::post  ('sr-targets/{srTarget}/maintenance-files',                                           [\App\Http\Controllers\MaintenanceFileController::class, 'storeProject'])->name('sr-targets.maintenance-files.store');
+    Route::get   ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/download',               [\App\Http\Controllers\MaintenanceFileController::class, 'downloadProject'])->name('sr-targets.maintenance-files.download');
+    Route::get   ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/preview-data',           [\App\Http\Controllers\MaintenanceFileController::class, 'previewDataProject'])->name('sr-targets.maintenance-files.preview-data');
+    Route::delete('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}',                        [\App\Http\Controllers\MaintenanceFileController::class, 'destroyProject'])->name('sr-targets.maintenance-files.destroy');
+    Route::post  ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/share',                  [\App\Http\Controllers\MaintenanceFileController::class, 'toggleShareProject'])->name('sr-targets.maintenance-files.share');
+    Route::patch ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/category',               [\App\Http\Controllers\MaintenanceFileController::class, 'updateCategoryProject'])->name('sr-targets.maintenance-files.update-category');
 
     // SR 파일 의견/주석 (인증)
     Route::get   ('maintenance-files/{maintenanceFile}/comments',                          [\App\Http\Controllers\MaintenanceFileController::class, 'getComments'])->name('maintenance-files.comments.index');
@@ -625,13 +630,14 @@ Route::middleware(['auth'])->group(function () {
     Route::patch ('maintenance-files/{maintenanceFile}/annotations/{annotation}',           [\App\Http\Controllers\MaintenanceFileController::class, 'updateAnnotation'])->name('maintenance-files.annotations.update');
     Route::delete('maintenance-files/{maintenanceFile}/annotations/{annotation}',           [\App\Http\Controllers\MaintenanceFileController::class, 'destroyAnnotation'])->name('maintenance-files.annotations.destroy');
 
-    // SR 파일 카테고리 (프로젝트 파일 카테고리와 별도)
-    Route::post  ('projects/{project}/maintenance-file-categories',           [\App\Http\Controllers\MaintenanceFileCategoryController::class, 'store'])->name('projects.maintenance-file-categories.store');
-    Route::delete('projects/{project}/maintenance-file-categories/{category}',[\App\Http\Controllers\MaintenanceFileCategoryController::class, 'destroy'])->name('projects.maintenance-file-categories.destroy');
+    // SR 파일 카테고리 (SR 대상 단위)
+    Route::post  ('sr-targets/{srTarget}/maintenance-file-categories',           [\App\Http\Controllers\MaintenanceFileCategoryController::class, 'store'])->name('sr-targets.maintenance-file-categories.store');
+    Route::delete('sr-targets/{srTarget}/maintenance-file-categories/{category}',[\App\Http\Controllers\MaintenanceFileCategoryController::class, 'destroy'])->name('sr-targets.maintenance-file-categories.destroy');
 
     // 파일 카테고리
     Route::get   ('projects/{project}/file-categories',                   [\App\Http\Controllers\ProjectFileCategoryController::class, 'index'])->name('projects.file-categories.index');
     Route::post  ('projects/{project}/file-categories',                   [\App\Http\Controllers\ProjectFileCategoryController::class, 'store'])->name('projects.file-categories.store');
+    Route::post  ('projects/{project}/file-categories/reorder',           [\App\Http\Controllers\ProjectFileCategoryController::class, 'reorder'])->name('projects.file-categories.reorder');
     Route::patch ('projects/{project}/file-categories/{category}',        [\App\Http\Controllers\ProjectFileCategoryController::class, 'update'])->name('projects.file-categories.update');
     Route::delete('projects/{project}/file-categories/{category}',        [\App\Http\Controllers\ProjectFileCategoryController::class, 'destroy'])->name('projects.file-categories.destroy');
 

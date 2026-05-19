@@ -198,6 +198,8 @@
                 ? \App\Models\Project::orderBy('name')->get()
                 : auth()->user()->projects()->orderBy('name')->get();
 
+            $mySrTargets = \App\Models\SrTarget::visibleTo(auth()->user())->orderBy('title')->get();
+
             // 안읽은 메시지 수 & 구독할 대화 ID 목록
             $myConvs = \App\Models\Conversation::whereHas('participants', fn($q) => $q->where('user_id', auth()->id()))
                 ->with(['participants' => fn($q) => $q->where('user_id', auth()->id()), 'messages'])
@@ -415,7 +417,7 @@
                     <div class="sidebar-divider"></div>
 
                     {{-- SR 접수 섹션 --}}
-                    @if(auth()->user()->hasFeature('sr'))
+                    @if(auth()->user()->hasFeature('sr') || auth()->user()->isSrAgent())
                     <div id="sr-menu-items" style="margin-bottom:4px;">
                         <div class="gsb-hide" style="display:flex;align-items:center;padding:6px 10px 4px;">
                             <button onclick="toggleSection('sr-list')" style="display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:0;flex:1;text-align:left;">
@@ -425,24 +427,63 @@
                         </div>
 
                         <div id="sr-list" style="overflow:hidden;max-height:600px;transition:max-height .22s ease;">
-                        @forelse($myProjects as $index => $proj)
+                        @php $_activeSrId = optional(request()->route('srTarget'))->id; @endphp
+                        @forelse($mySrTargets as $index => $st)
                         @php $srColor = $projectColors[$index % count($projectColors)]; @endphp
-                        <a href="{{ route('projects.maintenances.index', $proj) }}"
-                           class="project-item {{ ($currentProjectId == $proj->id && request()->routeIs('projects.maintenances.*', 'maintenances.*')) ? 'active' : '' }}"
-                           data-proj-id="{{ $proj->id }}"
-                           title="{{ __('app.sr_for_project', ['name' => $proj->name]) }}">
+                        <a href="{{ route('sr-targets.maintenances.index', $st) }}"
+                           class="project-item {{ ($_activeSrId == $st->id && request()->routeIs('sr-targets.maintenances.*')) ? 'active' : '' }}"
+                           data-sr-id="{{ $st->id }}"
+                           title="{{ $st->title }}">
                             <svg width="13" height="13" fill="none" stroke="{{ $srColor }}" viewBox="0 0 24 24" style="flex-shrink:0;">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h4"/>
                             </svg>
-                            <span class="gsb-hide" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $proj->name }}</span>
+                            <span class="gsb-hide" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $st->title }}</span>
                         </a>
                         @empty
-                        <div class="gsb-hide" style="padding:8px 10px;font-size:12px;color:#a1a1aa;">{{ __('app.nav_no_projects') }}</div>
+                        <div class="gsb-hide" style="padding:8px 10px;font-size:12px;color:#a1a1aa;">{{ __('app.sr_no_targets') }}</div>
                         @endforelse
+                        <button type="button" onclick="srtOpenModal()" class="project-item gsb-hide"
+                                style="background:none;border:none;cursor:pointer;width:100%;color:#7c3aed;font-weight:600;font-family:inherit;">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
+                            <span style="flex:1;text-align:left;">{{ __('app.sr_add_target') }}</span>
+                        </button>
                         </div>
                     </div>
                     @endif {{-- sr feature --}}
+
+                    @if(auth()->user()->hasFeature('sr') || auth()->user()->isSrAgent())
+                    {{-- SR 대상 추가 모달 --}}
+                    <div id="srt-overlay" onclick="srtCloseModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:11000;"></div>
+                    <div id="srt-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:11001;background:#fff;border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.2);width:420px;max-width:calc(100vw - 32px);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0;">
+                            <h3 style="margin:0;font-size:15px;font-weight:700;color:#18181b;">{{ __('app.sr_add_target') }}</h3>
+                            <button onclick="srtCloseModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;padding:0;">&times;</button>
+                        </div>
+                        <form method="POST" action="{{ route('sr-targets.store') }}" style="padding:18px 20px;">
+                            @csrf
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('app.sr_target_title') }} <span style="color:#ef4444;">*</span></label>
+                            <input type="text" name="title" required maxlength="255" placeholder="{{ __('app.sr_target_title_ph') }}"
+                                   style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:14px;font-family:inherit;">
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('app.sr_target_project') }}</label>
+                            <select name="project_id"
+                                    style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:18px;background:#fff;font-family:inherit;">
+                                <option value="">{{ __('app.sr_target_no_project') }}</option>
+                                @foreach($myProjects as $proj)
+                                <option value="{{ $proj->id }}">{{ $proj->name }}</option>
+                                @endforeach
+                            </select>
+                            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                                <button type="button" onclick="srtCloseModal()" style="padding:9px 16px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;font-family:inherit;">{{ __('common.cancel') }}</button>
+                                <button type="submit" style="padding:9px 18px;border:none;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">{{ __('app.sr_add_target') }}</button>
+                            </div>
+                        </form>
+                    </div>
+                    <script>
+                    function srtOpenModal(){document.getElementById('srt-modal').style.display='block';document.getElementById('srt-overlay').style.display='block';}
+                    function srtCloseModal(){document.getElementById('srt-modal').style.display='none';document.getElementById('srt-overlay').style.display='none';}
+                    </script>
+                    @endif
 
                     <div class="sidebar-divider"></div>
 
@@ -715,11 +756,12 @@
                                     </div>
                                     <div>
                                         <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('app.mail_to') }}</label>
-                                        <div style="display:flex;gap:6px;margin-bottom:6px;">
-                                            <select id="mail-compose-pick" style="flex:1;padding:7px 9px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;">
-                                                <option value="">{{ __('app.mail_pick_member') }}</option>
-                                            </select>
-                                            <button type="button" onclick="mailComposeAddPicked()" style="padding:6px 14px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 1px 3px rgba(124,58,237,.25);transition:filter .12s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">{{ __('common.add') }}</button>
+                                        <div style="position:relative;margin-bottom:6px;">
+                                            <input id="mail-compose-search" type="text" autocomplete="off"
+                                                placeholder="{{ __('app.mail_search_member') }}"
+                                                oninput="mailComposeFilter()" onfocus="mailComposeFilter()"
+                                                style="width:100%;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;box-sizing:border-box;">
+                                            <div id="mail-compose-dropdown" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.13);max-height:210px;overflow-y:auto;z-index:10010;"></div>
                                         </div>
                                         <input id="mail-compose-direct" type="text" placeholder="{{ __('app.mail_direct_placeholder') }}"
                                             onkeydown="mailComposeOnDirectKey(event)"
@@ -749,6 +791,7 @@
                         <script>
                             (function() {
                                 let _mcRecipients = [];   // 추가된 수신자: {label, value}
+                                let _mcAllUsers   = [];   // 수신 가능 사용자 전체
 
                                 window.mailComposeToggle = function() {
                                     const pop = document.getElementById('mail-compose-pop');
@@ -764,50 +807,79 @@
                                 document.addEventListener('click', function(e) {
                                     const wrap = document.getElementById('mail-compose-wrap');
                                     if (!wrap) return;
-                                    if (!wrap.contains(e.target)) mailComposeClose();
+                                    if (!wrap.contains(e.target)) { mailComposeClose(); return; }
+                                    const search = document.getElementById('mail-compose-search');
+                                    const dd = document.getElementById('mail-compose-dropdown');
+                                    if (dd && search && !search.contains(e.target) && !dd.contains(e.target)) {
+                                        dd.style.display = 'none';
+                                    }
                                 });
 
                                 async function mailComposeLoadRecipients() {
-                                    const sel = document.getElementById('mail-compose-pick');
-                                    if (!sel) return;
-                                    console.log('[mail-compose v3] fetching recipients…');
-                                    // 기존 옵션 모두 제거 후 첫 placeholder만 남기기
-                                    sel.innerHTML = '<option value="">' + @json(__('app.mail_pick_member')) + '</option>';
                                     try {
                                         const r = await fetch('{{ route('email-compose.recipients') }}?_=' + Date.now(), {
                                             headers: { 'Accept': 'application/json' },
                                             cache: 'no-store',
                                         });
                                         const d = await r.json();
-                                        const users = d.users || [];
-                                        console.log('[mail-compose v3] server returned', users.length, 'users:', users);
-                                        if (users.length === 0) {
-                                            const opt = document.createElement('option');
-                                            opt.value = '';
-                                            opt.disabled = true;
-                                            opt.textContent = @json(__('app.mail_no_members'));
-                                            sel.appendChild(opt);
-                                            return;
-                                        }
-                                        users.forEach(u => {
-                                            const opt = document.createElement('option');
-                                            opt.value = `${u.name || ''}|${u.email || ''}|${u.phone || ''}`;
-                                            const co = (u.company && u.company !== '-') ? ` · ${u.company}` : '';
-                                            opt.textContent = `${u.name || @json(__('app.no_name'))}${co} <${u.email || ''}>`;
-                                            sel.appendChild(opt);
-                                        });
-                                    } catch (e) { console.warn('[mail-compose v3] fetch failed', e); }
+                                        _mcAllUsers = d.users || [];
+                                    } catch (e) {
+                                        _mcAllUsers = [];
+                                    }
+                                    mailComposeSyncDropdown();
                                 }
 
-                                window.mailComposeAddPicked = function() {
-                                    const sel = document.getElementById('mail-compose-pick');
-                                    if (!sel || !sel.value) return;
-                                    const val = sel.value; // name|email|phone
-                                    const parts = val.split('|');
-                                    const label = `${parts[0] || ''} <${parts[1] || ''}>`;
-                                    mailComposeAddChip(label.trim(), val);
-                                    sel.value = '';
+                                function mcEsc(s) {
+                                    return String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+                                }
+
+                                window.mailComposeFilter = function() {
+                                    const inp = document.getElementById('mail-compose-search');
+                                    const dd  = document.getElementById('mail-compose-dropdown');
+                                    if (!inp || !dd) return;
+                                    const q = (inp.value || '').trim().toLowerCase();
+                                    const matched = _mcAllUsers.filter(u => {
+                                        if (!q) return true;
+                                        return (`${u.name||''} ${u.email||''} ${u.company||''}`).toLowerCase().includes(q);
+                                    });
+                                    if (!_mcAllUsers.length) {
+                                        dd.innerHTML = `<div style="padding:9px 11px;font-size:12px;color:#9ca3af;">${mcEsc(@json(__('app.mail_no_members')))}</div>`;
+                                    } else if (!matched.length) {
+                                        dd.innerHTML = `<div style="padding:9px 11px;font-size:12px;color:#9ca3af;">${mcEsc(@json(__('app.mail_no_search_result')))}</div>`;
+                                    } else {
+                                        const noName = @json(__('app.no_name'));
+                                        dd.innerHTML = matched.map(u => {
+                                            const val = `${u.name||''}|${u.email||''}|${u.phone||''}`;
+                                            const label = `${u.name||''} <${u.email||''}>`.trim();
+                                            const checked = _mcRecipients.some(r => r.value === val) ? 'checked' : '';
+                                            const co = (u.company && u.company !== '-') ? ` · ${mcEsc(u.company)}` : '';
+                                            return `<label style="display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;font-size:12px;color:#374151;"
+                                                onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
+                                                <input type="checkbox" ${checked} data-val="${mcEsc(val)}" data-label="${mcEsc(label)}"
+                                                       onchange="mailComposeToggleUser(this)" style="accent-color:#7c3aed;flex-shrink:0;">
+                                                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                    <b>${mcEsc(u.name) || noName}</b>${co} <span style="color:#9ca3af;">&lt;${mcEsc(u.email)}&gt;</span>
+                                                </span>
+                                            </label>`;
+                                        }).join('');
+                                    }
+                                    dd.style.display = 'block';
                                 };
+
+                                window.mailComposeToggleUser = function(cb) {
+                                    if (cb.checked) mailComposeAddChip(cb.dataset.label, cb.dataset.val);
+                                    else mailComposeRemoveChipByValue(cb.dataset.val);
+                                };
+
+                                function mailComposeSyncDropdown() {
+                                    const dd = document.getElementById('mail-compose-dropdown');
+                                    if (dd && dd.style.display === 'block') mailComposeFilter();
+                                }
+
+                                function mailComposeRemoveChipByValue(value) {
+                                    const i = _mcRecipients.findIndex(r => r.value === value);
+                                    if (i >= 0) { _mcRecipients.splice(i, 1); mailComposeRenderChips(); }
+                                }
 
                                 window.mailComposeOnDirectKey = function(e) {
                                     if (e.key === 'Enter' || e.key === ',') {
@@ -841,6 +913,7 @@
                                             r.label.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))
                                         }<button type="button" onclick="mailComposeRemoveChip(${i})" style="background:none;border:none;cursor:pointer;color:var(--t700,#7c3aed);font-size:14px;line-height:1;padding:0 2px;">&times;</button></span>`
                                     ).join('');
+                                    mailComposeSyncDropdown();
                                 }
 
                                 window.mailComposeSend = async function(ev) {

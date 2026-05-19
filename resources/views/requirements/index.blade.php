@@ -521,6 +521,13 @@
                           style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;"
                           onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
             </div>
+            <label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:#374151;cursor:pointer;background:#faf5ff;border:1px solid #ede9fe;border-radius:8px;padding:10px 12px;">
+                <input type="checkbox" name="use_planning" value="1" style="margin-top:1px;width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;flex-shrink:0;">
+                <span style="font-weight:600;">
+                    {{ __('requirements.ai_use_planning') }}
+                    <span style="display:block;font-size:11px;color:#9ca3af;margin-top:2px;font-weight:400;">{{ __('requirements.ai_use_planning_hint') }}</span>
+                </span>
+            </label>
             <div id="ai-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#dc2626;"></div>
             <div style="display:flex;gap:8px;padding-top:4px;">
                 <button type="submit" id="ai-submit"

@@ -98,6 +98,8 @@ return [
     'ai_file_types'             => 'docx · xlsx · pptx · pdf · txt · md (최대 20MB, 10개)',
     'ai_context_label'          => '분석 컨텍스트 메모',
     'ai_context_placeholder'    => '프로젝트 배경, 분석 목적, 제외할 내용 등을 입력하세요.',
+    'ai_use_planning'           => '프로젝트 기획서 기반으로 분석',
+    'ai_use_planning_hint'      => '이 프로젝트의 기획서 내용을 분석 입력에 포함합니다. 파일 없이도 분석할 수 있습니다.',
     'ai_start'                  => '분석 시작',
     'ai_step_loading_title'     => '웍스가 문서를 분석하고 있습니다',
     'ai_step_loading_hint'      => '문서 분량에 따라 30초~1분 정도 소요될 수 있습니다.',

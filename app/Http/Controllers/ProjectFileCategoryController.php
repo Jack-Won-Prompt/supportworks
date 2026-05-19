@@ -52,6 +52,28 @@ class ProjectFileCategoryController extends Controller
         return response()->json(['ok' => true, 'category' => $category->only('id', 'name', 'color')]);
     }
 
+    public function reorder(Request $request, Project $project)
+    {
+        $this->authorizeProject($project);
+
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer',
+        ]);
+
+        $validIds = $project->fileCategories()->pluck('id')->all();
+        $order = 1;
+        foreach ($request->ids as $id) {
+            if (in_array((int) $id, $validIds, true)) {
+                ProjectFileCategory::where('id', $id)
+                    ->where('project_id', $project->id)
+                    ->update(['sort_order' => $order++]);
+            }
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     public function destroy(Project $project, ProjectFileCategory $category)
     {
         $this->authorizeProject($project);

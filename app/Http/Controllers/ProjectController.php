@@ -63,7 +63,6 @@ class ProjectController extends Controller
                 'name'     => $project->name,
                 'status'   => $project->status,
                 'show_url' => route('projects.show', $project),
-                'sr_url'   => route('projects.maintenances.index', $project),
             ],
         ]);
     }

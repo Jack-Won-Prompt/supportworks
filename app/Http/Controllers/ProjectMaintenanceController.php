@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MaintenanceFile;
-use App\Models\Project;
 use App\Models\ProjectMaintenance;
+use App\Models\SrTarget;
 use App\Services\ProjectNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Storage;
 
 class ProjectMaintenanceController extends Controller
 {
-    public function index(Request $request, Project $project)
+    public function index(Request $request, SrTarget $srTarget)
     {
-        $this->authorizeProject($project);
+        $this->authorizeSrTarget($srTarget);
 
         $user = auth()->user();
 
-        $base = fn() => $project->maintenances()
+        $base = fn() => $srTarget->maintenances()
             ->when(!$user->isAdmin(), fn($q) => $q->where('user_id', $user->id));
 
         $counts = [
@@ -35,7 +35,7 @@ class ProjectMaintenanceController extends Controller
             ->when($request->filled('status'),   fn($q) => $q->where('status',   $request->status))
             ->when($request->filled('priority'), fn($q) => $q->where('priority', $request->priority))
             ->latest()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         $ganttItems = $base()
@@ -63,7 +63,7 @@ class ProjectMaintenanceController extends Controller
             ]);
 
         $maintenanceIds = $base()->pluck('id');
-        $projectFiles = MaintenanceFile::where('project_id', $project->id)
+        $projectFiles = MaintenanceFile::where('sr_target_id', $srTarget->id)
             ->where(fn($q) =>
                 $q->whereNull('maintenance_id')
                   ->orWhereIn('maintenance_id', $maintenanceIds)
@@ -73,22 +73,25 @@ class ProjectMaintenanceController extends Controller
             ->latest()
             ->get();
 
-        $fileCategories  = $project->maintenanceFileCategories()->get();
+        $fileCategories  = $srTarget->maintenanceFileCategories()->get();
         $allMaintenances = $base()->orderBy('created_at', 'desc')->get(['id', 'title']);
 
-        return view('maintenance.index', compact('project', 'maintenances', 'counts', 'ganttItems', 'projectFiles', 'fileCategories', 'allMaintenances'));
+        // 수정·삭제 권한: 관리자 또는 연결 프로젝트의 매니저
+        $canManageSr = $this->canManageSrTarget($srTarget);
+
+        return view('maintenance.index', compact('srTarget', 'maintenances', 'counts', 'ganttItems', 'projectFiles', 'fileCategories', 'allMaintenances', 'canManageSr'));
     }
 
-    public function create(Project $project)
+    public function create(SrTarget $srTarget)
     {
-        $this->authorizeProject($project);
-        $fileCategories = $project->maintenanceFileCategories()->get();
-        return view('maintenance.create', compact('project', 'fileCategories'));
+        $this->authorizeSrTarget($srTarget);
+        $fileCategories = $srTarget->maintenanceFileCategories()->get();
+        return view('maintenance.create', compact('srTarget', 'fileCategories'));
     }
 
-    public function store(Request $request, Project $project)
+    public function store(Request $request, SrTarget $srTarget)
     {
-        $this->authorizeProject($project);
+        $this->authorizeSrTarget($srTarget);
 
         $validated = $request->validate([
             'title'          => 'required|string|max:255',
@@ -101,7 +104,8 @@ class ProjectMaintenanceController extends Controller
             'attachment_category_id'=> 'nullable|integer|exists:maintenance_file_categories,id',
         ]);
 
-        $maintenance = $project->maintenances()->create([
+        $maintenance = $srTarget->maintenances()->create([
+            'project_id'     => $srTarget->project_id,
             'title'          => $validated['title'],
             'content'        => $validated['content'],
             'priority'       => $validated['priority'],
@@ -114,9 +118,10 @@ class ProjectMaintenanceController extends Controller
             $catId = $validated['attachment_category_id'] ?? null;
             foreach ($request->file('attachments') as $uploaded) {
                 $storedName = Str::uuid() . '.' . $uploaded->getClientOriginalExtension();
-                $path = $uploaded->storeAs("projects/{$project->id}", $storedName, 'local');
+                $path = $uploaded->storeAs("sr-targets/{$srTarget->id}", $storedName, 'local');
                 MaintenanceFile::create([
-                    'project_id'             => $project->id,
+                    'project_id'             => $srTarget->project_id,
+                    'sr_target_id'           => $srTarget->id,
                     'maintenance_id'         => $maintenance->id,
                     'uploaded_by'            => auth()->id(),
                     'original_name'          => $uploaded->getClientOriginalName(),
@@ -129,45 +134,47 @@ class ProjectMaintenanceController extends Controller
             }
         }
 
-        app(ProjectNotificationService::class)->notify(
-            $project, auth()->user(), 'maintenance_created',
-            $maintenance->title,
-            route('maintenances.show', $maintenance),
-        );
-
-        if ($request->expectsJson()) {
-            return response()->json(['ok' => true, 'id' => $maintenance->id, 'redirect' => route('projects.maintenances.index', $project)]);
+        if ($srTarget->project) {
+            app(ProjectNotificationService::class)->notify(
+                $srTarget->project, auth()->user(), 'maintenance_created',
+                $maintenance->title,
+                route('maintenances.show', $maintenance),
+            );
         }
 
-        return redirect()->route('projects.maintenances.index', $project)
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'id' => $maintenance->id, 'redirect' => route('sr-targets.maintenances.index', $srTarget)]);
+        }
+
+        return redirect()->route('sr-targets.maintenances.index', $srTarget)
             ->with('success', 'SR 접수가 등록되었습니다.');
     }
 
     public function show(ProjectMaintenance $maintenance)
     {
-        $this->authorizeProject($maintenance->project);
+        $this->authorizeSrTarget($maintenance->srTarget);
         $this->authorizeMaintenance($maintenance);
 
-        $maintenance->load(['project', 'user', 'replies.user', 'replies.adminUser', 'files']);
+        $maintenance->load(['srTarget', 'user', 'replies.user', 'replies.adminUser', 'files']);
 
         return view('maintenance.show', compact('maintenance'));
     }
 
     public function detail(ProjectMaintenance $maintenance)
     {
-        $this->authorizeProject($maintenance->project);
+        $this->authorizeSrTarget($maintenance->srTarget);
         $this->authorizeMaintenance($maintenance);
 
-        $maintenance->load(['project', 'user', 'replies.user', 'replies.adminUser', 'files']);
+        $maintenance->load(['srTarget', 'user', 'replies.user', 'replies.adminUser', 'files']);
 
         return view('maintenance.detail_partial', compact('maintenance'));
     }
 
     public function update(Request $request, ProjectMaintenance $maintenance)
     {
-        $this->authorizeProject($maintenance->project);
+        $this->authorizeSrTarget($maintenance->srTarget);
 
-        if ($maintenance->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        if (!$this->canManageSrTarget($maintenance->srTarget)) {
             abort(403);
         }
 
@@ -199,27 +206,29 @@ class ProjectMaintenanceController extends Controller
 
     public function destroy(Request $request, ProjectMaintenance $maintenance)
     {
-        $this->authorizeProject($maintenance->project);
+        $this->authorizeSrTarget($maintenance->srTarget);
 
-        if ($maintenance->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        if (!$this->canManageSrTarget($maintenance->srTarget)) {
             abort(403);
         }
 
-        $project = $maintenance->project;
-        $title   = $maintenance->title;
+        $srTarget = $maintenance->srTarget;
+        $title    = $maintenance->title;
         $maintenance->delete();
 
-        app(ProjectNotificationService::class)->notify(
-            $project, auth()->user(), 'maintenance_deleted',
-            $title,
-            route('projects.maintenances.index', $project),
-        );
+        if ($srTarget && $srTarget->project) {
+            app(ProjectNotificationService::class)->notify(
+                $srTarget->project, auth()->user(), 'maintenance_deleted',
+                $title,
+                route('sr-targets.maintenances.index', $srTarget),
+            );
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['ok' => true]);
         }
 
-        return redirect()->route('projects.maintenances.index', $project)
+        return redirect()->route('sr-targets.maintenances.index', $srTarget)
             ->with('success', 'SR 접수가 삭제되었습니다.');
     }
 
@@ -237,7 +246,7 @@ class ProjectMaintenanceController extends Controller
 
     public function updateDates(Request $request, ProjectMaintenance $maintenance)
     {
-        $this->authorizeProject($maintenance->project);
+        $this->authorizeSrTarget($maintenance->srTarget);
         $this->authorizeMaintenance($maintenance);
 
         $validated = $request->validate([
@@ -255,17 +264,31 @@ class ProjectMaintenanceController extends Controller
         ]);
     }
 
-    private function authorizeProject(Project $project): void
+    private function authorizeSrTarget(?SrTarget $srTarget): void
+    {
+        if (!$srTarget) {
+            abort(404);
+        }
+        if (!$srTarget->isAccessibleBy(auth()->user())) {
+            abort(403, '접근 권한이 없습니다.');
+        }
+    }
+
+    /** SR 수정·삭제 권한: 관리자 또는 연결 프로젝트의 매니저 */
+    private function canManageSrTarget(?SrTarget $srTarget): bool
     {
         $user = auth()->user();
-        if ($user->isAdmin()) return;
-        if (!$project->isMember($user)) abort(403, '접근 권한이 없습니다.');
+        if ($user->isAdmin()) {
+            return true;
+        }
+        return $srTarget && $srTarget->project
+            && $srTarget->project->getMemberRole($user) === 'manager';
     }
 
     private function authorizeMaintenance(ProjectMaintenance $maintenance): void
     {
         $user = auth()->user();
-        if ($user->isAdmin()) return;
+        if ($user->isAdmin() || $user->isSrAgent()) return;
         if ($maintenance->user_id !== $user->id) abort(403, '접근 권한이 없습니다.');
     }
 }

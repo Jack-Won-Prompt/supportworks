@@ -98,6 +98,8 @@ return [
     'ai_file_types'             => 'docx · xlsx · pptx · pdf · txt · md (max 20MB, 10 files)',
     'ai_context_label'          => 'Analysis Context Note',
     'ai_context_placeholder'    => 'Enter project background, analysis goals, content to exclude, etc.',
+    'ai_use_planning'           => 'Analyze based on the project planning document',
+    'ai_use_planning_hint'      => "Includes this project's planning document in the analysis input. Works even without a file.",
     'ai_start'                  => 'Start Analysis',
     'ai_step_loading_title'     => 'Works is analyzing the document',
     'ai_step_loading_hint'      => 'This may take 30 seconds to 1 minute depending on document size.',

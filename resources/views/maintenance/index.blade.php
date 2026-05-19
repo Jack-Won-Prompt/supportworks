@@ -1,31 +1,36 @@
 @extends('layouts.app')
 
-@section('title', __('maintenance.sr_receipt') . ' — ' . $project->name)
+@section('title', __('maintenance.sr_receipt') . ' — ' . $srTarget->title)
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('common.list') }}</a>
+<span style="color:#9ca3af;">{{ __('maintenance.sr_receipt') }}</span>
 <span>›</span>
-<a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
-<span>›</span>
-<span style="color:#374151;font-weight:500;">{{ __('maintenance.sr_receipt') }}</span>
+<span style="color:#374151;font-weight:500;">{{ $srTarget->title }}</span>
 @endsection
 
 @section('header-actions')@endsection
 
-@section('page-actions')
-<button onclick="openCreateModal()"
-   style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;"
-   onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-    </svg>
-    {{ __('maintenance.sr_register') }}
-</button>
-@endsection
-
 @section('content')
-@include('partials.project-nav', ['project'=>$project, 'active'=>'maintenances'])
 <div>
+
+    {{-- SR 대상 헤더 --}}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff;border-radius:10px;border:1px solid #f3f4f6;box-shadow:0 1px 3px rgba(0,0,0,.04);padding:12px 16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+            <svg width="16" height="16" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h4"/></svg>
+            <span style="font-size:15px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $srTarget->title }}</span>
+            @if($srTarget->project)
+            <span style="font-size:11px;color:#6b7280;background:#f3f4f6;border-radius:6px;padding:2px 8px;flex-shrink:0;">{{ $srTarget->project->name }}</span>
+            @endif
+        </div>
+        <button onclick="openCreateModal()"
+           style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;flex-shrink:0;"
+           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            {{ __('maintenance.sr_register') }}
+        </button>
+    </div>
 
     {{-- 플래시 메시지 --}}
     @if(session('success'))
@@ -108,6 +113,9 @@
                 <th style="padding:10px 10px;font-size:11px;font-weight:600;color:#7c3aed;text-align:center;width:88px;">{{ __('maintenance.col_scheduled_date') }}</th>
                 <th style="padding:10px 10px;font-size:11px;font-weight:600;color:#7c3aed;text-align:center;width:44px;">{{ __('maintenance.col_replies') }}</th>
                 <th style="padding:10px 10px;font-size:11px;font-weight:600;color:#7c3aed;text-align:center;width:80px;">{{ __('maintenance.col_created_at') }}</th>
+                @if($canManageSr)
+                <th style="padding:10px 8px;font-size:11px;font-weight:600;color:#7c3aed;text-align:center;width:108px;">{{ __('maintenance.col_manage') }}</th>
+                @endif
             </tr>
             </thead>
             <tbody>
@@ -157,6 +165,26 @@
                 </td>
                 <td style="padding:11px 10px;text-align:center;font-size:12px;color:#6b7280;">{{ $item->replies_count }}</td>
                 <td style="padding:11px 10px;text-align:center;font-size:11px;color:#9ca3af;">{{ $item->created_at->format('m.d') }}</td>
+                @if($canManageSr)
+                <td style="padding:11px 8px;text-align:center;white-space:nowrap;">
+                    <button type="button" data-edit-btn
+                            data-id="{{ $item->id }}"
+                            data-update-url="{{ route('maintenances.update', $item) }}"
+                            data-reload-url="{{ route('maintenances.detail', $item) }}"
+                            data-title="{{ $item->title }}"
+                            data-priority="{{ $item->priority }}"
+                            data-requested-date="{{ $item->requested_date?->format('Y-m-d') }}"
+                            data-due-date="{{ $item->due_date?->format('Y-m-d') }}"
+                            data-content="{{ $item->content }}"
+                            onclick="event.stopPropagation();openEditModal(this)"
+                            style="padding:3px 8px;border:1px solid #ddd6fe;border-radius:6px;font-size:11px;color:#7c3aed;background:#fff;cursor:pointer;font-weight:600;">{{ __('common.edit') }}</button>
+                    <button type="button"
+                            data-id="{{ $item->id }}"
+                            data-url="{{ route('maintenances.destroy', $item) }}"
+                            onclick="event.stopPropagation();srRowDelete(this)"
+                            style="padding:3px 8px;border:1px solid #fecaca;border-radius:6px;font-size:11px;color:#ef4444;background:#fff;cursor:pointer;">{{ __('common.delete') }}</button>
+                </td>
+                @endif
             </tr>
             @endforeach
             </tbody>
@@ -367,18 +395,18 @@
                                 $pfMid       = $pf->maintenance_id;
                                 $pfDlUrl     = $pfMid
                                     ? route('maintenances.files.download',    [$pfMid, $pf->id])
-                                    : route('projects.maintenance-files.download', [$project->id, $pf->id]);
+                                    : route('sr-targets.maintenance-files.download', [$srTarget->id, $pf->id]);
                                 $pfPvUrl     = $pfMid
                                     ? route('maintenances.files.preview-data', [$pfMid, $pf->id])
-                                    : route('projects.maintenance-files.preview-data', [$project->id, $pf->id]);
+                                    : route('sr-targets.maintenance-files.preview-data', [$srTarget->id, $pf->id]);
                                 $pfMidJs     = $pfMid ?? 'null';
                             @endphp
                             @if($pfCanPreview)
                                 @if($pfIsUrl)
-                                <button onclick="openUrlViewer({{ $pf->id }}, {{ $project->id }}, {{ json_encode($pf->original_name) }}, {{ json_encode($pf->getEmbedUrl()) }}, {{ json_encode($pf->source_url) }})"
+                                <button onclick="openUrlViewer({{ $pf->id }}, {{ $srTarget->id }}, {{ json_encode($pf->original_name) }}, {{ json_encode($pf->getEmbedUrl()) }}, {{ json_encode($pf->source_url) }})"
                                         style="padding:3px 8px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">{{ __('maintenance.btn_url_open') }}</button>
                                 @else
-                                <button onclick="openPreview({{ $pf->id }}, {{ $project->id }}, '{{ $pfPvUrl }}', '{{ $pfDlUrl }}')"
+                                <button onclick="openPreview({{ $pf->id }}, {{ $srTarget->id }}, '{{ $pfPvUrl }}', '{{ $pfDlUrl }}')"
                                         style="padding:3px 8px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">{{ __('maintenance.btn_preview') }}</button>
                                 @endif
                             @endif
@@ -525,7 +553,7 @@
 
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
         <div>
-            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $project->name }}</p>
+            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $srTarget->title }}</p>
             <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('maintenance.sr_register') }}</h3>
         </div>
         <button onclick="closeCreateModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
@@ -576,7 +604,14 @@
 
         {{-- 내용 --}}
         <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('maintenance.field_content') }} <span style="color:#ef4444;">*</span></label>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                <label style="font-size:12px;font-weight:600;color:#374151;">{{ __('maintenance.field_content') }} <span style="color:#ef4444;">*</span></label>
+                <button type="button" onclick="mRefineCreateContent(this)"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                    {{ __('maintenance.weeks_refine') }}
+                </button>
+            </div>
             <div class="sr-editor-wrap">
                 <div id="m-content-editor" style="min-height:130px;"></div>
             </div>
@@ -648,7 +683,7 @@
 <div id="idx-upload-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10201;background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.18);width:520px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
         <div>
-            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $project->name }}</p>
+            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $srTarget->title }}</p>
             <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('maintenance.sr_file_upload') }}</h3>
         </div>
         <button onclick="closeIdxUploadModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
@@ -807,6 +842,8 @@
     </form>
 </div>
 
+@include('meeting-minutes._refine')
+
 @endsection
 
 @push('styles')
@@ -908,7 +945,7 @@ $_srgHolidays = array_values(array_unique($_srgHolidays));
 @endphp
 <script>
 const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
-const STORE_URL = '{{ route('projects.maintenances.store', $project) }}';
+const STORE_URL = '{{ route('sr-targets.maintenances.store', $srTarget) }}';
 
 /* ── i18n strings ─────────────────────────────── */
 const IDX_STR = {
@@ -1207,7 +1244,7 @@ async function srgBindScroll() {
 }
 
 // ── Column resize ──────────────────────────────
-const SRG_COL_KEY = 'srg_cols_{{ $project->id }}';
+const SRG_COL_KEY = 'srg_cols_sr{{ $srTarget->id }}';
 const SRG_COL_DEF = { title:180, status:74, prio:68, user:70, start:62, end:74 };
 
 async function srgLoadCols() {
@@ -1489,6 +1526,19 @@ async function closeCreateModal() {
     document.getElementById('m-overlay').style.display = 'none';
 }
 
+/* 웍스 정제 — SR 등록 요청 내용 / 상세 답글 (Quill) */
+window.mRefineCreateContent = function (btn) {
+    if (typeof mmRefineQuill !== 'function') return;
+    mmRefineQuill(_createQuill, null, btn);
+};
+window.dtRefineReply = function (btn) {
+    if (typeof mmRefineQuill !== 'function') return;
+    const form = btn.closest('[data-reply-form]');
+    const t = form && form.querySelector('.sr-reply-quill-target');
+    if (t && t._quill) mmRefineQuill(t._quill, null, btn);
+    else alert('정제할 내용을 입력하세요.');
+};
+
 document.addEventListener('DOMContentLoaded', updateChip);
 
 document.getElementById('m-form').addEventListener('submit', async function(e) {
@@ -1744,6 +1794,28 @@ document.getElementById('dt-modal').addEventListener('click', async function(e) 
         openEditModal(editBtn);
     }
 });
+
+/* SR 목록 행 삭제 (관리자·연결 프로젝트 매니저) */
+async function srRowDelete(btn) {
+    if (!await __confirm(IDX_STR.confirmDeleteSr)) return;
+    const id  = btn.dataset.id;
+    const url = btn.dataset.url;
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: '_method=DELETE',
+        });
+        if (res.ok) {
+            const row = document.querySelector(`[data-item-id="${id}"]`);
+            if (row) row.remove();
+        } else {
+            alert(IDX_STR.deleteFail);
+        }
+    } catch {
+        alert(IDX_STR.networkError);
+    }
+}
 
 document.addEventListener('keydown', async function(e) {
     if (e.key === 'Escape') {
@@ -2032,7 +2104,7 @@ document.addEventListener('keydown', e => {
    SR 파일 뷰 (sr-files-view)
 ══════════════════════════════════════════════ */
 const SR_MF_BASE      = '{{ url('maintenances') }}';
-const SR_PMF_BASE     = '{{ url('projects/' . $project->id . '/maintenance-files') }}';
+const SR_PMF_BASE     = '{{ url('sr-targets/' . $srTarget->id . '/maintenance-files') }}';
 
 async function _srFileUrl(maintenanceId, fileId, suffix = '') {
     return maintenanceId
@@ -2075,8 +2147,8 @@ async function srPfToggleShare(fileId, maintenanceId, btn) {
 }
 
 /* ── SR 파일 카테고리 ── */
-const SR_PF_CAT_STORE_URL   = '{{ route('projects.maintenance-file-categories.store', $project) }}';
-const SR_PF_CAT_DESTROY_BASE = '{{ url('projects/' . $project->id . '/maintenance-file-categories') }}';
+const SR_PF_CAT_STORE_URL   = '{{ route('sr-targets.maintenance-file-categories.store', $srTarget) }}';
+const SR_PF_CAT_DESTROY_BASE = '{{ url('sr-targets/' . $srTarget->id . '/maintenance-file-categories') }}';
 
 let _srPfActiveCat = 'all';
 

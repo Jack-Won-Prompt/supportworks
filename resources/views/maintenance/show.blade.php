@@ -3,11 +3,9 @@
 @section('title', $maintenance->title)
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('common.list') }}</a>
+<span style="color:#9ca3af;">{{ __('maintenance.sr_receipt') }}</span>
 <span>›</span>
-<a href="{{ route('projects.show', $maintenance->project) }}" class="hover:text-indigo-500 transition-colors">{{ $maintenance->project->name }}</a>
-<span>›</span>
-<a href="{{ route('projects.maintenances.index', $maintenance->project) }}" class="hover:text-indigo-500 transition-colors">{{ __('maintenance.sr_receipt') }}</a>
+<a href="{{ route('sr-targets.maintenances.index', $maintenance->sr_target_id) }}" class="hover:text-indigo-500 transition-colors">{{ $maintenance->srTarget?->title }}</a>
 <span>›</span>
 <span style="color:#374151;font-weight:500;">{{ __('common.detail') }}</span>
 @endsection
@@ -96,27 +94,6 @@
             <div class="sr-content-view">{!! $maintenance->content !!}</div>
         </div>
 
-        {{-- 수정/삭제 버튼 --}}
-        @if($maintenance->user_id === auth()->id() || auth()->user()->isAdmin())
-        <div style="padding:0 24px 20px;display:flex;justify-content:flex-end;gap:8px;">
-            @if($maintenance->status === 'pending' || $maintenance->status === 'in_progress' || auth()->user()->isAdmin())
-            <button onclick="openEditModal()"
-                    style="padding:7px 16px;background:transparent;border:1px solid #ddd6fe;border-radius:7px;font-size:12px;color:#7c3aed;cursor:pointer;transition:background .15s;font-weight:600;"
-                    onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='transparent'">
-                {{ __('common.edit') }}
-            </button>
-            @endif
-            <form method="POST" action="{{ route('maintenances.destroy', $maintenance) }}"
-                  onsubmit="return confirm('{{ __('maintenance.confirm_delete_sr') }}')">
-                @csrf @method('DELETE')
-                <button type="submit"
-                        style="padding:7px 16px;background:transparent;border:1px solid #fecaca;border-radius:7px;font-size:12px;color:#ef4444;cursor:pointer;transition:background .15s;"
-                        onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
-                    {{ __('common.delete') }}
-                </button>
-            </form>
-        </div>
-        @endif
     </div>
 
     {{-- ── 첨부파일 ── --}}
@@ -160,11 +137,11 @@
                 <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
                     @if($mfCanPreview)
                     @if($mfIsUrl)
-                    <button onclick="openUrlViewer({{ $mf->id }}, {{ $maintenance->project_id }}, {{ json_encode($mf->original_name) }}, {{ json_encode($mf->getEmbedUrl()) }}, {{ json_encode($mf->source_url) }})"
+                    <button onclick="openUrlViewer({{ $mf->id }}, {{ $maintenance->sr_target_id }}, {{ json_encode($mf->original_name) }}, {{ json_encode($mf->getEmbedUrl()) }}, {{ json_encode($mf->source_url) }})"
                             style="padding:4px 10px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:background .12s;"
                             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">{{ __('maintenance.btn_url_open') }}</button>
                     @else
-                    <button onclick="openPreview({{ $mf->id }}, {{ $maintenance->project_id }}, '{{ route('maintenances.files.preview-data', [$maintenance->id, $mf->id]) }}', '{{ route('maintenances.files.download', [$maintenance->id, $mf->id]) }}')"
+                    <button onclick="openPreview({{ $mf->id }}, {{ $maintenance->sr_target_id }}, '{{ route('maintenances.files.preview-data', [$maintenance->id, $mf->id]) }}', '{{ route('maintenances.files.download', [$maintenance->id, $mf->id]) }}')"
                             style="padding:4px 10px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:background .12s;"
                             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">{{ __('maintenance.btn_preview') }}</button>
                     @endif
@@ -223,6 +200,8 @@
                         <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ $reply->authorName() }}</span>
                         @if($isAdminReply)
                         <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#ede9fe;color:#7c3aed;">{{ __('maintenance.admin_label') }}</span>
+                        @elseif($reply->user?->is_sr_agent)
+                        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#dcfce7;color:#16a34a;">{{ __('maintenance.sr_agent_badge') }}</span>
                         @endif
                         <span style="font-size:11px;color:#9ca3af;">{{ $reply->created_at->format('Y.m.d H:i') }}</span>
                     </div>
@@ -283,16 +262,23 @@
     @endif
 
     {{-- 답글 작성 --}}
-    @if(auth()->user()->isAdmin() || $maintenance->user_id === auth()->id())
+    @if(auth()->user()->isAdmin() || auth()->user()->isSrAgent() || $maintenance->user_id === auth()->id())
     @if($maintenance->status !== 'completed' && $maintenance->status !== 'rejected')
     <div style="background:#fff;border-radius:14px;border:1px solid #ede9fe;box-shadow:0 2px 12px rgba(0,0,0,.05);overflow:hidden;">
         <div style="padding:16px 24px;border-bottom:1px solid #f3f4f6;">
             <h3 style="margin:0;font-size:14px;font-weight:700;color:#1e1b2e;">
-                {{ auth()->user()->isAdmin() ? __('maintenance.reply_write_admin') : __('maintenance.reply_write_user') }}
+                {{ (auth()->user()->isAdmin() || auth()->user()->isSrAgent()) ? __('maintenance.reply_write_admin') : __('maintenance.reply_write_user') }}
             </h3>
         </div>
         <form method="POST" action="{{ route('maintenances.replies.store', $maintenance) }}" id="show-reply-form" style="padding:20px 24px;">
             @csrf
+            <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+                <button type="button" onclick="mmRefineQuill(window._showReplyQ, null, this)"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                    {{ __('maintenance.weeks_refine') }}
+                </button>
+            </div>
             <div class="sr-reply-editor-wrap">
                 <div id="show-reply-editor" style="min-height:100px;"></div>
             </div>
@@ -408,7 +394,7 @@
 
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
         <div>
-            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $maintenance->project->name }}</p>
+            <p style="font-size:11px;color:#94a3b8;margin:0 0 2px;">{{ $maintenance->srTarget?->title }}</p>
             <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('maintenance.sr_edit') }}</h3>
         </div>
         <button onclick="closeEditModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
@@ -479,6 +465,8 @@
 </div>
 @endif
 
+@include('meeting-minutes._refine')
+
 @push('styles')
 @include('maintenance._quill_assets')
 @endpush
@@ -488,12 +476,13 @@
 /* CSRF_TOKEN / BASE_URL 은 file-preview-modal 파티셜이 이미 선언 */
 
 /* ── 답글 에디터 ── */
-@if(auth()->user()->isAdmin() || $maintenance->user_id === auth()->id())
+@if(auth()->user()->isAdmin() || auth()->user()->isSrAgent() || $maintenance->user_id === auth()->id())
 @if(!in_array($maintenance->status, ['completed','rejected']))
 (async function() {
     const replyQ = createSrEditor('show-reply-editor', 'show-reply-content',
-        '{{ auth()->user()->isAdmin() ? __('maintenance.reply_placeholder_admin') : __('maintenance.reply_placeholder_user') }}',
+        '{{ (auth()->user()->isAdmin() || auth()->user()->isSrAgent()) ? __('maintenance.reply_placeholder_admin') : __('maintenance.reply_placeholder_user') }}',
         true, CSRF_TOKEN);
+    window._showReplyQ = replyQ;
 
     document.getElementById('show-reply-form').addEventListener('submit', async function(e) {
         if (replyQ.getText().trim() === '') {
@@ -596,7 +585,7 @@ document.getElementById('edit-form').addEventListener('submit', async function(e
 const MF_STORE_URL  = '{{ route('maintenances.files.store',  $maintenance) }}';
 const MF_DESTROY_BASE = '{{ url('maintenances/'.$maintenance->id.'/files') }}/';
 const MF_SHARE_BASE   = '{{ url('maintenances/'.$maintenance->id.'/files') }}/';
-const MF_PROJECT_ID   = {{ $maintenance->project_id }};
+const MF_PROJECT_ID   = {{ $maintenance->sr_target_id }};
 
 let _mfSelectedFile = null;
 

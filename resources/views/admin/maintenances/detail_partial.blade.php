@@ -16,7 +16,7 @@
                                  color:{{ $maintenance->priority_color }};background:{{ $maintenance->priority === 'urgent' ? '#fee2e2' : ($maintenance->priority === 'high' ? '#fef3c7' : '#f3f4f6') }};">
                         {{ $maintenance->priority_label }}
                     </span>
-                    <span style="font-size:11px;color:#94a3b8;">{{ $maintenance->project->name }}</span>
+                    <span style="font-size:11px;color:#94a3b8;">{{ $maintenance->srTarget?->title ?? $maintenance->project?->name }}</span>
                 </div>
                 <h2 style="margin:0 0 5px;font-size:16px;font-weight:700;color:#0f172a;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $maintenance->title }}</h2>
                 <div style="font-size:12px;color:#94a3b8;">{{ $maintenance->user->name }} · {{ $maintenance->created_at->format('Y.m.d H:i') }}</div>

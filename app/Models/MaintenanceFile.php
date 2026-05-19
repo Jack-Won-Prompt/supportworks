@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MaintenanceFile extends Model
 {
     protected $fillable = [
-        'project_id', 'maintenance_id', 'uploaded_by', 'maintenance_category_id',
+        'project_id', 'sr_target_id', 'maintenance_id', 'uploaded_by', 'maintenance_category_id',
         'original_name', 'stored_name', 'path', 'converted_pdf_path',
         'mime_type', 'size', 'description', 'source_url', 'file_type', 'share_token',
     ];
@@ -15,6 +15,11 @@ class MaintenanceFile extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function srTarget()
+    {
+        return $this->belongsTo(SrTarget::class);
     }
 
     public function maintenance()

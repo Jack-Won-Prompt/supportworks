@@ -13,7 +13,9 @@ class ProjectMaintenanceReplyController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->isAdmin() && $maintenance->user_id !== $user->id) {
+        $isHandler = $user->isAdmin() || $user->isSrAgent();
+
+        if (!$isHandler && $maintenance->user_id !== $user->id) {
             abort(403);
         }
 
@@ -24,16 +26,18 @@ class ProjectMaintenanceReplyController extends Controller
             'content' => $request->content,
         ]);
 
-        if ($user->isAdmin() && $maintenance->status === 'pending') {
+        if ($isHandler && $maintenance->status === 'pending') {
             $maintenance->update(['status' => 'in_progress']);
         }
 
         $maintenance->load('project');
-        app(ProjectNotificationService::class)->notify(
-            $maintenance->project, $user, 'maintenance_replied',
-            $maintenance->title,
-            route('maintenances.show', $maintenance),
-        );
+        if ($maintenance->project) {
+            app(ProjectNotificationService::class)->notify(
+                $maintenance->project, $user, 'maintenance_replied',
+                $maintenance->title,
+                route('maintenances.show', $maintenance),
+            );
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['ok' => true]);

@@ -46,7 +46,12 @@ class PlanDoActController extends Controller
 
         $items = $query->get();
 
-        return view('plan-do-acts.global', compact('items', 'projects', 'selectedProjectId'));
+        // 특정 프로젝트가 선택되면 상단 프로젝트 네비게이션용 모델 로드
+        $selectedProject = ($selectedProjectId && $selectedProjectId !== 'none')
+            ? Project::find($selectedProjectId)
+            : null;
+
+        return view('plan-do-acts.global', compact('items', 'projects', 'selectedProjectId', 'selectedProject'));
     }
 
     /** 등록 */

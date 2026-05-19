@@ -441,7 +441,7 @@
 .msg-bubble.mine .bubble-reply-sender { color:rgba(255,255,255,.92); }
 .bubble-reply-time { font-size:10px; color:#a1a1aa; grid-column:2; grid-row:1/3; align-self:center; white-space:nowrap; }
 .msg-bubble.mine .bubble-reply-time { color:rgba(255,255,255,.55); }
-.bubble-reply-body { color:#3f3f46; grid-column:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.4; }
+.bubble-reply-body { color:#3f3f46; grid-column:1; white-space:pre-wrap; word-break:break-word; line-height:1.4; }
 .msg-bubble.mine .bubble-reply-body { color:rgba(255,255,255,.88); }
 
 /* 우클릭 컨텍스트 메뉴 */

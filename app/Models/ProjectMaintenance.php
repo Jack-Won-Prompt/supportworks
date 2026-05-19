@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProjectMaintenance extends Model
 {
     protected $fillable = [
-        'project_id', 'user_id', 'title', 'content', 'priority', 'status',
+        'project_id', 'sr_target_id', 'user_id', 'title', 'content', 'priority', 'status',
         'requested_date', 'due_date', 'scheduled_date',
     ];
 
@@ -20,6 +20,11 @@ class ProjectMaintenance extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function srTarget()
+    {
+        return $this->belongsTo(SrTarget::class);
     }
 
     public function user()

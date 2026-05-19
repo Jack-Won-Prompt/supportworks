@@ -50,22 +50,43 @@ class AnalysisSessionController extends Controller
             'files'        => 'nullable|array|max:10',
             'files.*'      => 'file|max:20480',
             'context_note' => 'nullable|string|max:2000',
+            'use_planning' => 'nullable|boolean',
         ]);
 
-        $hasFiles   = $request->hasFile('files');
-        $hasContext = !empty(trim($request->input('context_note', '')));
+        $hasFiles    = $request->hasFile('files');
+        $contextNote = trim((string) $request->input('context_note', ''));
+
+        // 기획서 기반 분석 — 프로젝트 기획서 내용을 분석 입력에 포함
+        if ($request->boolean('use_planning')) {
+            $planText = $project->planningDocs()
+                ->whereNotNull('content')
+                ->latest()
+                ->get(['title', 'content'])
+                ->map(fn($p) => '### ' . ($p->title ?: '기획서') . "\n" . trim((string) $p->content))
+                ->filter()
+                ->implode("\n\n");
+            $planText = trim($planText);
+            if ($planText !== '') {
+                $planText    = mb_substr($planText, 0, 12000);
+                $contextNote = trim("[프로젝트 기획서]\n{$planText}"
+                    . ($contextNote !== '' ? "\n\n[추가 메모]\n{$contextNote}" : ''));
+            }
+        }
+
+        $hasContext = $contextNote !== '';
 
         if (!$hasFiles && !$hasContext) {
+            $msg = '파일·기획서·메모 중 하나 이상을 입력해주세요.';
             if ($request->expectsJson()) {
-                return response()->json(['ok' => false, 'message' => '파일 또는 컨텍스트 메모를 입력해주세요.'], 422);
+                return response()->json(['ok' => false, 'message' => $msg], 422);
             }
-            return back()->withErrors(['files' => '파일 또는 컨텍스트 메모를 입력해주세요.']);
+            return back()->withErrors(['files' => $msg]);
         }
 
         $session = $project->analysisSessions()->create([
             'created_by_id'         => auth()->id(),
             'status'                => 'pending',
-            'input_text'            => $request->input('context_note'),
+            'input_text'            => $contextNote,
             'llm_provider'          => 'anthropic',
             'llm_model'             => 'claude-sonnet-4-6',
             'system_prompt_version' => \App\Services\Analysis\Llm\Prompts\RequirementAnalysisPrompt::VERSION,

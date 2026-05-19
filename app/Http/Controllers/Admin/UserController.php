@@ -80,7 +80,8 @@ class UserController extends Controller
 
         User::create([
             ...$validated,
-            'password' => Hash::make($validated['password']),
+            'password'    => Hash::make($validated['password']),
+            'is_sr_agent' => $request->boolean('is_sr_agent'),
         ]);
 
         return redirect()->route('admin.users.index')
@@ -124,6 +125,8 @@ class UserController extends Controller
 
         $projectIds = $validated['project_ids'] ?? [];
         unset($validated['project_ids']);
+
+        $validated['is_sr_agent'] = $request->boolean('is_sr_agent');
 
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);

@@ -224,7 +224,6 @@ async function toggleMembership(projectId, btn) {
 async function _sidebarAddProject(proj) {
     const colors = ['#a394f9','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'];
     const projList = document.getElementById('proj-list');
-    const srList   = document.getElementById('sr-list');
 
     // 이미 있으면 건너뜀
     if (projList && projList.querySelector(`[data-proj-id="${proj.id}"]`)) return;
@@ -254,28 +253,13 @@ async function _sidebarAddProject(proj) {
         const viewAll = projList.querySelector('a.gsb-hide');
         viewAll ? projList.insertBefore(a, viewAll) : projList.appendChild(a);
     }
-
-    if (srList) {
-        const empty = srList.querySelector('div.gsb-hide');
-        if (empty) empty.remove();
-
-        const a = document.createElement('a');
-        a.href = proj.sr_url;
-        a.className = 'project-item';
-        a.dataset.projId = proj.id;
-        a.innerHTML = `<svg width="13" height="13" fill="none" stroke="${color}" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h4"/></svg>`
-            + `<span class="gsb-hide" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${proj.name}</span>`;
-        srList.appendChild(a);
-    }
 }
 
 async function _sidebarRemoveProject(projectId) {
-    ['proj-list', 'sr-list'].forEach(listId => {
-        const list = document.getElementById(listId);
-        if (!list) return;
-        const item = list.querySelector(`[data-proj-id="${projectId}"]`);
-        if (item) item.remove();
-    });
+    const list = document.getElementById('proj-list');
+    if (!list) return;
+    const item = list.querySelector(`[data-proj-id="${projectId}"]`);
+    if (item) item.remove();
 }
 </script>
 @endif

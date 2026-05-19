@@ -12,7 +12,7 @@ class AdminMaintenanceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ProjectMaintenance::with(['project', 'user', 'replies'])
+        $query = ProjectMaintenance::with(['project', 'srTarget', 'user', 'replies'])
             ->withCount('replies')
             ->latest();
 
@@ -42,13 +42,13 @@ class AdminMaintenanceController extends Controller
 
     public function show(ProjectMaintenance $maintenance)
     {
-        $maintenance->load(['project', 'user', 'replies.user', 'replies.adminUser']);
+        $maintenance->load(['project', 'srTarget', 'user', 'replies.user', 'replies.adminUser']);
         return view('admin.maintenances.show', compact('maintenance'));
     }
 
     public function detail(ProjectMaintenance $maintenance)
     {
-        $maintenance->load(['project', 'user', 'replies.user', 'replies.adminUser']);
+        $maintenance->load(['project', 'srTarget', 'user', 'replies.user', 'replies.adminUser']);
         return view('admin.maintenances.detail_partial', compact('maintenance'));
     }
 

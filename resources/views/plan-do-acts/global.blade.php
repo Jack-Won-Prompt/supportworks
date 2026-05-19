@@ -8,6 +8,11 @@
 @endphp
 <div style="display:flex;flex-direction:column;gap:16px;max-width:1080px;margin:0 auto;width:100%;">
 
+    {{-- 프로젝트 네비게이션 (특정 프로젝트 선택 시) --}}
+    @if(!empty($selectedProject))
+    @include('partials.project-nav', ['project' => $selectedProject, 'active' => 'plan-do-acts'])
+    @endif
+
     {{-- 상단: 헤더 + 프로젝트 선택 --}}
     <div style="background:#fff;border-radius:14px;border:1px solid #f3f4f6;padding:18px 22px;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">

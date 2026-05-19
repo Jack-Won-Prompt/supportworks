@@ -3,23 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\MaintenanceFileCategory;
-use App\Models\Project;
+use App\Models\SrTarget;
 use Illuminate\Http\Request;
 
 class MaintenanceFileCategoryController extends Controller
 {
-    public function store(Request $request, Project $project)
+    public function store(Request $request, SrTarget $srTarget)
     {
-        $this->authorize($project);
+        $this->authorizeSrTarget($srTarget);
 
         $request->validate([
             'name'  => 'required|string|max:80',
             'color' => 'nullable|string|regex:/^#[0-9a-fA-F]{6}$/',
         ]);
 
-        $maxOrder = $project->maintenanceFileCategories()->max('sort_order') ?? 0;
+        $maxOrder = $srTarget->maintenanceFileCategories()->max('sort_order') ?? 0;
 
-        $category = $project->maintenanceFileCategories()->create([
+        $category = $srTarget->maintenanceFileCategories()->create([
             'name'       => $request->name,
             'color'      => $request->color ?? '#7c3aed',
             'sort_order' => $maxOrder + 1,
@@ -28,20 +28,20 @@ class MaintenanceFileCategoryController extends Controller
         return response()->json(['ok' => true, 'category' => $category->only('id', 'name', 'color')]);
     }
 
-    public function destroy(Project $project, MaintenanceFileCategory $category)
+    public function destroy(SrTarget $srTarget, MaintenanceFileCategory $category)
     {
-        $this->authorize($project);
-        abort_unless($category->project_id === $project->id, 404);
+        $this->authorizeSrTarget($srTarget);
+        abort_unless($category->sr_target_id === $srTarget->id, 404);
 
         $category->delete();
 
         return response()->json(['ok' => true]);
     }
 
-    private function authorize(Project $project): void
+    private function authorizeSrTarget(SrTarget $srTarget): void
     {
         $user = auth()->user();
         if ($user->isAdmin()) return;
-        if (!$project->isMember($user)) abort(403);
+        if (!$srTarget->isAccessibleBy($user)) abort(403);
     }
 }

@@ -93,6 +93,8 @@ return [
     'col_name'           => 'Name',
     'col_email'          => 'Email',
     'col_role'           => 'Role',
+    'sr_agent_label'     => 'SR Agent',
+    'sr_agent_hint'      => 'When checked, the user can view all SRs and reply to / process them.',
     'col_company_group'  => 'Company Group',
     'col_company'        => 'Company',
     'col_joined'         => 'Joined',

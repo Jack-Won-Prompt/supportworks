@@ -15,7 +15,6 @@ $_pnItems = array_values(array_filter([
     ['key'=>'members',        'url'=>route('projects.members.index', $project),        'label'=>__('projects.members_btn'),   'feature'=>null,  'popup'=>true],
     ['key'=>'weekly-reports', 'url'=>route('projects.weekly-reports.index', $project), 'label'=>__('projects.nav_weekly_reports'), 'feature'=>'weekly_reports'],
     ['key'=>'leaves',         'url'=>route('projects.leaves.index', $project),         'label'=>__('projects.leave_days'),    'feature'=>'leaves'],
-    ['key'=>'maintenances',   'url'=>route('projects.maintenances.index', $project),   'label'=>__('projects.sr_receive'),    'feature'=>'sr'],
 ], fn($item) => $item['feature'] === null || $_pnUser->hasFeature($item['feature'])));
 @endphp
 

@@ -47,11 +47,10 @@
         if (m) m.style.display = 'none';
     };
 
-    window.mmRefine = function (textareaId, field, btn) {
-        const ta = document.getElementById(textareaId);
-        if (!ta) return;
-        const original = (ta.value || '').trim();
-        if (!original) { ta.focus(); alert('정제할 내용을 입력하세요.'); return; }
+    /* 공통 정제 실행 — 원문/적용 콜백만 다르게 */
+    function mmRunRefine(original, field, btn, applyFn) {
+        original = (original || '').trim();
+        if (!original) { alert('정제할 내용을 입력하세요.'); return; }
 
         const origHtml = btn.innerHTML;
         btn.disabled = true;
@@ -68,14 +67,31 @@
             document.getElementById('mm-refine-orig').textContent   = original;
             document.getElementById('mm-refine-result').textContent = d.refined;
             document.getElementById('mm-refine-apply').onclick = function () {
-                ta.value = d.refined;
-                ta.dispatchEvent(new Event('input'));
+                applyFn(d.refined);
                 mmCloseRefine();
             };
             document.getElementById('mm-refine-modal').style.display = 'flex';
         })
         .catch(e => alert('웍스 정제 실패: ' + e.message))
         .finally(() => { btn.disabled = false; btn.innerHTML = origHtml; });
+    }
+
+    /* textarea 정제 */
+    window.mmRefine = function (textareaId, field, btn) {
+        const ta = document.getElementById(textareaId);
+        if (!ta) return;
+        mmRunRefine(ta.value, field, btn, function (txt) {
+            ta.value = txt;
+            ta.dispatchEvent(new Event('input'));
+        });
+    };
+
+    /* Quill 에디터 정제 */
+    window.mmRefineQuill = function (quill, field, btn) {
+        if (!quill) { alert('정제할 내용을 입력하세요.'); return; }
+        mmRunRefine(quill.getText(), field, btn, function (txt) {
+            quill.setText(txt);
+        });
     };
 })();
 </script>

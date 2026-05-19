@@ -111,7 +111,7 @@ $statusBgs = [
             onclick="admOpenDetail(this.dataset.detailUrl)">
 
             <td style="padding:12px 16px;">
-                <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">{{ $item->project->name }}</div>
+                <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">{{ $item->srTarget?->title ?? $item->project?->name }}</div>
                 <div style="font-size:13px;font-weight:600;color:#0f172a;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                     @if($item->status === 'pending')
                     <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ef4444;margin-right:5px;vertical-align:middle;"></span>

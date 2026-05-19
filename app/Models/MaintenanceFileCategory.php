@@ -8,11 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MaintenanceFileCategory extends Model
 {
-    protected $fillable = ['project_id', 'name', 'color', 'sort_order'];
+    protected $fillable = ['project_id', 'sr_target_id', 'name', 'color', 'sort_order'];
 
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function srTarget(): BelongsTo
+    {
+        return $this->belongsTo(SrTarget::class);
     }
 
     public function files(): HasMany

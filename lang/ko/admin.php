@@ -93,6 +93,8 @@ return [
     'col_name'           => '이름',
     'col_email'          => '이메일',
     'col_role'           => '역할',
+    'sr_agent_label'     => 'SR 담당자',
+    'sr_agent_hint'      => '체크 시 모든 SR을 조회하고 SR 답변·상태 처리를 할 수 있습니다.',
     'col_company_group'  => '회사 그룹',
     'col_company'        => '회사',
     'col_joined'         => '가입일',

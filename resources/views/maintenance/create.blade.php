@@ -3,11 +3,9 @@
 @section('title', __('maintenance.sr_register'))
 
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('common.list') }}</a>
+<span style="color:#9ca3af;">{{ __('maintenance.sr_receipt') }}</span>
 <span>›</span>
-<a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
-<span>›</span>
-<a href="{{ route('projects.maintenances.index', $project) }}" class="hover:text-indigo-500 transition-colors">{{ __('maintenance.sr_receipt') }}</a>
+<a href="{{ route('sr-targets.maintenances.index', $srTarget) }}" class="hover:text-indigo-500 transition-colors">{{ $srTarget->title }}</a>
 <span>›</span>
 <span style="color:#374151;font-weight:500;">{{ __('maintenance.sr_register') }}</span>
 @endsection
@@ -19,10 +17,10 @@
 
         <div style="padding:20px 24px;border-bottom:1px solid #f3f4f6;background:linear-gradient(135deg,#faf5ff,#f5f3ff);">
             <h2 style="margin:0;font-size:16px;font-weight:700;color:#1e1b2e;">{{ __('maintenance.sr_register') }}</h2>
-            <p style="margin:4px 0 0;font-size:13px;color:#7c3aed;">{{ $project->name }}</p>
+            <p style="margin:4px 0 0;font-size:13px;color:#7c3aed;">{{ $srTarget->title }}</p>
         </div>
 
-        <form method="POST" action="{{ route('projects.maintenances.store', $project) }}" enctype="multipart/form-data" style="padding:24px;">
+        <form method="POST" action="{{ route('sr-targets.maintenances.store', $srTarget) }}" enctype="multipart/form-data" style="padding:24px;">
             @csrf
 
             {{-- 제목 --}}
@@ -57,8 +55,15 @@
 
             {{-- 내용 --}}
             <div style="margin-bottom:24px;">
-                <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">{{ __('maintenance.field_content') }} <span style="color:#ef4444;">*</span></label>
-                <textarea name="content" rows="8" required
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <label style="font-size:13px;font-weight:600;color:#374151;">{{ __('maintenance.field_content') }} <span style="color:#ef4444;">*</span></label>
+                    <button type="button" onclick="mmRefine('cr-content', null, this)"
+                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                        {{ __('maintenance.weeks_refine') }}
+                    </button>
+                </div>
+                <textarea name="content" id="cr-content" rows="8" required
                           placeholder="{{ __('maintenance.field_content') }}..."
                           style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:14px;color:#1e1b2e;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;line-height:1.7;transition:border-color .15s;"
                           onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e5e7eb'">{{ old('content') }}</textarea>
@@ -101,7 +106,7 @@
 
             {{-- 버튼 --}}
             <div style="display:flex;gap:10px;justify-content:flex-end;">
-                <a href="{{ route('projects.maintenances.index', $project) }}"
+                <a href="{{ route('sr-targets.maintenances.index', $srTarget) }}"
                    style="padding:10px 20px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:13px;font-weight:600;color:#6b7280;text-decoration:none;transition:background .15s;"
                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">{{ __('common.cancel') }}</a>
                 <button type="submit"
@@ -114,6 +119,8 @@
     </div>
 
 </div>
+
+@include('meeting-minutes._refine')
 @endsection
 
 @section('scripts')

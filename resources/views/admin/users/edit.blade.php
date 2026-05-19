@@ -42,6 +42,15 @@
                 </select>
             </div>
 
+            <div>
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" name="is_sr_agent" value="1" {{ old('is_sr_agent', $user->is_sr_agent) ? 'checked' : '' }}
+                           class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                    <span class="text-sm font-medium text-gray-700">{{ __('admin.sr_agent_label') }}</span>
+                </label>
+                <p class="text-xs text-gray-400 mt-1 ml-6">{{ __('admin.sr_agent_hint') }}</p>
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('admin.col_company') }}</label>

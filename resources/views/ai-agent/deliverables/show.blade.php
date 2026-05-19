@@ -1073,6 +1073,19 @@ async function mdInitPreviews() {
 }
 mdInitPreviews();
 
+/* 단일 textarea의 미리보기(보기) 패널 갱신 — 웍스 초안 생성 등 프로그램적 값 변경 시 호출 */
+function mdRefreshPreview(textarea) {
+    if (typeof marked === 'undefined' || !textarea) return;
+    const editor = textarea.closest('.md-editor');
+    if (!editor) return;
+    const previewPane = editor.querySelector('.md-preview-pane');
+    if (!previewPane) return;
+    const raw = (textarea.value || '').trim();
+    previewPane.innerHTML = raw
+        ? marked.parse(raw)
+        : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
+}
+
 // ── 좌측 패널 펼침/닫힘 (localStorage 기억, 기본 닫힘) ──
 (function() {
     const left = document.getElementById('dlv-left');
@@ -1650,6 +1663,7 @@ function applyPartialStream(accumulated) {
             if (el.value !== partial) {
                 el.value = partial;
                 el.style.borderColor = 'var(--t400)';
+                mdRefreshPreview(el);
             }
         }
     });
@@ -1760,7 +1774,11 @@ async function generateDraft() {
                         for (const [key, value] of Object.entries(fields)) {
                             const el = document.querySelector(`[data-field-key="${key}"]`) ||
                                        document.querySelector(`[name="fields[${key}]"]`);
-                            if (el && value) { el.value = value; applied++; }
+                            if (el && value) {
+                                el.value = value;
+                                applied++;
+                                if (el.tagName === 'TEXTAREA') mdRefreshPreview(el);
+                            }
                         }
 
                         // 스트리밍으로 이미 채워진 경우 카운트 (서버·클라이언트 파싱 모두 실패 시 fallback)
@@ -1770,7 +1788,7 @@ async function generateDraft() {
                             });
                         }
                         const providerBadge = data.provider
-                            ? ` <span style="font-size:10px;background:#ede8ff;color:#7c3aed;padding:1px 5px;border-radius:3px;">${data.provider}</span>`
+                            ? ` <span style="font-size:10px;background:#ede8ff;color:#7c3aed;padding:1px 5px;border-radius:3px;">웍스 실행</span>`
                             : '';
                         if (applied > 0) {
                             msgEl.innerHTML = LANG.ai_draft_ok.replace(':count', applied) + providerBadge
@@ -2930,51 +2948,92 @@ function dgrRender(btn) {
     }
 }
 
+/* ── SVG 내부 <image> 의 외부 참조를 data URL 로 인라인 (캔버스 오염 방지) ── */
+async function _inlineSvgImages(svgRoot) {
+    const XLINK = 'http://www.w3.org/1999/xlink';
+    const nodes = Array.from(svgRoot.querySelectorAll('image'));
+    await Promise.all(nodes.map(async (im) => {
+        const href = im.getAttribute('href') || im.getAttributeNS(XLINK, 'href') || '';
+        if (!href || href.startsWith('data:')) return;
+        try {
+            const resp = await fetch(href, { credentials: 'same-origin' });
+            if (!resp.ok) return;
+            const blob = await resp.blob();
+            const dataUrl = await new Promise((res, rej) => {
+                const fr = new FileReader();
+                fr.onload  = () => res(fr.result);
+                fr.onerror = rej;
+                fr.readAsDataURL(blob);
+            });
+            im.setAttribute('href', dataUrl);
+            try { im.removeAttributeNS(XLINK, 'href'); } catch (_) {}
+        } catch (_) { /* 가져오기 실패 시 원본 href 유지 */ }
+    }));
+}
+
 /* ── SVG → PNG base64 공통 헬퍼 ── */
 async function _svgElToPng(svgEl) {
     if (!svgEl) return null;
+
+    // 원본 전체 크기: viewBox 기준 (transform/zoom 상태와 무관)
+    let W = 0, H = 0;
+    try {
+        const vb = svgEl.getAttribute('viewBox');
+        if (vb) {
+            const p = vb.trim().split(/[\s,]+/);
+            if (p.length >= 4 && +p[2] > 0 && +p[3] > 0) { W = Math.round(+p[2]); H = Math.round(+p[3]); }
+        }
+        if (!W || !H) {
+            // fallback: transform 을 일시 제거 후 측정
+            const saved = svgEl.style.cssText;
+            svgEl.style.cssText = '';
+            const bb = svgEl.getBoundingClientRect();
+            W = Math.max(Math.round(bb.width), 400);
+            H = Math.max(Math.round(bb.height), 200);
+            svgEl.style.cssText = saved;
+        }
+    } catch (_) { W = W || 800; H = H || 400; }
+
+    // 클론 + 외부 이미지 인라인
+    let clone;
+    try {
+        clone = svgEl.cloneNode(true);
+        clone.setAttribute('width',  W);
+        clone.setAttribute('height', H);
+        clone.style.cssText    = '';        // pan-zoom 인라인 스타일 완전 제거
+        clone.style.background = '#ffffff';
+        await _inlineSvgImages(clone);
+    } catch (_) { return null; }
+
     return new Promise((resolve) => {
         try {
-            // 원본 전체 크기: viewBox 기준 (transform/zoom 상태와 무관)
-            let W = 0, H = 0;
-            const vb = svgEl.getAttribute('viewBox');
-            if (vb) {
-                const p = vb.trim().split(/[\s,]+/);
-                if (p.length >= 4 && +p[2] > 0 && +p[3] > 0) { W = Math.round(+p[2]); H = Math.round(+p[3]); }
-            }
-            if (!W || !H) {
-                // fallback: transform 을 일시 제거 후 측정
-                const saved = svgEl.style.cssText;
-                svgEl.style.cssText = '';
-                const bb = svgEl.getBoundingClientRect();
-                W = Math.max(Math.round(bb.width), 400);
-                H = Math.max(Math.round(bb.height), 200);
-                svgEl.style.cssText = saved;
-            }
-            const clone = svgEl.cloneNode(true);
-            clone.setAttribute('width',  W);
-            clone.setAttribute('height', H);
-            clone.style.cssText    = '';        // pan-zoom 인라인 스타일 완전 제거
-            clone.style.background = '#ffffff';
             const svgStr = new XMLSerializer().serializeToString(clone);
             const blob   = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
             const url    = URL.createObjectURL(blob);
             const img    = new Image();
+            img.crossOrigin = 'anonymous';
             img.onload = () => {
-                const scale = 2;
-                const cv    = document.createElement('canvas');
-                cv.width = W * scale; cv.height = H * scale;
-                const ctx = cv.getContext('2d');
-                ctx.scale(scale, scale);
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, W, H);
-                ctx.drawImage(img, 0, 0, W, H);
-                URL.revokeObjectURL(url);
-                resolve(cv.toDataURL('image/png').replace('data:image/png;base64,', ''));
+                try {
+                    const scale = 2;
+                    const cv    = document.createElement('canvas');
+                    cv.width = W * scale; cv.height = H * scale;
+                    const ctx = cv.getContext('2d');
+                    ctx.scale(scale, scale);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.drawImage(img, 0, 0, W, H);
+                    URL.revokeObjectURL(url);
+                    resolve(cv.toDataURL('image/png').replace('data:image/png;base64,', ''));
+                } catch (err) {
+                    // tainted canvas 등 — 크래시 없이 graceful 처리
+                    URL.revokeObjectURL(url);
+                    console.warn('[_svgElToPng] PNG 변환 실패:', err && err.message);
+                    resolve(null);
+                }
             };
             img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
             img.src = url;
-        } catch { resolve(null); }
+        } catch (_) { resolve(null); }
     });
 }
 

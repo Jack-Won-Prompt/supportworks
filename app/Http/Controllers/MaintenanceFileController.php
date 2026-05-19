@@ -7,8 +7,8 @@ use App\Events\FileCommentDeleted;
 use App\Models\FileAnnotation;
 use App\Models\MaintenanceFile;
 use App\Models\MaintenanceFileCategory;
-use App\Models\Project;
 use App\Models\ProjectMaintenance;
+use App\Models\SrTarget;
 use App\Models\FileComment;
 use App\Services\OfficeConverter;
 use Illuminate\Http\Request;
@@ -33,6 +33,7 @@ class MaintenanceFileController extends Controller
 
             MaintenanceFile::create([
                 'project_id'             => $maintenance->project_id,
+                'sr_target_id'           => $maintenance->sr_target_id,
                 'maintenance_id'         => $maintenance->id,
                 'uploaded_by'            => auth()->id(),
                 'original_name'          => $request->original_name,
@@ -57,10 +58,11 @@ class MaintenanceFileController extends Controller
 
         $uploaded   = $request->file('file');
         $storedName = Str::uuid() . '.' . $uploaded->getClientOriginalExtension();
-        $path       = $uploaded->storeAs("projects/{$maintenance->project_id}", $storedName, 'local');
+        $path       = $uploaded->storeAs("sr-targets/{$maintenance->sr_target_id}", $storedName, 'local');
 
         MaintenanceFile::create([
             'project_id'             => $maintenance->project_id,
+            'sr_target_id'           => $maintenance->sr_target_id,
             'maintenance_id'         => $maintenance->id,
             'uploaded_by'            => auth()->id(),
             'original_name'          => $uploaded->getClientOriginalName(),
@@ -153,71 +155,7 @@ class MaintenanceFileController extends Controller
         $this->authorize($maintenance);
         abort_if($maintenanceFile->maintenance_id !== $maintenance->id, 404);
 
-        $previewType = $maintenanceFile->previewType();
-        if (!$previewType) {
-            return response()->json(['error' => '미리보기 불가'], 422);
-        }
-
-        $ext = strtolower(pathinfo($maintenanceFile->original_name, PATHINFO_EXTENSION));
-
-        $originalServeUrl = URL::temporarySignedRoute(
-            'maintenance-files.serve',
-            now()->addHours(2),
-            ['maintenanceFile' => $maintenanceFile->id]
-        );
-
-        $serveUrl  = $originalServeUrl;
-        $viewerUrl = $originalServeUrl;
-        $hasPages  = in_array($previewType, ['office', 'pdf']);
-
-        if ($previewType === 'office') {
-            try {
-                set_time_limit(120);
-
-                if (!$maintenanceFile->converted_pdf_path || !Storage::disk('local')->exists($maintenanceFile->converted_pdf_path)) {
-                    $pdfPath = OfficeConverter::convertToPdf($maintenanceFile->path);
-                    $maintenanceFile->update(['converted_pdf_path' => $pdfPath]);
-                }
-
-                $pdfServeUrl = URL::temporarySignedRoute(
-                    'maintenance-files.serve-pdf',
-                    now()->addHours(2),
-                    ['maintenanceFile' => $maintenanceFile->id]
-                );
-
-                $serveUrl    = $pdfServeUrl;
-                $viewerUrl   = $pdfServeUrl;
-                $previewType = 'pdf';
-
-            } catch (\Exception $e) {
-                Log::error('[MF OfficeConverter] ' . $e->getMessage());
-                \App\Models\SystemErrorLog::record($e, 'warning');
-                $viewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' . urlencode($originalServeUrl);
-            }
-        }
-
-        $comments = $maintenanceFile->comments()
-            ->whereNull('parent_id')
-            ->with(['user', 'replies.user'])
-            ->orderBy('page')
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn($c) => $this->commentToArray($c));
-
-        $apiBase = url("maintenance-files/{$maintenanceFile->id}");
-
-        return response()->json([
-            'viewerUrl'        => $viewerUrl,
-            'serveUrl'         => $serveUrl,
-            'previewType'      => $previewType,
-            'hasPages'         => $hasPages,
-            'ext'              => $ext,
-            'fileName'         => $maintenanceFile->original_name,
-            'fileId'           => $maintenanceFile->id,
-            'comments'         => $comments,
-            'commentApiBase'   => $apiBase,
-            'annotationApiBase'=> $apiBase,
-        ]);
+        return $this->buildPreviewData($maintenanceFile);
     }
 
     public function serve(MaintenanceFile $maintenanceFile, Request $request)
@@ -248,11 +186,11 @@ class MaintenanceFileController extends Controller
         ]);
     }
 
-    // ── 프로젝트 레벨 (SR 미연결) ──────────────────────────────────────
+    // ── SR 대상 레벨 (SR 항목 미연결) ──────────────────────────────────
 
-    public function storeProject(Request $request, Project $project)
+    public function storeProject(Request $request, SrTarget $srTarget)
     {
-        $this->authorizeProject($project);
+        $this->authorizeSrTarget($srTarget);
 
         if ($request->input('file_type') === 'url') {
             $request->validate([
@@ -263,7 +201,8 @@ class MaintenanceFileController extends Controller
             ]);
 
             MaintenanceFile::create([
-                'project_id'             => $project->id,
+                'project_id'             => $srTarget->project_id,
+                'sr_target_id'           => $srTarget->id,
                 'maintenance_id'         => null,
                 'uploaded_by'            => auth()->id(),
                 'original_name'          => $request->original_name,
@@ -288,10 +227,11 @@ class MaintenanceFileController extends Controller
 
         $uploaded   = $request->file('file');
         $storedName = Str::uuid() . '.' . $uploaded->getClientOriginalExtension();
-        $path       = $uploaded->storeAs("projects/{$project->id}", $storedName, 'local');
+        $path       = $uploaded->storeAs("sr-targets/{$srTarget->id}", $storedName, 'local');
 
         MaintenanceFile::create([
-            'project_id'             => $project->id,
+            'project_id'             => $srTarget->project_id,
+            'sr_target_id'           => $srTarget->id,
             'maintenance_id'         => null,
             'uploaded_by'            => auth()->id(),
             'original_name'          => $uploaded->getClientOriginalName(),
@@ -306,10 +246,10 @@ class MaintenanceFileController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function downloadProject(Project $project, MaintenanceFile $maintenanceFile)
+    public function downloadProject(SrTarget $srTarget, MaintenanceFile $maintenanceFile)
     {
-        $this->authorizeProject($project);
-        abort_if($maintenanceFile->project_id !== $project->id, 404);
+        $this->authorizeSrTarget($srTarget);
+        abort_if($maintenanceFile->sr_target_id !== $srTarget->id, 404);
 
         if (!Storage::disk('local')->exists($maintenanceFile->path)) {
             abort(404, '파일을 찾을 수 없습니다.');
@@ -318,10 +258,10 @@ class MaintenanceFileController extends Controller
         return Storage::disk('local')->download($maintenanceFile->path, $maintenanceFile->original_name);
     }
 
-    public function destroyProject(Project $project, MaintenanceFile $maintenanceFile)
+    public function destroyProject(SrTarget $srTarget, MaintenanceFile $maintenanceFile)
     {
-        $this->authorizeProject($project);
-        abort_if($maintenanceFile->project_id !== $project->id, 404);
+        $this->authorizeSrTarget($srTarget);
+        abort_if($maintenanceFile->sr_target_id !== $srTarget->id, 404);
 
         if ($maintenanceFile->uploaded_by !== auth()->id() && !auth()->user()->isAdmin()) {
             abort(403);
@@ -336,10 +276,10 @@ class MaintenanceFileController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function toggleShareProject(Project $project, MaintenanceFile $maintenanceFile)
+    public function toggleShareProject(SrTarget $srTarget, MaintenanceFile $maintenanceFile)
     {
-        $this->authorizeProject($project);
-        abort_if($maintenanceFile->project_id !== $project->id, 404);
+        $this->authorizeSrTarget($srTarget);
+        abort_if($maintenanceFile->sr_target_id !== $srTarget->id, 404);
         abort_unless($maintenanceFile->isShareable(), 422);
 
         if ($maintenanceFile->share_token) {
@@ -358,11 +298,37 @@ class MaintenanceFileController extends Controller
         ]);
     }
 
-    public function previewDataProject(Project $project, MaintenanceFile $maintenanceFile)
+    public function previewDataProject(SrTarget $srTarget, MaintenanceFile $maintenanceFile)
     {
-        $this->authorizeProject($project);
-        abort_if($maintenanceFile->project_id !== $project->id, 404);
+        $this->authorizeSrTarget($srTarget);
+        abort_if($maintenanceFile->sr_target_id !== $srTarget->id, 404);
 
+        return $this->buildPreviewData($maintenanceFile);
+    }
+
+    public function updateCategoryProject(Request $request, SrTarget $srTarget, MaintenanceFile $maintenanceFile)
+    {
+        $this->authorizeSrTarget($srTarget);
+        abort_if($maintenanceFile->sr_target_id !== $srTarget->id, 404);
+
+        $request->validate([
+            'maintenance_category_id' => 'nullable|integer|exists:maintenance_file_categories,id',
+        ]);
+
+        $catId = $request->maintenance_category_id ?: null;
+        $maintenanceFile->update(['maintenance_category_id' => $catId]);
+
+        $cat = $catId ? MaintenanceFileCategory::find($catId) : null;
+
+        return response()->json([
+            'ok'    => true,
+            'name'  => $cat?->name,
+            'color' => $cat?->color,
+        ]);
+    }
+
+    private function buildPreviewData(MaintenanceFile $maintenanceFile)
+    {
         $previewType = $maintenanceFile->previewType();
         if (!$previewType) {
             return response()->json(['error' => '미리보기 불가'], 422);
@@ -427,27 +393,6 @@ class MaintenanceFileController extends Controller
             'comments'         => $comments,
             'commentApiBase'   => $apiBase,
             'annotationApiBase'=> $apiBase,
-        ]);
-    }
-
-    public function updateCategoryProject(Request $request, Project $project, MaintenanceFile $maintenanceFile)
-    {
-        $this->authorizeProject($project);
-        abort_if($maintenanceFile->project_id !== $project->id, 404);
-
-        $request->validate([
-            'maintenance_category_id' => 'nullable|integer|exists:maintenance_file_categories,id',
-        ]);
-
-        $catId = $request->maintenance_category_id ?: null;
-        $maintenanceFile->update(['maintenance_category_id' => $catId]);
-
-        $cat = $catId ? MaintenanceFileCategory::find($catId) : null;
-
-        return response()->json([
-            'ok'    => true,
-            'name'  => $cat?->name,
-            'color' => $cat?->color,
         ]);
     }
 
@@ -580,14 +525,15 @@ class MaintenanceFileController extends Controller
     {
         $user = auth()->user();
         if ($user->isAdmin()) return;
-        if (!$file->project->isMember($user)) abort(403, '접근 권한이 없습니다.');
+        $srTarget = $file->srTarget;
+        if (!$srTarget || !$srTarget->isAccessibleBy($user)) abort(403, '접근 권한이 없습니다.');
     }
 
-    private function authorizeProject(Project $project): void
+    private function authorizeSrTarget(SrTarget $srTarget): void
     {
         $user = auth()->user();
         if ($user->isAdmin()) return;
-        if (!$project->isMember($user)) abort(403, '접근 권한이 없습니다.');
+        if (!$srTarget->isAccessibleBy($user)) abort(403, '접근 권한이 없습니다.');
     }
 
     private function commentToArray(FileComment $c): array
@@ -625,6 +571,7 @@ class MaintenanceFileController extends Controller
     {
         $user = auth()->user();
         if ($user->isAdmin()) return;
-        if (!$maintenance->project->isMember($user)) abort(403);
+        $srTarget = $maintenance->srTarget;
+        if (!$srTarget || !$srTarget->isAccessibleBy($user)) abort(403);
     }
 }

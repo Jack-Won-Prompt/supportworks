@@ -13,7 +13,17 @@ return [
     'sr_empty_gantt'        => 'No SR items found.',
     'sr_register_first'     => 'Create first request →',
 
+    // ── SR Reply (SR Agent)
+    'sr_reply_btn'          => 'Reply to SR',
+    'sr_reply_popover_title'=> 'Reply to SR',
+    'sr_reply_request'      => 'SR Request',
+    'sr_reply_placeholder'  => 'Enter your reply...',
+    'sr_reply_process'      => 'Submit Reply',
+    'weeks_refine'          => 'Weeks Refine',
+    'sr_reply_need_input'   => 'Enter a reply or change the status.',
+
     // ── Status
+    'field_status'          => 'Status',
     'status_pending'        => 'Received',
     'status_in_progress'    => 'In Progress',
     'status_completed'      => 'Completed',
@@ -34,6 +44,7 @@ return [
     'col_scheduled_date'    => 'Scheduled Date',
     'col_replies'           => 'Replies',
     'col_created_at'        => 'Registered',
+    'col_manage'            => 'Manage',
 
     // ── View toggle
     'view_list'             => 'List',
@@ -130,6 +141,7 @@ return [
 
     // ── Admin
     'admin_label'           => 'Admin',
+    'sr_agent_badge'        => 'Agent',
     'admin_schedule'        => 'Set Scheduled Date',
 
     // ── Confirm messages
