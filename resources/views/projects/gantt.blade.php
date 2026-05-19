@@ -602,6 +602,23 @@ for ($_yr = 2023; $_yr <= 2028; $_yr++) {
     $_allHolidays = array_merge($_allHolidays, array_keys(\App\Helpers\KoreanHolidays::getHolidays($_yr)));
 }
 $_allHolidays = array_values(array_unique($_allHolidays));
+$_gnStatusLabels = [
+    'not_started' => __('projects.gantt_status_not_started'),
+    'in_progress' => __('projects.gantt_status_in_progress'),
+    'completed'   => __('projects.gantt_status_completed'),
+    'blocked'     => __('projects.gantt_status_blocked'),
+];
+$_gnExcelCols = [
+    __('projects.excel_col_no'),
+    __('projects.excel_col_group'),
+    __('projects.excel_col_task'),
+    __('projects.excel_col_status'),
+    __('projects.excel_col_assignee'),
+    __('projects.excel_col_start'),
+    __('projects.excel_col_end'),
+    __('projects.excel_col_progress'),
+    __('projects.excel_col_duration'),
+];
 @endphp
 <script>
 const GANTT_STR = {
@@ -615,23 +632,8 @@ const GANTT_STR = {
     networkError:    @json(__('projects.network_error')),
     excelSheetName:  @json(__('projects.excel_sheet_name')),
     excelFileSuffix: @json(__('projects.excel_file_suffix')),
-    statusLabels:    @json([
-        'not_started' => __('projects.gantt_status_not_started'),
-        'in_progress' => __('projects.gantt_status_in_progress'),
-        'completed'   => __('projects.gantt_status_completed'),
-        'blocked'     => __('projects.gantt_status_blocked'),
-    ]),
-    excelCols:       @json([
-        __('projects.excel_col_no'),
-        __('projects.excel_col_group'),
-        __('projects.excel_col_task'),
-        __('projects.excel_col_status'),
-        __('projects.excel_col_assignee'),
-        __('projects.excel_col_start'),
-        __('projects.excel_col_end'),
-        __('projects.excel_col_progress'),
-        __('projects.excel_col_duration'),
-    ]),
+    statusLabels:    @json($_gnStatusLabels),
+    excelCols:       @json($_gnExcelCols),
 };
 // ─── Data ────────────────────────────────────────────────────────────────────
 const ALL_TASKS          = @json($ganttTasks);

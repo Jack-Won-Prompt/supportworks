@@ -206,18 +206,6 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <div style="font-size:10px;color:#a5b4c8;">{{ __('dashboard.stat_awaiting_answer') }}</div>
                     </div>
 
-                    {{-- 웍스 대화 --}}
-                    <div style="background:linear-gradient(135deg,#1e1b2e 0%,#312e6e 100%);border:1px solid #3d3880;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:10px;font-weight:600;color:#a5b4c8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_ai_chat') }}</span>
-                            <div style="width:28px;height:28px;background:rgba(167,139,250,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                                <svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.414 2.798H4.213c-1.444 0-2.414-1.798-1.414-2.798L4.8 15.3"/></svg>
-                            </div>
-                        </div>
-                        <div style="font-size:26px;font-weight:800;color:#fff;line-height:1;">{{ $totalAiSessions }}</div>
-                        <div style="font-size:10px;color:#a5b4c8;">{{ __('dashboard.stat_ai_sessions') }}</div>
-                    </div>
-
 </div>{{-- /gs-kpi-grid --}}
 
 <div class="grid-stack" id="dashboard-grid">
@@ -564,57 +552,6 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <a href="{{ route('meeting-minutes.index') }}?new=1" style="color:var(--t500);font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;display:inline-block;">{{ __('dashboard.write_minutes') }}</a>
                     </div>
                     @endforelse
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ═══════════════════════════════════════════
-         WIDGET: 웍스 최근 대화
-    ═══════════════════════════════════════════ --}}
-    <div class="grid-stack-item" gs-id="ai-chat" gs-x="8" gs-y="0" gs-w="4" gs-h="8" gs-min-w="2" gs-min-h="3">
-        <div class="grid-stack-item-content">
-            <div class="gs-card gs-card-dark">
-                <div class="gs-drag-handle">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:28px;height:28px;background:rgba(167,139,250,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.414 2.798H4.213c-1.444 0-2.414-1.798-1.414-2.798L4.8 15.3"/></svg>
-                        </div>
-                        <span style="font-size:13px;font-weight:700;color:#e2e8f0;">{{ __('dashboard.ai_recent_chat') }}</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <a href="{{ route('ai.index') }}" style="font-size:12px;color:#a78bfa;text-decoration:none;font-weight:600;">{{ __('dashboard.view_all') }}</a>
-                        <svg class="gs-grip" width="14" height="14" fill="#6b7a9e" viewBox="0 0 14 14">
-                            <circle cx="3" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
-                            <circle cx="3" cy="7" r="1.5"/><circle cx="11" cy="7" r="1.5"/>
-                            <circle cx="3" cy="11" r="1.5"/><circle cx="11" cy="11" r="1.5"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="gs-card-body">
-                    @forelse($recentAiSessions as $session)
-                    <a href="{{ route('ai.index', ['session' => $session->id]) }}" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);text-decoration:none;" class="ai-row-hover">
-                        <div style="width:32px;height:32px;background:rgba(167,139,250,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <svg width="13" height="13" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                        </div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:12px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $session->title ?: __('dashboard.new_chat_title') }}</div>
-                            <div style="font-size:10px;color:#6b7a9e;margin-top:2px;">{{ __('dashboard.messages_count') }} {{ $session->messages_count }}{{ __('dashboard.count_messages') }} · {{ $session->updated_at->diffForHumans() }}</div>
-                        </div>
-                        @if($session->is_shared)
-                        <span style="font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(167,139,250,.2);color:#a78bfa;flex-shrink:0;">{{ __('dashboard.shared_badge') }}</span>
-                        @endif
-                    </a>
-                    @empty
-                    <div style="text-align:center;padding:20px 0;color:#6b7a9e;font-size:12px;">
-                        <div style="font-size:22px;margin-bottom:6px;">🤖</div>
-                        {{ __('dashboard.no_ai_chats') }}<br>
-                        <a href="{{ route('ai.index') }}" style="color:#a78bfa;font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;display:inline-block;">{{ __('dashboard.start_ai_chat') }}</a>
-                    </div>
-                    @endforelse
-                    <a href="{{ route('ai.index') }}" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:8px;border:1.5px dashed rgba(167,139,250,.3);border-radius:8px;font-size:12px;font-weight:600;color:#a78bfa;text-decoration:none;margin-top:10px;">
-                        {{ __('dashboard.new_chat_btn') }}
-                    </a>
                 </div>
             </div>
         </div>

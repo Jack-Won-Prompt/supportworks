@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActionItem;
-use App\Models\AiSession;
 use App\Models\CommunityPost;
 use App\Models\Discussion;
 use App\Models\MeetingMinute;
@@ -101,13 +100,6 @@ class DashboardController extends Controller
             ->whereYear('meeting_date', now()->year)
             ->count();
 
-        $recentAiSessions = AiSession::where('user_id', $user->id)
-            ->withCount('messages')
-            ->latest()
-            ->take(4)->get();
-
-        $totalAiSessions = AiSession::where('user_id', $user->id)->count();
-
         $pendingActionItems = $pendingActions->count();
         $todoTasks = $myTasks->count();
 
@@ -134,7 +126,6 @@ class DashboardController extends Controller
             'calendarMeetings', 'calendarDiscussions',
             'pendingActions', 'myTasks',
             'recentMinutes', 'minutesThisMonth',
-            'recentAiSessions', 'totalAiSessions',
             'pendingActionItems', 'todoTasks',
             'recentCommunityPosts', 'recentFiles'
         ));
