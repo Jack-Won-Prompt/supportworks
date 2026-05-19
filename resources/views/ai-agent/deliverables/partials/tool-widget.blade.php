@@ -80,13 +80,14 @@
             @if(!$isPending || $iAmRequester)
             @if(!$isApproved)
             <div id="approve-form-{{ $stepNo }}">
-                <div style="font-size:11px;color:#64748b;margin-bottom:6px;">
-                    @if($isRejected) {{ __('deliverables.approve_hint_rejected') }}
-                    @elseif($isPending && $iAmRequester) {{ __('deliverables.approve_hint_pending') }}
-                    @else {{ __('deliverables.approve_hint_select') }}
-                    @endif
-                </div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                {{-- 안내 문구 · 승인자 선택 · 버튼 — 같은 칸(한 줄) --}}
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <span style="font-size:11px;color:#64748b;flex-shrink:0;">
+                        @if($isRejected) {{ __('deliverables.approve_hint_rejected') }}
+                        @elseif($isPending && $iAmRequester) {{ __('deliverables.approve_hint_pending') }}
+                        @else {{ __('deliverables.approve_hint_select') }}
+                        @endif
+                    </span>
                     <select id="approver-select-{{ $stepNo }}"
                             class="dlv-textarea"
                             style="flex:1;min-width:140px;height:32px;padding:4px 8px;font-size:11.5px;min-height:unset;">
@@ -99,7 +100,7 @@
                     </select>
                     <button type="button"
                             class="dlv-btn dlv-btn-outline"
-                            style="font-size:11.5px;padding:5px 12px;white-space:nowrap;"
+                            style="font-size:11.5px;padding:5px 12px;white-space:nowrap;flex-shrink:0;"
                             onclick="dlvApprovalRequest({{ $stepNo }})">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:-1px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         {{ __('deliverables.tool_approve') }}
