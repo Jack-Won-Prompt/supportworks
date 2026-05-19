@@ -51,9 +51,13 @@ class MessageController extends Controller
 
         $conversation->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
 
+        // 메시지별 Plan-Do-Act 등록 여부 매핑 (message_id => plan_do_act_id)
+        $pdaMap = \App\Models\PlanDoAct::whereIn('source_message_id', $messages->pluck('id'))
+            ->pluck('id', 'source_message_id');
+
         return response()->json([
             'conversation' => $this->conversationResource($conversation->load(['participants', 'lastMessage.sender']), $user),
-            'messages'     => $messages->map(fn($m) => $this->messageResource($m)),
+            'messages'     => $messages->map(fn($m) => $this->messageResource($m, $pdaMap)),
         ]);
     }
 
@@ -194,13 +198,14 @@ class MessageController extends Controller
         ];
     }
 
-    private function messageResource(Message $m): array
+    private function messageResource(Message $m, $pdaMap = null): array
     {
         return [
-            'id'          => $m->id,
-            'body'        => $m->body,
-            'sender'      => $m->sender ? ['id' => $m->sender->id, 'name' => $m->sender->name] : null,
-            'created_at'  => $m->created_at,
+            'id'             => $m->id,
+            'body'           => $m->body,
+            'sender'         => $m->sender ? ['id' => $m->sender->id, 'name' => $m->sender->name] : null,
+            'created_at'     => $m->created_at,
+            'plan_do_act_id' => $pdaMap ? ($pdaMap[$m->id] ?? null) : null,
             'file_url'    => $m->fileUrl(),
             'file_name'   => $m->file_name,
             'file_size'   => $m->formattedSize(),

@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\Mobile\MeetingRecordingController as MobileMeetingR
 use App\Http\Controllers\Api\Mobile\MyWorkController as MobileMyWorkController;
 use App\Http\Controllers\Api\Mobile\MemoController as MobileMemoController;
 use App\Http\Controllers\Api\Mobile\MessageController as MobileMessageController;
+use App\Http\Controllers\Api\Mobile\PlanDoActController as MobilePlanDoActController;
 use App\Http\Controllers\Api\Mobile\ProjectController as MobileProjectController;
 use App\Http\Controllers\Api\Mobile\QuestionController as MobileQuestionController;
 use App\Http\Controllers\Api\Mobile\ScheduleController as MobileScheduleController;
@@ -248,6 +249,13 @@ Route::prefix('mobile')->group(function () {
         Route::post('messages',                              [MobileMessageController::class, 'store']);
         Route::post('messages/group',                        [MobileMessageController::class, 'storeGroup']);
         Route::get ('messages/users',                        [MobileMessageController::class, 'users']);
+
+        // Plan-Do-Act (채팅 메시지 기반 PDCA) — messages/{conversation} 보다 먼저 등록
+        Route::post  ('plan-do-acts',               [MobilePlanDoActController::class, 'store']);
+        Route::get   ('plan-do-acts/{planDoAct}',   [MobilePlanDoActController::class, 'show']);
+        Route::patch ('plan-do-acts/{planDoAct}',   [MobilePlanDoActController::class, 'update']);
+        Route::delete('plan-do-acts/{planDoAct}',   [MobilePlanDoActController::class, 'destroy']);
+
         Route::get ('messages/{conversation}',               [MobileMessageController::class, 'show']);
         Route::post('messages/{conversation}/reply',         [MobileMessageController::class, 'reply']);
 
