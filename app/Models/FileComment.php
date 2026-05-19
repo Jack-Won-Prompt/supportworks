@@ -9,12 +9,14 @@ class FileComment extends Model
     protected $fillable = [
         'project_file_id', 'user_id', 'guest_name', 'page', 'video_time', 'content', 'parent_id',
         'resolved', 'resolved_at', 'resolved_by', 'resolved_at_version', 'frozen_at_version',
+        'reflected_at', 'reflected_by',
     ];
 
     protected $casts = [
-        'video_time'  => 'float',
-        'resolved'    => 'boolean',
-        'resolved_at' => 'datetime',
+        'video_time'   => 'float',
+        'resolved'     => 'boolean',
+        'resolved_at'  => 'datetime',
+        'reflected_at' => 'datetime',
     ];
 
     public function file()
@@ -35,5 +37,10 @@ class FileComment extends Model
     public function parent()
     {
         return $this->belongsTo(FileComment::class, 'parent_id');
+    }
+
+    public function reflectedBy()
+    {
+        return $this->belongsTo(User::class, 'reflected_by');
     }
 }

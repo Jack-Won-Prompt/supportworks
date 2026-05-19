@@ -347,4 +347,21 @@ return [
     'ps_empty_step'         => '이 단계는 입력 필드가 없습니다.',
     'ps_empty_field'        => '(미입력)',
     'ps_footer'             => '공유 링크로 접근한 읽기 전용 뷰어입니다. · SupportWorks',
+
+    // ── 등록 파일 의견 팝오버 ─────────────────────────────
+    'fc_button'             => '의견',
+    'fc_title'              => '등록 파일 의견',
+    'fc_subtitle'           => '산출물에 등록된 파일의 의견을 버전별로 확인합니다.',
+    'fc_version'            => '버전 :n',
+    'fc_empty'              => '등록된 파일 의견이 없습니다.',
+    'fc_empty_hint'         => '마지막 STEP에서 파일로 등록하면 해당 파일의 의견이 여기에 표시됩니다.',
+    'fc_loading'            => '불러오는 중…',
+    'fc_load_failed'        => '의견을 불러오지 못했습니다.',
+    'fc_resolved'           => '해결됨',
+    'fc_reply_count'        => '답글 :n',
+    'fc_reflect'            => '반영',
+    'fc_reflected'          => '반영됨',
+    'fc_reflected_by'       => ':name 반영 · :date',
+    'fc_reflect_failed'     => '반영 처리에 실패했습니다.',
+    'fc_reply_no_reflect'   => '답글은 반영 처리할 수 없습니다.',
 ];

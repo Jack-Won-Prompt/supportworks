@@ -347,4 +347,21 @@ return [
     'ps_empty_step'         => 'This step has no input fields.',
     'ps_empty_field'        => '(No content)',
     'ps_footer'             => 'Read-only viewer accessed via share link. · SupportWorks',
+
+    // ── Registered file comments popover ─────────────────
+    'fc_button'             => 'Comments',
+    'fc_title'              => 'Registered File Comments',
+    'fc_subtitle'           => 'Review comments on the registered file by version.',
+    'fc_version'            => 'Version :n',
+    'fc_empty'              => 'No file comments yet.',
+    'fc_empty_hint'         => 'Register the deliverable as a file in the last STEP to see its comments here.',
+    'fc_loading'            => 'Loading…',
+    'fc_load_failed'        => 'Failed to load comments.',
+    'fc_resolved'           => 'Resolved',
+    'fc_reply_count'        => 'Replies :n',
+    'fc_reflect'            => 'Reflect',
+    'fc_reflected'          => 'Reflected',
+    'fc_reflected_by'       => 'Reflected by :name · :date',
+    'fc_reflect_failed'     => 'Failed to update reflection status.',
+    'fc_reply_no_reflect'   => 'Replies cannot be marked as reflected.',
 ];

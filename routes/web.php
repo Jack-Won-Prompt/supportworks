@@ -762,6 +762,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::get   ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsIndex'])  ->name('viewer-comments.index');
                 Route::post  ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsStore'])  ->name('viewer-comments.store');
                 Route::delete('/{typeId}/viewer-comments/{comment}', [DeliverableController::class, 'viewerCommentsDestroy'])->name('viewer-comments.destroy');
+                // 등록 파일 의견 (모든 STEP 팝오버) — 버전별 확인 + 반영 처리
+                Route::get ('/{typeId}/file-comments',                    [DeliverableController::class, 'registeredFileComments'])->name('file-comments.index');
+                Route::post('/{typeId}/file-comments/{comment}/reflect',  [DeliverableController::class, 'reflectFileComment'])    ->name('file-comments.reflect');
             });
 
             // 기획 단계

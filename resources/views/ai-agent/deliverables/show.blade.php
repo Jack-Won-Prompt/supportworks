@@ -359,6 +359,16 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                 </div>
                 <span class="dlv-resp {{ $typeDef['responsibility'] === 'A+B' ? 'ab' : 'b' }}" style="font-size:11px;padding:2px 8px;">{{ $typeDef['responsibility'] }}</span>
                 <span style="font-size:11px;color:#94a3b8;">{{ $stepNo }}/{{ $totalSteps }}</span>
+                {{-- 등록 파일 의견 팝오버 버튼 — 모든 STEP에 표시 --}}
+                <button type="button" id="dlv-fc-btn" onclick="dlvToggleFileComments(event)"
+                        title="{{ __('deliverables.fc_title') }}"
+                        style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;transition:all .12s;"
+                        onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'"
+                        onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    {{ __('deliverables.fc_button') }}
+                    <span id="dlv-fc-badge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;padding:0 4px;border-radius:8px;line-height:16px;text-align:center;"></span>
+                </button>
             </div>
             {{-- 단계 점 인디케이터 --}}
             <div class="dlv-step-dots">
@@ -838,6 +848,18 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
     </div>
 
 </div>
+</div>
+{{-- ════ 등록 파일 의견 팝오버 (모든 STEP) ════ --}}
+<div id="dlv-fc-pop" style="display:none;position:fixed;z-index:9500;width:440px;max-width:calc(100vw - 24px);max-height:72vh;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 18px 50px rgba(15,10,40,.28);flex-direction:column;overflow:hidden;">
+    <div style="padding:13px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:flex-start;gap:8px;flex-shrink:0;">
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:13.5px;font-weight:800;color:#1e1b2e;">{{ __('deliverables.fc_title') }}</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">{{ __('deliverables.fc_subtitle') }}</div>
+        </div>
+        <button type="button" onclick="dlvCloseFileComments()" style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">&times;</button>
+    </div>
+    <div id="dlv-fc-tabs" style="display:none;gap:5px;padding:8px 12px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;flex-shrink:0;"></div>
+    <div id="dlv-fc-body" style="flex:1;overflow-y:auto;min-height:0;"></div>
 </div>
 @endsection
 
@@ -3580,5 +3602,191 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         }, 600);
     });
 });
+</script>
+@endpush
+
+@push('scripts')
+{{-- ════ 등록 파일 의견 팝오버 ════ --}}
+<script>
+(function(){
+    const DLV_FC_URL  = @json(route('ai-agent.projects.deliverables.file-comments.index', ['project' => $project->id, 'typeId' => $typeId]));
+    const DLV_FC_CSRF = '{{ csrf_token() }}';
+    const DLV_FC_T = {
+        version:        @json(__('deliverables.fc_version')),
+        empty:          @json(__('deliverables.fc_empty')),
+        empty_hint:     @json(__('deliverables.fc_empty_hint')),
+        loading:        @json(__('deliverables.fc_loading')),
+        load_failed:    @json(__('deliverables.fc_load_failed')),
+        resolved:       @json(__('deliverables.fc_resolved')),
+        reflect:        @json(__('deliverables.fc_reflect')),
+        reflected:      @json(__('deliverables.fc_reflected')),
+        reflected_by:   @json(__('deliverables.fc_reflected_by')),
+        reflect_failed: @json(__('deliverables.fc_reflect_failed')),
+    };
+    let _dlvFcOpen = false, _dlvFcUnreflected = 0;
+    const $fc = id => document.getElementById(id);
+    const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    function dlvUpdateFcBadge(n){
+        _dlvFcUnreflected = Math.max(0, n);
+        const b = $fc('dlv-fc-badge'); if(!b) return;
+        if (_dlvFcUnreflected > 0){ b.textContent = _dlvFcUnreflected; b.style.display = 'inline-block'; }
+        else { b.style.display = 'none'; }
+    }
+
+    function dlvPositionFcPop(){
+        const btn = $fc('dlv-fc-btn'), pop = $fc('dlv-fc-pop');
+        if(!btn || !pop) return;
+        const r = btn.getBoundingClientRect();
+        let left = Math.max(12, r.right - pop.offsetWidth);
+        left = Math.min(left, window.innerWidth - pop.offsetWidth - 12);
+        pop.style.left = left + 'px';
+        pop.style.top  = (r.bottom + 8) + 'px';
+    }
+
+    window.dlvCloseFileComments = function(){
+        _dlvFcOpen = false;
+        const p = $fc('dlv-fc-pop'); if(p) p.style.display = 'none';
+    };
+
+    window.dlvToggleFileComments = function(ev){
+        if(ev) ev.stopPropagation();
+        if(_dlvFcOpen){ dlvCloseFileComments(); return; }
+        _dlvFcOpen = true;
+        $fc('dlv-fc-pop').style.display = 'flex';
+        dlvPositionFcPop();
+        dlvLoadFileComments();
+    };
+
+    function dlvLoadFileComments(){
+        const body = $fc('dlv-fc-body');
+        body.innerHTML = `<div style="padding:26px;text-align:center;color:#94a3b8;font-size:12px;">${esc(DLV_FC_T.loading)}</div>`;
+        fetch(DLV_FC_URL, {headers:{'Accept':'application/json'}})
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(d => { dlvRenderFileComments(d); dlvUpdateFcBadge(d.unreflected||0); })
+            .catch(() => { body.innerHTML = `<div style="padding:26px;text-align:center;color:#ef4444;font-size:12px;">${esc(DLV_FC_T.load_failed)}</div>`; });
+    }
+
+    let _dlvFcGroups = {}, _dlvFcActiveV = null;
+
+    function dlvRenderFileComments(d){
+        const body = $fc('dlv-fc-body'), tabs = $fc('dlv-fc-tabs');
+        const comments = d.comments || [];
+        _dlvFcGroups = {};
+        if(!comments.length){
+            tabs.style.display = 'none';
+            body.innerHTML = `<div style="padding:32px 22px;text-align:center;color:#94a3b8;">
+                <div style="font-size:26px;margin-bottom:6px;">💬</div>
+                <div style="font-size:12.5px;color:#64748b;">${esc(DLV_FC_T.empty)}</div>
+                <div style="font-size:11px;margin-top:4px;">${esc(DLV_FC_T.empty_hint)}</div></div>`;
+            return;
+        }
+        comments.forEach(c => { (_dlvFcGroups[c.version] = _dlvFcGroups[c.version] || []).push(c); });
+        const versions = Object.keys(_dlvFcGroups).map(Number).sort((a,b) => b-a);
+        _dlvFcActiveV = versions.includes(_dlvFcActiveV) ? _dlvFcActiveV : versions[0];
+        dlvBuildFcTabs();
+        dlvRenderFcList();
+    }
+
+    function dlvBuildFcTabs(){
+        const tabs = $fc('dlv-fc-tabs');
+        const versions = Object.keys(_dlvFcGroups).map(Number).sort((a,b) => b-a);
+        tabs.style.display = 'flex';
+        tabs.innerHTML = versions.map(v => {
+            const on  = (v === _dlvFcActiveV);
+            const cnt = (_dlvFcGroups[v] || []).length;
+            const style = on
+                ? 'background:var(--t600);color:#fff;border:1px solid var(--t600);'
+                : 'background:#fff;color:#64748b;border:1px solid #e2e8f0;';
+            return `<button type="button" onclick="dlvShowFcVersion(${v})" style="${style}font-size:11px;font-weight:700;border-radius:6px;padding:3px 10px;cursor:pointer;">${esc(DLV_FC_T.version.replace(':n', v))} · ${cnt}</button>`;
+        }).join('');
+    }
+
+    window.dlvShowFcVersion = function(v){
+        _dlvFcActiveV = v;
+        dlvBuildFcTabs();
+        dlvRenderFcList();
+    };
+
+    function dlvRenderFcList(){
+        const list = _dlvFcGroups[_dlvFcActiveV] || [];
+        $fc('dlv-fc-body').innerHTML = list.map(c => dlvFcCommentHtml(c)).join('');
+    }
+
+    function dlvFcRefText(name, date){
+        return DLV_FC_T.reflected_by.replace(':name', name||'').replace(':date', date||'');
+    }
+
+    function dlvFcReflectBtn(c){
+        const on = !!c.reflected;
+        const style = on
+            ? 'background:#16a34a;color:#fff;border:1px solid #16a34a;'
+            : 'background:#fff;color:#7c3aed;border:1px solid #ddd6fe;';
+        const label = on ? ('✓ ' + DLV_FC_T.reflected) : DLV_FC_T.reflect;
+        return `<button type="button" onclick="dlvReflectComment(${c.id},this)" style="${style}font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 9px;cursor:pointer;white-space:nowrap;">${esc(label)}</button>`;
+    }
+
+    function dlvFcCommentHtml(c){
+        const resolvedBadge = c.resolved
+            ? `<span style="font-size:10px;font-weight:700;color:#16a34a;background:#dcfce7;border-radius:4px;padding:1px 6px;">${esc(DLV_FC_T.resolved)}</span>` : '';
+        const pageBadge = c.page
+            ? `<span style="font-size:10px;font-weight:700;color:#6d28d9;background:#ede9fe;border-radius:4px;padding:1px 6px;">p.${c.page}</span>` : '';
+        const replies = (c.replies||[]).map(r =>
+            `<div style="font-size:11px;color:#64748b;margin-top:3px;padding-left:8px;border-left:2px solid #ede9ff;word-break:break-word;">↳ <b style="color:#6d28d9;">${esc(r.author)}</b> ${esc(r.content)}</div>`
+        ).join('');
+        return `<div id="dlv-fc-c-${c.id}" style="padding:10px 16px;border-bottom:1px solid #f4f4f6;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+                <span style="font-size:11.5px;font-weight:700;color:#1e1b2e;">${esc(c.author)}</span>
+                <span style="font-size:10.5px;color:#9ca3af;">${esc(c.created_at)}</span>
+                ${pageBadge}${resolvedBadge}
+                <span style="margin-left:auto;">${dlvFcReflectBtn(c)}</span>
+            </div>
+            <div style="font-size:12px;color:#374151;white-space:pre-wrap;word-break:break-word;line-height:1.55;">${esc(c.content)}</div>
+            ${replies}
+            <div id="dlv-fc-refinfo-${c.id}" style="font-size:10.5px;color:#16a34a;margin-top:5px;${c.reflected?'':'display:none;'}">${c.reflected?esc(dlvFcRefText(c.reflected_by,c.reflected_at)):''}</div>
+        </div>`;
+    }
+
+    window.dlvReflectComment = function(id, btn){
+        btn.disabled = true;
+        fetch(DLV_FC_URL + '/' + id + '/reflect', {
+            method:'POST',
+            headers:{'X-CSRF-TOKEN':DLV_FC_CSRF,'Accept':'application/json'},
+        })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(d => {
+            const on = !!d.reflected;
+            btn.outerHTML = dlvFcReflectBtn({id:id, reflected:on});
+            const info = $fc('dlv-fc-refinfo-' + id);
+            if(info){
+                if(on){ info.textContent = dlvFcRefText(d.reflected_by, d.reflected_at); info.style.display = ''; }
+                else { info.style.display = 'none'; }
+            }
+            // 저장된 버전별 데이터 갱신 (탭 전환 시 상태 유지)
+            for(const v in _dlvFcGroups){
+                const c = _dlvFcGroups[v].find(x => x.id === id);
+                if(c){ c.reflected = on; c.reflected_by = d.reflected_by; c.reflected_at = d.reflected_at; break; }
+            }
+            dlvUpdateFcBadge(_dlvFcUnreflected + (on ? -1 : 1));
+        })
+        .catch(() => { alert(DLV_FC_T.reflect_failed); btn.disabled = false; });
+    };
+
+    document.addEventListener('click', e => {
+        if(!_dlvFcOpen) return;
+        const pop = $fc('dlv-fc-pop'), btn = $fc('dlv-fc-btn');
+        if(pop && !pop.contains(e.target) && btn && !btn.contains(e.target)) dlvCloseFileComments();
+    });
+    document.addEventListener('keydown', e => { if(e.key==='Escape' && _dlvFcOpen) dlvCloseFileComments(); });
+    window.addEventListener('resize', () => { if(_dlvFcOpen) dlvPositionFcPop(); });
+
+    // 페이지 로드 시 미반영 의견 수 배지
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch(DLV_FC_URL, {headers:{'Accept':'application/json'}})
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(d => dlvUpdateFcBadge(d.unreflected||0))
+            .catch(() => {});
+    });
+})();
 </script>
 @endpush

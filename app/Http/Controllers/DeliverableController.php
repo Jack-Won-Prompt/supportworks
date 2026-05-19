@@ -1896,6 +1896,109 @@ class DeliverableController extends Controller
         return response()->json(['ok' => true, 'registrations' => $rows]);
     }
 
+    /**
+     * 산출물에 등록된 파일의 의견 목록 — 버전별로 정리하여 반환.
+     * 모든 STEP의 팝오버에서 사용한다.
+     */
+    public function registeredFileComments(Project $project, string $typeId): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->first();
+
+        if (!$deliverable) {
+            return response()->json(['ok' => true, 'comments' => [], 'unreflected' => 0]);
+        }
+
+        $fileIds = DeliverableFileRegistration::where('deliverable_id', $deliverable->id)
+            ->pluck('project_file_id')->unique()->values();
+
+        if ($fileIds->isEmpty()) {
+            return response()->json(['ok' => true, 'comments' => [], 'unreflected' => 0]);
+        }
+
+        $files = ProjectFile::whereIn('id', $fileIds)->get()->keyBy('id');
+
+        $comments = FileComment::whereIn('project_file_id', $fileIds)
+            ->whereNull('parent_id')
+            ->with(['user', 'replies.user', 'reflectedBy'])
+            ->orderBy('created_at')
+            ->get();
+
+        $unreflected = 0;
+        $out = $comments->map(function (FileComment $c) use ($files, &$unreflected) {
+            $file    = $files->get($c->project_file_id);
+            $current = $file ? $file->currentVersionNumber() : 1;
+            // frozen_at_version=F 이면 버전 F-1 에서 작성된 의견, 미동결이면 현재 버전
+            $version   = $c->frozen_at_version ? ($c->frozen_at_version - 1) : $current;
+            $reflected = $c->reflected_at !== null;
+            if (!$reflected) {
+                $unreflected++;
+            }
+
+            return [
+                'id'           => $c->id,
+                'file_id'      => $c->project_file_id,
+                'file_name'    => $file?->original_name,
+                'version'      => $version,
+                'content'      => $c->content,
+                'page'         => $c->page,
+                'author'       => $c->user?->name ?? $c->guest_name ?? '외부 리뷰어',
+                'created_at'   => optional($c->created_at)->format('Y-m-d H:i'),
+                'resolved'     => (bool) $c->resolved,
+                'reflected'    => $reflected,
+                'reflected_by' => $c->reflectedBy?->name,
+                'reflected_at' => optional($c->reflected_at)->format('Y-m-d H:i'),
+                'replies'      => $c->replies->map(fn ($r) => [
+                    'id'         => $r->id,
+                    'content'    => $r->content,
+                    'author'     => $r->user?->name ?? $r->guest_name ?? '외부 리뷰어',
+                    'created_at' => optional($r->created_at)->format('Y-m-d H:i'),
+                ])->values(),
+            ];
+        })->sortByDesc('version')->values();
+
+        return response()->json([
+            'ok'          => true,
+            'comments'    => $out,
+            'unreflected' => $unreflected,
+        ]);
+    }
+
+    /** 산출물에 등록된 파일 의견의 '반영됨' 상태를 토글한다. */
+    public function reflectFileComment(Project $project, string $typeId, FileComment $comment): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->firstOrFail();
+
+        // 의견의 파일이 이 산출물에 등록된 파일인지 검증
+        $registered = DeliverableFileRegistration::where('deliverable_id', $deliverable->id)
+            ->where('project_file_id', $comment->project_file_id)
+            ->exists();
+        abort_unless($registered, 404);
+        abort_if($comment->parent_id !== null, 422, __('deliverables.fc_reply_no_reflect'));
+
+        if ($comment->reflected_at) {
+            $comment->update(['reflected_at' => null, 'reflected_by' => null]);
+            $reflected = false;
+        } else {
+            $comment->update(['reflected_at' => now(), 'reflected_by' => Auth::id()]);
+            $reflected = true;
+        }
+
+        return response()->json([
+            'ok'           => true,
+            'reflected'    => $reflected,
+            'reflected_by' => $reflected ? Auth::user()->name : null,
+            'reflected_at' => $reflected ? $comment->reflected_at->format('Y-m-d H:i') : null,
+        ]);
+    }
+
     private function authorizeProject(Project $project): void
     {
         if (Auth::user()?->isAdmin()) {
