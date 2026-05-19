@@ -19,85 +19,97 @@
 
     @elseif($toolId === 'APPROVE')
         {{-- 승인 워크플로 --}}
+        @once
+        <style>
+        .dlv-apr-chk { display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:11.5px;cursor:pointer;color:#374151;background:#fff; }
+        .dlv-apr-chk:has(input:checked) { border-color:#7c3aed;background:#f5f3ff;color:#5b21b6;font-weight:600; }
+        .dlv-apr-chk input { margin:0; }
+        </style>
+        @endonce
         <div id="approve-widget-{{ $stepNo }}" class="dlv-approve-widget">
             @php
-                $myId     = auth()->id();
-                $isPending  = $stepApproval && $stepApproval->status === 'pending';
-                $isApproved = $stepApproval && $stepApproval->status === 'approved';
-                $isRejected = $stepApproval && $stepApproval->status === 'rejected';
-                $iAmApprover  = $stepApproval && $stepApproval->approver_id  === $myId;
-                $iAmRequester = $stepApproval && $stepApproval->requester_id === $myId;
+                $myId        = auth()->id();
+                $approvals   = $stepApprovals ?? collect();
+                $total       = $approvals->count();
+                $approvedCnt = $approvals->where('status', 'approved')->count();
+                $rejectedCnt = $approvals->where('status', 'rejected')->count();
+                $allApproved = $total > 0 && $approvedCnt === $total;
+                $anyRejected = $rejectedCnt > 0;
+                $isPending   = $total > 0 && !$allApproved && !$anyRejected;
+                $iAmRequester= $total > 0 && $approvals->first()->requester_id === $myId;
+                $myPending   = $approvals->first(fn($a) => $a->approver_id === $myId && $a->status === 'pending');
             @endphp
 
-            {{-- 현재 승인 상태 배지 --}}
-            @if($stepApproval)
-            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;margin-bottom:10px;
-                        background:{{ $isApproved ? '#f0fdf4' : ($isRejected ? '#fef2f2' : '#faf5ff') }};
-                        border:1px solid {{ $isApproved ? '#bbf7d0' : ($isRejected ? '#fecaca' : '#ddd6fe') }};">
-                <span style="font-size:18px;">{{ $isApproved ? '✅' : ($isRejected ? '❌' : '⏳') }}</span>
+            {{-- 승인 현황 (멀티 승인자) --}}
+            @if($total > 0)
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;margin-bottom:8px;
+                        background:{{ $allApproved ? '#f0fdf4' : ($anyRejected ? '#fef2f2' : '#faf5ff') }};
+                        border:1px solid {{ $allApproved ? '#bbf7d0' : ($anyRejected ? '#fecaca' : '#ddd6fe') }};">
+                <span style="font-size:18px;">{{ $allApproved ? '✅' : ($anyRejected ? '❌' : '⏳') }}</span>
                 <div style="flex:1;min-width:0;">
-                    <div style="font-size:11.5px;font-weight:700;color:{{ $isApproved ? '#15803d' : ($isRejected ? '#b91c1c' : '#5b21b6') }};">
-                        {{ $isApproved ? __('deliverables.approve_done') : ($isRejected ? __('deliverables.approve_rejected_lbl') : __('deliverables.approve_pending')) }}
+                    <div style="font-size:11.5px;font-weight:700;color:{{ $allApproved ? '#15803d' : ($anyRejected ? '#b91c1c' : '#5b21b6') }};">
+                        {{ $allApproved ? __('deliverables.approve_done') : ($anyRejected ? __('deliverables.approve_rejected_lbl') : __('deliverables.approve_pending')) }}
+                        <span style="color:#94a3b8;font-weight:600;">({{ $approvedCnt }}/{{ $total }})</span>
                     </div>
                     <div style="font-size:10.5px;color:#64748b;margin-top:2px;">
-                        {{ __('deliverables.approve_req_label') }}: {{ $stepApproval->requester?->name ?? '-' }}
-                        · {{ __('deliverables.approve_apr_label') }}: {{ $stepApproval->approver?->name ?? '-' }}
-                        @if($stepApproval->responded_at)
-                        · {{ $stepApproval->responded_at->format('m.d H:i') }}
-                        @endif
+                        {{ __('deliverables.approve_req_label') }}: {{ $approvals->first()->requester?->name ?? '-' }}
                     </div>
-                    @if($stepApproval->note)
-                    <div style="font-size:10.5px;color:#374151;margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.04);border-radius:4px;">
-                        {{ $stepApproval->note }}
-                    </div>
-                    @endif
                 </div>
+            </div>
+            {{-- 승인자별 상태 --}}
+            <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:10px;">
+                @foreach($approvals as $a)
+                <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 9px;border-radius:6px;background:#f8fafc;">
+                    <span>{{ $a->status === 'approved' ? '✅' : ($a->status === 'rejected' ? '❌' : '⏳') }}</span>
+                    <span style="font-weight:600;color:#374151;">{{ $a->approver?->name ?? '-' }}</span>
+                    <span style="color:#94a3b8;">{{ $a->status === 'approved' ? __('deliverables.approve_done') : ($a->status === 'rejected' ? __('deliverables.approve_rejected_lbl') : __('deliverables.approve_pending')) }}</span>
+                    @if($a->responded_at)<span style="color:#cbd5e1;margin-left:auto;">{{ $a->responded_at->format('m.d H:i') }}</span>@endif
+                </div>
+                @if($a->note)
+                <div style="font-size:10.5px;color:#374151;padding:4px 8px;background:rgba(0,0,0,.04);border-radius:4px;margin-left:22px;">{{ $a->note }}</div>
+                @endif
+                @endforeach
             </div>
             @endif
 
-            {{-- 승인자에게: 승인/반려 버튼 --}}
-            @if($isPending && $iAmApprover)
+            {{-- 내 승인 차례: 승인/반려 버튼 --}}
+            @if($myPending)
             <div style="margin-bottom:10px;">
                 <div style="font-size:11px;color:#64748b;margin-bottom:6px;">{{ __('deliverables.approve_my_turn') }}</div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-                    <button type="button"
-                            class="dlv-btn"
+                    <button type="button" class="dlv-btn"
                             style="font-size:11.5px;padding:5px 14px;background:#16a34a;color:#fff;border:none;"
-                            onclick="dlvApprovalRespond({{ $stepApproval->id }}, 'approved')">
+                            onclick="dlvApprovalRespond({{ $myPending->id }}, 'approved')">
                         {{ __('deliverables.approve_do') }}
                     </button>
-                    <button type="button"
-                            class="dlv-btn dlv-btn-outline"
+                    <button type="button" class="dlv-btn dlv-btn-outline"
                             style="font-size:11.5px;padding:5px 14px;color:#b91c1c;border-color:#fecaca;"
-                            onclick="dlvApprovalRejectPrompt({{ $stepApproval->id }})">
+                            onclick="dlvApprovalRejectPrompt({{ $myPending->id }})">
                         {{ __('deliverables.approve_reject_do') }}
                     </button>
                 </div>
             </div>
             @endif
 
-            {{-- 새 승인 요청 폼 (pending 아닐 때 또는 내가 요청자가 아닐 때) --}}
-            @if(!$isPending || $iAmRequester)
-            @if(!$isApproved)
+            {{-- 새 승인 요청 폼 (진행 중이 아니거나 내가 요청자, 전원 승인 전) — 승인자 멀티 선택 --}}
+            @if((!$isPending || $iAmRequester) && !$allApproved)
             <div id="approve-form-{{ $stepNo }}">
-                {{-- 안내 문구 · 승인자 선택 · 버튼 — 같은 칸(한 줄) --}}
-                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                    <span style="font-size:11px;color:#64748b;flex-shrink:0;">
-                        @if($isRejected) {{ __('deliverables.approve_hint_rejected') }}
-                        @elseif($isPending && $iAmRequester) {{ __('deliverables.approve_hint_pending') }}
-                        @else {{ __('deliverables.approve_hint_select') }}
-                        @endif
-                    </span>
-                    <select id="approver-select-{{ $stepNo }}"
-                            class="dlv-textarea"
-                            style="flex:1;min-width:140px;height:32px;padding:4px 8px;font-size:11.5px;min-height:unset;">
-                        <option value="">{{ __('deliverables.approve_select_ph') }}</option>
+                <div style="font-size:11px;color:#64748b;margin-bottom:7px;">
+                    @if($anyRejected) {{ __('deliverables.approve_hint_rejected') }}
+                    @else {{ __('deliverables.approve_hint_select') }}
+                    @endif
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:180px;display:flex;flex-wrap:wrap;gap:6px;">
                         @foreach($projectMembers as $member)
                             @if($member->id !== auth()->id())
-                            <option value="{{ $member->id }}">{{ $member->name }}</option>
+                            <label class="dlv-apr-chk">
+                                <input type="checkbox" name="approver-{{ $stepNo }}" value="{{ $member->id }}">
+                                {{ $member->name }}
+                            </label>
                             @endif
                         @endforeach
-                    </select>
+                    </div>
                     <button type="button"
                             class="dlv-btn dlv-btn-outline"
                             style="font-size:11.5px;padding:5px 12px;white-space:nowrap;flex-shrink:0;"
@@ -107,7 +119,6 @@
                     </button>
                 </div>
             </div>
-            @endif
             @endif
 
         </div>

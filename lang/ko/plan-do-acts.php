@@ -6,6 +6,7 @@ return [
     'title'               => '실행 계획',
     'subtitle'            => '계획(Plan)·실행(Do)·조치(Act) 사이클로 의견을 관리합니다.',
     'global_subtitle'     => '참여 중인 모든 프로젝트의 실행 계획 항목입니다.',
+    'all_projects'        => '전체 프로젝트',
     'new'                 => '새 실행 계획',
 
     // ── 등록/수정 팝업 ──

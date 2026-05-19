@@ -170,6 +170,19 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
 .md-preview-pane strong { font-weight:700; }
 .md-preview-pane em { font-style:italic; color:#475569; }
 .md-preview-empty { color:#94a3b8; font-style:italic; font-size:12px; }
+/* 변경내용 추적 (Word 스타일) */
+.md-changes-pane { background:#fff; }
+.md-changes-bar { display:flex; align-items:center; gap:8px; padding:7px 12px; border-bottom:1px solid #e2e8f0; background:#fafafa; }
+.md-changes-info { font-size:11px; color:#94a3b8; flex:1; min-width:0; }
+.md-changes-btn { font-size:11px; font-weight:700; border-radius:6px; padding:4px 11px; cursor:pointer; border:1px solid; white-space:nowrap; }
+.md-changes-accept { background:var(--t600); color:#fff; border-color:var(--t600); }
+.md-changes-accept:hover { background:var(--t700); }
+.md-changes-reject { background:#fff; color:#b91c1c; border-color:#fecaca; }
+.md-changes-reject:hover { background:#fef2f2; }
+.md-changes-body { padding:12px 14px; font-size:13px; line-height:1.75; color:#1e1b2e; white-space:pre-wrap; word-break:break-word; overflow-y:auto; }
+.md-changes-body del { background:#fee2e2; color:#b91c1c; text-decoration:line-through; border-radius:2px; }
+.md-changes-body ins { background:#dcfce7; color:#15803d; text-decoration:none; border-radius:2px; }
+.md-changes-empty { color:#94a3b8; font-size:12px; }
 
 /* ── 뷰어 주석 툴 버튼 (간트 ann-tool-btn 동일) ─── */
 .dlv-ann-btn {
@@ -412,6 +425,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                                     <div class="md-tabs">
                                         <button type="button" class="md-tab is-active" onclick="mdSwitchTab(this,'preview')">{{ __('deliverables.tab_preview') }}</button>
                                         <button type="button" class="md-tab" onclick="mdSwitchTab(this,'edit')">{{ __('deliverables.tab_edit') }}</button>
+                                        <button type="button" class="md-tab" onclick="mdSwitchTab(this,'changes')">{{ __('deliverables.tab_changes') }}</button>
                                         <button type="button" class="md-tab-tr" onclick="mdTranslate(this)" title="{{ __('deliverables.tab_translate_title') }}">🌐 {{ __('deliverables.tab_translate') }}</button>
                                     </div>
                                     <div class="md-edit-pane" style="display:none;">
@@ -424,6 +438,14 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                                                   placeholder="{{ __('deliverables.textarea_ph', ['label' => $field['label']]) }}">{{ $deliverable->getStepValue($stepNo, $field['key']) }}</textarea>
                                     </div>
                                     <div class="md-preview-pane" style="{{ $fieldMinHeight }}"></div>
+                                    <div class="md-changes-pane" style="display:none;">
+                                        <div class="md-changes-bar">
+                                            <span class="md-changes-info"></span>
+                                            <button type="button" class="md-changes-btn md-changes-accept" onclick="mdAcceptChanges(this)">{{ __('deliverables.changes_accept') }}</button>
+                                            <button type="button" class="md-changes-btn md-changes-reject" onclick="mdRejectChanges(this)">{{ __('deliverables.changes_reject') }}</button>
+                                        </div>
+                                        <div class="md-changes-body" style="{{ $fieldMinHeight }}"></div>
+                                    </div>
                                 </div>
 
                             @elseif($field['type'] === 'upload')
@@ -493,7 +515,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                                 'deliverable'    => $deliverable,
                                 'typeId'         => $typeId,
                                 'projectMembers' => $projectMembers,
-                                'stepApproval'   => $stepApproval,
+                                'stepApprovals'  => $stepApprovals,
                             ])
                         </div>
                     @endforeach
@@ -514,7 +536,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                             'deliverable'    => $deliverable,
                             'typeId'         => $typeId,
                             'projectMembers' => $projectMembers,
-                            'stepApproval'   => $stepApproval,
+                            'stepApprovals'  => $stepApprovals,
                         ])
                     </div>
                     @endif
@@ -856,6 +878,12 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             <div style="font-size:13.5px;font-weight:800;color:#1e1b2e;">{{ __('deliverables.fc_title') }}</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:2px;">{{ __('deliverables.fc_subtitle') }}</div>
         </div>
+        <button type="button" id="dlv-fc-map-btn" onclick="dlvMapFileComments()"
+                title="{{ __('deliverables.fc_map_hint') }}"
+                style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid #ddd6fe;background:#f5f3ff;color:#7c3aed;font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;">
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span id="dlv-fc-map-label">{{ __('deliverables.fc_map') }}</span>
+        </button>
         <button type="button" onclick="dlvCloseFileComments()" style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">&times;</button>
     </div>
     <div id="dlv-fc-tabs" style="display:none;gap:5px;padding:8px 12px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;flex-shrink:0;"></div>
@@ -911,6 +939,10 @@ const LANG = {
     ai_draft_sfail:   '{{ addslashes(__('deliverables.ai_draft_save_fail')) }}',
     md_empty:         '{{ addslashes(__('deliverables.md_empty')) }}',
     error_occurred:   '{{ addslashes(__('deliverables.error_occurred')) }}',
+    changes_none:        '{{ addslashes(__('deliverables.changes_none')) }}',
+    changes_summary:     '{{ addslashes(__('deliverables.changes_summary')) }}',
+    changes_reject_cfm:  '{{ addslashes(__('deliverables.changes_reject_confirm')) }}',
+    changes_accepted:    '{{ addslashes(__('deliverables.changes_accepted')) }}',
     reject_prompt:    '{{ addslashes(__('deliverables.approve_reject_prompt')) }}',
     link_copied:      '{{ addslashes(__('deliverables.link_copied')) }}',
     writing:          '{{ addslashes(__('deliverables.js_writing')) }}',
@@ -1846,12 +1878,20 @@ async function mdSwitchTab(btn, mode) {
     const editor      = btn.closest('.md-editor');
     const editPane    = editor.querySelector('.md-edit-pane');
     const previewPane = editor.querySelector('.md-preview-pane');
+    const changesPane = editor.querySelector('.md-changes-pane');
     const textarea    = editor.querySelector('textarea');
 
     editor.querySelectorAll('.md-tab').forEach(t => t.classList.remove('is-active'));
     btn.classList.add('is-active');
 
-    if (mode === 'preview') {
+    if (mode === 'changes') {
+        editPane.style.display    = 'none';
+        previewPane.style.display = 'none';
+        if (changesPane) {
+            changesPane.style.display = 'block';
+            mdRenderChangesPane(editor);
+        }
+    } else if (mode === 'preview') {
         const raw = textarea.value.trim();
         previewPane.innerHTML = raw
             ? marked.parse(raw)
@@ -1860,11 +1900,13 @@ async function mdSwitchTab(btn, mode) {
         previewPane.style.overflowY = 'auto';
         editPane.style.display      = 'none';
         previewPane.style.display   = 'block';
+        if (changesPane) changesPane.style.display = 'none';
     } else {
         previewPane.style.height    = '';
         previewPane.style.overflowY = '';
         editPane.style.display      = 'block';
         previewPane.style.display   = 'none';
+        if (changesPane) changesPane.style.display = 'none';
     }
     // 탭 전환 시 번역 버튼 초기화
     const trBtn = editor.querySelector('.md-tab-tr');
@@ -1872,6 +1914,85 @@ async function mdSwitchTab(btn, mode) {
         trBtn.dataset.translated = 'false';
         trBtn.innerHTML = MD_TR_BTN_HTML;
     }
+}
+
+/* ── 변경내용 추적 (Word 스타일) ─────────────────────────── */
+function mdTrackEsc(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function mdTokenize(s) {
+    return (String(s == null ? '' : s)).match(/\s+|[^\s]+/g) || [];
+}
+function mdGetBaseline(ta) {
+    return ta._trackBaseline !== undefined ? ta._trackBaseline : ta.defaultValue;
+}
+// 단어 단위 LCS diff — [{t:'eq'|'del'|'ins', v}]
+function mdWordDiff(oldStr, newStr) {
+    const a = mdTokenize(oldStr), b = mdTokenize(newStr);
+    const m = a.length, n = b.length;
+    // 과도하게 크면 통째 교체로 폴백 (안전장치)
+    if (m * n > 2500000) {
+        const out = [];
+        a.forEach(v => out.push({ t:'del', v }));
+        b.forEach(v => out.push({ t:'ins', v }));
+        return out;
+    }
+    const dp = [];
+    for (let i = 0; i <= m; i++) dp.push(new Uint16Array(n + 1));
+    for (let i = m - 1; i >= 0; i--)
+        for (let j = n - 1; j >= 0; j--)
+            dp[i][j] = a[i] === b[j] ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+    const out = []; let i = 0, j = 0;
+    while (i < m && j < n) {
+        if (a[i] === b[j])                 { out.push({ t:'eq',  v:a[i] }); i++; j++; }
+        else if (dp[i+1][j] >= dp[i][j+1]) { out.push({ t:'del', v:a[i] }); i++; }
+        else                               { out.push({ t:'ins', v:b[j] }); j++; }
+    }
+    while (i < m) out.push({ t:'del', v:a[i++] });
+    while (j < n) out.push({ t:'ins', v:b[j++] });
+    return out;
+}
+function mdRenderChangesPane(editor) {
+    const ta   = editor.querySelector('textarea');
+    const pane = editor.querySelector('.md-changes-pane');
+    if (!ta || !pane) return;
+    const body = pane.querySelector('.md-changes-body');
+    const info = pane.querySelector('.md-changes-info');
+    const baseline = mdGetBaseline(ta), current = ta.value;
+
+    if (baseline === current) {
+        body.innerHTML = `<span class="md-changes-empty">${LANG.changes_none}</span>`;
+        info.textContent = '';
+        return;
+    }
+    const diff = mdWordDiff(baseline, current);
+    let insN = 0, delN = 0, html = '';
+    diff.forEach(d => {
+        const v = mdTrackEsc(d.v);
+        if (d.t === 'eq')       { html += v; }
+        else if (d.t === 'del') { html += `<del>${v}</del>`; if (d.v.trim()) delN++; }
+        else                    { html += `<ins>${v}</ins>`; if (d.v.trim()) insN++; }
+    });
+    body.innerHTML = html;
+    info.textContent = LANG.changes_summary.replace(':ins', insN).replace(':del', delN);
+}
+// 변경내용 적용 — 현재 내용을 새 기준선으로 확정
+function mdAcceptChanges(btn) {
+    const editor = btn.closest('.md-editor');
+    const ta = editor.querySelector('textarea');
+    if (!ta) return;
+    ta._trackBaseline = ta.value;
+    mdRenderChangesPane(editor);
+}
+// 변경내용 취소 — 이전 기준선으로 되돌림
+function mdRejectChanges(btn) {
+    const editor = btn.closest('.md-editor');
+    const ta = editor.querySelector('textarea');
+    if (!ta) return;
+    if (ta.value === mdGetBaseline(ta)) return;
+    if (!confirm(LANG.changes_reject_cfm)) return;
+    ta.value = mdGetBaseline(ta);
+    mdRenderChangesPane(editor);
 }
 
 /* ── 영문 번역 (캐시 우선) ──────────────────────────── */
@@ -2043,14 +2164,13 @@ const APPROVAL_RESPOND_URL = '{{ route("ai-agent.projects.deliverables.approval-
 const TOGGLE_SHARE_URL     = '{{ route("ai-agent.projects.deliverables.toggle-share",      [$project, $typeId]) }}';
 
 async function dlvApprovalRequest(stepNo) {
-    const sel = document.getElementById('approver-select-' + stepNo);
-    if (!sel || !sel.value) { alert('{{ __('deliverables.approve_select_ph') }}'); return; }
-    const approverId = sel.value;
+    const checked = [...document.querySelectorAll('input[name="approver-' + stepNo + '"]:checked')].map(c => c.value);
+    if (!checked.length) { alert('{{ __('deliverables.approve_select_ph') }}'); return; }
 
     const res = await fetch(APPROVAL_REQUEST_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
-        body: JSON.stringify({ step: stepNo, approver_id: approverId }),
+        body: JSON.stringify({ step: stepNo, approver_ids: checked }),
     });
     const json = await res.json();
     if (json.ok) {
@@ -3622,6 +3742,9 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         reflected:      @json(__('deliverables.fc_reflected')),
         reflected_by:   @json(__('deliverables.fc_reflected_by')),
         reflect_failed: @json(__('deliverables.fc_reflect_failed')),
+        map:            @json(__('deliverables.fc_map')),
+        mapping:        @json(__('deliverables.fc_mapping')),
+        mapped:         @json(__('deliverables.fc_mapped')),
     };
     let _dlvFcOpen = false, _dlvFcUnreflected = 0;
     const $fc = id => document.getElementById(id);
@@ -3658,14 +3781,31 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         dlvLoadFileComments();
     };
 
-    function dlvLoadFileComments(){
+    function dlvLoadFileComments(done){
         const body = $fc('dlv-fc-body');
         body.innerHTML = `<div style="padding:26px;text-align:center;color:#94a3b8;font-size:12px;">${esc(DLV_FC_T.loading)}</div>`;
         fetch(DLV_FC_URL, {headers:{'Accept':'application/json'}})
             .then(r => r.ok ? r.json() : Promise.reject())
-            .then(d => { dlvRenderFileComments(d); dlvUpdateFcBadge(d.unreflected||0); })
-            .catch(() => { body.innerHTML = `<div style="padding:26px;text-align:center;color:#ef4444;font-size:12px;">${esc(DLV_FC_T.load_failed)}</div>`; });
+            .then(d => { dlvRenderFileComments(d); dlvUpdateFcBadge(d.unreflected||0); if(typeof done==='function') done(true); })
+            .catch(() => {
+                body.innerHTML = `<div style="padding:26px;text-align:center;color:#ef4444;font-size:12px;">${esc(DLV_FC_T.load_failed)}</div>`;
+                if(typeof done==='function') done(false);
+            });
     }
+
+    // 의견 매핑 — 프로젝트 파일 → 버전 → 의견을 다시 끌어와 팝오버에 매핑
+    window.dlvMapFileComments = function(){
+        const btn = $fc('dlv-fc-map-btn'), label = $fc('dlv-fc-map-label');
+        if(btn) btn.disabled = true;
+        if(label) label.textContent = DLV_FC_T.mapping;
+        dlvLoadFileComments(ok => {
+            if(btn) btn.disabled = false;
+            if(label){
+                label.textContent = ok ? DLV_FC_T.mapped : DLV_FC_T.map;
+                if(ok) setTimeout(() => { label.textContent = DLV_FC_T.map; }, 1500);
+            }
+        });
+    };
 
     let _dlvFcGroups = {}, _dlvFcActiveV = null;
 
@@ -3698,7 +3838,7 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
             const style = on
                 ? 'background:var(--t600);color:#fff;border:1px solid var(--t600);'
                 : 'background:#fff;color:#64748b;border:1px solid #e2e8f0;';
-            return `<button type="button" onclick="dlvShowFcVersion(${v})" style="${style}font-size:11px;font-weight:700;border-radius:6px;padding:3px 10px;cursor:pointer;">${esc(DLV_FC_T.version.replace(':n', v))} · ${cnt}</button>`;
+            return `<button type="button" onclick="event.stopPropagation();dlvShowFcVersion(${v})" style="${style}font-size:11px;font-weight:700;border-radius:6px;padding:3px 10px;cursor:pointer;">${esc(DLV_FC_T.version.replace(':n', v))} · ${cnt}</button>`;
         }).join('');
     }
 

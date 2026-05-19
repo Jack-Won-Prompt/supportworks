@@ -13,23 +13,17 @@ use Illuminate\Http\Request;
 
 class PlanDoActController extends Controller
 {
-    /** 프로젝트별 Plan-Do-Act 목록 */
-    public function index(Project $project)
-    {
-        $this->authorizeProject($project);
-
-        $items = PlanDoAct::where('project_id', $project->id)
-            ->with('author')
-            ->orderByDesc('updated_at')
-            ->get();
-
-        return view('plan-do-acts.index', compact('project', 'items'));
-    }
-
-    /** 전역 Plan-Do-Act 목록 */
-    public function globalIndex()
+    /** Plan-Do-Act 목록 (좌측 메뉴 · 프로젝트 선택 필터) */
+    public function globalIndex(Request $request)
     {
         $user = auth()->user();
+
+        // 프로젝트 선택 드롭다운 목록
+        $projects = $user->isAdmin()
+            ? Project::orderBy('name')->get(['id', 'name'])
+            : $user->projects()->orderBy('projects.name')->get(['projects.id', 'projects.name']);
+
+        $selectedProjectId = $request->query('project');
 
         $query = PlanDoAct::with(['author', 'project'])->orderByDesc('updated_at');
 
@@ -43,9 +37,16 @@ class PlanDoActController extends Controller
             });
         }
 
+        // 상단 프로젝트 선택으로 필터
+        if ($selectedProjectId === 'none') {
+            $query->whereNull('project_id');
+        } elseif ($selectedProjectId) {
+            $query->where('project_id', $selectedProjectId);
+        }
+
         $items = $query->get();
 
-        return view('plan-do-acts.global', compact('items'));
+        return view('plan-do-acts.global', compact('items', 'projects', 'selectedProjectId'));
     }
 
     /** 등록 */

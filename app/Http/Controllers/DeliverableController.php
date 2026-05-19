@@ -194,14 +194,14 @@ class DeliverableController extends Controller
             \App\Models\ProjectMember::where('project_id', $project->id)->pluck('user_id')
         )->get(['id', 'name', 'email']);
 
-        // 현재 단계 승인 레코드
-        $stepApproval = $deliverable->id
+        // 현재 단계 승인 레코드 (멀티 승인자 — 전체 목록)
+        $stepApprovals = $deliverable->id
             ? \App\Models\Agent\DeliverableApproval::where('deliverable_id', $deliverable->id)
                 ->where('step_order', $stepNo)
-                ->latest()
                 ->with(['requester:id,name', 'approver:id,name'])
-                ->first()
-            : null;
+                ->orderBy('id')
+                ->get()
+            : collect();
 
         return view('ai-agent.deliverables.show', [
             'project'        => $project,
@@ -214,7 +214,7 @@ class DeliverableController extends Controller
             'categories'     => $this->config['categories'],
             'allTypes'       => $this->localizeTypes($this->config['deliverables']),
             'projectMembers' => $projectMembers,
-            'stepApproval'   => $stepApproval,
+            'stepApprovals'  => $stepApprovals,
         ]);
     }
 
@@ -1051,8 +1051,9 @@ class DeliverableController extends Controller
         abort_if(!$typeDef, 404);
 
         $validated = $request->validate([
-            'step'        => 'required|integer|min:1',
-            'approver_id' => 'required|integer|exists:users,id',
+            'step'           => 'required|integer|min:1',
+            'approver_ids'   => 'required|array|min:1',
+            'approver_ids.*' => 'integer|exists:users,id',
         ]);
 
         $deliverable = Deliverable::where('project_id', $project->id)
@@ -1063,54 +1064,56 @@ class DeliverableController extends Controller
         $stepDef = collect($typeDef['steps'])->firstWhere('order', $stepNo);
         abort_if(!$stepDef, 422, '단계 정의를 찾을 수 없습니다.');
 
-        $approver = User::findOrFail($validated['approver_id']);
+        $approverIds = collect($validated['approver_ids'])->map(fn ($i) => (int) $i)->unique()->values();
+        $approvers   = User::whereIn('id', $approverIds)->get();
+        abort_if($approvers->isEmpty(), 422, '승인자를 선택하세요.');
 
-        // 같은 단계에 pending 승인 요청이 이미 있으면 취소 후 재생성
+        // 같은 단계의 기존 승인 레코드 모두 제거 후 재생성 (멀티 승인자)
         DeliverableApproval::where('deliverable_id', $deliverable->id)
             ->where('step_order', $stepNo)
-            ->where('status', 'pending')
             ->delete();
 
-        $approval = DeliverableApproval::create([
-            'deliverable_id' => $deliverable->id,
-            'step_order'     => $stepNo,
-            'requester_id'   => Auth::id(),
-            'approver_id'    => $approver->id,
-            'status'         => 'pending',
-        ]);
+        $requesterName = Auth::user()->name ?? '요청자';
 
-        $approval->load('requester');
+        foreach ($approvers as $approver) {
+            $approval = DeliverableApproval::create([
+                'deliverable_id' => $deliverable->id,
+                'step_order'     => $stepNo,
+                'requester_id'   => Auth::id(),
+                'approver_id'    => $approver->id,
+                'status'         => 'pending',
+            ]);
+            $approval->setRelation('requester', Auth::user());
 
-        $mailOk = false;
-        try {
-            Mail::to($approver->email)->send(new DeliverableApprovalMail(
-                $deliverable,
-                $approval,
-                $approver,
-                $stepDef['title'],
-                $typeDef['name'],
-            ));
-            $mailOk = true;
-        } catch (\Throwable) {
-            // 메일 실패해도 요청은 유지
-        }
+            $mailOk = false;
+            try {
+                Mail::to($approver->email)->send(new DeliverableApprovalMail(
+                    $deliverable,
+                    $approval,
+                    $approver,
+                    $stepDef['title'],
+                    $typeDef['name'],
+                ));
+                $mailOk = true;
+            } catch (\Throwable) {
+                // 메일 실패해도 요청은 유지
+            }
 
-        // 이메일 발송 성공 시 SMS 추가 발송 (응답 차단 방지 — terminating)
-        if ($mailOk && $approver->phone) {
-            $smsPhone = $approver->phone;
-            $smsName  = $approver->name;
-            $smsMsg   = "[SupportWorks] " . (Auth::user()->name ?? '요청자') .
-                       "님이 산출물 '{$typeDef['name']} - {$stepDef['title']}' 승인을 요청했습니다.";
-            app()->terminating(static function () use ($smsPhone, $smsName, $smsMsg) {
-                set_time_limit(0);
-                try { SmsService::send($smsPhone, $smsMsg, $smsName); } catch (\Throwable) {}
-            });
+            // 이메일 발송 성공 시 SMS 추가 발송 (응답 차단 방지 — terminating)
+            if ($mailOk && $approver->phone) {
+                $smsPhone = $approver->phone;
+                $smsName  = $approver->name;
+                $smsMsg   = "[SupportWorks] {$requesterName}님이 산출물 '{$typeDef['name']} - {$stepDef['title']}' 승인을 요청했습니다.";
+                app()->terminating(static function () use ($smsPhone, $smsName, $smsMsg) {
+                    set_time_limit(0);
+                    try { SmsService::send($smsPhone, $smsMsg, $smsName); } catch (\Throwable) {}
+                });
+            }
         }
 
         return response()->json([
-            'ok'          => true,
-            'approval_id' => $approval->id,
-            'message'     => "{$approver->name}님에게 승인 요청을 전송했습니다.",
+            'ok'      => true,
+            'message' => "{$approvers->count()}명에게 승인 요청을 전송했습니다.",
         ]);
     }
 

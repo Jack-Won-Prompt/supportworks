@@ -501,7 +501,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get   ('/plan-do-acts/{planDoAct}',  [\App\Http\Controllers\PlanDoActController::class, 'show'])       ->name('plan-do-acts.show');
     Route::patch ('/plan-do-acts/{planDoAct}',  [\App\Http\Controllers\PlanDoActController::class, 'update'])     ->name('plan-do-acts.update');
     Route::delete('/plan-do-acts/{planDoAct}',  [\App\Http\Controllers\PlanDoActController::class, 'destroy'])    ->name('plan-do-acts.destroy');
-    Route::get   ('/projects/{project}/plan-do-acts', [\App\Http\Controllers\PlanDoActController::class, 'index'])->name('projects.plan-do-acts.index');
+
+    // 공유폴더 (회사 단위)
+    Route::prefix('shared-folder')->name('shared-folder.')->group(function () {
+        Route::get   ('/',                                [\App\Http\Controllers\SharedFileController::class, 'index'])          ->name('index');
+        Route::post  ('/',                                [\App\Http\Controllers\SharedFileController::class, 'store'])          ->name('store');
+        Route::get   ('/files/{sharedFile}/download',     [\App\Http\Controllers\SharedFileController::class, 'download'])       ->name('download');
+        Route::delete('/files/{sharedFile}',              [\App\Http\Controllers\SharedFileController::class, 'destroy'])        ->name('destroy');
+        Route::post  ('/categories',                      [\App\Http\Controllers\SharedFileController::class, 'storeCategory'])  ->name('categories.store');
+        Route::delete('/categories/{sharedFileCategory}', [\App\Http\Controllers\SharedFileController::class, 'destroyCategory'])->name('categories.destroy');
+    });
 
     Route::prefix('projects/{project}/planning')->name('projects.planning.')->group(function () {
         Route::get ('/',                              [PlanningDocController::class, 'index'])       ->name('index');
