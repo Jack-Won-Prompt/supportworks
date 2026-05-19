@@ -45,7 +45,7 @@ class MessageController extends Controller
         abort_unless($conversation->participants->contains('id', $user->id), 403);
 
         $messages = Message::where('conversation_id', $conversation->id)
-            ->with('sender')
+            ->with(['sender', 'replyTo'])
             ->orderBy('created_at')
             ->get();
 
@@ -136,14 +136,30 @@ class MessageController extends Controller
         abort_unless($conversation->participants->contains('id', $user->id), 403);
 
         $request->validate([
-            'body' => 'required|string|max:2000',
+            'body'        => 'nullable|string|max:2000',
+            'file'        => 'nullable|file|max:20480', // 20MB
+            'reply_to_id' => 'nullable|integer|exists:messages,id',
         ]);
 
-        $message = Message::create([
+        if (!$request->filled('body') && !$request->hasFile('file')) {
+            return response()->json(['message' => '메시지 또는 파일을 입력하세요.'], 422);
+        }
+
+        $data = [
             'conversation_id' => $conversation->id,
             'sender_id'       => $user->id,
             'body'            => $request->body,
-        ]);
+            'reply_to_id'     => $request->reply_to_id,
+        ];
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $data['file_path'] = $file->store('messages', 'public');
+            $data['file_name'] = $file->getClientOriginalName();
+            $data['file_size'] = $file->getSize();
+        }
+
+        $message = Message::create($data);
 
         $conversation->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
 
@@ -155,12 +171,13 @@ class MessageController extends Controller
         $title = $conversation->is_group
             ? ($conversation->name ?? '그룹 채팅')
             : $user->name;
-        FcmService::notifyUsers($recipientIds, $title, $request->body, [
+        $pushBody = $request->filled('body') ? $request->body : '📎 파일을 보냈습니다';
+        FcmService::notifyUsers($recipientIds, $title, $pushBody, [
             'type'            => 'message',
             'conversation_id' => (string) $conversation->id,
         ]);
 
-        return response()->json($this->messageResource($message->load('sender')), 201);
+        return response()->json($this->messageResource($message->load(['sender', 'replyTo'])), 201);
     }
 
     private function conversationResource(Conversation $c, User $currentUser): array
@@ -180,10 +197,23 @@ class MessageController extends Controller
     private function messageResource(Message $m): array
     {
         return [
-            'id'         => $m->id,
-            'body'       => $m->body,
-            'sender'     => $m->sender ? ['id' => $m->sender->id, 'name' => $m->sender->name] : null,
-            'created_at' => $m->created_at,
+            'id'          => $m->id,
+            'body'        => $m->body,
+            'sender'      => $m->sender ? ['id' => $m->sender->id, 'name' => $m->sender->name] : null,
+            'created_at'  => $m->created_at,
+            'file_url'    => $m->fileUrl(),
+            'file_name'   => $m->file_name,
+            'file_size'   => $m->formattedSize(),
+            'is_image'    => $m->isImage(),
+            'reply_to_id' => $m->reply_to_id,
+            'reply_to'    => ($m->relationLoaded('replyTo') && $m->replyTo) ? [
+                'id'        => $m->replyTo->id,
+                'body'      => $m->replyTo->body,
+                'file_name' => $m->replyTo->file_name,
+                'sender'    => $m->replyTo->sender
+                    ? ['id' => $m->replyTo->sender->id, 'name' => $m->replyTo->sender->name]
+                    : null,
+            ] : null,
         ];
     }
 }
