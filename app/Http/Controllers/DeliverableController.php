@@ -722,6 +722,9 @@ class DeliverableController extends Controller
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
+            // SSE 스트림 본문에 PHP 경고·오류 HTML 이 섞여 들어가지 않도록 차단
+            @ini_set('display_errors', '0');
+            @ini_set('html_errors', '0');
 
             $sse = function (string $event, array $data) {
                 echo "event: {$event}\n";

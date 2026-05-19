@@ -152,6 +152,7 @@ return [
     'tool_pdf_coming'       => 'PDF export coming soon',
     'tool_matrix_open'      => 'Open Editor',
     'ai_error_draft'        => 'Failed to generate draft.',
+    'ai_error_parse'        => "Weeks couldn't process the response. Please try again shortly.",
     'ai_error_analyze'      => 'Analysis failed.',
     'ai_error_answer'       => 'Failed to generate answer.',
     'ai_draft_saving'       => '⏳ Saving draft…',

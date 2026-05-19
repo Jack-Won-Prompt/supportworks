@@ -513,7 +513,7 @@
                                         style="font-size:12px;font-weight:600;color:#6366f1;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
                                         onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#6366f1'">{{ __('files.edit_file') }}</button>
                                 <form method="POST" action="{{ route('projects.files.destroy', [$project, $file]) }}"
-                                      onsubmit="return confirm('{{ __('team.delete_confirm') }}')" style="margin:0;">
+                                      onsubmit="event.preventDefault();fileDeleteConfirm(this);return false;" style="margin:0;">
                                     @csrf @method('DELETE')
                                     <button type="submit" style="font-size:12px;color:#f87171;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
                                             onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#f87171'">{{ __('team.delete_btn') }}</button>
@@ -1021,6 +1021,7 @@ const CURRENT_PROJECT_ID = {{ $project->id }};
 const STR = {
     uncategorized:       '{{ __("team.uncategorized") }}',
     cat_delete_confirm:  '{{ __("team.cat_delete_confirm") }}',
+    delete_confirm:      '{{ __("team.delete_confirm") }}',
     delete:              '{{ __("common.delete") }}',
     edit:                '{{ __("common.edit") }}',
     save:                '{{ __("common.save") }}',
@@ -1073,6 +1074,11 @@ const STR = {
     log_no_history:      @json(__('files.log_no_history')),
     log_history_header:  @json(__('files.log_history_header')),
 };
+
+// ── 파일 삭제 — 커스텀 확인 다이얼로그 ──────────────────────────
+async function fileDeleteConfirm(form) {
+    if (await __confirm(STR.delete_confirm)) form.submit();
+}
 
 // ── 업로드 프로젝트 변경 ────────────────────────────────────────
 async function changeUploadProject(projectId, projectName) {

@@ -584,7 +584,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             <button class="dlv-btn dlv-btn-ghost" title="{{ __('deliverables.btn_skip') }}" onclick="skipStep()">{{ __('deliverables.btn_skip') }}</button>
 
             {{-- 버전 이력 --}}
-            <button onclick="dlvOpenVersions()" title="{{ __('deliverables.version_history_title') }}" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+            <button onclick="dlvOpenVersions(this)" title="{{ __('deliverables.version_history_title') }}" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 {{ __('deliverables.version_history') }}
             </button>
@@ -622,18 +622,9 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 {{ __('deliverables.ai_btn_draft') }}
             </button>
-            <button class="dlv-ai-action-btn" onclick="aiAction('validate')">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                {{ __('deliverables.ai_btn_validate') }}
-            </button>
-            <button class="dlv-ai-action-btn" onclick="aiAction('suggest')">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                {{ __('deliverables.ai_btn_suggest') }}
-            </button>
-            <button class="dlv-ai-action-btn" onclick="aiAction('standard')">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                {{ __('deliverables.ai_btn_standard') }}
-            </button>
+            <div id="dlv-draft-prog" style="display:none;height:5px;margin:4px 2px 2px;background:#ede8ff;border-radius:3px;overflow:hidden;">
+                <div id="dlv-draft-prog-fill" style="width:0;height:100%;background:linear-gradient(90deg,var(--t600),var(--t400));border-radius:3px;transition:width .35s ease;"></div>
+            </div>
             <hr class="dlv-ai-divider">
             <button class="dlv-ai-action-btn" onclick="aiAction('tool-generate')">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -932,6 +923,7 @@ const LANG = {
     ai_error_network: '{{ addslashes(__('deliverables.ai_error_network')) }}',
     ai_error_prefix:  '{{ addslashes(__('deliverables.ai_error_prefix')) }}',
     ai_error_draft:   '{{ addslashes(__('deliverables.ai_error_draft')) }}',
+    ai_error_parse:   '{{ addslashes(__('deliverables.ai_error_parse')) }}',
     ai_error_analyze: '{{ addslashes(__('deliverables.ai_error_analyze')) }}',
     ai_error_answer:  '{{ addslashes(__('deliverables.ai_error_answer')) }}',
     ai_draft_saving:  '{{ addslashes(__('deliverables.ai_draft_saving')) }}',
@@ -1190,25 +1182,58 @@ function showVersionModal(onConfirm) {
     });
 }
 
-// ── 버전 이력 패널 ───────────────────────────────
-async function dlvOpenVersions() {
-    document.getElementById('dlv-ver-panel')?.remove();
-    const wrap = document.createElement('div');
-    wrap.id = 'dlv-ver-panel';
-    wrap.style.cssText = 'position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.15);z-index:9998;display:flex;flex-direction:column;';
-    wrap.innerHTML = `
-      <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:14px;font-weight:700;color:#0f172a;">${LANG.ver_history_title.replace(':step', STEP_NO)}</div>
-        <button id="dlv-ver-close" style="background:none;border:none;font-size:18px;cursor:pointer;color:#64748b;">×</button>
+// ── 버전 이력 팝오버 ───────────────────────────────
+let _dlvVerBtn = null;
+
+function dlvCloseVersions() {
+    document.getElementById('dlv-ver-pop')?.remove();
+    document.removeEventListener('mousedown', _dlvVerOutside, true);
+    _dlvVerBtn = null;
+}
+
+function _dlvVerOutside(e) {
+    const pop = document.getElementById('dlv-ver-pop');
+    if (!pop) return;
+    if (pop.contains(e.target)) return;
+    if (_dlvVerBtn && _dlvVerBtn.contains(e.target)) return;  // 트리거 버튼 클릭은 토글이 처리
+    dlvCloseVersions();
+}
+
+async function dlvOpenVersions(btn) {
+    // 토글: 이미 열려 있으면 닫기
+    if (document.getElementById('dlv-ver-pop')) { dlvCloseVersions(); return; }
+    _dlvVerBtn = btn;
+
+    const pop = document.createElement('div');
+    pop.id = 'dlv-ver-pop';
+    pop.style.cssText = 'position:fixed;z-index:9998;width:340px;max-width:92vw;max-height:420px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 16px 44px rgba(15,23,42,.2);display:flex;flex-direction:column;overflow:hidden;';
+    pop.innerHTML = `
+      <div style="padding:11px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">${LANG.ver_history_title.replace(':step', STEP_NO)}</div>
+        <button id="dlv-ver-close" style="background:none;border:none;font-size:17px;cursor:pointer;color:#64748b;line-height:1;padding:0 2px;">×</button>
       </div>
-      <div id="dlv-ver-list" style="flex:1;overflow:auto;padding:10px 14px;font-size:13px;color:#334155;">${LANG.reg_loading}</div>`;
-    document.body.appendChild(wrap);
-    wrap.querySelector('#dlv-ver-close').addEventListener('click', () => wrap.remove());
+      <div id="dlv-ver-list" style="flex:1;overflow:auto;padding:10px 12px;font-size:13px;color:#334155;">${LANG.reg_loading}</div>`;
+    document.body.appendChild(pop);
+    pop.querySelector('#dlv-ver-close').addEventListener('click', dlvCloseVersions);
+
+    // 트리거 버튼 기준 위치 (버튼 아래, 오른쪽 정렬 / 화면 넘침 시 보정)
+    const r = btn.getBoundingClientRect();
+    let left = Math.max(8, r.right - 340);
+    let top  = r.bottom + 6;
+    if (top + 420 > window.innerHeight && r.top - 6 - 420 > 0) {
+        top = r.top - 6 - 420;
+    }
+    pop.style.left = left + 'px';
+    pop.style.top  = top + 'px';
+
+    // 바깥 클릭 시 닫기
+    document.addEventListener('mousedown', _dlvVerOutside, true);
 
     try {
-        const res = await fetch(VERSIONS_INDEX_URL + '?step=' + STEP_NO, { headers: { 'Accept': 'application/json' } });
+        const res  = await fetch(VERSIONS_INDEX_URL + '?step=' + STEP_NO, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
-        const list = wrap.querySelector('#dlv-ver-list');
+        const list = pop.querySelector('#dlv-ver-list');
+        if (!list) return;  // 이미 닫힘
         if (!data.versions?.length) {
             list.innerHTML = `<div style="color:#94a3b8;text-align:center;padding:30px 0;">${LANG.no_versions}</div>`;
             return;
@@ -1223,7 +1248,8 @@ async function dlvOpenVersions() {
             <button onclick="dlvRestoreVersion(${v.id}, ${v.version_no})" style="font-size:12px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;">${LANG.restore_btn}</button>
           </div>`).join('');
     } catch(e) {
-        wrap.querySelector('#dlv-ver-list').textContent = LANG.error_label.replace(':message', e.message);
+        const list = document.querySelector('#dlv-ver-pop #dlv-ver-list');
+        if (list) list.textContent = LANG.error_label.replace(':message', e.message);
     }
 }
 
@@ -1584,7 +1610,11 @@ function applyFieldsToForm(fields) {
         if (!value) continue;
         const el = document.querySelector(`[data-field-key="${key}"]`) ||
                    document.querySelector(`[name="fields[${key}]"]`);
-        if (el) { el.value = value; applied++; }
+        if (el) {
+            el.value = value;
+            applied++;
+            if (el.tagName === 'TEXTAREA') mdRefreshPreview(el);
+        }
     }
     return applied;
 }
@@ -1675,6 +1705,37 @@ function resetStreamHighlight() {
     });
 }
 
+/* ── 웍스 초안 생성 진행바 (트리클 방식) ── */
+let _draftProgTimer = null, _draftProgVal = 0;
+function _draftProgSet(v) {
+    _draftProgVal = Math.max(0, Math.min(100, v));
+    const f = document.getElementById('dlv-draft-prog-fill');
+    if (f) f.style.width = _draftProgVal + '%';
+}
+function dlvDraftProgStart() {
+    const t = document.getElementById('dlv-draft-prog');
+    if (t) t.style.display = 'block';
+    _draftProgSet(10);
+    clearInterval(_draftProgTimer);
+    _draftProgTimer = setInterval(() => {
+        if (_draftProgVal < 90) _draftProgSet(_draftProgVal + (90 - _draftProgVal) * 0.07);
+    }, 400);
+}
+function dlvDraftProgBump() {
+    if (_draftProgVal < 90) _draftProgSet(_draftProgVal + 4);
+}
+function dlvDraftProgHide() {
+    clearInterval(_draftProgTimer);
+    const t = document.getElementById('dlv-draft-prog');
+    if (t) t.style.display = 'none';
+    _draftProgSet(0);
+}
+function dlvDraftProgDone() {
+    clearInterval(_draftProgTimer);
+    _draftProgSet(100);
+    setTimeout(dlvDraftProgHide, 600);
+}
+
 async function generateDraft() {
     const msgEl = addAiMsg(LANG.ai_drafting, true);
 
@@ -1702,6 +1763,15 @@ async function generateDraft() {
         return;
     }
 
+    // 폴백 경로 등에서 SSE 가 아닌 HTML 응답이 온 경우 방어
+    const _ctype = (res.headers.get('content-type') || '').toLowerCase();
+    if (!_ctype.includes('text/event-stream')) {
+        msgEl.innerHTML = LANG.ai_error_prefix + LANG.ai_error_parse;
+        console.error('[generateDraft] 예상치 못한 응답 형식:', _ctype);
+        return;
+    }
+
+    dlvDraftProgStart();
     const reader  = res.body.getReader();
     const decoder = new TextDecoder();
     let   buffer      = '';
@@ -1730,6 +1800,7 @@ async function generateDraft() {
                         statusEl.textContent   = LANG.writing;
                         // 중앙 편집 영역 실시간 반영
                         applyPartialStream(accumulated);
+                        dlvDraftProgBump();
                     }
 
                     if (eventName === 'status' && data.text) {
@@ -1740,6 +1811,7 @@ async function generateDraft() {
                     if (eventName === 'done' && data.ok) {
                         resetStreamHighlight();
                         statusEl.remove();
+                        dlvDraftProgDone();
                         let fields = data.fields ?? {};
 
                         // 서버 디버그 정보 (필드 빈 경우)
@@ -1813,6 +1885,7 @@ async function generateDraft() {
                     if (eventName === 'error' && data.error) {
                         resetStreamHighlight();
                         statusEl.remove();
+                        dlvDraftProgHide();
                         msgEl.innerHTML = LANG.ai_error_prefix + data.error;
                     }
 
@@ -1823,7 +1896,12 @@ async function generateDraft() {
     } catch (e) {
         resetStreamHighlight();
         statusEl.remove();
-        msgEl.innerHTML = LANG.ai_error_prefix + (e.message ?? LANG.ai_error_draft);
+        dlvDraftProgHide();
+        // 응답에 HTML 이 섞여 JSON 파싱이 깨진 경우 → 원문 대신 깔끔한 안내 표시
+        const _isParseErr = (e instanceof SyntaxError) || /JSON|Unexpected token/i.test(e && e.message || '');
+        msgEl.innerHTML = LANG.ai_error_prefix + (_isParseErr
+            ? LANG.ai_error_parse
+            : (e.message ?? LANG.ai_error_draft));
         console.error('[generateDraft] stream error:', e);
     }
 }
@@ -2183,7 +2261,7 @@ const TOGGLE_SHARE_URL     = '{{ route("ai-agent.projects.deliverables.toggle-sh
 
 async function dlvApprovalRequest(stepNo) {
     const checked = [...document.querySelectorAll('input[name="approver-' + stepNo + '"]:checked')].map(c => c.value);
-    if (!checked.length) { alert('{{ __('deliverables.approve_select_ph') }}'); return; }
+    if (!checked.length) { alert('{{ __('deliverables.approve_hint_select') }}'); return; }
 
     const res = await fetch(APPROVAL_REQUEST_URL, {
         method: 'POST',

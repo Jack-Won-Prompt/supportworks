@@ -152,6 +152,7 @@ return [
     'tool_pdf_coming'       => 'PDF 내보내기 준비 중',
     'tool_matrix_open'      => '에디터 열기',
     'ai_error_draft'        => '초안 생성에 실패했습니다.',
+    'ai_error_parse'        => '웍스가 응답을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.',
     'ai_error_analyze'      => '분석에 실패했습니다.',
     'ai_error_answer'       => '답변 생성에 실패했습니다.',
     'ai_draft_saving'       => '⏳ 임시 저장 중…',
