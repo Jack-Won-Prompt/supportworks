@@ -314,7 +314,14 @@ class FileCommentController extends Controller
 
         $page = $request->query('page');
 
+        // 버전별 주석 — 미지정 시 현재(최신) 버전
+        $version = (int) $request->query('version', 0);
+        if ($version <= 0) {
+            $version = $file->currentVersionNumber();
+        }
+
         $query = FileAnnotation::where('project_file_id', $file->id)
+            ->where('version', $version)
             ->with('user:id,name');
 
         if ($page !== null && $page !== '') {
@@ -343,13 +350,21 @@ class FileCommentController extends Controller
         $this->authorizeProject($project);
 
         $request->validate([
-            'type' => 'required|in:number,rect,circle,line,text',
-            'data' => 'required|array',
-            'page' => 'nullable|integer|min:1|max:9999',
+            'type'    => 'required|in:number,rect,circle,line,text',
+            'data'    => 'required|array',
+            'page'    => 'nullable|integer|min:1|max:9999',
+            'version' => 'nullable|integer|min:1',
         ]);
+
+        // 주석은 현재 보고 있는 버전에 귀속 — 미지정 시 현재(최신) 버전
+        $version = (int) $request->input('version', 0);
+        if ($version <= 0) {
+            $version = $file->currentVersionNumber();
+        }
 
         $ann = FileAnnotation::create([
             'project_file_id' => $file->id,
+            'version'         => $version,
             'user_id'         => auth()->id(),
             'page'            => $request->page ?: null,
             'type'            => $request->type,

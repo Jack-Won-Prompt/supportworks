@@ -890,7 +890,7 @@
                                             data-msg-id="{{ $msg->id }}" data-pda-id="{{ $msgPdaId }}"
                                             onclick="pdaOpenFromMessage(this)">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                        Plan-Do-Act
+                                        {{ __('plan-do-acts.nav') }}
                                     </button>
                                     <button class="msg-ai-btn" type="button" onclick="analyzeMsg({{ $msg->id }}, this)">
                                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -1959,7 +1959,7 @@ async function renderMessage(data) {
     }
 
     const wrapAttrs  = `data-msg-id="${data.id||''}" data-msg-body="${msgPreview.replace(/"/g,'&quot;')}" data-msg-sender="${(data.sender_name||STR_ME).replace(/"/g,'&quot;')}"`;
-    const pdaBtn     = `<button class="msg-pda-btn" type="button" data-msg-id="${data.id||''}" data-pda-id="" onclick="pdaOpenFromMessage(this)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Plan-Do-Act</button>`;
+    const pdaBtn     = `<button class="msg-pda-btn" type="button" data-msg-id="${data.id||''}" data-pda-id="" onclick="pdaOpenFromMessage(this)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> ${PDA_MSG.nav}</button>`;
     const aiBtn      = `<button class="msg-ai-btn" type="button" onclick="analyzeMsg(${data.id||'null'},this)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> {{ __('messages.ai_analysis') }}</button>`;
     const btnGroup   = `<div class="msg-btn-group">${pdaBtn}${aiBtn}</div>`;
 
@@ -2305,7 +2305,13 @@ async function closeAiPanel() {
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s) { return escA(s).replace(/"/g,'&quot;'); }
 
-// ── 메시지 → Plan-Do-Act ──────────────────────────────────────
+// ── 메시지 → 실행 계획(Plan-Do-Act) ──────────────────────────────────────
+const PDA_MSG = {
+    nav:          @json(__('plan-do-acts.nav')),
+    ref_message:  @json(__('plan-do-acts.ref_message')),
+    chat_message: @json(__('plan-do-acts.chat_message')),
+};
+
 function pdaOpenFromMessage(btn) {
     const msgId = btn.dataset.msgId;
     const pdaId = btn.dataset.pdaId;
@@ -2317,9 +2323,9 @@ function pdaOpenFromMessage(btn) {
     const bodyDiv = wrap ? wrap.querySelector('.msg-bubble div[style*="pre-wrap"]') : null;
     if (bodyDiv) body = (bodyDiv.innerText || '').trim();
 
-    const title   = (body.replace(/\s+/g, ' ').trim().slice(0, 60)) || '채팅 메시지';
-    const planRef = '[참고 메시지] ' + sender + '\n' + body + '\n\n';
-    const excerpt = '[원본 메시지] ' + sender + '\n' + body;
+    const title   = (body.replace(/\s+/g, ' ').trim().slice(0, 60)) || PDA_MSG.chat_message;
+    const planRef = PDA_MSG.ref_message + ' ' + sender + '\n' + body + '\n\n';
+    const excerpt = PDA_MSG.ref_message + ' ' + sender + '\n' + body;
 
     window.pdaOpenCreate(null, {
         source_message_id: msgId,

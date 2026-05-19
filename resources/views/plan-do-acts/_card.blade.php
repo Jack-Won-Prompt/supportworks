@@ -19,7 +19,7 @@
                 @if($it->source_file_comment_id)
                     <span style="font-size:10.5px;font-weight:600;color:#6b7280;background:#f3f4f6;border-radius:6px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px;">
                         <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        의견 연동
+                        {{ __('plan-do-acts.source_linked') }}
                     </span>
                 @endif
             </div>

@@ -46,12 +46,9 @@ class PlanDoAct extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return [
-            'plan' => '계획 (Plan)',
-            'do'   => '실행 (Do)',
-            'act'  => '조치 (Act)',
-            'done' => '완료',
-        ][$this->status] ?? $this->status;
+        return in_array($this->status, self::STATUSES, true)
+            ? __('plan-do-acts.status_' . $this->status)
+            : $this->status;
     }
 
     /** 상태 배지 색상 {bg, fg} */

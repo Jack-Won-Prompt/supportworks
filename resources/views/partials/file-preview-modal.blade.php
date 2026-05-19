@@ -789,7 +789,7 @@ const FM_STR = {
     uploading:             '{{ __("viewer.uploading") }}',
     upload_failed:         '{{ __("viewer.upload_failed") }}',
     upload_done:           '{{ __("viewer.upload_done") }}',
-    upload_confirm:        '{{ __("viewer.upload_confirm") }}',
+    upload_confirm:        @json(__('viewer.upload_confirm')),
     loading_ellipsis:      '{{ __("viewer.loading_ellipsis") }}',
     no_version_history:    '{{ __("viewer.no_version_history") }}',
     load_failed_short:     '{{ __("viewer.load_failed_short") }}',
@@ -2173,22 +2173,31 @@ function cnvCloseDetail() {
     document.getElementById('cnv-detail-modal').style.display = 'none';
 }
 
-// ── 의견 → Plan-Do-Act 등록 ──────────────────────────
+// ── 의견 → 실행 계획(Plan-Do-Act) 등록 ──────────────────────────
+const PDA_FM = {
+    nav:         @json(__('plan-do-acts.nav')),
+    view_edit:   @json(__('plan-do-acts.view_edit')),
+    register:    @json(__('plan-do-acts.register_from_source')),
+    src_comment: @json(__('plan-do-acts.src_comment')),
+    src_reply:   @json(__('plan-do-acts.src_reply')),
+    ref_comment: @json(__('plan-do-acts.ref_comment')),
+};
+
 function pdaBtnHtml(c) {
     if (!c || c.parent_id) return '';
     if (c.plan_do_act_id) {
-        return `<button onclick="pdaOpenFromComment(${c.id})" title="Plan-Do-Act 보기/수정"
+        return `<button onclick="pdaOpenFromComment(${c.id})" title="${PDA_FM.view_edit}"
                     style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#b45309;background:#fef3c7;border:1px solid #fde68a;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                     onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
-                    Plan-Do-Act
+                    ${PDA_FM.nav}
                 </button>`;
     }
-    return `<button onclick="pdaOpenFromComment(${c.id})" title="Plan-Do-Act로 등록"
+    return `<button onclick="pdaOpenFromComment(${c.id})" title="${PDA_FM.register}"
                 style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#7c3aed;background:#f3eefe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                 onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#f3eefe'">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Plan-Do-Act
+                ${PDA_FM.nav}
             </button>`;
 }
 
@@ -2202,11 +2211,14 @@ function pdaOpenFromComment(commentId) {
     let title = '', excerpt = '', planRef = '';
     if (c) {
         title = (c.content || '').replace(/\s+/g, ' ').trim().slice(0, 60);
-        const lines = [`[원본 의견] ${c.user_name || ''} · ${c.created_at || ''}`, c.content || ''];
-        (c.replies || []).forEach(r => lines.push(`↳ ${r.user_name || ''}: ${r.content || ''}`));
+        const header = PDA_FM.src_comment.replace(':author', c.user_name || '').replace(':date', c.created_at || '');
+        const lines = [header, c.content || ''];
+        (c.replies || []).forEach(r => lines.push(
+            PDA_FM.src_reply.replace(':author', r.user_name || '').replace(':content', r.content || '')
+        ));
         excerpt = lines.join('\n');
         // Plan 내용에 원본 의견을 참고로 포함 — 계획은 그 아래에 작성
-        planRef = '[참고 의견]\n' + lines.slice(1).join('\n') + '\n\n';
+        planRef = PDA_FM.ref_comment + '\n' + lines.slice(1).join('\n') + '\n\n';
     }
     window.pdaOpenCreate(currentProjectId, {
         source_file_comment_id: commentId,
@@ -2892,7 +2904,8 @@ function _updateTempEl(el, type, x1, y1, x2, y2) {
 
 function loadAnnotations() {
     if (!_annotationApiBase && (!currentFileId || !currentProjectId)) return;
-    fetch(`${_aBase()}/annotations`, {
+    const ver = window._currentVersion || 1;
+    fetch(`${_aBase()}/annotations?version=${ver}`, {
         headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
     })
     .then(r => r.json())
@@ -3027,7 +3040,7 @@ function saveAnnotation(type, data) {
     fetch(`${_aBase()}/annotations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
-        body: JSON.stringify({ type, data, page })
+        body: JSON.stringify({ type, data, page, version: window._currentVersion || 1 })
     })
     .then(r => {
         if (!r.ok) return r.text().then(t => { throw new Error(`HTTP ${r.status}: ${t.substring(0,200)}`); });
@@ -3166,9 +3179,12 @@ function _showSelectionOverlay(annId) {
         delG.style.pointerEvents = 'all';
         delG.style.cursor        = 'pointer';
         delG.addEventListener('mousedown', e => e.stopPropagation());
-        delG.addEventListener('click', e => {
+        delG.addEventListener('click', async e => {
             e.stopPropagation();
-            if (!confirm(FM_STR.confirm_delete_ann)) return;
+            const ok = (typeof window.__confirm === 'function')
+                ? await window.__confirm(FM_STR.confirm_delete_ann)
+                : confirm(FM_STR.confirm_delete_ann);
+            if (!ok) return;
             deleteAnnotation(ann.id);
         });
         const delBg = document.createElementNS(ns, 'circle');

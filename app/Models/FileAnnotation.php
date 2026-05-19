@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FileAnnotation extends Model
 {
     protected $fillable = [
-        'project_file_id', 'user_id', 'guest_name', 'page', 'type', 'data',
+        'project_file_id', 'version', 'user_id', 'guest_name', 'page', 'type', 'data',
     ];
 
     protected $casts = [

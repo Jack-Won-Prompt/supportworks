@@ -75,10 +75,10 @@ class PlanDoActController extends Controller
         // 파일 의견에서 등록
         if ($sourceCommentId) {
             $comment = FileComment::with(['user', 'replies.user'])->findOrFail($sourceCommentId);
-            abort_if($comment->parent_id !== null, 422, '답글은 Plan-Do-Act로 등록할 수 없습니다.');
+            abort_if($comment->parent_id !== null, 422, __('plan-do-acts.err_reply'));
 
             $commentProjectId = ProjectFile::where('id', $comment->project_file_id)->value('project_id');
-            abort_if($projectId && $commentProjectId !== (int) $projectId, 422, '의견과 프로젝트가 일치하지 않습니다.');
+            abort_if($projectId && $commentProjectId !== (int) $projectId, 422, __('plan-do-acts.err_project_mismatch'));
 
             if ($existing = PlanDoAct::where('source_file_comment_id', $comment->id)->first()) {
                 return $this->alreadyResponse($existing);
@@ -91,7 +91,7 @@ class PlanDoActController extends Controller
             $message = Message::with('conversation.participants')->findOrFail($sourceMessageId);
             abort_unless(
                 $message->conversation && $message->conversation->participants->contains('id', auth()->id()),
-                403, '이 메시지에 접근할 권한이 없습니다.'
+                403, __('plan-do-acts.err_message_access')
             );
 
             if ($existing = PlanDoAct::where('source_message_id', $message->id)->first()) {
@@ -167,7 +167,7 @@ class PlanDoActController extends Controller
         $this->authorizePda($planDoAct);
 
         if (!$this->canManage($planDoAct)) {
-            abort(403, '삭제 권한이 없습니다.');
+            abort(403, __('plan-do-acts.err_no_delete_perm'));
         }
 
         $planDoAct->delete();
@@ -183,7 +183,7 @@ class PlanDoActController extends Controller
             'ok'             => false,
             'already'        => true,
             'plan_do_act_id' => $existing->id,
-            'message'        => '이미 Plan-Do-Act로 등록되어 있습니다.',
+            'message'        => __('plan-do-acts.already_registered'),
         ], 409);
     }
 
@@ -212,14 +212,18 @@ class PlanDoActController extends Controller
     /** 파일 의견 + 답글을 소스 스냅샷 텍스트로 변환 */
     private function buildCommentExcerpt(FileComment $comment): string
     {
-        $author  = $comment->user?->name ?? $comment->guest_name ?? '외부 리뷰어';
+        $anon    = __('plan-do-acts.reviewer_anon');
+        $author  = $comment->user?->name ?? $comment->guest_name ?? $anon;
         $lines   = [];
-        $lines[] = sprintf('[원본 의견] %s · %s', $author, optional($comment->created_at)->format('Y-m-d H:i'));
+        $lines[] = __('plan-do-acts.src_comment', [
+            'author' => $author,
+            'date'   => optional($comment->created_at)->format('Y-m-d H:i'),
+        ]);
         $lines[] = (string) $comment->content;
 
         foreach ($comment->replies as $reply) {
-            $ra = $reply->user?->name ?? $reply->guest_name ?? '외부 리뷰어';
-            $lines[] = sprintf('↳ %s: %s', $ra, (string) $reply->content);
+            $ra = $reply->user?->name ?? $reply->guest_name ?? $anon;
+            $lines[] = __('plan-do-acts.src_reply', ['author' => $ra, 'content' => (string) $reply->content]);
         }
 
         return implode("\n", $lines);
@@ -228,24 +232,28 @@ class PlanDoActController extends Controller
     /** 채팅 메시지 + 답장을 소스 스냅샷 텍스트로 변환 */
     private function buildMessageExcerpt(Message $message): string
     {
-        $author = $message->sender?->name ?? '알 수 없음';
-        $body   = trim((string) $message->body);
+        $unknown = __('plan-do-acts.user_unknown');
+        $author  = $message->sender?->name ?? $unknown;
+        $body    = trim((string) $message->body);
         if ($body === '' && $message->file_name) {
             $body = '📎 ' . $message->file_name;
         }
 
         $lines   = [];
-        $lines[] = sprintf('[원본 메시지] %s · %s', $author, optional($message->created_at)->format('Y-m-d H:i'));
+        $lines[] = __('plan-do-acts.src_message', [
+            'author' => $author,
+            'date'   => optional($message->created_at)->format('Y-m-d H:i'),
+        ]);
         $lines[] = $body;
 
         $replies = Message::where('reply_to_id', $message->id)->with('sender')->orderBy('created_at')->get();
         foreach ($replies as $reply) {
-            $ra = $reply->sender?->name ?? '알 수 없음';
+            $ra = $reply->sender?->name ?? $unknown;
             $rb = trim((string) $reply->body);
             if ($rb === '' && $reply->file_name) {
                 $rb = '📎 ' . $reply->file_name;
             }
-            $lines[] = sprintf('↳ %s: %s', $ra, $rb);
+            $lines[] = __('plan-do-acts.src_reply', ['author' => $ra, 'content' => $rb]);
         }
 
         return implode("\n", $lines);
