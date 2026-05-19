@@ -5,6 +5,7 @@ $_pnItems = array_values(array_filter([
     ['key'=>'planning',       'url'=>route('projects.planning.index', $project),       'label'=>__('projects.planning'),      'feature'=>'planning'],
     ['key'=>'requirements',   'url'=>route('projects.requirements.index', $project),   'label'=>__('projects.nav_requirements'),   'feature'=>'requirements'],
     ['key'=>'discussions',    'url'=>route('projects.discussions.index',  $project),   'label'=>__('projects.nav_discussions'),    'feature'=>null],
+    ['key'=>'plan-do-acts',   'url'=>route('projects.plan-do-acts.index', $project),   'label'=>'Plan-Do-Act',                     'feature'=>null],
     ['key'=>'deliverables',   'url'=>route('ai-agent.projects.deliverables.index', $project), 'label'=>__('projects.nav_deliverables'),'feature'=>null],
     ['key'=>'schedules',      'url'=>route('projects.schedules.index', $project),      'label'=>__('projects.schedule'),      'feature'=>'schedules'],
     ['key'=>'gantt',          'url'=>route('projects.gantt', $project),                'label'=>__('projects.gantt'),         'feature'=>'gantt'],

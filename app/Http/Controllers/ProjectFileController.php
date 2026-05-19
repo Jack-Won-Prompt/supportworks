@@ -439,6 +439,11 @@ class ProjectFileController extends Controller
     public function versionList(Project $project, ProjectFile $file)
     {
         $this->authorizeProject($project);
+
+        $user      = auth()->user();
+        $isAdmin   = $user->isAdmin();
+        $isManager = $project->getMemberRole($user) === 'manager';
+
         $versions = $file->versions()
             ->with('uploader:id,name')
             ->orderByDesc('version')
@@ -452,8 +457,65 @@ class ProjectFileController extends Controller
                 'uploader'      => $v->uploader ? ['id' => $v->uploader->id, 'name' => $v->uploader->name] : null,
                 'change_note'   => $v->change_note,
                 'created_at'    => $v->created_at?->format('Y-m-d H:i'),
+                // 수정본(v2+)만 삭제 가능 — 업로더 본인·관리자·프로젝트 매니저
+                'can_delete'    => $v->version > 1 && ($isAdmin || $isManager || $v->uploaded_by === $user->id),
             ]);
         return response()->json(['ok' => true, 'versions' => $versions]);
+    }
+
+    /** 수정본(파일 버전) 삭제 */
+    public function deleteVersion(Project $project, ProjectFile $file, FileVersion $fileVersion)
+    {
+        $this->authorizeProject($project);
+
+        abort_if($fileVersion->project_file_id !== $file->id, 404);
+        abort_if($fileVersion->version <= 1, 422, '원본(v1)은 삭제할 수 없습니다.');
+
+        $user      = auth()->user();
+        $canDelete = $user->isAdmin()
+            || $fileVersion->uploaded_by === $user->id
+            || $project->getMemberRole($user) === 'manager';
+        abort_unless($canDelete, 403, '이 수정본을 삭제할 권한이 없습니다.');
+
+        return DB::transaction(function () use ($file, $fileVersion) {
+            $deletedVersion = $fileVersion->version;
+            $wasLatest      = $deletedVersion === (int) $file->versions()->max('version');
+
+            // 저장된 파일 정리
+            Storage::disk('local')->delete(array_filter([
+                $fileVersion->path,
+                $fileVersion->converted_pdf_path,
+            ]));
+            $fileVersion->delete();
+
+            // 최신본을 삭제했으면 ProjectFile을 직전 버전으로 되돌림
+            if ($wasLatest) {
+                $newLatest = $file->versions()->reorder('version', 'desc')->first();
+                if ($newLatest) {
+                    $file->update([
+                        'original_name'      => $newLatest->original_name,
+                        'stored_name'        => $newLatest->stored_name,
+                        'path'               => $newLatest->path,
+                        'mime_type'          => $newLatest->mime_type,
+                        'size'               => $newLatest->size,
+                        'converted_pdf_path' => $newLatest->converted_pdf_path,
+                        'uploaded_by'        => $newLatest->uploaded_by,
+                    ]);
+                }
+            }
+
+            FileActionLog::create([
+                'project_file_id' => $file->id,
+                'user_id'         => auth()->id(),
+                'action'          => 'delete_version',
+            ]);
+
+            return response()->json([
+                'ok'              => true,
+                'current_version' => $file->fresh()->currentVersionNumber(),
+                'message'         => "v{$deletedVersion} 수정본이 삭제되었습니다.",
+            ]);
+        });
     }
 
     public function destroy(Request $request, Project $project, ProjectFile $file)

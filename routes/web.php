@@ -495,6 +495,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get ('/{discussion}/attachments/{attachment}',     [\App\Http\Controllers\DiscussionController::class, 'downloadAttachment'])->name('attachments.download');
     });
 
+    // Plan-Do-Act
+    Route::get   ('/plan-do-acts',              [\App\Http\Controllers\PlanDoActController::class, 'globalIndex'])->name('plan-do-acts.index');
+    Route::post  ('/plan-do-acts',              [\App\Http\Controllers\PlanDoActController::class, 'store'])      ->name('plan-do-acts.store');
+    Route::get   ('/plan-do-acts/{planDoAct}',  [\App\Http\Controllers\PlanDoActController::class, 'show'])       ->name('plan-do-acts.show');
+    Route::patch ('/plan-do-acts/{planDoAct}',  [\App\Http\Controllers\PlanDoActController::class, 'update'])     ->name('plan-do-acts.update');
+    Route::delete('/plan-do-acts/{planDoAct}',  [\App\Http\Controllers\PlanDoActController::class, 'destroy'])    ->name('plan-do-acts.destroy');
+    Route::get   ('/projects/{project}/plan-do-acts', [\App\Http\Controllers\PlanDoActController::class, 'index'])->name('projects.plan-do-acts.index');
+
     Route::prefix('projects/{project}/planning')->name('projects.planning.')->group(function () {
         Route::get ('/',                              [PlanningDocController::class, 'index'])       ->name('index');
         Route::post('/',                              [PlanningDocController::class, 'store'])       ->name('store');
@@ -632,6 +640,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get ('/{file}/comments/download',                       [FileCommentController::class, 'downloadCommentsReport'])->name('comments.download');
         Route::post('/{file}/upload-version', [ProjectFileController::class, 'uploadVersion'])->name('upload-version');
         Route::get('/{file}/versions', [ProjectFileController::class, 'versionList'])->name('versions');
+        Route::delete('/{file}/versions/{fileVersion}', [ProjectFileController::class, 'deleteVersion'])->name('versions.destroy');
         Route::get('/{file}/download', [ProjectFileController::class, 'download'])->name('download');
         Route::get('/{file}/url-view', [ProjectFileController::class, 'urlViewer'])->name('url-view');
         Route::patch('/{file}/category', [ProjectFileController::class, 'updateCategory'])->name('update-category');

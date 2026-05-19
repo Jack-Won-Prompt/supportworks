@@ -410,18 +410,25 @@
 #img-lb-submit:hover { opacity:.85; }
 #img-lb-submit:disabled { opacity:.5; cursor:default; }
 
-/* 웍스 분석 버튼 (말풍선 hover 시 우측 상단) */
+/* 메시지 액션 버튼 (말풍선 hover 시 우측 상단) */
 .msg-bubble-wrap { position:relative; display:inline-block; max-width:100%; }
-.msg-ai-btn {
+.msg-btn-group {
     display:none; position:absolute; top:-8px; right:-8px; z-index:10;
-    align-items:center; gap:3px; padding:2px 7px 2px 5px;
-    background:rgba(109,40,217,.88); backdrop-filter:blur(4px);
-    color:#fff; border:none; border-radius:6px;
+    align-items:center; gap:4px;
+}
+.msg-row:hover .msg-btn-group { display:inline-flex; }
+.msg-ai-btn, .msg-pda-btn {
+    display:inline-flex; align-items:center; gap:3px; padding:2px 7px 2px 5px;
+    backdrop-filter:blur(4px); color:#fff; border:none; border-radius:6px;
     font-size:10.5px; font-weight:600; cursor:pointer; white-space:nowrap;
     font-family:inherit; transition:background .12s;
 }
+.msg-ai-btn { background:rgba(109,40,217,.88); }
 .msg-ai-btn:hover { background:rgba(109,40,217,1); }
-.msg-row:hover .msg-ai-btn { display:inline-flex; }
+.msg-pda-btn { background:rgba(180,83,9,.9); }
+.msg-pda-btn:hover { background:rgba(180,83,9,1); }
+.msg-pda-btn.registered { background:rgba(22,163,74,.92); }
+.msg-pda-btn.registered:hover { background:rgba(22,163,74,1); }
 
 
 /* 답글 — 부모 말풍선 내부에 표시 */
@@ -877,10 +884,19 @@
                                     </div>
                                     @endif
                                 </div>
-                                <button class="msg-ai-btn" type="button" onclick="analyzeMsg({{ $msg->id }}, this)">
-                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                    {{ __('messages.ai_analysis') }}
-                                </button>
+                                @php $msgPdaId = ($messagePdaMap ?? [])[$msg->id] ?? ''; @endphp
+                                <div class="msg-btn-group">
+                                    <button class="msg-pda-btn{{ $msgPdaId ? ' registered' : '' }}" type="button"
+                                            data-msg-id="{{ $msg->id }}" data-pda-id="{{ $msgPdaId }}"
+                                            onclick="pdaOpenFromMessage(this)">
+                                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                        Plan-Do-Act
+                                    </button>
+                                    <button class="msg-ai-btn" type="button" onclick="analyzeMsg({{ $msg->id }}, this)">
+                                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                        {{ __('messages.ai_analysis') }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         @if($isMine)
@@ -981,6 +997,9 @@
         @endif
     </div>
 </div>
+
+{{-- Plan-Do-Act 등록/수정 팝업 --}}
+@include('plan-do-acts._modal')
 
 {{-- 우클릭 컨텍스트 메뉴 --}}
 <div id="msg-ctx-menu">
@@ -1940,14 +1959,16 @@ async function renderMessage(data) {
     }
 
     const wrapAttrs  = `data-msg-id="${data.id||''}" data-msg-body="${msgPreview.replace(/"/g,'&quot;')}" data-msg-sender="${(data.sender_name||STR_ME).replace(/"/g,'&quot;')}"`;
+    const pdaBtn     = `<button class="msg-pda-btn" type="button" data-msg-id="${data.id||''}" data-pda-id="" onclick="pdaOpenFromMessage(this)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Plan-Do-Act</button>`;
     const aiBtn      = `<button class="msg-ai-btn" type="button" onclick="analyzeMsg(${data.id||'null'},this)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> {{ __('messages.ai_analysis') }}</button>`;
+    const btnGroup   = `<div class="msg-btn-group">${pdaBtn}${aiBtn}</div>`;
 
     const row = document.createElement('div');
     row.className     = `msg-row${isMine?' mine':''}`;
     if (data.id) row.id = `message-${data.id}`;
     row.dataset.msgId = data.id || '';
     row.dataset.msgAt = data.created_at_iso || data.created_at || '';
-    row.innerHTML = `${avatarHtml}<div style="max-width:70%;">${nameHtml}<div class="msg-bubble-wrap" ${wrapAttrs}><div class="msg-bubble ${isMine?'mine':'theirs'}">${bodyHtml}${translationHtml}${fileHtml}</div>${aiBtn}</div></div>${timeWrap}`;
+    row.innerHTML = `${avatarHtml}<div style="max-width:70%;">${nameHtml}<div class="msg-bubble-wrap" ${wrapAttrs}><div class="msg-bubble ${isMine?'mine':'theirs'}">${bodyHtml}${translationHtml}${fileHtml}</div>${btnGroup}</div></div>${timeWrap}`;
 
     cm.insertBefore(row, document.getElementById('bottom'));
     cm.scrollTop = cm.scrollHeight;
@@ -2283,6 +2304,43 @@ async function closeAiPanel() {
 }
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s) { return escA(s).replace(/"/g,'&quot;'); }
+
+// ── 메시지 → Plan-Do-Act ──────────────────────────────────────
+function pdaOpenFromMessage(btn) {
+    const msgId = btn.dataset.msgId;
+    const pdaId = btn.dataset.pdaId;
+    if (pdaId) { window.pdaOpenEdit(pdaId); return; }
+
+    const wrap   = btn.closest('.msg-bubble-wrap');
+    const sender = wrap ? (wrap.dataset.msgSender || '') : '';
+    let body = '';
+    const bodyDiv = wrap ? wrap.querySelector('.msg-bubble div[style*="pre-wrap"]') : null;
+    if (bodyDiv) body = (bodyDiv.innerText || '').trim();
+
+    const title   = (body.replace(/\s+/g, ' ').trim().slice(0, 60)) || '채팅 메시지';
+    const planRef = '[참고 메시지] ' + sender + '\n' + body + '\n\n';
+    const excerpt = '[원본 메시지] ' + sender + '\n' + body;
+
+    window.pdaOpenCreate(null, {
+        source_message_id: msgId,
+        title: title,
+        plan: planRef,
+        source_excerpt: excerpt,
+    });
+}
+
+function _pdaUpdateMsgButton(msgId, pdaId) {
+    document.querySelectorAll(`.msg-pda-btn[data-msg-id="${msgId}"]`).forEach(btn => {
+        btn.dataset.pdaId = pdaId || '';
+        btn.classList.toggle('registered', !!pdaId);
+    });
+}
+window.pdaOnSaved = function(item, mode, sourceCommentId, sourceMessageId) {
+    if (mode === 'create' && sourceMessageId && item) _pdaUpdateMsgButton(sourceMessageId, item.id);
+};
+window.pdaOnDeleted = function(id, sourceCommentId, sourceMessageId) {
+    if (sourceMessageId) _pdaUpdateMsgButton(sourceMessageId, null);
+};
 
 function renderAiActionItems(msgId, items) {
     if (!Array.isArray(items) || !items.length) {

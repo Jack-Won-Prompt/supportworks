@@ -571,7 +571,8 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
         </div>
     </div>
 
-    {{-- ── 우: 웍스 패널 ──────────────────────────────── --}}
+    {{-- ── 우: 웍스 어시스턴트 패널 — 관리자에게만 표시 ──────────── --}}
+    @if(auth()->user()?->isAdmin())
     <div class="dlv-right">
         <div class="dlv-ai-header">
             <svg width="14" height="14" fill="none" stroke="var(--t500)" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
@@ -617,6 +618,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             </button>
         </div>
     </div>
+    @endif
 
 </div>
 

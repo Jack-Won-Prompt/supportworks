@@ -56,6 +56,10 @@
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             {{ __('viewer.upload_revision') }}
         </button>
+        <button id="modal-version-history" type="button" onclick="openVersionHistory()" style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'" title="{{ __('viewer.version_history') }}">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ __('viewer.version_history') }}
+        </button>
         <a id="modal-download" href="#" style="display:inline-flex;align-items:center;gap:5px;color:#a5b4fc;font-size:12px;font-weight:600;text-decoration:none;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;flex-shrink:0;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.download') }}
@@ -515,6 +519,9 @@
         </div>
     </div>
 </div>
+
+{{-- Plan-Do-Act 등록/수정 팝업 --}}
+@include('plan-do-acts._modal')
 
 {{-- ====== 수정본 업로드 다이얼로그 ====== --}}
 <div id="upv-modal" onclick="if(event.target===this)closeUploadVersionModal()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
@@ -1980,6 +1987,7 @@ function openVersionHistory() {
                     <span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:5px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;">v${v.version}</span>
                     <span style="font-size:12px;color:#374151;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(v.original_name)}</span>
                     <span style="font-size:11px;color:#9ca3af;">${v.size_human || ''}</span>
+                    ${v.can_delete ? `<button type="button" onclick="deleteFileVersion(${v.id}, ${v.version})" title="${FM_STR.delete_version_title || '이 수정본 삭제'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#d1d5db;padding:2px;line-height:0;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
                 </div>
                 <div style="font-size:11px;color:#6b7280;margin-bottom:2px;">${v.uploader?.name || '—'} · ${v.created_at || ''}</div>
                 ${v.change_note ? `<div style="font-size:12px;color:#374151;background:#fafafa;border-left:3px solid #c4b5fd;padding:6px 10px;margin-top:4px;white-space:pre-wrap;">${escHtml(v.change_note)}</div>` : ''}
@@ -1992,6 +2000,30 @@ function openVersionHistory() {
 }
 function closeVersionHistory() {
     document.getElementById('vh-modal').style.display = 'none';
+}
+
+// 수정본(파일 버전) 삭제
+function deleteFileVersion(versionId, versionNum) {
+    if (!currentProjectId || !currentFileId) return;
+    if (!confirm(`v${versionNum} 수정본을 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`)) return;
+    fetch(`${BASE_URL}/projects/${currentProjectId}/files/${currentFileId}/versions/${versionId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+    })
+    .then(async res => {
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(d.message || FM_STR.delete_failed || '삭제에 실패했습니다.');
+        openVersionHistory(); // 버전 목록 새로고침
+        // 최신본이 삭제되어 현재 표시본이 바뀌었으면 미리보기 새로고침
+        if (typeof d.current_version === 'number' && d.current_version < versionNum
+            && typeof openPreview === 'function') {
+            openPreview(currentFileId, currentProjectId);
+        }
+    })
+    .catch(e => alert(e.message || '삭제에 실패했습니다.'));
 }
 
 // ── 의견 → 논의사항 변환 ──────────────────────────
@@ -2141,6 +2173,78 @@ function cnvCloseDetail() {
     document.getElementById('cnv-detail-modal').style.display = 'none';
 }
 
+// ── 의견 → Plan-Do-Act 등록 ──────────────────────────
+function pdaBtnHtml(c) {
+    if (!c || c.parent_id) return '';
+    if (c.plan_do_act_id) {
+        return `<button onclick="pdaOpenFromComment(${c.id})" title="Plan-Do-Act 보기/수정"
+                    style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#b45309;background:#fef3c7;border:1px solid #fde68a;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                    onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
+                    Plan-Do-Act
+                </button>`;
+    }
+    return `<button onclick="pdaOpenFromComment(${c.id})" title="Plan-Do-Act로 등록"
+                style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#7c3aed;background:#f3eefe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#f3eefe'">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Plan-Do-Act
+            </button>`;
+}
+
+function pdaOpenFromComment(commentId) {
+    if (!currentProjectId) { alert(FM_STR.file_info_missing); return; }
+    const c = _cnvFindComment(commentId);
+    if (c && c.plan_do_act_id) {
+        window.pdaOpenEdit(c.plan_do_act_id);
+        return;
+    }
+    let title = '', excerpt = '', planRef = '';
+    if (c) {
+        title = (c.content || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+        const lines = [`[원본 의견] ${c.user_name || ''} · ${c.created_at || ''}`, c.content || ''];
+        (c.replies || []).forEach(r => lines.push(`↳ ${r.user_name || ''}: ${r.content || ''}`));
+        excerpt = lines.join('\n');
+        // Plan 내용에 원본 의견을 참고로 포함 — 계획은 그 아래에 작성
+        planRef = '[참고 의견]\n' + lines.slice(1).join('\n') + '\n\n';
+    }
+    window.pdaOpenCreate(currentProjectId, {
+        source_file_comment_id: commentId,
+        title: title,
+        plan: planRef,
+        source_excerpt: excerpt,
+    });
+}
+
+function _pdaUpdateCardButton(commentId, pdaId) {
+    [(typeof _commentsList !== 'undefined') ? _commentsList : null,
+     (typeof _cmComments !== 'undefined') ? _cmComments : null].forEach(list => {
+        if (!list) return;
+        const item = list.find(x => x.id === commentId);
+        if (item) item.plan_do_act_id = pdaId;
+    });
+    ['cmt-', 'cm-cmt-'].forEach(prefix => {
+        const card = document.getElementById(prefix + commentId);
+        if (!card) return;
+        const newC = { id: commentId, parent_id: null, plan_do_act_id: pdaId };
+        card.querySelectorAll('button').forEach(el => {
+            const onc = el.getAttribute('onclick') || '';
+            if (onc.includes(`pdaOpenFromComment(${commentId})`)) {
+                el.outerHTML = pdaBtnHtml(newC);
+            }
+        });
+    });
+}
+
+window.pdaOnSaved = function(item, mode, sourceCommentId) {
+    if (mode === 'create' && sourceCommentId && item) {
+        _pdaUpdateCardButton(sourceCommentId, item.id);
+    }
+};
+window.pdaOnDeleted = function(id, sourceCommentId) {
+    if (sourceCommentId) _pdaUpdateCardButton(sourceCommentId, null);
+};
+
 // ESC로 다이얼로그 닫기
 document.addEventListener('keydown', function(e) {
     if (e.key !== 'Escape') return;
@@ -2184,6 +2288,7 @@ function commentHtml(c, label) {
             <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
             <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
                 ${convertBtnHtml(c)}
+                ${pdaBtnHtml(c)}
                 ${c.can_delete ? `<button onclick="deleteComment(${c.id}, this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
             </span>
         </div>
@@ -2464,6 +2569,7 @@ function cmCommentHtml(c) {
             <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
             <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
                 ${convertBtnHtml(c)}
+                ${pdaBtnHtml(c)}
                 ${c.can_delete ? `<button class="cm-del-btn" data-cid="${c.id}" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
             </span>
         </div>
@@ -3319,6 +3425,7 @@ function urlCmtHtml(c) {
             <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
             <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
                 ${convertBtnHtml(c)}
+                ${pdaBtnHtml(c)}
                 ${c.can_delete ? `<button onclick="urlDelCmt(${c.id},null,this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
             </span>
         </div>
@@ -4007,7 +4114,7 @@ window.addEventListener('message', function (e) {
 // ── 임베드 모드 초기화 — 비교 모달 iframe 안에서 로드된 경우 ──
 if (IS_EMBED) {
     document.getElementById('preview-modal')?.classList.add('is-fullscreen');
-    ['modal-close-btn', 'modal-compare-btn', 'modal-upload-version', 'preview-fs-btn'].forEach(id => {
+    ['modal-close-btn', 'modal-compare-btn', 'modal-upload-version', 'modal-version-history', 'preview-fs-btn'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });

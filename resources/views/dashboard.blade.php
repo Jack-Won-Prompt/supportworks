@@ -90,6 +90,15 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
 .cal-day-hover:hover { background:#ede9fe !important; }
 .action-row-hover:hover { background:#fff7ed; }
 
+/* ── Today highlight (오늘 일정 강조) ── */
+.db-today { background:#fffbeb !important; box-shadow:inset 3px 0 0 #f59e0b; border-radius:8px !important; }
+.db-today::before {
+    content:'오늘';
+    font-size:9px; font-weight:800; color:#fff; background:#f59e0b;
+    padding:2px 6px; border-radius:10px; flex-shrink:0; line-height:1.3;
+    align-self:center;
+}
+
 /* ── Resize handle ── */
 .ui-resizable-se {
     right:4px !important;
@@ -98,6 +107,30 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
     height:14px !important;
     cursor:se-resize;
 }
+
+/* ── 온보딩 투어 (가벼운 1회용 가이드) ── */
+#tour-block { position:fixed; inset:0; z-index:10000; background:transparent; }
+#tour-hole {
+    position:fixed; z-index:10001; border-radius:14px; pointer-events:none; display:none;
+    box-shadow:0 0 0 9999px rgba(15,10,40,.66), 0 0 0 3px rgba(167,139,250,.95);
+    transition:top .3s ease, left .3s ease, width .3s ease, height .3s ease;
+}
+#tour-pop {
+    position:fixed; z-index:10002; width:320px; max-width:calc(100vw - 32px);
+    background:#fff; border-radius:14px; padding:18px 18px 16px;
+    box-shadow:0 20px 60px rgba(15,10,40,.45);
+}
+#tour-pop .tour-step-no { font-size:11px; font-weight:800; color:var(--t500); letter-spacing:.5px; }
+#tour-pop .tour-title { font-size:15px; font-weight:800; color:#1e1b2e; margin:7px 0 6px; }
+#tour-pop .tour-text { font-size:12.5px; color:#64748b; line-height:1.65; }
+#tour-pop .tour-actions { display:flex; align-items:center; gap:8px; margin-top:16px; }
+#tour-pop .tour-btn { font-size:12px; font-weight:700; padding:8px 15px; border-radius:8px; cursor:pointer; border:none; }
+#tour-pop .tour-btn-skip { background:none; color:#94a3b8; padding:8px 4px; }
+#tour-pop .tour-btn-skip:hover { color:#64748b; }
+#tour-pop .tour-btn-prev { background:#f1f5f9; color:#475569; }
+#tour-pop .tour-btn-prev:hover { background:#e2e8f0; }
+#tour-pop .tour-btn-next { background:var(--t600); color:#fff; }
+#tour-pop .tour-btn-next:hover { background:var(--t700); }
 </style>
 
 <div style="padding:20px 0 0;">
@@ -340,12 +373,15 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                 $cell++;
                                 @endphp
                                 <div onclick="{{ $hasAnything ? "showDayEvents($dayNum)" : '' }}"
-                                     style="border-radius:8px;padding:5px 2px;text-align:center;min-height:44px;
-                                        {{ $isToday ? 'background:var(--t600);' : ($hasAnything ? 'background:#f5f3ff;cursor:pointer;' : '') }}
+                                     style="border-radius:8px;padding:5px 2px;text-align:center;min-height:44px;position:relative;
+                                        {{ $isToday ? 'background:#f59e0b;box-shadow:0 0 0 2px #fde68a;'.($hasAnything ? 'cursor:pointer;' : '') : ($hasAnything ? 'background:#f5f3ff;cursor:pointer;' : '') }}
                                         {{ !$isValid ? 'opacity:0;pointer-events:none;' : '' }}"
                                      class="{{ $hasAnything && !$isToday ? 'cal-day-hover' : '' }}">
                                     @if($isValid)
                                     <div style="font-size:12px;font-weight:{{ $isToday ? '800' : '500' }};color:{{ $isToday ? '#fff' : ($col===0 ? '#ef4444' : ($col===6 ? '#3b82f6' : '#374151')) }};line-height:1.2;">{{ $dayNum }}</div>
+                                    @if($isToday)
+                                    <div style="font-size:7px;font-weight:800;color:#fff;letter-spacing:.5px;line-height:1;margin-top:1px;">오늘</div>
+                                    @endif
                                     @if($hasAnything)
                                     <div style="display:flex;justify-content:center;gap:2px;margin-top:3px;flex-wrap:wrap;align-items:center;">
                                         @foreach($dayDots->take(4) as $dot)
@@ -374,9 +410,10 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f0eeff;">
                         <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:8px;">{{ __('dashboard.upcoming_events') }}</div>
                         @foreach($upcomingMerged->take(4) as $ev)
+                        @php $evToday = $ev['date'] && \Illuminate\Support\Carbon::parse($ev['date'])->isToday(); @endphp
                         @if($ev['type'] === 'schedule')
                         @php $s = $ev['item']; @endphp
-                        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
+                        <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
                             <div style="width:6px;height:6px;border-radius:50%;background:{{ $priDot[$s->priority] ?? '#7c3aed' }};flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
                                 <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $s->title }}</div>
@@ -386,7 +423,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         </div>
                         @elseif($ev['type'] === 'action')
                         @php $a = $ev['item']; @endphp
-                        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
+                        <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
                             <div style="width:6px;height:6px;border-radius:50%;background:{{ $a->isOverdue() ? '#ef4444' : '#f97316' }};flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
                                 <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $a->title }}</div>
@@ -396,7 +433,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         </div>
                         @elseif($ev['type'] === 'meeting')
                         @php $m = $ev['item']; @endphp
-                        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
+                        <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
                             <div style="width:6px;height:6px;border-radius:50%;background:#7c3aed;flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
                                 <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $m->title }}</div>
@@ -406,7 +443,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         </div>
                         @else
                         @php $d = $ev['item']; @endphp
-                        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
+                        <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
                             <div style="width:6px;height:6px;border-radius:50%;background:#0ea5e9;flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
                                 <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $d->title }}</div>
@@ -501,7 +538,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                 </div>
                 <div class="gs-card-body">
                     @forelse($recentMinutes as $minute)
-                    <a href="#" onclick="event.preventDefault(); dbOpenMinutePopup({{ $minute->id }})" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f8f7ff;text-decoration:none;" class="db-row-hover">
+                    <a href="#" onclick="event.preventDefault(); dbOpenMinutePopup({{ $minute->id }})" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f8f7ff;text-decoration:none;" class="db-row-hover{{ $minute->meeting_date->isToday() ? ' db-today' : '' }}">
                         <div style="width:42px;text-align:center;flex-shrink:0;">
                             <div style="font-size:16px;font-weight:800;color:var(--t600);line-height:1;">{{ $minute->meeting_date->format('d') }}</div>
                             <div style="font-size:10px;color:#94a3b8;font-weight:600;">{{ $minute->meeting_date->format('M') }}</div>
@@ -725,7 +762,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                             <span style="font-size:10px;color:#94a3b8;margin-left:auto;">{{ $actions->count() }}{{ __('dashboard.count_items') }}</span>
                         </div>
                         @foreach($actions as $action)
-                        <div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;margin-bottom:2px;" class="action-row-hover">
+                        <div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;margin-bottom:2px;" class="action-row-hover{{ $action->due_date && $action->due_date->isToday() ? ' db-today' : '' }}">
                             <form action="{{ route('action-items.toggle', $action) }}" method="POST" style="flex-shrink:0;">
                                 @csrf @method('PATCH')
                                 <button type="submit"
@@ -937,6 +974,128 @@ function dbCloseMinutePopup() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') dbCloseMinutePopup();
 });
+</script>
+
+{{-- ─── 대시보드 온보딩 투어 (처음 접속 시 자동 1회) ─── --}}
+<script>
+(function () {
+    const TOUR_KEY = 'sw_dashboard_tour_v1_{{ auth()->id() }}';
+    if (localStorage.getItem(TOUR_KEY)) return;   // 이미 본 사용자는 건너뜀
+
+    const STEPS = [
+        { sel: null, title: '대시보드에 오신 것을 환영합니다 👋',
+          text: '주요 영역을 빠르게 둘러볼게요. 각 위젯은 제목 부분을 잡고 드래그하면 자유롭게 배치를 바꿀 수 있습니다.' },
+        { sel: '.gs-kpi-grid', title: '한눈에 보는 핵심 지표',
+          text: '프로젝트·회의록·내 Tasks·Action 아이템 등 핵심 수치를 화면 상단에서 바로 확인할 수 있습니다.' },
+        { sel: '[gs-id="recent-projects"]', title: '최근 프로젝트',
+          text: '최근 참여한 프로젝트와 진행 상태를 보여줍니다. 프로젝트명을 클릭해 바로 이동하세요.' },
+        { sel: '[gs-id="calendar"]', title: '달력 · 일정',
+          text: '일정·회의·논의·Action 아이템을 달력에서 확인합니다. 오늘 날짜와 다가오는 일정이 강조 표시됩니다.' },
+        { sel: '[gs-id="recent-files"]', title: '최근 파일',
+          text: '최근 업로드되거나 수정된 파일에 빠르게 접근할 수 있습니다.' },
+        { sel: '[gs-id="recent-minutes"]', title: '최근 회의록',
+          text: '최근 회의록 목록입니다. 항목을 클릭하면 팝업으로 바로 열람할 수 있습니다.' },
+        { sel: '[gs-id="ai-chat"]', title: '웍스 AI 대화',
+          text: '웍스 어시스턴트와의 최근 대화를 이어가거나 새 대화를 시작할 수 있습니다.' },
+        { sel: '[gs-id="my-tasks"]', title: '내 Tasks',
+          text: '나에게 할당된 할 일과 진행 상태를 한곳에서 관리합니다.' },
+        { sel: '[gs-id="community"]', title: '커뮤니티',
+          text: '최근 커뮤니티 글과 Q&A를 확인하고 참여할 수 있습니다.' },
+        { sel: '[gs-id="action-items"]', title: '나의 Action 아이템',
+          text: '프로젝트별로 처리할 Action 아이템입니다. 체크 버튼으로 완료 처리하세요. 이것으로 둘러보기를 마칩니다 🎉' },
+    ];
+
+    let idx = 0, block, hole, pop, elNo, elTitle, elText, btnPrev, btnNext, btnSkip;
+
+    function build() {
+        block = document.createElement('div'); block.id = 'tour-block';
+        hole  = document.createElement('div'); hole.id  = 'tour-hole';
+        pop   = document.createElement('div'); pop.id   = 'tour-pop';
+        pop.innerHTML =
+            '<div class="tour-step-no"></div>' +
+            '<div class="tour-title"></div>' +
+            '<div class="tour-text"></div>' +
+            '<div class="tour-actions">' +
+              '<button type="button" class="tour-btn tour-btn-skip">건너뛰기</button>' +
+              '<div style="flex:1"></div>' +
+              '<button type="button" class="tour-btn tour-btn-prev">이전</button>' +
+              '<button type="button" class="tour-btn tour-btn-next">다음</button>' +
+            '</div>';
+        document.body.appendChild(block);
+        document.body.appendChild(hole);
+        document.body.appendChild(pop);
+        elNo    = pop.querySelector('.tour-step-no');
+        elTitle = pop.querySelector('.tour-title');
+        elText  = pop.querySelector('.tour-text');
+        btnPrev = pop.querySelector('.tour-btn-prev');
+        btnNext = pop.querySelector('.tour-btn-next');
+        btnSkip = pop.querySelector('.tour-btn-skip');
+        btnPrev.addEventListener('click', () => { if (idx > 0) { idx--; render(); } });
+        btnNext.addEventListener('click', () => { idx < STEPS.length - 1 ? (idx++, render()) : end(); });
+        btnSkip.addEventListener('click', end);
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('resize', render);
+    }
+
+    function onKey(e) { if (e.key === 'Escape') end(); }
+
+    function end() {
+        try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+        window.removeEventListener('keydown', onKey);
+        window.removeEventListener('resize', render);
+        [block, hole, pop].forEach(el => el && el.remove());
+    }
+
+    function placePop(r) {
+        pop.style.transform = 'none';
+        const pw = pop.offsetWidth, ph = pop.offsetHeight, gap = 14;
+        let top = r ? r.bottom + gap : 0;
+        if (r && top + ph > window.innerHeight - 12) top = r.top - gap - ph;   // 위쪽으로
+        if (!r || top < 12) {                                                  // 가운데 정렬
+            pop.style.top = '50%'; pop.style.left = '50%';
+            pop.style.transform = 'translate(-50%,-50%)';
+            return;
+        }
+        let left = r.left + r.width / 2 - pw / 2;
+        left = Math.max(12, Math.min(window.innerWidth - pw - 12, left));
+        pop.style.top = top + 'px';
+        pop.style.left = left + 'px';
+    }
+
+    function render() {
+        const step = STEPS[idx];
+        elNo.textContent = (idx + 1) + ' / ' + STEPS.length;
+        elTitle.textContent = step.title;
+        elText.textContent = step.text;
+        btnPrev.style.display = idx === 0 ? 'none' : '';
+        btnNext.textContent = idx === STEPS.length - 1 ? '완료' : '다음';
+
+        const el = step.sel ? document.querySelector(step.sel) : null;
+        if (!el) {
+            hole.style.display = 'none';
+            block.style.background = 'rgba(15,10,40,.66)';
+            placePop(null);
+            return;
+        }
+        block.style.background = 'transparent';
+        el.scrollIntoView({ block: 'center', inline: 'nearest' });
+        requestAnimationFrame(() => {
+            const r = el.getBoundingClientRect(), pad = 6;
+            hole.style.display = 'block';
+            hole.style.top    = (r.top - pad) + 'px';
+            hole.style.left   = (r.left - pad) + 'px';
+            hole.style.width  = (r.width + pad * 2) + 'px';
+            hole.style.height = (r.height + pad * 2) + 'px';
+            placePop(r);
+        });
+    }
+
+    function start() { build(); idx = 0; render(); }
+
+    // GridStack 레이아웃이 자리잡은 뒤 시작
+    if (document.readyState === 'complete') setTimeout(start, 700);
+    else window.addEventListener('load', () => setTimeout(start, 700));
+})();
 </script>
 
 @endsection

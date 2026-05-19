@@ -227,6 +227,7 @@ class FileCommentController extends Controller
             'created_at'    => $comment->created_at->diffForHumans(),
             'can_delete'    => true,
             'discussion_id' => null,
+            'plan_do_act_id' => null,
             'replies'       => [],
         ]);
     }
@@ -442,19 +443,23 @@ class FileCommentController extends Controller
         $discussionId = $c->parent_id === null
             ? Discussion::where('source_file_comment_id', $c->id)->value('id')
             : null;
+        $planDoActId = $c->parent_id === null
+            ? \App\Models\PlanDoAct::where('source_file_comment_id', $c->id)->value('id')
+            : null;
 
         $data = [
-            'id'            => $c->id,
-            'page'          => $c->page,
-            'video_time'    => $c->video_time !== null ? (float) $c->video_time : null,
-            'content'       => $c->content,
-            'user_name'     => $c->user?->name ?? $c->guest_name ?? '외부 리뷰어',
-            'user_id'       => $c->user_id,
-            'parent_id'     => $c->parent_id,
-            'created_at'    => $c->created_at->diffForHumans(),
-            'can_delete'    => $authId !== null && ($authId === $c->user_id || $authAdmin),
-            'discussion_id' => $discussionId,
-            'replies'       => [],
+            'id'             => $c->id,
+            'page'           => $c->page,
+            'video_time'     => $c->video_time !== null ? (float) $c->video_time : null,
+            'content'        => $c->content,
+            'user_name'      => $c->user?->name ?? $c->guest_name ?? '외부 리뷰어',
+            'user_id'        => $c->user_id,
+            'parent_id'      => $c->parent_id,
+            'created_at'     => $c->created_at->diffForHumans(),
+            'can_delete'     => $authId !== null && ($authId === $c->user_id || $authAdmin),
+            'discussion_id'  => $discussionId,
+            'plan_do_act_id' => $planDoActId,
+            'replies'        => [],
         ];
 
         if ($c->relationLoaded('replies')) {

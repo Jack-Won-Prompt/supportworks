@@ -69,7 +69,11 @@ class MessageController extends Controller
 
         $users = $this->projectMates($user);
 
-        return view('messages.index', compact('conversations', 'conversation', 'users', 'participantReadAt'));
+        // 메시지별 Plan-Do-Act 등록 여부 (message_id => plan_do_act_id)
+        $messagePdaMap = \App\Models\PlanDoAct::whereIn('source_message_id', $conversation->messages->pluck('id'))
+            ->pluck('id', 'source_message_id');
+
+        return view('messages.index', compact('conversations', 'conversation', 'users', 'participantReadAt', 'messagePdaMap'));
     }
 
     public function store(Request $request)
