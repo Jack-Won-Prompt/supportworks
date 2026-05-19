@@ -290,6 +290,315 @@
         </div>
     </div>
 
+@elseif($toolId === 'MATRIX-RISK')
+    {{-- 위험 평가 매트릭스 — 위험 등록부 + 5×5 히트맵 --}}
+    @once
+    <style>
+    .dlv-risk-builder { font-size:11.5px; }
+    .dlv-risk-table { width:100%; border-collapse:collapse; }
+    .dlv-risk-table th { background:#f8fafc; color:#64748b; font-size:10.5px; font-weight:700; padding:6px 7px; border:1px solid #e2e8f0; text-align:center; white-space:nowrap; }
+    .dlv-risk-table td { border:1px solid #e2e8f0; padding:4px 5px; vertical-align:middle; }
+    .dlv-risk-table textarea { width:100%; border:none; resize:none; font:inherit; background:transparent; outline:none; overflow:hidden; padding:2px 3px; }
+    .dlv-risk-table select { border:1px solid #e2e8f0; border-radius:5px; font:inherit; padding:3px 4px; background:#fff; cursor:pointer; }
+    .dlv-risk-score { display:inline-block; min-width:30px; text-align:center; font-weight:800; border-radius:5px; padding:3px 6px; font-size:11px; }
+    .dlv-risk-grade { display:inline-block; font-weight:700; border-radius:11px; padding:2px 9px; font-size:10px; white-space:nowrap; }
+    .dlv-risk-g1 { background:#dcfce7; color:#15803d; }
+    .dlv-risk-g2 { background:#fef9c3; color:#a16207; }
+    .dlv-risk-g3 { background:#ffedd5; color:#c2410c; }
+    .dlv-risk-g4 { background:#fee2e2; color:#b91c1c; }
+    .dlv-risk-del { background:none; border:none; cursor:pointer; color:#cbd5e1; padding:2px; line-height:0; }
+    .dlv-risk-del:hover { color:#ef4444; }
+    .dlv-risk-heat { border-collapse:collapse; margin:0 auto; }
+    .dlv-risk-heat td { width:34px; height:34px; text-align:center; border:1px solid #fff; font-weight:800; font-size:11px; color:#fff; }
+    .dlv-risk-heat .dlv-heat-axis { background:transparent; color:#94a3b8; font-size:9.5px; font-weight:700; width:auto; height:auto; padding:2px 5px; border:none; }
+    .dlv-risk-empty { text-align:center; color:#94a3b8; font-size:11px; padding:14px; }
+    </style>
+    @endonce
+    @php
+        $riskInit = json_encode($toolResult['risks'] ?? [], JSON_UNESCAPED_UNICODE);
+    @endphp
+    <div class="dlv-risk-builder" data-tool-id="{{ $toolId }}" data-step="{{ $stepNo }}" data-init='{{ $riskInit }}'>
+        <div class="dlv-tbl-toolbar">
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="riskAddRow(this)">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> {{ __('deliverables.risk_add') }}
+            </button>
+            <span class="dlv-tbl-sep"></span>
+            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="riskAiGen(this)" style="color:var(--t600);border-color:var(--t300);">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> {{ __('deliverables.tw_ai_gen') }}
+            </button>
+            <span class="dlv-tbl-sep"></span>
+            <button type="button" class="dlv-btn dlv-btn-primary dlv-tbl-btn" style="font-size:11px;padding:4px 12px;" onclick="riskSave(this)">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('deliverables.tw_save') }}
+            </button>
+        </div>
+        <div class="dlv-tbl-scroll" style="margin-top:6px;">
+            <table class="dlv-risk-table">
+                <thead><tr>
+                    <th style="min-width:150px;">{{ __('deliverables.risk_col_name') }}</th>
+                    <th>{{ __('deliverables.risk_col_like') }}</th>
+                    <th>{{ __('deliverables.risk_col_impact') }}</th>
+                    <th>{{ __('deliverables.risk_col_score') }}</th>
+                    <th>{{ __('deliverables.risk_col_grade') }}</th>
+                    <th style="min-width:160px;">{{ __('deliverables.risk_col_action') }}</th>
+                    <th></th>
+                </tr></thead>
+                <tbody class="dlv-risk-rows"></tbody>
+            </table>
+        </div>
+        <div class="dlv-risk-empty" style="display:none;">{{ __('deliverables.risk_empty') }}</div>
+        <div style="margin-top:14px;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;justify-content:center;">
+            <div>
+                <div style="font-size:10.5px;font-weight:700;color:#64748b;text-align:center;margin-bottom:4px;">{{ __('deliverables.risk_heatmap') }}</div>
+                <table class="dlv-risk-heat"><tbody class="dlv-risk-heat-body"></tbody></table>
+            </div>
+        </div>
+    </div>
+    @php
+        $riskGradesJs = [
+            ['max'=>4,  'cls'=>'dlv-risk-g1', 'label'=>__('deliverables.risk_grade_low')],
+            ['max'=>9,  'cls'=>'dlv-risk-g2', 'label'=>__('deliverables.risk_grade_mid')],
+            ['max'=>14, 'cls'=>'dlv-risk-g3', 'label'=>__('deliverables.risk_grade_high')],
+            ['max'=>25, 'cls'=>'dlv-risk-g4', 'label'=>__('deliverables.risk_grade_crit')],
+        ];
+        $riskStrJs = [
+            'name_ph'   => __('deliverables.risk_name_ph'),
+            'action_ph' => __('deliverables.risk_col_action'),
+            'axis_like' => __('deliverables.risk_col_like'),
+            'axis_imp'  => __('deliverables.risk_col_impact'),
+        ];
+    @endphp
+    @once
+    <script>
+    (function () {
+        const RISK_GRADES = @json($riskGradesJs);
+        const RISK_HEAT = { 1:'#22c55e', 2:'#84cc16', 3:'#eab308', 4:'#f97316', 5:'#ef4444' };
+        const RISK_STR = @json($riskStrJs);
+        window.riskGrade = function (score) {
+            for (const g of RISK_GRADES) if (score <= g.max) return g;
+            return RISK_GRADES[RISK_GRADES.length - 1];
+        };
+        function heatColor(score) {
+            if (score >= 15) return RISK_HEAT[5];
+            if (score >= 10) return RISK_HEAT[4];
+            if (score >= 5)  return RISK_HEAT[3];
+            if (score >= 3)  return RISK_HEAT[2];
+            return RISK_HEAT[1];
+        }
+        function autoH(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+        function selOptions(sel, val) {
+            for (let i = 1; i <= 5; i++) {
+                const o = document.createElement('option');
+                o.value = i; o.textContent = i;
+                if (i === val) o.selected = true;
+                sel.appendChild(o);
+            }
+        }
+        function makeRow(b, data) {
+            data = data || { name:'', likelihood:3, impact:3, mitigation:'' };
+            const tr = document.createElement('tr');
+
+            const tdName = document.createElement('td');
+            const taName = document.createElement('textarea');
+            taName.rows = 1; taName.placeholder = RISK_STR.name_ph; taName.value = data.name || '';
+            taName.dataset.role = 'name';
+            taName.addEventListener('input', () => autoH(taName));
+            tdName.appendChild(taName); tr.appendChild(tdName);
+
+            const tdL = document.createElement('td'); tdL.style.textAlign = 'center';
+            const selL = document.createElement('select'); selL.dataset.role = 'like';
+            selOptions(selL, parseInt(data.likelihood) || 3);
+            tdL.appendChild(selL); tr.appendChild(tdL);
+
+            const tdI = document.createElement('td'); tdI.style.textAlign = 'center';
+            const selI = document.createElement('select'); selI.dataset.role = 'impact';
+            selOptions(selI, parseInt(data.impact) || 3);
+            tdI.appendChild(selI); tr.appendChild(tdI);
+
+            const tdScore = document.createElement('td'); tdScore.style.textAlign = 'center';
+            const score = document.createElement('span'); score.className = 'dlv-risk-score';
+            tdScore.appendChild(score); tr.appendChild(tdScore);
+
+            const tdGrade = document.createElement('td'); tdGrade.style.textAlign = 'center';
+            const grade = document.createElement('span'); grade.className = 'dlv-risk-grade';
+            tdGrade.appendChild(grade); tr.appendChild(tdGrade);
+
+            const tdAct = document.createElement('td');
+            const taAct = document.createElement('textarea');
+            taAct.rows = 1; taAct.placeholder = RISK_STR.action_ph; taAct.value = data.mitigation || '';
+            taAct.dataset.role = 'mitigation';
+            taAct.addEventListener('input', () => autoH(taAct));
+            tdAct.appendChild(taAct); tr.appendChild(tdAct);
+
+            const tdDel = document.createElement('td'); tdDel.style.textAlign = 'center';
+            const del = document.createElement('button');
+            del.type = 'button'; del.className = 'dlv-risk-del';
+            del.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+            del.onclick = () => { tr.remove(); riskRefresh(b); };
+            tdDel.appendChild(del); tr.appendChild(tdDel);
+
+            function update() {
+                const s = (parseInt(selL.value) || 0) * (parseInt(selI.value) || 0);
+                const g = window.riskGrade(s);
+                score.textContent = s;
+                score.style.background = heatColor(s);
+                score.style.color = '#fff';
+                grade.textContent = g.label;
+                grade.className = 'dlv-risk-grade ' + g.cls;
+            }
+            selL.addEventListener('change', () => { update(); riskHeat(b); });
+            selI.addEventListener('change', () => { update(); riskHeat(b); });
+            update();
+
+            b.querySelector('.dlv-risk-rows').appendChild(tr);
+            requestAnimationFrame(() => { autoH(taName); autoH(taAct); });
+        }
+        window.riskAddRow = function (btn) {
+            const b = btn.closest('.dlv-risk-builder');
+            makeRow(b);
+            riskRefresh(b);
+        };
+        function riskRows(b) {
+            return Array.from(b.querySelectorAll('.dlv-risk-rows tr')).map(tr => ({
+                name:       tr.querySelector('[data-role=name]').value.trim(),
+                likelihood: parseInt(tr.querySelector('[data-role=like]').value) || 0,
+                impact:     parseInt(tr.querySelector('[data-role=impact]').value) || 0,
+                mitigation: tr.querySelector('[data-role=mitigation]').value.trim(),
+            }));
+        }
+        window.riskRows = riskRows;
+        function riskRefresh(b) {
+            const has = b.querySelectorAll('.dlv-risk-rows tr').length > 0;
+            b.querySelector('.dlv-risk-empty').style.display = has ? 'none' : 'block';
+            riskHeat(b);
+        }
+        window.riskRefresh = riskRefresh;
+        function riskHeat(b) {
+            const body = b.querySelector('.dlv-risk-heat-body');
+            body.innerHTML = '';
+            // 셀별 위험 개수 집계
+            const counts = {};
+            riskRows(b).forEach(r => {
+                if (r.likelihood && r.impact) {
+                    const k = r.likelihood + 'x' + r.impact;
+                    counts[k] = (counts[k] || 0) + 1;
+                }
+            });
+            // 행: 영향도 5→1 (위→아래), 열: 발생가능성 1→5
+            for (let imp = 5; imp >= 1; imp--) {
+                const tr = document.createElement('tr');
+                const axis = document.createElement('td');
+                axis.className = 'dlv-heat-axis'; axis.textContent = imp;
+                tr.appendChild(axis);
+                for (let like = 1; like <= 5; like++) {
+                    const td = document.createElement('td');
+                    const s = like * imp;
+                    td.style.background = heatColor(s);
+                    const c = counts[like + 'x' + imp] || 0;
+                    td.textContent = c ? c : '';
+                    td.title = RISK_STR.axis_like + ' ' + like + ' × ' + RISK_STR.axis_imp + ' ' + imp + ' = ' + s;
+                    tr.appendChild(td);
+                }
+                body.appendChild(tr);
+            }
+            // X축 라벨
+            const trX = document.createElement('tr');
+            trX.appendChild(document.createElement('td'));
+            for (let like = 1; like <= 5; like++) {
+                const td = document.createElement('td');
+                td.className = 'dlv-heat-axis'; td.textContent = like;
+                trX.appendChild(td);
+            }
+            body.appendChild(trX);
+            const trLbl = document.createElement('tr');
+            const tdY = document.createElement('td');
+            tdY.className = 'dlv-heat-axis'; tdY.textContent = RISK_STR.axis_imp;
+            trLbl.appendChild(tdY);
+            const tdX = document.createElement('td');
+            tdX.className = 'dlv-heat-axis'; tdX.colSpan = 5;
+            tdX.textContent = RISK_STR.axis_like;
+            trLbl.appendChild(tdX);
+            body.appendChild(trLbl);
+        }
+        window.riskHeat = riskHeat;
+        window.riskSave = async function (btn) {
+            const b = btn.closest('.dlv-risk-builder');
+            const rows = riskRows(b).filter(r => r.name);
+            btn.disabled = true;
+            const orig = btn.innerHTML;
+            btn.innerHTML = LANG.saving;
+            try {
+                const res = await fetch(SAVE_TOOL_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify({ step: parseInt(b.dataset.step), tool_id: b.dataset.toolId, result: { risks: rows } }),
+                });
+                const json = await res.json();
+                if (json.ok) {
+                    btn.innerHTML = LANG.saved;
+                    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 1500);
+                } else {
+                    alert(json.message || LANG.save_failed);
+                    btn.innerHTML = orig; btn.disabled = false;
+                }
+            } catch (e) {
+                alert(LANG.save_error.replace(':message', e.message));
+                btn.innerHTML = orig; btn.disabled = false;
+            }
+        };
+        window.riskAiGen = async function (btn) {
+            const b = btn.closest('.dlv-risk-builder');
+            btn.disabled = true;
+            const orig = btn.innerHTML;
+            btn.innerHTML = LANG.ai_generating;
+            try {
+                const res = await fetch(ANALYZE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify({ action: 'risk-matrix', step: parseInt(b.dataset.step), tool_id: b.dataset.toolId, fields: getFormData().fields }),
+                });
+                const json = await res.json();
+                let risks = json.risks || json.result?.risks || null;
+                if (!risks && typeof json.text === 'string') {
+                    try { risks = JSON.parse(json.text).risks; } catch (e) {}
+                }
+                if (Array.isArray(risks) && risks.length) {
+                    b.querySelector('.dlv-risk-rows').innerHTML = '';
+                    risks.forEach(r => makeRow(b, r));
+                    riskRefresh(b);
+                    await fetch(SAVE_TOOL_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                        body: JSON.stringify({ step: parseInt(b.dataset.step), tool_id: b.dataset.toolId, result: { risks: riskRows(b).filter(r => r.name) } }),
+                    });
+                    btn.innerHTML = LANG.ai_gen_done;
+                    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 1800);
+                    return;
+                } else if (json.message) {
+                    alert(json.message);
+                }
+            } catch (e) {
+                alert(LANG.ai_gen_error.replace(':message', e.message));
+            }
+            btn.innerHTML = orig; btn.disabled = false;
+        };
+        function initRiskBuilder(b) {
+            let data = [];
+            try { data = JSON.parse(b.dataset.init || '[]'); } catch (e) {}
+            if (Array.isArray(data)) data.forEach(r => makeRow(b, r));
+            riskRefresh(b);
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.dlv-risk-builder').forEach(initRiskBuilder);
+        });
+        if (document.readyState !== 'loading') {
+            document.querySelectorAll('.dlv-risk-builder').forEach(b => {
+                if (!b.dataset.riskInit) { b.dataset.riskInit = '1'; initRiskBuilder(b); }
+            });
+        }
+    })();
+    </script>
+    @endonce
+
 @elseif($cat === 'matrix')
     {{-- 매트릭스 도구 --}}
     <div class="dlv-tool-placeholder">

@@ -618,18 +618,13 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                 {!! __('deliverables.ai_current_step', ['order' => $currentStep['order'] ?? 1, 'title' => e($currentStep['title'] ?? '')]) !!}
             </div>
 
-            <button class="dlv-ai-action-btn" onclick="aiAction('draft')">
+            <button class="dlv-ai-action-btn" id="dlv-draft-btn" onclick="aiAction('draft')">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 {{ __('deliverables.ai_btn_draft') }}
             </button>
             <div id="dlv-draft-prog" style="display:none;height:5px;margin:4px 2px 2px;background:#ede8ff;border-radius:3px;overflow:hidden;">
                 <div id="dlv-draft-prog-fill" style="width:0;height:100%;background:linear-gradient(90deg,var(--t600),var(--t400));border-radius:3px;transition:width .35s ease;"></div>
             </div>
-            <hr class="dlv-ai-divider">
-            <button class="dlv-ai-action-btn" onclick="aiAction('tool-generate')">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-                {{ __('deliverables.ai_btn_tool') }}
-            </button>
         </div>
 
         <div class="dlv-ai-input-area">
@@ -1063,6 +1058,8 @@ async function mdInitPreviews() {
         previewPane.style.display = 'block';
     });
 }
+// 단일 줄바꿈(Shift+Enter)도 <br> 로 렌더링되도록 — marked 기본값은 줄바꿈 무시
+if (typeof marked !== 'undefined') marked.setOptions({ breaks: true, gfm: true });
 mdInitPreviews();
 
 /* 단일 textarea의 미리보기(보기) 패널 갱신 — 웍스 초안 생성 등 프로그램적 값 변경 시 호출 */
@@ -1736,7 +1733,21 @@ function dlvDraftProgDone() {
     setTimeout(dlvDraftProgHide, 600);
 }
 
+/* ── 초안 생성 — 진행 중 재클릭 차단 ── */
+let _draftGenerating = false;
+function dlvDraftBtnBusy(busy) {
+    const b = document.getElementById('dlv-draft-btn');
+    if (!b) return;
+    b.disabled = busy;
+    b.style.opacity = busy ? '.55' : '';
+    b.style.cursor  = busy ? 'not-allowed' : '';
+}
+
 async function generateDraft() {
+    if (_draftGenerating) return;          // 진행 중에는 재클릭 무시
+    _draftGenerating = true;
+    dlvDraftBtnBusy(true);
+    try {
     const msgEl = addAiMsg(LANG.ai_drafting, true);
 
     // 웍스 패널 진행 표시 (작은 상태 텍스트)
@@ -1903,6 +1914,10 @@ async function generateDraft() {
             ? LANG.ai_error_parse
             : (e.message ?? LANG.ai_error_draft));
         console.error('[generateDraft] stream error:', e);
+    }
+    } finally {
+        _draftGenerating = false;
+        dlvDraftBtnBusy(false);
     }
 }
 

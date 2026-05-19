@@ -131,7 +131,7 @@ class OpenAiService
 
         if (!$res->successful()) {
             $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException("OpenAI API 오류: {$err}");
+            throw new \RuntimeException(\App\Support\AiError::friendly("OpenAI API 오류: {$err}"));
         }
 
         $args = $res->json('choices.0.message.tool_calls.0.function.arguments');

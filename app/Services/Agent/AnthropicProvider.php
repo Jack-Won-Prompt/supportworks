@@ -104,7 +104,7 @@ class AnthropicProvider implements AIProvider
             }
             $parsed = json_decode($rawBody, true);
             $msg = $parsed['error']['message'] ?? mb_substr($rawBody, 0, 300);
-            throw new \RuntimeException("Anthropic Streaming API 오류 ({$response->status()}): {$msg}");
+            throw new \RuntimeException(\App\Support\AiError::friendly("Anthropic Streaming API 오류 ({$response->status()}): {$msg}"));
         }
 
         $body = $response->getBody();
@@ -187,7 +187,7 @@ class AnthropicProvider implements AIProvider
 
         if (!$res->successful()) {
             $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException("Anthropic API 오류 (Tool Use): {$err}");
+            throw new \RuntimeException(\App\Support\AiError::friendly("Anthropic API 오류 (Tool Use): {$err}"));
         }
 
         $toolBlock = collect($res->json('content') ?? [])
@@ -232,7 +232,7 @@ class AnthropicProvider implements AIProvider
 
         if (!$res->successful()) {
             $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException("Anthropic API 오류: {$err}");
+            throw new \RuntimeException(\App\Support\AiError::friendly("Anthropic API 오류: {$err}"));
         }
 
         return $res;

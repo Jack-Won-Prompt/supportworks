@@ -959,6 +959,10 @@ class DeliverableController extends Controller
                 $baseSystem . "\n\n## 지시\n현재 단계의 내용을 분석하여 품질·리스크 점검을 위한 질의응답 체크리스트를 섹션별로 생성하세요.\n위험 수준은 none, low, medium, high, critical 중 하나로 지정하세요.\n반드시 아래 JSON 형식으로만 응답하세요:\n<QA_JSON>\n{\"sections\":[{\"title\":\"섹션명\",\"items\":[{\"question\":\"질문\",\"answer\":\"\",\"risk\":\"none\",\"notes\":\"\"}]}]}\n</QA_JSON>\n설명 없이 <QA_JSON> 태그 안의 JSON만 반환하세요.",
                 "{$stepNo}단계 '{$currentStep['title']}' 에 맞는 품질·리스크 점검 질의응답 체크리스트를 생성해 주세요.",
             ],
+            'risk-matrix' => [
+                $baseSystem . "\n\n## 지시\n현재 단계의 내용을 분석하여 위험 평가 매트릭스용 위험 항목 목록을 생성하세요.\n각 위험은 발생 가능성(likelihood)과 영향도(impact)를 1~5 정수로 평가하고, 구체적인 대응 방안(mitigation)을 제시하세요.\n5~8개의 핵심 위험을 도출하세요.\n반드시 아래 JSON 형식으로만 응답하세요:\n<RISK_JSON>\n{\"risks\":[{\"name\":\"위험 항목명\",\"likelihood\":3,\"impact\":4,\"mitigation\":\"대응 방안\"}]}\n</RISK_JSON>\n설명 없이 <RISK_JSON> 태그 안의 JSON만 반환하세요.",
+                "{$stepNo}단계 '{$currentStep['title']}' 에 맞는 위험 평가 매트릭스 항목을 생성해 주세요.",
+            ],
             default => [
                 $baseSystem . "\n\n## 지시\n사용자의 질문 또는 지시에 전문가로서 정확하고 실용적으로 답변하세요. 내용을 직접 작성·수정하는 요청이라면 개선된 필드 내용을 반드시 포함하세요." . $fieldsInstruction,
                 $question ?: "{$stepNo}단계 '{$currentStep['title']}' 에 대해 조언해 주세요.",
@@ -1022,6 +1026,32 @@ class DeliverableController extends Controller
                     return response()->json(['ok' => false, 'message' => '웍스 응답을 파싱할 수 없습니다. 다시 시도해 주세요.']);
                 }
                 return response()->json(['ok' => true, 'result' => $qaData, 'provider' => $result['provider']]);
+            }
+
+            // 위험 매트릭스 액션: <RISK_JSON>...</RISK_JSON> 파싱
+            if ($action === 'risk-matrix') {
+                $riskJson = '';
+                if (preg_match('/<RISK_JSON>(.*?)<\/RISK_JSON>/si', $responseText, $m)) {
+                    $riskJson = trim($m[1]);
+                } elseif (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/si', $responseText, $m)) {
+                    $riskJson = trim($m[1]);
+                } else {
+                    $riskJson = trim($responseText);
+                }
+                $riskData = json_decode($riskJson, true);
+                if (!is_array($riskData) || empty($riskData['risks']) || !is_array($riskData['risks'])) {
+                    return response()->json(['ok' => false, 'message' => '웍스 응답을 파싱할 수 없습니다. 다시 시도해 주세요.']);
+                }
+                $risks = array_values(array_filter(array_map(function ($r) {
+                    if (!is_array($r) || empty($r['name'])) return null;
+                    return [
+                        'name'       => (string) $r['name'],
+                        'likelihood' => max(1, min(5, (int) ($r['likelihood'] ?? 3))),
+                        'impact'     => max(1, min(5, (int) ($r['impact'] ?? 3))),
+                        'mitigation' => (string) ($r['mitigation'] ?? ''),
+                    ];
+                }, $riskData['risks'])));
+                return response()->json(['ok' => true, 'risks' => $risks, 'provider' => $result['provider']]);
             }
 
             // <FIELDS_JSON>…</FIELDS_JSON> 파싱 후 text 에서 제거
