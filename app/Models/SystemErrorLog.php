@@ -80,6 +80,7 @@ class SystemErrorLog extends Model
             ]);
 
             static::notifyAdmins($log);
+            static::maybeTriggerAiFix($log);
         } catch (\Throwable) {
             // DB 오류 시 무한 루프 방지 — 조용히 무시
         }
@@ -124,7 +125,28 @@ class SystemErrorLog extends Model
             ]);
 
             static::notifyAdmins($log);
+            static::maybeTriggerAiFix($log);
         } catch (\Throwable) {}
+    }
+
+    /**
+     * config('ai-fix.auto_trigger') 가 true 이고 critical 레벨일 때
+     * AnalyzeSystemErrorJob 을 dispatch 해서 AI 파이프라인 시작.
+     * 어떤 실패도 record()/log() 의 정상 흐름을 막지 않도록 자체 try/catch.
+     */
+    protected static function maybeTriggerAiFix(self $log): void
+    {
+        try {
+            if (!config('ai-fix.auto_trigger', false)) return;
+
+            $critical = ['error', 'critical', 'alert', 'emergency'];
+            if (!in_array($log->level, $critical, true)) return;
+
+            \App\Jobs\AnalyzeSystemErrorJob::dispatch($log->id);
+        } catch (\Throwable) {
+            // 트리거 실패는 무시 — 에러 기록 자체는 이미 성공했고
+            // 운영자가 ai-fix:analyze 로 수동 트리거 가능
+        }
     }
 
     /**
