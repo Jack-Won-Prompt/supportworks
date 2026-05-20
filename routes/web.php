@@ -376,6 +376,9 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     Route::post('ai-fix-jobs/{aiFixJob}/approve',    [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'approve'])->name('ai-fix-jobs.approve');
     Route::post('ai-fix-jobs/{aiFixJob}/reject',     [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'reject']) ->name('ai-fix-jobs.reject');
 
+    // [임시] AI Fix E2E 검증용 강제 에러 트리거 — 검증 후 이 라우트 + AiFixTestController 같이 제거
+    Route::get('ai-fix/test-trigger',                [\App\Http\Controllers\Admin\AiFixTestController::class, 'trigger'])    ->name('ai-fix.test-trigger');
+
     // Super Admin 데이터 초기화
     Route::delete('reset/inquiries',     [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetInquiries'])    ->name('reset.inquiries');
     Route::delete('reset/activity-logs', [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetActivityLogs']) ->name('reset.activity-logs');
