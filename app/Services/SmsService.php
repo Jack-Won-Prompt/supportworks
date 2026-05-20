@@ -11,8 +11,12 @@ class SmsService
     /**
      * 단일 사용자(또는 휴대폰 번호)에게 SMS 1건 발송.
      * 실패해도 throw 하지 않고 false 반환 — 이메일 후속 보조 채널이므로 비차단.
+     *
+     * @param bool $alsoFcm true 면 SMS 발송 후 동일 내용을 FCM 으로도 발송.
+     *                      호출측이 이미 자체 FCM 알림(다른 type) 을 보내고 있을 때
+     *                      false 로 호출해 중복 알림을 막을 수 있다.
      */
-    public static function send(User|string|null $to, string $content, ?string $receiverName = null): bool
+    public static function send(User|string|null $to, string $content, ?string $receiverName = null, bool $alsoFcm = true): bool
     {
         $phone = null;
         $name  = $receiverName;
@@ -26,8 +30,8 @@ class SmsService
         }
 
         if (!$phone) {
-            // SMS는 불가하지만 사용자를 알면 FCM 푸시는 시도
-            self::pushFcm($user, null, $content);
+            // SMS는 불가하지만 사용자를 알면 FCM 푸시는 시도 (옵션)
+            if ($alsoFcm) self::pushFcm($user, null, $content);
             return false;
         }
 
@@ -56,8 +60,8 @@ class SmsService
             Log::warning('[SMS] 발송 실패: ' . $e->getMessage(), ['to' => $phone]);
         }
 
-        // SMS 전송 후 동일 내용을 FCM 푸시로도 발송
-        self::pushFcm($user, $phone, $content);
+        // SMS 전송 후 동일 내용을 FCM 푸시로도 발송 (옵션)
+        if ($alsoFcm) self::pushFcm($user, $phone, $content);
 
         return $sent;
     }
@@ -94,12 +98,14 @@ class SmsService
 
     /**
      * 다수 사용자에게 같은 내용으로 발송 — 발송 성공 건수 반환.
+     *
+     * @param bool $alsoFcm self::send 에 전달. 자세한 설명은 send() 참고.
      */
-    public static function sendMany(iterable $users, string $content): int
+    public static function sendMany(iterable $users, string $content, bool $alsoFcm = true): int
     {
         $ok = 0;
         foreach ($users as $u) {
-            if (self::send($u, $content)) {
+            if (self::send($u, $content, null, $alsoFcm)) {
                 $ok++;
             }
         }

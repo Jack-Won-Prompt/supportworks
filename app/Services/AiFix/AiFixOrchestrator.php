@@ -111,6 +111,54 @@ final class AiFixOrchestrator
         return $job->fresh();
     }
 
+    /**
+     * 관리자 승인. awaiting_approval -> applying 또는 ready_to_deploy -> deploying.
+     * approvedBy 는 어떤 가드의 사용자든 id 만 받으면 됨 (admin_users.id).
+     */
+    public function approve(AiFixJob $job, int $adminUserId): AiFixJob
+    {
+        $next = match ($job->status) {
+            AiFixJob::STATUS_AWAITING_APPROVAL => AiFixJob::STATUS_APPLYING,
+            AiFixJob::STATUS_READY_TO_DEPLOY   => AiFixJob::STATUS_DEPLOYING,
+            default => throw new \DomainException(
+                "Cannot approve from status '{$job->status}'"
+            ),
+        };
+
+        $job->transitionTo($next, [
+            'approved_at'          => now(),
+            'approved_by_admin_id' => $adminUserId,
+        ]);
+
+        // 다음 상태가 transient(applying/deploying)면 notifier 정책상 침묵.
+        $this->notifier?->notify($job);
+
+        return $job;
+    }
+
+    /**
+     * 관리자 거부. awaiting_approval / ready_to_deploy 에서만 허용.
+     */
+    public function reject(AiFixJob $job, int $adminUserId, ?string $reason = null): AiFixJob
+    {
+        if (!in_array($job->status, [AiFixJob::STATUS_AWAITING_APPROVAL, AiFixJob::STATUS_READY_TO_DEPLOY], true)) {
+            throw new \DomainException("Cannot reject from status '{$job->status}'");
+        }
+
+        $extras = [
+            'approved_by_admin_id' => $adminUserId,
+            'approved_at'          => now(),
+        ];
+        if ($reason !== null && $reason !== '') {
+            $extras['error_message'] = mb_substr($reason, 0, 500);
+        }
+
+        $job->transitionTo(AiFixJob::STATUS_REJECTED, $extras);
+        $this->notifier?->notify($job);
+
+        return $job;
+    }
+
     private function countRecentSameErrors(SystemErrorLog $errorLog): int
     {
         $window = (int) (config('ai-fix.signals.same_error_window_minutes') ?? 60);

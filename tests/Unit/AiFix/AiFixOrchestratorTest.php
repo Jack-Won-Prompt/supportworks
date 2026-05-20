@@ -371,4 +371,102 @@ class AiFixOrchestratorTest extends TestCase
 
         $this->assertCount(1, $spy->notified, 'idempotent branch should skip notify on 2nd call');
     }
+
+    // ── approve / reject ─────────────────────────────────────────────────────
+
+    private function rawOrchestrator(?AiFixNotifier $n = null): AiFixOrchestrator
+    {
+        // analyzer 는 이 테스트에서 호출되지 않음 — null 대신 dummy
+        $analysis = new AnalysisResult('unknown', 0.9, [], '[dummy]');
+        return new AiFixOrchestrator(
+            analyzer:  $this->fakeAnalyzer($analysis),
+            evaluator: EscalationEvaluator::fromConfig(),
+            notifier:  $n,
+        );
+    }
+
+    private function makeJob(string $status): AiFixJob
+    {
+        $err = $this->makeError();
+        return AiFixJob::create([
+            'system_error_log_id' => $err->id,
+            'status'              => $status,
+        ]);
+    }
+
+    public function test_approve_from_awaiting_approval_transitions_to_applying(): void
+    {
+        $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
+        $this->rawOrchestrator()->approve($job, adminUserId: 42);
+
+        $fresh = $job->fresh();
+        $this->assertSame(AiFixJob::STATUS_APPLYING, $fresh->status);
+        $this->assertSame(42, $fresh->approved_by_admin_id);
+        $this->assertNotNull($fresh->approved_at);
+    }
+
+    public function test_approve_from_ready_to_deploy_transitions_to_deploying(): void
+    {
+        $job = $this->makeJob(AiFixJob::STATUS_READY_TO_DEPLOY);
+        $this->rawOrchestrator()->approve($job, adminUserId: 7);
+
+        $this->assertSame(AiFixJob::STATUS_DEPLOYING, $job->fresh()->status);
+    }
+
+    public function test_approve_from_wrong_status_throws(): void
+    {
+        $job = $this->makeJob(AiFixJob::STATUS_PENDING);
+        $this->expectException(\DomainException::class);
+        $this->rawOrchestrator()->approve($job, adminUserId: 1);
+    }
+
+    public function test_reject_from_awaiting_approval_transitions_to_rejected(): void
+    {
+        $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
+        $this->rawOrchestrator()->reject($job, adminUserId: 7, reason: '신뢰도 낮음');
+
+        $fresh = $job->fresh();
+        $this->assertSame(AiFixJob::STATUS_REJECTED, $fresh->status);
+        $this->assertTrue($fresh->isTerminal());
+        $this->assertSame('신뢰도 낮음', $fresh->error_message);
+        $this->assertSame(7, $fresh->approved_by_admin_id);
+        $this->assertNotNull($fresh->finished_at);
+    }
+
+    public function test_reject_from_ready_to_deploy_allowed(): void
+    {
+        $job = $this->makeJob(AiFixJob::STATUS_READY_TO_DEPLOY);
+        $this->rawOrchestrator()->reject($job, adminUserId: 1);
+
+        $this->assertSame(AiFixJob::STATUS_REJECTED, $job->fresh()->status);
+    }
+
+    public function test_reject_from_wrong_status_throws(): void
+    {
+        $job = $this->makeJob(AiFixJob::STATUS_APPLYING);
+        $this->expectException(\DomainException::class);
+        $this->rawOrchestrator()->reject($job, adminUserId: 1);
+    }
+
+    public function test_approve_fires_notify_hook(): void
+    {
+        $spy = $this->spyNotifier();
+        $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
+
+        $this->rawOrchestrator($spy)->approve($job, adminUserId: 1);
+
+        $this->assertCount(1, $spy->notified);
+        $this->assertSame(AiFixJob::STATUS_APPLYING, $spy->notified[0]['status']);
+    }
+
+    public function test_reject_fires_notify_hook(): void
+    {
+        $spy = $this->spyNotifier();
+        $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
+
+        $this->rawOrchestrator($spy)->reject($job, adminUserId: 1);
+
+        $this->assertCount(1, $spy->notified);
+        $this->assertSame(AiFixJob::STATUS_REJECTED, $spy->notified[0]['status']);
+    }
 }

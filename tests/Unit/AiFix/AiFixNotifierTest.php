@@ -247,4 +247,82 @@ class AiFixNotifierTest extends TestCase
         // shouldNotify=true 이지만 adminUserIds()==[] → 0 반환 (FCM 호출 없음)
         $this->assertSame(0, (new AiFixNotifier())->notify($job));
     }
+
+    // ── 3채널 분기 (스파이로 각 채널 호출 검증) ──────────────────────────────
+
+    public function test_notify_dispatches_to_all_three_channels(): void
+    {
+        User::create(['name' => 'A', 'email' => 'a@x.com', 'role' => 'admin', 'phone' => '01011112222']);
+        User::create(['name' => 'B', 'email' => 'b@x.com', 'role' => 'admin', 'phone' => '01033334444']);
+
+        $err = SystemErrorLog::create([
+            'level' => 'error', 'exception' => 'X', 'message' => 'm', 'file' => 'f', 'line' => 1,
+        ]);
+        $job = AiFixJob::create([
+            'system_error_log_id' => $err->id,
+            'status'              => AiFixJob::STATUS_AWAITING_APPROVAL,
+        ]);
+
+        $spy = new class extends AiFixNotifier {
+            public array $calls = ['fcm' => 0, 'email' => 0, 'sms' => 0];
+            public array $payloads = ['fcm' => null, 'email' => null, 'sms' => null];
+            protected function sendFcm(\Illuminate\Support\Collection $admins, array $p): void
+            { $this->calls['fcm']++;   $this->payloads['fcm']   = ['admins' => $admins->count(), 'payload' => $p]; }
+            protected function sendEmail(\Illuminate\Support\Collection $admins, array $p): void
+            { $this->calls['email']++; $this->payloads['email'] = ['admins' => $admins->count(), 'payload' => $p]; }
+            protected function sendSms(\Illuminate\Support\Collection $admins, array $p): void
+            { $this->calls['sms']++;   $this->payloads['sms']   = ['admins' => $admins->count(), 'payload' => $p]; }
+        };
+
+        $count = $spy->notify($job);
+
+        $this->assertSame(2, $count);
+        $this->assertSame(1, $spy->calls['fcm']);
+        $this->assertSame(1, $spy->calls['email']);
+        $this->assertSame(1, $spy->calls['sms']);
+        $this->assertSame(2, $spy->payloads['fcm']['admins']);
+        $this->assertSame('AI 수정 검토 요청', $spy->payloads['email']['payload']['title']);
+    }
+
+    public function test_notify_skips_all_channels_when_policy_says_no(): void
+    {
+        User::create(['name' => 'A', 'email' => 'a@x.com', 'role' => 'admin']);
+
+        $err = SystemErrorLog::create([
+            'level' => 'error', 'exception' => 'X', 'message' => 'm', 'file' => 'f', 'line' => 1,
+        ]);
+        $job = AiFixJob::create([
+            'system_error_log_id' => $err->id,
+            'status'              => AiFixJob::STATUS_ANALYZING,  // 정책상 침묵
+        ]);
+
+        $spy = new class extends AiFixNotifier {
+            public int $fcm = 0; public int $email = 0; public int $sms = 0;
+            protected function sendFcm(\Illuminate\Support\Collection $a, array $p): void   { $this->fcm++; }
+            protected function sendEmail(\Illuminate\Support\Collection $a, array $p): void { $this->email++; }
+            protected function sendSms(\Illuminate\Support\Collection $a, array $p): void   { $this->sms++; }
+        };
+
+        $this->assertSame(0, $spy->notify($job));
+        $this->assertSame(0, $spy->fcm);
+        $this->assertSame(0, $spy->email);
+        $this->assertSame(0, $spy->sms);
+    }
+
+    public function test_build_email_body_includes_metadata(): void
+    {
+        $n = new class extends AiFixNotifier {
+            public function exposeEmail(array $p): string { return $this->buildEmailBody($p); }
+        };
+        $body = $n->exposeEmail([
+            'title' => 'T', 'body' => 'B',
+            'data'  => ['type' => 'ai_fix_review', 'job_id' => '7',
+                        'status' => 'awaiting_approval', 'decision' => 'escalate', 'error_id' => '99'],
+        ]);
+
+        $this->assertStringContainsString('B', $body);
+        $this->assertStringContainsString('Job ID: 7', $body);
+        $this->assertStringContainsString('escalate',  $body);
+        $this->assertStringContainsString('Error ID: 99', $body);
+    }
 }

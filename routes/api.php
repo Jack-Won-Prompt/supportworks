@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\Mobile\ProjectController as MobileProjectController
 use App\Http\Controllers\Api\Mobile\QuestionController as MobileQuestionController;
 use App\Http\Controllers\Api\Mobile\ScheduleController as MobileScheduleController;
 use App\Http\Controllers\Api\Mobile\TaskController as MobileTaskController;
+use App\Http\Controllers\Api\Mobile\AiFixJobController as MobileAiFixJobController;
 use App\Http\Controllers\Api\Mobile\SystemErrorController as MobileSystemErrorController;
 use App\Http\Controllers\Api\Mobile\TeamController as MobileTeamController;
 use App\Http\Controllers\Api\Mobile\WeeklyReportController as MobileWeeklyReportController;
@@ -342,5 +343,11 @@ Route::prefix('mobile')->group(function () {
         Route::patch('system-errors/resolve-all',           [MobileSystemErrorController::class, 'resolveAll']);
         Route::get  ('system-errors/{systemError}',         [MobileSystemErrorController::class, 'show']);
         Route::patch('system-errors/{systemError}/resolve', [MobileSystemErrorController::class, 'resolve']);
+
+        // AI Fix Job (관리자 전용) — 모바일 승인/거부 흐름
+        Route::get ('ai-fix-jobs',                    [MobileAiFixJobController::class, 'index']);
+        Route::get ('ai-fix-jobs/{aiFixJob}',         [MobileAiFixJobController::class, 'show']);
+        Route::post('ai-fix-jobs/{aiFixJob}/approve', [MobileAiFixJobController::class, 'approve']);
+        Route::post('ai-fix-jobs/{aiFixJob}/reject',  [MobileAiFixJobController::class, 'reject']);
     });
 });
