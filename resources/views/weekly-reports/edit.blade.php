@@ -350,7 +350,8 @@ const WR_I18N = {
     taskNameEmpty:    @json(__('weekly.task_name_empty')),
     noCompletedTask:  @json(__('weekly.no_completed_task')),
     noInProgressTask: @json(__('weekly.no_in_progress_task')),
-    originalDataAlert:@json(__('weekly.original_data_alert', ['name' => ':name', 'start' => ':start', 'end' => ':end'])),
+    {{-- @json directive 가 PHP 8.3 의 token parser 에서 3-key array placeholder 파싱 실패. Blade 우회 후 직접 json_encode. --}}
+    originalDataAlert:<?php echo json_encode(__('weekly.original_data_alert', ['name' => ':name', 'start' => ':start', 'end' => ':end'])); ?>,
     downloadingWord:  @json(__('weekly.downloading_word')),
 };
 
