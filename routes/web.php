@@ -80,6 +80,53 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// 헬스체크 — 인증 불필요. 배포 후 운영 상태 확인용. 외부 모니터/배포 스크립트가 호출.
+Route::get('/healthz', function () {
+    $checks = [];
+    $allOk  = true;
+
+    // 1) DB 연결
+    try {
+        \Illuminate\Support\Facades\DB::select('SELECT 1');
+        $checks['db'] = 'ok';
+    } catch (\Throwable $e) {
+        $checks['db'] = 'fail';
+        $allOk = false;
+    }
+
+    // 2) 캐시 (선택적 — 캐시가 죽어도 앱은 동작하므로 fail이어도 200)
+    try {
+        \Illuminate\Support\Facades\Cache::put('healthz_ping', 1, 5);
+        $checks['cache'] = \Illuminate\Support\Facades\Cache::get('healthz_ping') === 1 ? 'ok' : 'degraded';
+    } catch (\Throwable) {
+        $checks['cache'] = 'degraded';
+    }
+
+    // 3) 배포된 git 커밋 (있으면)
+    $commit = null;
+    try {
+        $headFile = base_path('.git/HEAD');
+        if (is_file($headFile)) {
+            $head = trim(@file_get_contents($headFile));
+            if (str_starts_with($head, 'ref: ')) {
+                $refPath = base_path('.git/' . substr($head, 5));
+                if (is_file($refPath)) {
+                    $commit = substr(trim(@file_get_contents($refPath)), 0, 12);
+                }
+            } else {
+                $commit = substr($head, 0, 12);
+            }
+        }
+    } catch (\Throwable) {}
+
+    return response()->json([
+        'status' => $allOk ? 'ok' : 'fail',
+        'checks' => $checks,
+        'commit' => $commit,
+        'time'   => now()->toIso8601String(),
+    ], $allOk ? 200 : 503);
+});
+
 // 언어 전환
 Route::post('/locale', function (\Illuminate\Http\Request $request) {
     $locale = $request->input('locale', config('app.locale'));
