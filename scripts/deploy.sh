@@ -20,8 +20,8 @@
 #   APP_ROOT          default: current dir
 #   BACKUP_DIR        default: /var/backups/supportworks
 #   HEALTH_URL        default: http://localhost/healthz
-#   PHP_FPM_SOCK      default: /var/run/php/php8.2-fpm.sock
-#   PHP_FPM_SERVICE   default: php8.2-fpm
+#   PHP_FPM_SOCK      default: /run/php/php8.3-fpm.sock
+#   PHP_FPM_SERVICE   default: php8.3-fpm
 #
 # Exit codes:
 #   0  - success (or no changes to deploy)
@@ -38,8 +38,8 @@ IFS=$'\n\t'
 APP_ROOT="${APP_ROOT:-$(pwd)}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/supportworks}"
 HEALTH_URL="${HEALTH_URL:-http://localhost/healthz}"
-PHP_FPM_SOCK="${PHP_FPM_SOCK:-/var/run/php/php8.2-fpm.sock}"
-PHP_FPM_SERVICE="${PHP_FPM_SERVICE:-php8.2-fpm}"
+PHP_FPM_SOCK="${PHP_FPM_SOCK:-/run/php/php8.3-fpm.sock}"
+PHP_FPM_SERVICE="${PHP_FPM_SERVICE:-php8.3-fpm}"
 BRANCH="master"
 DRY_RUN=0
 NO_ROLLBACK=0
