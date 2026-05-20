@@ -6,9 +6,15 @@
 #
 # Usage:
 #   ./scripts/deploy.sh                          # full deploy from origin/master
-#   ./scripts/deploy.sh --dry-run                # show steps without executing destructive ones
+#   ./scripts/deploy.sh --dry-run                # simulate: code IS synced, but destructive steps skipped
 #   ./scripts/deploy.sh --branch ai-fix/123      # deploy a specific branch (for AI fix flow)
 #   ./scripts/deploy.sh --no-rollback            # skip auto-rollback on healthz failure
+#
+# --dry-run semantics:
+#   git fetch / checkout / pull → executed for real (working tree IS updated to origin/master)
+#   composer install / mysqldump / artisan migrate / artisan down|up / artisan cache:* /
+#   opcache reset / curl healthz → all skipped (printed as [dry])
+#   Result: code is synced but caches/opcache are NOT rebuilt — next real deploy completes it.
 #
 # Env overrides (set before invoking):
 #   APP_ROOT          default: current dir
@@ -106,10 +112,17 @@ PREV_HEAD=$(git rev-parse HEAD)
 ok "prev HEAD: $PREV_HEAD"
 
 # ── 1) Fetch + checkout target ───────────────────────────────────────────────
-step "Fetch origin and bring $BRANCH up to date"
-run "git fetch origin --prune"
-run "git checkout $BRANCH"
-run "git pull --ff-only origin $BRANCH"
+# fetch/checkout/pull 은 dry-run 에서도 실제 실행. 후속 단계 (composer/npm/migration
+# diff 감지, cache/healthz 시뮬레이션) 가 의미를 가지려면 working tree 가 실제 origin
+# 과 동기화돼야 함. 운영 코드는 갱신되지만 캐시 재빌드·opcache reset 은 dry-run 에서
+# 여전히 skip 되므로 실제 traffic 변화는 다음 실제 배포에서 완성됨.
+step "Fetch origin and bring $BRANCH up to date (always real, even in --dry-run)"
+log "   $ git fetch origin --prune"
+git fetch origin --prune                || die "git fetch failed" 1
+log "   $ git checkout $BRANCH"
+git checkout "$BRANCH"                  || die "git checkout failed" 1
+log "   $ git pull --ff-only origin $BRANCH"
+git pull --ff-only origin "$BRANCH"     || die "git pull failed" 1
 
 NEW_HEAD=$(git rev-parse HEAD)
 if [ "$PREV_HEAD" = "$NEW_HEAD" ]; then
