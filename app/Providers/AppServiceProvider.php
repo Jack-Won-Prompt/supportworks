@@ -206,15 +206,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(DesignSystemTemplateService::class, fn() => new DesignSystemTemplateService());
 
         $this->app->singleton(DesignSystemAiService::class, fn($app) => new DesignSystemAiService(
-            // Claude (Anthropic) primary, OpenAI secondary. AnthropicProvider 가
-            // 실패하면(키 미설정 / API 장애 등) FallbackAIProvider 가 자동으로 OpenAI 로 재시도.
-            // 둘 다 키 없으면 사용 시점에 명시적 RuntimeException — boot 자체는 통과.
+            // OpenAI primary, Claude (Anthropic) secondary.
+            // 사유: Anthropic 결제 이슈로 현재 Claude 사용 불가. 결제 해결 시 primary/secondary 를
+            // swap (Claude primary, OpenAI secondary) 하거나, 단독으로 가려면 AnthropicProvider 만
+            // 주입. FallbackAIProvider 구조는 둘 다 시도 가능하므로 한 쪽이 장애여도 계속 동작.
             provider: new \App\Services\Agent\FallbackAIProvider(
-                primary:   new \App\Services\Agent\AnthropicProvider(
-                    \App\Models\AiSetting::current()->anthropicKey()
-                ),
-                secondary: new \App\Services\Agent\OpenAiProvider(
+                primary:   new \App\Services\Agent\OpenAiProvider(
                     \App\Models\AiSetting::current()->openaiKey()
+                ),
+                secondary: new \App\Services\Agent\AnthropicProvider(
+                    \App\Models\AiSetting::current()->anthropicKey()
                 ),
             ),
             usageLog: $app->make(AgentUsageLogService::class),
