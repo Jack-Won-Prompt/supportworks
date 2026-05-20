@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\FcmService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 class SystemErrorLog extends Model
 {
@@ -67,7 +69,7 @@ class SystemErrorLog extends Model
                 $context['input'] = static::sanitizeParams($request->except(array_keys($request->query())));
             }
 
-            static::create([
+            $log = static::create([
                 'level'     => $level,
                 'exception' => get_class($e),
                 'message'   => mb_substr($e->getMessage(), 0, 65535),
@@ -76,6 +78,8 @@ class SystemErrorLog extends Model
                 'trace'     => mb_substr($e->getTraceAsString(), 0, 65535),
                 'context'   => $context,
             ]);
+
+            static::notifyAdmins($log);
         } catch (\Throwable) {
             // DB 오류 시 무한 루프 방지 — 조용히 무시
         }
@@ -113,11 +117,45 @@ class SystemErrorLog extends Model
     public static function log(string $level, string $message, array $context = []): void
     {
         try {
-            static::create([
+            $log = static::create([
                 'level'   => $level,
                 'message' => mb_substr($message, 0, 65535),
                 'context' => $context,
             ]);
+
+            static::notifyAdmins($log);
         } catch (\Throwable) {}
+    }
+
+    /**
+     * 에러 수준(error/critical/alert/emergency) 발생 시 관리자 사용자(role=admin)에게 FCM 발송.
+     * 같은 (exception+file+line) 조합은 5분 쿨다운으로 스팸 방지.
+     */
+    protected static function notifyAdmins(self $log): void
+    {
+        try {
+            $critical = ['error', 'critical', 'alert', 'emergency'];
+            if (!in_array($log->level, $critical, true)) return;
+
+            $cacheKey = 'sys_err_notify:' . md5(($log->exception ?? '') . '|' . ($log->file ?? '') . '|' . ($log->line ?? ''));
+            if (Cache::has($cacheKey)) return;
+            Cache::put($cacheKey, 1, 300);
+
+            $adminIds = User::where('role', 'admin')->pluck('id')->all();
+            if (empty($adminIds)) return;
+
+            $title = '시스템 에러 (' . $log->level . ')';
+            $bodyShort = $log->exception
+                ? $log->exception . ': ' . mb_substr($log->message ?? '', 0, 100)
+                : mb_substr($log->message ?? '', 0, 140);
+
+            FcmService::notifyUsers($adminIds, $title, $bodyShort, [
+                'type'     => 'system_error',
+                'error_id' => (string) $log->id,
+                'level'    => (string) $log->level,
+            ]);
+        } catch (\Throwable) {
+            // 알림 실패는 무시 — 에러 로그 자체 기록은 성공해야 함
+        }
     }
 }

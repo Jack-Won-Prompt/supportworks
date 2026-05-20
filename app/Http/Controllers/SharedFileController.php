@@ -13,19 +13,22 @@ class SharedFileController extends Controller
     /** 공유폴더 목록 (회사 단위 · 검색 · 페이징) */
     public function index(Request $request)
     {
-        $cgId = $this->companyGroupId();
+        $cgId   = $this->companyGroupId();
+        $userId = (int) auth()->id();
 
         $categories = SharedFileCategory::where('company_group_id', $cgId)
-            ->withCount('files')
+            ->withCount(['files' => fn ($q) => $this->applyVisibility($q, $userId)])
             ->orderBy('sort_order')->orderBy('name')
             ->get();
 
         $categoryId = $request->query('category');
         $q          = trim((string) $request->query('q', ''));
+        $scope      = $request->query('scope'); // null | 'mine_personal'
 
         $query = SharedFile::where('company_group_id', $cgId)
             ->with(['category', 'uploader'])
             ->latest();
+        $this->applyVisibility($query, $userId, $scope);
 
         if ($categoryId === 'none') {
             $query->whereNull('category_id');
@@ -41,12 +44,33 @@ class SharedFileController extends Controller
 
         $files = $query->paginate(10)->withQueryString();
 
-        $totalCount         = SharedFile::where('company_group_id', $cgId)->count();
-        $uncategorizedCount = SharedFile::where('company_group_id', $cgId)->whereNull('category_id')->count();
+        // 카운트 — 공유(전체 공유 파일) / 내 개인자료 / 미분류 (가시범위 내)
+        $base = fn () => SharedFile::where('company_group_id', $cgId);
+        $sharedCount        = (clone $base())->where('is_personal', false)->count();
+        $myPersonalCount    = (clone $base())->where('is_personal', true)->where('uploaded_by', $userId)->count();
+        $totalCount         = $sharedCount + $myPersonalCount;
+        $uncategorizedCount = $this->applyVisibility((clone $base()), $userId)->whereNull('category_id')->count();
 
         return view('shared-folder.index', compact(
-            'categories', 'files', 'categoryId', 'q', 'totalCount', 'uncategorizedCount'
+            'categories', 'files', 'categoryId', 'q', 'scope',
+            'totalCount', 'sharedCount', 'myPersonalCount', 'uncategorizedCount'
         ));
+    }
+
+    /** 가시범위 적용: 공유(is_personal=false) 또는 내가 올린 개인자료만. scope=mine_personal이면 내 개인자료만. */
+    private function applyVisibility($query, int $userId, ?string $scope = null)
+    {
+        if ($scope === 'mine_personal') {
+            $query->where('is_personal', true)->where('uploaded_by', $userId);
+        } else {
+            $query->where(function ($w) use ($userId) {
+                $w->where('is_personal', false)
+                  ->orWhere(function ($p) use ($userId) {
+                      $p->where('is_personal', true)->where('uploaded_by', $userId);
+                  });
+            });
+        }
+        return $query;
     }
 
     /** 파일 업로드 (복수) */
@@ -59,12 +83,14 @@ class SharedFileController extends Controller
             'files.*'     => 'file|max:51200',          // 50MB/파일
             'category_id' => 'nullable|integer',
             'description' => 'nullable|string|max:500',
+            'is_personal' => 'nullable|boolean',
         ]);
 
         $categoryId = $request->input('category_id') ?: null;
         if ($categoryId && !SharedFileCategory::where('id', $categoryId)->where('company_group_id', $cgId)->exists()) {
             $categoryId = null;
         }
+        $isPersonal = $request->boolean('is_personal');
 
         $count = 0;
         foreach (array_filter((array) $request->file('files', [])) as $file) {
@@ -82,6 +108,7 @@ class SharedFileController extends Controller
                 'mime_type'        => $file->getClientMimeType(),
                 'size'             => $file->getSize() ?: 0,
                 'description'      => $request->input('description'),
+                'is_personal'      => $isPersonal,
             ]);
             $count++;
         }
@@ -154,5 +181,10 @@ class SharedFileController extends Controller
     private function authorizeFile(SharedFile $file): void
     {
         abort_unless($file->company_group_id === $this->companyGroupId(), 403);
+        // 개인자료는 본인 또는 관리자만 접근 가능
+        if ($file->is_personal) {
+            $user = auth()->user();
+            abort_unless($file->uploaded_by === $user->id || $user->isAdmin(), 403);
+        }
     }
 }

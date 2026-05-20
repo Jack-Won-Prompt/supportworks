@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\Mobile\ProjectController as MobileProjectController
 use App\Http\Controllers\Api\Mobile\QuestionController as MobileQuestionController;
 use App\Http\Controllers\Api\Mobile\ScheduleController as MobileScheduleController;
 use App\Http\Controllers\Api\Mobile\TaskController as MobileTaskController;
+use App\Http\Controllers\Api\Mobile\SystemErrorController as MobileSystemErrorController;
 use App\Http\Controllers\Api\Mobile\TeamController as MobileTeamController;
 use App\Http\Controllers\Api\Mobile\WeeklyReportController as MobileWeeklyReportController;
 use App\Http\Middleware\DesktopTokenMiddleware;
@@ -335,5 +336,11 @@ Route::prefix('mobile')->group(function () {
         Route::get   ('weekly-reports/{report}',  [MobileWeeklyReportController::class, 'show']);
         Route::put   ('weekly-reports/{report}',  [MobileWeeklyReportController::class, 'update']);
         Route::delete('weekly-reports/{report}',  [MobileWeeklyReportController::class, 'destroy']);
+
+        // 시스템 에러 (관리자 전용)
+        Route::get  ('system-errors',                       [MobileSystemErrorController::class, 'index']);
+        Route::patch('system-errors/resolve-all',           [MobileSystemErrorController::class, 'resolveAll']);
+        Route::get  ('system-errors/{systemError}',         [MobileSystemErrorController::class, 'show']);
+        Route::patch('system-errors/{systemError}/resolve', [MobileSystemErrorController::class, 'resolve']);
     });
 });

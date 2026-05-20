@@ -27,8 +27,11 @@
         <div style="width:210px;flex-shrink:0;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;">
             <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;padding:0 4px;">{{ __('shared-folder.folders') }}</div>
             @php $catBase = route('shared-folder.index'); @endphp
-            <a href="{{ $catBase }}" class="sf-cat {{ !$categoryId ? 'active' : '' }}">
+            <a href="{{ $catBase }}" class="sf-cat {{ !$categoryId && !($scope ?? null) ? 'active' : '' }}">
                 <span>📁 {{ __('shared-folder.category_all') }}</span><span class="sf-cat-n">{{ $totalCount }}</span>
+            </a>
+            <a href="{{ $catBase }}?scope=mine_personal" class="sf-cat {{ ($scope ?? null) === 'mine_personal' ? 'active' : '' }}">
+                <span>🔒 {{ __('shared-folder.my_personal') }}</span><span class="sf-cat-n">{{ $myPersonalCount }}</span>
             </a>
             <a href="{{ $catBase }}?category=none" class="sf-cat {{ $categoryId === 'none' ? 'active' : '' }}">
                 <span>🗂️ {{ __('shared-folder.category_none') }}</span><span class="sf-cat-n">{{ $uncategorizedCount }}</span>
@@ -83,6 +86,11 @@
                         </select>
                         <input type="text" name="description" maxlength="500" placeholder="{{ __('shared-folder.description_ph') }}"
                                class="sf-input" style="flex:1;min-width:160px;">
+                        <label class="sf-personal-chk" title="{{ __('shared-folder.personal_hint') }}">
+                            <input type="checkbox" name="is_personal" value="1">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            {{ __('shared-folder.personal') }}
+                        </label>
                         <button type="submit" id="sf-upload-submit" class="sf-upload-btn" disabled>
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0-12l-4 4m4-4l4 4M4 20h16"/></svg>
                             {{ __('shared-folder.upload_btn') }}
@@ -129,6 +137,12 @@
                                     <span style="font-size:18px;flex-shrink:0;">{{ $file->icon }}</span>
                                     <div style="min-width:0;">
                                         <a href="{{ route('shared-folder.download', $file) }}" style="font-size:13px;font-weight:600;color:#111827;text-decoration:none;word-break:break-all;" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color='#111827'">{{ $file->original_name }}</a>
+                                        @if($file->is_personal)
+                                        <span style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;vertical-align:middle;" title="{{ __('shared-folder.personal_hint') }}">
+                                            <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            {{ __('shared-folder.personal') }}
+                                        </span>
+                                        @endif
                                         @if($file->description)<div style="font-size:11px;color:#9ca3af;margin-top:1px;">{{ $file->description }}</div>@endif
                                     </div>
                                 </div>
@@ -196,6 +210,9 @@
 .sf-chip span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .sf-chip-x { background:none;border:none;color:#b8b0d8;font-size:14px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0; }
 .sf-chip-x:hover { color:#ef4444; }
+.sf-personal-chk { display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;color:#6b7280;cursor:pointer;background:#fff;user-select:none;flex-shrink:0; }
+.sf-personal-chk:has(input:checked) { border-color:#f59e0b;background:#fffbeb;color:#92400e;font-weight:700; }
+.sf-personal-chk input { margin:0; }
 </style>
 <script>
 (function(){

@@ -14,6 +14,9 @@ return [
     'n_files'             => ':n files selected',
     'description_ph'      => 'Description (optional)',
     'uploaded'            => 'Uploaded :n file(s).',
+    'personal'            => 'Personal',
+    'personal_hint'       => 'Check to keep private (not shared with the company).',
+    'my_personal'         => 'My personal files',
 
     // Folders (categories)
     'folders'             => 'Folders',

@@ -14,6 +14,9 @@ return [
     'n_files'             => ':n개 파일 선택됨',
     'description_ph'      => '설명 (선택)',
     'uploaded'            => ':n개 파일을 업로드했습니다.',
+    'personal'            => '개인자료',
+    'personal_hint'       => '체크하면 공유되지 않고 본인에게만 보입니다.',
+    'my_personal'         => '내 개인자료',
 
     // 폴더(카테고리)
     'folders'             => '폴더',

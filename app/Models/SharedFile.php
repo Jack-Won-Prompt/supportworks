@@ -10,10 +10,12 @@ class SharedFile extends Model
     protected $fillable = [
         'company_group_id', 'category_id', 'uploaded_by',
         'original_name', 'stored_name', 'path', 'mime_type', 'size', 'description',
+        'is_personal',
     ];
 
     protected $casts = [
-        'size' => 'integer',
+        'size'        => 'integer',
+        'is_personal' => 'boolean',
     ];
 
     public function companyGroup(): BelongsTo
