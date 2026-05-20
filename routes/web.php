@@ -567,6 +567,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post  ('/',                                [\App\Http\Controllers\SharedFileController::class, 'store'])          ->name('store');
         Route::get   ('/files/{sharedFile}/download',     [\App\Http\Controllers\SharedFileController::class, 'download'])       ->name('download');
         Route::delete('/files/{sharedFile}',              [\App\Http\Controllers\SharedFileController::class, 'destroy'])        ->name('destroy');
+        Route::patch ('/files/{sharedFile}/category',     [\App\Http\Controllers\SharedFileController::class, 'moveCategory'])   ->name('move-category');
         Route::post  ('/categories',                      [\App\Http\Controllers\SharedFileController::class, 'storeCategory'])  ->name('categories.store');
         Route::delete('/categories/{sharedFileCategory}', [\App\Http\Controllers\SharedFileController::class, 'destroyCategory'])->name('categories.destroy');
     });
@@ -730,6 +731,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{file}/annotations', [FileCommentController::class, 'storeAnnotation'])->name('annotations.store');
         Route::patch('/{file}/annotations/{annotation}', [FileCommentController::class, 'updateAnnotation'])->name('annotations.update');
         Route::delete('/{file}/annotations/{annotation}', [FileCommentController::class, 'destroyAnnotation'])->name('annotations.destroy');
+    });
+
+    // 공유폴더 파일 ↔ 프로젝트 링크 (link only, 원본은 공유폴더에 그대로 남음)
+    Route::prefix('projects/{project}/shared-files')->name('projects.shared-files.')->group(function () {
+        Route::post  ('/',             [\App\Http\Controllers\ProjectSharedFileController::class, 'store'])  ->name('store');
+        Route::delete('/{sharedFile}', [\App\Http\Controllers\ProjectSharedFileController::class, 'destroy'])->name('destroy');
     });
 
     // AI Agent

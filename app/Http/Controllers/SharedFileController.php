@@ -138,6 +138,33 @@ class SharedFileController extends Controller
         return back()->with('success', __('shared-folder.deleted'));
     }
 
+    /** 파일의 카테고리 이동 (업로더 본인 또는 관리자) */
+    public function moveCategory(Request $request, SharedFile $sharedFile)
+    {
+        $this->authorizeFile($sharedFile);
+
+        $user = auth()->user();
+        abort_unless($sharedFile->uploaded_by === $user->id || $user->isAdmin(), 403);
+
+        $data = $request->validate([
+            'category_id' => 'nullable|integer',
+        ]);
+
+        $categoryId = $data['category_id'] ?: null;
+
+        // 다른 회사 그룹의 카테고리로 이동 시도는 차단
+        if ($categoryId !== null) {
+            $valid = SharedFileCategory::where('id', $categoryId)
+                ->where('company_group_id', $this->companyGroupId())
+                ->exists();
+            abort_unless($valid, 422, 'invalid category');
+        }
+
+        $sharedFile->update(['category_id' => $categoryId]);
+
+        return back()->with('success', __('shared-folder.moved'));
+    }
+
     /** 카테고리(폴더) 추가 */
     public function storeCategory(Request $request)
     {

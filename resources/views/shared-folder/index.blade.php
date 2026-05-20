@@ -162,14 +162,33 @@
                                    style="display:inline-flex;color:#7c3aed;padding:4px;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
                                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 </a>
+
                                 @if($file->uploaded_by === auth()->id() || auth()->user()->isAdmin())
-                                <form method="POST" action="{{ route('shared-folder.destroy', $file) }}" style="display:inline;margin-left:4px;"
-                                      onsubmit="return confirm('{{ __('shared-folder.delete_confirm') }}')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" title="{{ __('shared-folder.delete') }}" style="background:none;border:none;cursor:pointer;color:#d1d5db;padding:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">
-                                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                {{-- ⋮ 드롭다운: 카테고리 이동 / 삭제 --}}
+                                <span class="sf-actions" style="position:relative;display:inline-block;margin-left:4px;">
+                                    <button type="button" title="{{ __('shared-folder.more_actions') }}"
+                                            onclick="event.stopPropagation(); document.querySelectorAll('.sf-dd.open').forEach(function(d){if(d!==this.nextElementSibling)d.classList.remove('open');}.bind(this)); this.nextElementSibling.classList.toggle('open');"
+                                            style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:4px;line-height:0;" onmouseover="this.style.color='#374151'" onmouseout="this.style.color='#9ca3af'">
+                                        <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
                                     </button>
-                                </form>
+                                    <div class="sf-dd" style="display:none;position:absolute;right:0;top:100%;margin-top:2px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.08);min-width:150px;z-index:10;padding:4px;">
+                                        <button type="button" data-file-id="{{ $file->id }}" data-file-name="{{ e($file->original_name) }}" data-current-category="{{ $file->category_id ?? '' }}"
+                                                onclick="openMoveCategoryModal(this)"
+                                                style="display:flex;align-items:center;gap:7px;width:100%;text-align:left;padding:7px 9px;background:none;border:none;border-radius:6px;font-size:12.5px;color:#374151;cursor:pointer;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background=''">
+                                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z"/></svg>
+                                            {{ __('shared-folder.move_category') }}
+                                        </button>
+                                        <form method="POST" action="{{ route('shared-folder.destroy', $file) }}" style="margin:0;"
+                                              onsubmit="return confirm('{{ __('shared-folder.delete_confirm') }}')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit"
+                                                    style="display:flex;align-items:center;gap:7px;width:100%;text-align:left;padding:7px 9px;background:none;border:none;border-radius:6px;font-size:12.5px;color:#ef4444;cursor:pointer;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                {{ __('shared-folder.delete') }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </span>
                                 @endif
                             </td>
                         </tr>
@@ -252,5 +271,65 @@
         syncInput(); render();
     });
 })();
+
+// ⋮ 드롭다운: 바깥 클릭 시 닫기
+document.addEventListener('click', function(){
+    document.querySelectorAll('.sf-dd.open').forEach(function(d){ d.classList.remove('open'); });
+});
+
+// 카테고리 이동 모달 열기
+function openMoveCategoryModal(triggerBtn){
+    const fileId   = triggerBtn.dataset.fileId;
+    const fileName = triggerBtn.dataset.fileName;
+    const current  = triggerBtn.dataset.currentCategory || '';
+
+    const form = document.getElementById('sf-move-form');
+    if (form) {
+        form.action = '{{ url('shared-folder/files') }}/' + fileId + '/category';
+        const sel = form.querySelector('select[name="category_id"]');
+        if (sel) sel.value = current;
+    }
+    const title = document.getElementById('sf-move-target-name');
+    if (title) title.textContent = fileName;
+
+    document.getElementById('sf-move-modal').style.display = 'flex';
+    // 드롭다운 닫기
+    document.querySelectorAll('.sf-dd.open').forEach(function(d){ d.classList.remove('open'); });
+}
+function closeMoveCategoryModal(){
+    document.getElementById('sf-move-modal').style.display = 'none';
+}
 </script>
+
+<style>
+.sf-dd.open { display:block !important; }
+</style>
+
+{{-- 카테고리 이동 모달 --}}
+<div id="sf-move-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this) closeMoveCategoryModal()">
+    <div style="background:#fff;border-radius:14px;padding:22px;width:380px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <h2 style="font-size:15px;font-weight:800;color:#111827;margin:0;">{{ __('shared-folder.move_category_title') }}</h2>
+            <button type="button" onclick="closeMoveCategoryModal()" style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;padding:0 4px;">&times;</button>
+        </div>
+        <div id="sf-move-target-name" style="font-size:12px;color:#6b7280;margin-bottom:14px;word-break:break-all;"></div>
+
+        <form id="sf-move-form" method="POST" action="">
+            @csrf @method('PATCH')
+            <label style="display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:6px;">{{ __('shared-folder.move_target') }}</label>
+            <select name="category_id" class="sf-input" style="width:100%;margin-bottom:14px;">
+                <option value="">{{ __('shared-folder.move_to_none') }}</option>
+                @foreach($categories as $cat)
+                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                @endforeach
+            </select>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button type="button" onclick="closeMoveCategoryModal()"
+                        style="padding:8px 16px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
+                <button type="submit"
+                        style="padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('shared-folder.move_submit') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

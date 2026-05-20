@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class SharedFile extends Model
 {
@@ -31,6 +32,14 @@ class SharedFile extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /** 이 파일을 참조하는 프로젝트들 (link only). */
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_shared_files')
+            ->withPivot('attached_by')
+            ->withTimestamps();
     }
 
     /** 확장자 기반 아이콘 이모지 */

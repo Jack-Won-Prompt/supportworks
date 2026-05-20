@@ -44,4 +44,28 @@ return [
     'delete'              => '삭제',
     'delete_confirm'      => '이 파일을 삭제할까요?',
     'deleted'             => '파일을 삭제했습니다.',
+
+    // 카테고리 이동
+    'more_actions'        => '더보기',
+    'move_category'       => '폴더 이동',
+    'move_category_title' => '폴더로 이동',
+    'move_target'         => '이동할 폴더',
+    'move_to_none'        => '미분류',
+    'move_submit'         => '이동',
+    'moved'               => '폴더를 변경했습니다.',
+
+    // 프로젝트 링크
+    'project_section'     => '공유폴더 파일',
+    'project_section_hint'=> '회사 공유폴더의 파일을 이 프로젝트에 참조로 연결할 수 있습니다.',
+    'link_btn'            => '공유폴더에서 추가',
+    'link_modal_title'    => '공유폴더 파일 추가',
+    'link_search_ph'      => '파일명 검색',
+    'link_no_files'       => '연결 가능한 공유 파일이 없습니다.',
+    'link_submit'         => '추가',
+    'linked'              => '파일을 연결했습니다.',
+    'unlink'              => '연결 해제',
+    'unlink_confirm'      => '이 파일을 프로젝트에서 연결 해제할까요? (원본은 공유폴더에 그대로 남습니다.)',
+    'unlinked'            => '연결을 해제했습니다.',
+    'link_forbidden'      => '다른 회사의 파일이거나 개인자료는 연결할 수 없습니다.',
+    'project_empty'       => '연결된 공유폴더 파일이 없습니다.',
 ];

@@ -44,4 +44,28 @@ return [
     'delete'              => 'Delete',
     'delete_confirm'      => 'Delete this file?',
     'deleted'             => 'File deleted.',
+
+    // Move category
+    'more_actions'        => 'More',
+    'move_category'       => 'Move folder',
+    'move_category_title' => 'Move to folder',
+    'move_target'         => 'Target folder',
+    'move_to_none'        => 'Uncategorized',
+    'move_submit'         => 'Move',
+    'moved'               => 'Folder updated.',
+
+    // Project link
+    'project_section'     => 'Shared folder files',
+    'project_section_hint'=> 'Reference files from the company shared folder in this project.',
+    'link_btn'            => 'Add from shared folder',
+    'link_modal_title'    => 'Add shared folder file',
+    'link_search_ph'      => 'Search file name',
+    'link_no_files'       => 'No shareable files available.',
+    'link_submit'         => 'Add',
+    'linked'              => 'File linked.',
+    'unlink'              => 'Unlink',
+    'unlink_confirm'      => 'Unlink this file from the project? (Original stays in the shared folder.)',
+    'unlinked'            => 'Unlinked.',
+    'link_forbidden'      => 'Cannot link files from another company or personal files.',
+    'project_empty'       => 'No linked shared folder files.',
 ];

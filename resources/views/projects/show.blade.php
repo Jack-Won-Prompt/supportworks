@@ -239,7 +239,102 @@
             <p class="text-xs text-gray-400 text-center py-4">{{ __('projects.no_files') }}</p>
             @endforelse
         </div>
+
+        <!-- 공유폴더 파일 (link only) -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-900 inline-flex items-center gap-1.5">
+                    <svg width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z"/></svg>
+                    {{ __('shared-folder.project_section') }}
+                </h3>
+                <button onclick="openSharedFileLinkModal()" class="text-xs text-indigo-600 hover:text-indigo-700 font-medium">+ {{ __('shared-folder.link_btn') }}</button>
+            </div>
+            <p class="text-xs text-gray-400 mb-3">{{ __('shared-folder.project_section_hint') }}</p>
+            @php $sf = $project->sharedFiles()->with('uploader', 'category')->get(); @endphp
+            @forelse($sf as $file)
+            <div class="py-2 border-b border-gray-50 last:border-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg flex-shrink-0">{{ $file->icon }}</span>
+                    <div class="flex-1 min-w-0">
+                        <a href="{{ route('shared-folder.download', $file) }}" class="text-sm text-gray-800 hover:text-indigo-600 block break-all leading-snug">{{ $file->original_name }}</a>
+                        <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                            @if($file->category)
+                            <span class="inline-flex items-center gap-1" style="color:{{ $file->category->color }};font-weight:600;">{{ $file->category->name }}</span>
+                            <span class="text-gray-300">·</span>
+                            @endif
+                            <span>{{ $file->formatted_size }}</span>
+                            <span class="text-gray-300">·</span>
+                            <span>{{ $file->uploader?->name ?? '—' }}</span>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ route('projects.shared-files.destroy', [$project, $file]) }}"
+                          onsubmit="return confirm('{{ __('shared-folder.unlink_confirm') }}')" class="m-0">
+                        @csrf @method('DELETE')
+                        <button type="submit" title="{{ __('shared-folder.unlink') }}"
+                                class="text-gray-300 hover:text-red-500 p-1">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @empty
+            <p class="text-xs text-gray-400 text-center py-4">{{ __('shared-folder.project_empty') }}</p>
+            @endforelse
+        </div>
     </div>
+
+    {{-- 공유폴더에서 파일 추가 모달 --}}
+    @if(auth()->user() && auth()->user()->hasCompany())
+    @php
+        $shareable = \App\Models\SharedFile::where('company_group_id', auth()->user()->company_group_id)
+            ->where('is_personal', false)
+            ->whereNotIn('id', $project->sharedFiles()->pluck('shared_files.id'))
+            ->with('category')
+            ->orderBy('original_name')
+            ->limit(200)
+            ->get();
+    @endphp
+    <div id="modal-shared-file-link" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this) closeSharedFileLinkModal()">
+        <div style="background:#fff;border-radius:14px;padding:22px;width:520px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <h2 style="font-size:15px;font-weight:800;color:#111827;margin:0;">{{ __('shared-folder.link_modal_title') }}</h2>
+                <button type="button" onclick="closeSharedFileLinkModal()" style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;padding:0 4px;">&times;</button>
+            </div>
+            <input type="text" id="sf-link-search" placeholder="{{ __('shared-folder.link_search_ph') }}"
+                   oninput="filterSharedFiles(this.value)"
+                   style="padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;margin-bottom:10px;">
+            <div id="sf-link-list" style="flex:1;overflow-y:auto;border:1px solid #f3f4f6;border-radius:8px;">
+                @forelse($shareable as $f)
+                <form method="POST" action="{{ route('projects.shared-files.store', $project) }}" class="sf-link-row" data-name="{{ strtolower($f->original_name) }}" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #f9fafb;margin:0;">
+                    @csrf
+                    <input type="hidden" name="shared_file_id" value="{{ $f->id }}">
+                    <span style="font-size:16px;flex-shrink:0;">{{ $f->icon }}</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;color:#111827;font-weight:600;word-break:break-all;">{{ $f->original_name }}</div>
+                        <div style="font-size:11px;color:#9ca3af;margin-top:1px;">
+                            @if($f->category)<span style="color:{{ $f->category->color }};font-weight:600;">{{ $f->category->name }}</span> · @endif
+                            {{ $f->formatted_size }}
+                        </div>
+                    </div>
+                    <button type="submit" style="padding:5px 12px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;flex-shrink:0;">{{ __('shared-folder.link_submit') }}</button>
+                </form>
+                @empty
+                <p style="text-align:center;color:#9ca3af;font-size:12px;padding:24px;">{{ __('shared-folder.link_no_files') }}</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+    <script>
+    function openSharedFileLinkModal(){ document.getElementById('modal-shared-file-link').style.display = 'flex'; }
+    function closeSharedFileLinkModal(){ document.getElementById('modal-shared-file-link').style.display = 'none'; }
+    function filterSharedFiles(q){
+        q = (q || '').toLowerCase().trim();
+        document.querySelectorAll('#sf-link-list .sf-link-row').forEach(function(row){
+            row.style.display = (!q || row.dataset.name.indexOf(q) !== -1) ? 'flex' : 'none';
+        });
+    }
+    </script>
+    @endif
 
     <!-- 멤버 목록 (팝업 트리거) -->
     <button onclick="openMembersModal()" class="w-full text-left bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:border-indigo-200 transition-colors">

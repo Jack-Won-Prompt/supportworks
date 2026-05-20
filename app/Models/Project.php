@@ -61,6 +61,18 @@ class Project extends Model
             ->withTimestamps();
     }
 
+    /**
+     * 이 프로젝트에 참조된 공유폴더 파일들.
+     * pivot: project_shared_files (link only, 원본 파일은 shared_files 에 그대로 있음)
+     */
+    public function sharedFiles()
+    {
+        return $this->belongsToMany(SharedFile::class, 'project_shared_files')
+            ->withPivot('attached_by')
+            ->withTimestamps()
+            ->orderByDesc('project_shared_files.created_at');
+    }
+
     public function schedules()
     {
         return $this->hasMany(Schedule::class);
