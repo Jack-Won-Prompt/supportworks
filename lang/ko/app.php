@@ -19,6 +19,8 @@ return [
     'nav_memos'              => '메모',
     'nav_admin'              => '관리자',
     'nav_user_mgmt'          => '사용자 관리',
+    'nav_company_mgmt'       => '회사 관리',
+    'nav_system_errors'      => '시스템 에러',
     'nav_new_project'        => '새 프로젝트',
     'nav_search'             => '메뉴 검색...',
     'nav_profile'            => '프로필 설정',

@@ -60,7 +60,7 @@ return [
 
     // ── 웍스 Analysis
     'ai_analyzing'              => 'Analyzing...',
-    'ai_error'                  => 'An error occurred.',
+    'ai_error'                  => 'A problem occurred. The administrator has been notified.',
     'ai_network_error'          => 'A network error occurred.',
     'ai_label_summary'          => 'Summary',
     'ai_label_intent'           => 'Intent',

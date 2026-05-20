@@ -2,46 +2,64 @@
 
 namespace App\Support;
 
+use App\Models\SystemErrorLog;
+use Illuminate\Http\Client\Response;
+
 class AiError
 {
     /**
-     * AI 공급자(OpenAI · Claude 등) 원본 오류 메시지를 사용자용 메시지로 변환한다.
-     * 사용량·결제 한도, 인증 오류처럼 사용자가 직접 해결할 수 없는 경우
-     * "관리자에게 문의하세요" 안내로 바꾸고, 그 외에는 원본을 그대로 반환한다.
+     * 원본 오류를 관리자 시스템 에러 페이지에 기록한다.
+     * 사용자에게는 friendly() 메시지만 보여줘도, 관리자는 정확한 원문을 봐야 진단 가능.
+     *
+     * @param  string                    $provider     'OpenAI' / 'Anthropic' / 'Claude' / 'Manus'
+     * @param  string                    $sourceLabel  발생 위치 식별자 (예: __METHOD__)
+     * @param  Response|string|array     $payload      HTTP\Client Response | 원본 문자열 | 컨텍스트 배열
      */
-    public static function friendly(string $raw): string
+    public static function record(string $provider, string $sourceLabel, Response|string|array $payload): void
     {
-        $low = mb_strtolower($raw);
+        $rawMessage = '';
+        $context    = ['source' => $sourceLabel, 'provider' => $provider];
 
-        // 사용량·결제 한도 초과
-        $billing = ['quota', 'exceeded your current', 'credit balance', 'billing',
-                    'insufficient', 'too low', 'payment required', 'rate limit'];
-        foreach ($billing as $kw) {
-            if (str_contains($low, $kw)) {
-                return 'AI 사용 한도를 초과했거나 결제 확인이 필요합니다. 관리자에게 문의하세요.';
-            }
+        if ($payload instanceof Response) {
+            $rawMessage = (string) ($payload->json('error.message')
+                ?? $payload->json('error.type')
+                ?? $payload->body());
+            $context['http_status']     = $payload->status();
+            $context['raw_body']        = mb_substr((string) $payload->body(), 0, 4000);
+            $context['error_type']      = $payload->json('error.type');
+            $context['error_code']      = $payload->json('error.code');
+        } elseif (is_string($payload)) {
+            $rawMessage = $payload;
+        } else {
+            $rawMessage = $payload['message'] ?? json_encode($payload, JSON_UNESCAPED_UNICODE);
+            $context    = array_merge($context, $payload);
         }
 
-        // 인증 · API 키 오류
-        $auth = ['invalid_api_key', 'invalid api key', 'incorrect api key',
-                 'unauthorized', 'authentication', 'no api key', '키가 설정되지'];
-        foreach ($auth as $kw) {
-            if (str_contains($low, $kw)) {
-                return 'AI 연동 설정에 문제가 있습니다. 관리자에게 문의하세요.';
-            }
-        }
+        SystemErrorLog::log(
+            'error',
+            "[{$provider}] 원본 오류: " . mb_substr($rawMessage, 0, 4000),
+            $context,
+        );
+    }
 
-        // 일시적 서버 오류 (5xx · 과부하 · 타임아웃)
-        $transient = ['server had an error', 'sorry about that', 'try again',
-                      'overloaded', 'service unavailable', 'temporarily unavailable',
-                      'gateway timeout', 'bad gateway', '502', '503', '504',
-                      'internal server error'];
-        foreach ($transient as $kw) {
-            if (str_contains($low, $kw)) {
-                return '일시적인 서버 오류입니다. 잠시 후 다시 시도해 주세요. 계속되면 관리자에게 문의하세요.';
-            }
-        }
+    /**
+     * Response를 받아 원본을 시스템 에러로 기록하고, 사용자용 friendly 메시지를 담은 RuntimeException을 반환한다.
+     * 사용 예: throw AiError::wrap('OpenAI', __METHOD__, $res);
+     */
+    public static function wrap(string $provider, string $sourceLabel, Response $response): \RuntimeException
+    {
+        self::record($provider, $sourceLabel, $response);
+        $err = $response->json('error.message') ?? $response->body();
+        return new \RuntimeException(self::friendly("{$provider} API 오류: {$err}"));
+    }
 
-        return $raw;
+    /**
+     * 사용자에게는 단일 친화 메시지만 노출한다.
+     * 원본 진단 정보는 AiError::record() / wrap()이 관리자 시스템 에러 페이지에 별도 기록함.
+     * $raw 인자는 호환성을 위해 유지하지만 사용자에게는 노출되지 않는다.
+     */
+    public static function friendly(string $raw = ''): string
+    {
+        return '문제가 발생했습니다. 관리자에게 전달되었습니다.';
     }
 }

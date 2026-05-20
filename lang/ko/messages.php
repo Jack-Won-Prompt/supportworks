@@ -60,7 +60,7 @@ return [
 
     // ── 웍스 분석
     'ai_analyzing'              => '분석 중...',
-    'ai_error'                  => '오류가 발생했습니다.',
+    'ai_error'                  => '문제가 발생했습니다. 관리자에게 전달되었습니다.',
     'ai_network_error'          => '네트워크 오류가 발생했습니다.',
     'ai_label_summary'          => '요약',
     'ai_label_intent'           => '의도',

@@ -133,8 +133,7 @@ class OpenAiService
             ]);
 
         if (!$res->successful()) {
-            $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException(\App\Support\AiError::friendly("OpenAI API 오류: {$err}"));
+            throw \App\Support\AiError::wrap('OpenAI', __METHOD__, $res);
         }
 
         $args = $res->json('choices.0.message.tool_calls.0.function.arguments');
@@ -168,8 +167,7 @@ class OpenAiService
             ]);
 
         if (!$res->successful()) {
-            $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException("웍스 API 오류: {$err}");
+            throw \App\Support\AiError::wrap('OpenAI', __METHOD__, $res);
         }
 
         return $res;

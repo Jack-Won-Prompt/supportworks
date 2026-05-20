@@ -34,8 +34,7 @@ class AnthropicClient implements LlmClientInterface
             ]);
 
         if (!$res->successful()) {
-            $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException(\App\Support\AiError::friendly("Anthropic API 오류: {$err}"));
+            throw \App\Support\AiError::wrap('Anthropic', __METHOD__, $res);
         }
 
         return new LlmResponse(

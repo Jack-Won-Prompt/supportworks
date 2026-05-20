@@ -1770,7 +1770,8 @@ async function generateDraft() {
     }
 
     if (!res.ok) {
-        msgEl.innerHTML = LANG.ai_error_prefix + `HTTP ${res.status}`;
+        msgEl.innerHTML = LANG.ai_error_prefix + LANG.ai_error_draft;
+        console.error('[generateDraft] HTTP', res.status);
         return;
     }
 

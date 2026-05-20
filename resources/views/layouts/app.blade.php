@@ -569,15 +569,31 @@
 
                     {{-- 관리자 섹션 --}}
                     @if(auth()->user()->isAdmin())
+                    @php $adminUnresolvedErrors = \App\Models\SystemErrorLog::unresolved()->count(); @endphp
                     <div style="margin-bottom:4px;">
                         <div class="gsb-hide" style="padding:6px 10px 4px;">
                             <span class="section-label">{{ __('app.nav_admin') }}</span>
                         </div>
-                        <a href="{{ route('admin.users.index') }}" class="sidebar-item {{ request()->routeIs('admin.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.users.index') }}" class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                             </svg>
                             <span class="gsb-hide">{{ __('app.nav_user_mgmt') }}</span>
+                        </a>
+                        <a href="{{ route('admin.company-groups.index') }}" class="sidebar-item {{ request()->routeIs('admin.company-groups.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="gsb-hide">{{ __('app.nav_company_mgmt') }}</span>
+                        </a>
+                        <a href="{{ route('admin.system-errors.index') }}" class="sidebar-item {{ request()->routeIs('admin.system-errors.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span class="gsb-hide">{{ __('app.nav_system_errors') }}</span>
+                            @if($adminUnresolvedErrors > 0)
+                            <span class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;">{{ $adminUnresolvedErrors > 99 ? '99+' : $adminUnresolvedErrors }}</span>
+                            @endif
                         </a>
                     </div>
                     <div class="sidebar-divider"></div>

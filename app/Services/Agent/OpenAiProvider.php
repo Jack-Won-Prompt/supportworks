@@ -196,8 +196,7 @@ class OpenAiProvider implements AIProvider
             ->post(rtrim($this->baseUrl, '/') . '/chat/completions', $payload);
 
         if (!$res->successful()) {
-            $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException(\App\Support\AiError::friendly("OpenAI API 오류: {$err}"));
+            throw \App\Support\AiError::wrap('OpenAI', __METHOD__, $res);
         }
 
         return $res;

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
+use App\Models\SystemErrorLog;
 
 /**
  * 웍스 요청 오케스트레이터 — 모든 기능에 Claude → OpenAI → Manus 폴백 적용
@@ -22,6 +23,13 @@ class AiOrchestrator
         private ?string $manusEndpoint = null,
     ) {}
 
+    /** Log::warning + 관리자 시스템 에러 페이지에도 기록 */
+    private static function warnAndRecord(string $message): void
+    {
+        Log::warning($message);
+        SystemErrorLog::log('warning', $message, ['source' => 'AiOrchestrator']);
+    }
+
     /**
      * 코드 생성용. Claude → OpenAI → Manus 순으로 시도합니다.
      *
@@ -36,7 +44,7 @@ class AiOrchestrator
                 $result = (new ClaudeService($this->anthropicKey))->chat($messages, $figmaContext, $systemOverride);
                 return ['result' => $result, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Claude chat 실패, OpenAI 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude chat 실패, OpenAI 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -46,7 +54,7 @@ class AiOrchestrator
                 $result = (new OpenAiService($this->openaiKey))->chat($messages, $figmaContext, $systemOverride);
                 return ['result' => $result, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] OpenAI chat 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chat 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -59,7 +67,7 @@ class AiOrchestrator
                 $text       = (new ManusService($this->manusKey, $endpoint))->chatRaw([['role' => 'user', 'content' => $userMsg]], $systemPart);
                 return ['result' => ['type' => 'text', 'content' => $text], 'provider' => self::PROVIDER_MANUS];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Manus chat 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Manus chat 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -81,7 +89,7 @@ class AiOrchestrator
                 $result = (new ClaudeService($this->anthropicKey))->refinePrompt($userInput, $existing);
                 return ['result' => $result, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Claude refine 실패, OpenAI 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude refine 실패, OpenAI 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -91,7 +99,7 @@ class AiOrchestrator
                 $result = (new OpenAiService($this->openaiKey))->refinePrompt($userInput, $existing);
                 return ['result' => $result, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] OpenAI refine 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI refine 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -105,7 +113,7 @@ class AiOrchestrator
                 );
                 return ['result' => ['refined' => $text], 'provider' => self::PROVIDER_MANUS];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Manus refine 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Manus refine 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -127,7 +135,7 @@ class AiOrchestrator
                 $text = (new ClaudeService($this->anthropicKey))->chatRawLarge($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Claude chatRawLarge 실패, OpenAI 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude chatRawLarge 실패, OpenAI 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -137,7 +145,7 @@ class AiOrchestrator
                 $text = (new OpenAiService($this->openaiKey))->chatRawLarge($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] OpenAI chatRawLarge 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawLarge 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -148,7 +156,7 @@ class AiOrchestrator
                 $text     = (new ManusService($this->manusKey, $endpoint))->chatRawLarge($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_MANUS];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Manus chatRawLarge 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Manus chatRawLarge 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -172,7 +180,7 @@ class AiOrchestrator
                 $text = (new ClaudeService($this->anthropicKey))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Claude chatRawDirect 실패, OpenAI 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude chatRawDirect 실패, OpenAI 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -182,7 +190,7 @@ class AiOrchestrator
                 $text = (new OpenAiService($this->openaiKey))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] OpenAI chatRawDirect 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawDirect 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -193,7 +201,7 @@ class AiOrchestrator
                 $text     = (new ManusService($this->manusKey, $endpoint))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_MANUS];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Manus chatRawDirect 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Manus chatRawDirect 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -214,7 +222,7 @@ class AiOrchestrator
                 $text = (new ClaudeService($this->anthropicKey))->chatRawFast($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Claude chatRawFast 실패, OpenAI 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude chatRawFast 실패, OpenAI 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -224,7 +232,7 @@ class AiOrchestrator
                 $text = (new OpenAiService($this->openaiKey))->chatRawFast($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] OpenAI chatRawFast 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawFast 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -258,7 +266,7 @@ class AiOrchestrator
                     );
                 return ['fields' => $response->toolInput, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Claude generateDraft 실패, OpenAI 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude generateDraft 실패, OpenAI 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -269,7 +277,7 @@ class AiOrchestrator
                     ->generateDraftFields($systemPrompt, $userPrompt, $fieldSchema);
                 return ['fields' => $fields, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] OpenAI generateDraft 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI generateDraft 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -292,7 +300,7 @@ class AiOrchestrator
                 }
                 throw new \RuntimeException('Manus 응답에서 JSON을 파싱할 수 없습니다: ' . mb_substr($text, 0, 200));
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Manus generateDraft 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Manus generateDraft 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -314,7 +322,7 @@ class AiOrchestrator
                 $text = (new ClaudeService($this->anthropicKey))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Claude chatRaw 실패, OpenAI 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude chatRaw 실패, OpenAI 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -324,7 +332,7 @@ class AiOrchestrator
                 $text = (new OpenAiService($this->openaiKey))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] OpenAI chatRaw 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRaw 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -335,7 +343,7 @@ class AiOrchestrator
                 $text     = (new ManusService($this->manusKey, $endpoint))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_MANUS];
             } catch (\Throwable $e) {
-                Log::warning('[AiOrchestrator] Manus chatRaw 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Manus chatRaw 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }

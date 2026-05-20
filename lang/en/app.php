@@ -19,6 +19,8 @@ return [
     'nav_memos'              => 'Memos',
     'nav_admin'              => 'Admin',
     'nav_user_mgmt'          => 'User Management',
+    'nav_company_mgmt'       => 'Company Management',
+    'nav_system_errors'      => 'System Errors',
     'nav_new_project'        => 'New project',
     'nav_search'             => 'Search menu...',
     'nav_profile'            => 'Profile Settings',

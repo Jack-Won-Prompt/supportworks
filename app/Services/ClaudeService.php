@@ -155,8 +155,7 @@ class ClaudeService
             ]);
 
         if (!$res->successful()) {
-            $err = $res->json('error.message') ?? $res->body();
-            throw new \RuntimeException(\App\Support\AiError::friendly("Claude API 오류: {$err}"));
+            throw \App\Support\AiError::wrap('Claude', __METHOD__, $res);
         }
 
         return $res;
