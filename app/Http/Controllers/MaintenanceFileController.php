@@ -21,7 +21,7 @@ class MaintenanceFileController extends Controller
 {
     public function store(Request $request, ProjectMaintenance $maintenance)
     {
-        $this->authorize($maintenance);
+        $this->authorizeMaintenance($maintenance);
 
         if ($request->input('file_type') === 'url') {
             $request->validate([
@@ -79,7 +79,7 @@ class MaintenanceFileController extends Controller
 
     public function download(ProjectMaintenance $maintenance, MaintenanceFile $maintenanceFile)
     {
-        $this->authorize($maintenance);
+        $this->authorizeMaintenance($maintenance);
         abort_if($maintenanceFile->maintenance_id !== $maintenance->id, 404);
 
         if (!Storage::disk('local')->exists($maintenanceFile->path)) {
@@ -91,7 +91,7 @@ class MaintenanceFileController extends Controller
 
     public function destroy(ProjectMaintenance $maintenance, MaintenanceFile $maintenanceFile)
     {
-        $this->authorize($maintenance);
+        $this->authorizeMaintenance($maintenance);
         abort_if($maintenanceFile->maintenance_id !== $maintenance->id, 404);
 
         if ($maintenanceFile->uploaded_by !== auth()->id() && !auth()->user()->isAdmin()) {
@@ -109,7 +109,7 @@ class MaintenanceFileController extends Controller
 
     public function toggleShare(ProjectMaintenance $maintenance, MaintenanceFile $maintenanceFile)
     {
-        $this->authorize($maintenance);
+        $this->authorizeMaintenance($maintenance);
         abort_if($maintenanceFile->maintenance_id !== $maintenance->id, 404);
         abort_unless($maintenanceFile->isShareable(), 422);
 
@@ -131,7 +131,7 @@ class MaintenanceFileController extends Controller
 
     public function updateCategory(Request $request, ProjectMaintenance $maintenance, MaintenanceFile $maintenanceFile)
     {
-        $this->authorize($maintenance);
+        $this->authorizeMaintenance($maintenance);
         abort_if($maintenanceFile->maintenance_id !== $maintenance->id, 404);
 
         $request->validate([
@@ -152,7 +152,7 @@ class MaintenanceFileController extends Controller
 
     public function previewData(ProjectMaintenance $maintenance, MaintenanceFile $maintenanceFile)
     {
-        $this->authorize($maintenance);
+        $this->authorizeMaintenance($maintenance);
         abort_if($maintenanceFile->maintenance_id !== $maintenance->id, 404);
 
         return $this->buildPreviewData($maintenanceFile);
@@ -567,7 +567,7 @@ class MaintenanceFileController extends Controller
         return $data;
     }
 
-    private function authorize(ProjectMaintenance $maintenance): void
+    private function authorizeMaintenance(ProjectMaintenance $maintenance): void
     {
         $user = auth()->user();
         if ($user->isAdmin()) return;

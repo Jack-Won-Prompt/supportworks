@@ -136,30 +136,6 @@ class Project extends Model
         return $this->hasMany(Issue::class);
     }
 
-    // Prompt Builder 관계
-    public function pbWorkspaces()
-    {
-        return $this->hasMany(\App\Models\PromptBuilder\Workspace::class);
-    }
-
-    public function pbBuilders()
-    {
-        return $this->hasMany(\App\Models\PromptBuilder\Builder::class);
-    }
-
-    public function pbSequences()
-    {
-        return $this->hasMany(\App\Models\PromptBuilder\Sequence::class);
-    }
-
-    public function pbFeedbacks()
-    {
-        return $this->hasManyThrough(
-            \App\Models\PromptBuilder\ExternalFeedback::class,
-            \App\Models\PromptBuilder\Builder::class
-        );
-    }
-
     public function getStatusColorAttribute(): string
     {
         return match($this->status) {

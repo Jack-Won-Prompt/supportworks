@@ -38,3 +38,8 @@ node_modules/
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# 작업 중 산출 스크린샷·임시 디렉토리 (커밋 제외)
+.playwright-mcp/
+프롬프트/
+/*.png

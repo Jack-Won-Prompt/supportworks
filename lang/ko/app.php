@@ -77,14 +77,15 @@ return [
 
     // ── 사이드바 추가 메뉴
     'nav_weekly'             => '위클리',
-    'nav_builder_new'        => '새 빌더 시작',
-    'nav_builder_sequences'  => '빌더 시퀀스',
-    'nav_builder_history'    => '빌더 이력',
-    'nav_builder_feedback'   => '결과 피드백',
-    'nav_builder_templates'  => '빌더 템플릿',
+    'nav_wb_section'         => 'Works Builder',
+    'nav_wb_new'             => '새 작업 시작',
+    'nav_wb_in_progress'     => '진행 중 Task',
+    'nav_wb_completed'       => '완료된 Task',
+    'nav_wb_checklists'      => '표준 체크리스트',
+    'nav_wb_notifications'   => '알림 센터',
     'nav_works_tools'        => '웍스 도구',
     'nav_works_chat'         => '웍스 채팅',
-    'nav_prompt_agent'       => '프롬프트 Agent',
+    'nav_prompt_agent'       => '웍스 프롬프트',
     'nav_works_dev_agent'    => '웍스 개발 Agent',
 
     // ── 휴대폰 미등록 안내

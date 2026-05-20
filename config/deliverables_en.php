@@ -69,8 +69,8 @@ return [
             'name'   => 'Functional Requirement Specifications',
             'timing' => 'Before Development / Configuration Work Begins',
             'steps' => [
-                1 => ['title' => 'URS Integration',                     'description' => 'Auto-import URS items',
-                      'fields' => ['ursRef'          => 'URS Reference']],
+                1 => ['title' => 'FRS Introduction',                   'description' => 'Functional Requirement Specifications overview',
+                      'fields' => ['ursRef'          => 'FRS Overview']],
                 2 => ['title' => 'System Functional Architecture',      'description' => 'Module / layer structure',
                       'fields' => ['archDescription' => 'Architecture Description']],
                 3 => ['title' => 'Data Flow Diagram',                   'description' => 'Input, output and processing flow',

@@ -199,6 +199,17 @@ return [
     'email_sent'                => '메일을 발송했습니다.',
     'email_send_fail'           => '메일 발송에 실패했습니다.',
     'attached_file_fallback'    => '(첨부 파일)',
+    'esf_members_label'         => '채팅방 구성원에게 보내기',
+    'esf_select_all'            => '전체선택',
+    'esf_deselect_all'          => '전체해제',
+    'esf_no_email'              => '이메일 없음',
+    'esf_no_members'            => '대화 상대가 없습니다.',
+    'esf_extra_emails_label'    => '이메일 주소로 직접 보내기',
+    'esf_extra_emails_placeholder' => '예: user@example.com, another@example.com',
+    'esf_extra_emails_hint'     => '쉼표(,) 또는 줄바꿈으로 여러 주소를 입력할 수 있습니다.',
+    'esf_no_recipients'         => '최소 한 명 이상의 수신자를 선택하거나 이메일 주소를 입력하세요.',
+    'esf_invalid_email'         => '입력한 이메일 주소 형식이 올바르지 않습니다.',
+    'esf_selected_count'        => '수신자 :count명',
 
     // ── 번역
     'original_text'             => '원문',

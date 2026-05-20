@@ -103,6 +103,13 @@ class DashboardController extends Controller
         $pendingActionItems = $pendingActions->count();
         $todoTasks = $myTasks->count();
 
+        // 오늘 일정 — 회의 + 일정 + 마감 Action item
+        $todayDate = now()->toDateString();
+        $todayMeetings  = $calendarMeetings->filter(fn ($m) => optional($m->meeting_date)?->toDateString() === $todayDate)->count();
+        $todaySchedules = $calendarSchedules->filter(fn ($s) => optional($s->start_date)?->toDateString() === $todayDate)->count();
+        $todayActions   = $calendarActionItems->filter(fn ($a) => optional($a->due_date)?->toDateString() === $todayDate)->count();
+        $todayCount     = $todayMeetings + $todaySchedules + $todayActions;
+
         $recentCommunityPosts = CommunityPost::companyOf($user)
             ->withCount('allComments')
             ->with('user')
@@ -127,7 +134,8 @@ class DashboardController extends Controller
             'pendingActions', 'myTasks',
             'recentMinutes', 'minutesThisMonth',
             'pendingActionItems', 'todoTasks',
-            'recentCommunityPosts', 'recentFiles'
+            'recentCommunityPosts', 'recentFiles',
+            'todayCount', 'todayMeetings', 'todaySchedules', 'todayActions'
         ));
     }
 }

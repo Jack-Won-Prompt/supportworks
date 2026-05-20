@@ -32,6 +32,20 @@ class EscalationEvaluatorTest extends TestCase
                 'same_error_window_minutes'     => 60,
                 'external_api_keywords' => ['GuzzleHttp', 'cURL error', 'timed out'],
                 'env_specific_keywords' => ['browser', 'locale'],
+                'business_logic_paths' => [
+                    'app/Services/**',
+                    'app/Domain/**',
+                ],
+                'prod_data_keywords' => [
+                    'row not found',
+                    'duplicate entry',
+                    'data inconsistency',
+                ],
+                'system_domains' => [
+                    'auth'    => ['login', 'auth guard'],
+                    'payment' => ['payment', 'stripe'],
+                    'queue'   => ['queue', 'failed_jobs'],
+                ],
             ],
             'decision' => [
                 'red_max'    => 0,
@@ -196,7 +210,8 @@ class EscalationEvaluatorTest extends TestCase
             changedFiles:             ['app/Http/Requests/LoginRequest.php'],
             classificationConfidence: 0.9,
             testsPassed:              true,
-            coverageDeltaLines:       0,  // 의심 신호
+            coverageDeltaLines:       0,
+            testsRan:                 true,
         );
         $d = $this->evaluator()->evaluate($ctx);
 
@@ -209,10 +224,27 @@ class EscalationEvaluatorTest extends TestCase
             changedFiles:             ['app/Http/Requests/LoginRequest.php'],
             classificationConfidence: 0.9,
             testsPassed:              false,
+            testsRan:                 true,
         );
         $d = $this->evaluator()->evaluate($ctx);
 
         $this->assertContains('tests_failed', $d->yellowSignals);
+    }
+
+    public function test_tests_not_run_does_not_emit_test_signals(): void
+    {
+        // testsRan=false 인 분석 단계 시뮬레이션: 테스트 신호 발동 X
+        $ctx = new FixContext(
+            changedFiles:             ['app/Http/Requests/LoginRequest.php'],
+            classificationConfidence: 0.9,
+            testsPassed:              false,
+            coverageDeltaLines:       0,
+            testsRan:                 false,
+        );
+        $d = $this->evaluator()->evaluate($ctx);
+
+        $this->assertNotContains('tests_failed', $d->yellowSignals);
+        $this->assertNotContains('tests_pass_but_no_coverage_delta', $d->yellowSignals);
     }
 
     public function test_ai_self_unsure_emits_yellow(): void
@@ -227,6 +259,90 @@ class EscalationEvaluatorTest extends TestCase
         $d = $this->evaluator()->evaluate($ctx);
 
         $this->assertContains('ai_self_unsure', $d->yellowSignals);
+    }
+
+    public function test_untested_code_path_emits_yellow(): void
+    {
+        $ctx = new FixContext(
+            changedFiles:             ['app/Http/Requests/LoginRequest.php'],
+            classificationConfidence: 0.9,
+            testsPassed:              true,
+            coverageDeltaLines:       5,
+            hasExistingTests:         false,
+        );
+        $d = $this->evaluator()->evaluate($ctx);
+
+        $this->assertContains('untested_code_path', $d->yellowSignals);
+    }
+
+    public function test_business_logic_modified_emits_yellow(): void
+    {
+        $ctx = new FixContext(
+            changedFiles:             ['app/Services/UserService.php'],
+            classificationConfidence: 0.9,
+            testsPassed:              true,
+            coverageDeltaLines:       5,
+        );
+        $d = $this->evaluator()->evaluate($ctx);
+
+        $this->assertContains('business_logic_modified', $d->yellowSignals);
+    }
+
+    public function test_business_logic_not_emitted_for_non_business_paths(): void
+    {
+        $ctx = new FixContext(
+            changedFiles:             ['app/Http/Requests/LoginRequest.php'],
+            classificationConfidence: 0.9,
+            testsPassed:              true,
+            coverageDeltaLines:       5,
+        );
+        $d = $this->evaluator()->evaluate($ctx);
+
+        $this->assertNotContains('business_logic_modified', $d->yellowSignals);
+    }
+
+    public function test_requires_prod_data_check_emits_yellow(): void
+    {
+        $ctx = new FixContext(
+            changedFiles:             ['app/Http/Requests/LoginRequest.php'],
+            classificationConfidence: 0.9,
+            errorBlob:                "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'foo' for key",
+            testsPassed:              true,
+            coverageDeltaLines:       5,
+        );
+        $d = $this->evaluator()->evaluate($ctx);
+
+        $this->assertContains('requires_prod_data_check', $d->yellowSignals);
+    }
+
+    public function test_cross_system_concern_emits_yellow_when_two_domains_match(): void
+    {
+        // auth(login) + payment(stripe) 둘 다 등장
+        $ctx = new FixContext(
+            changedFiles:             ['app/Http/Requests/LoginRequest.php'],
+            classificationConfidence: 0.9,
+            errorBlob:                "Failed during login while finalizing stripe charge",
+            testsPassed:              true,
+            coverageDeltaLines:       5,
+        );
+        $d = $this->evaluator()->evaluate($ctx);
+
+        $this->assertContains('cross_system_concern', $d->yellowSignals);
+    }
+
+    public function test_cross_system_concern_not_emitted_for_single_domain(): void
+    {
+        // login 만 등장 — 단일 도메인
+        $ctx = new FixContext(
+            changedFiles:             ['app/Http/Requests/LoginRequest.php'],
+            classificationConfidence: 0.9,
+            errorBlob:                "Authentication failed during login",
+            testsPassed:              true,
+            coverageDeltaLines:       5,
+        );
+        $d = $this->evaluator()->evaluate($ctx);
+
+        $this->assertNotContains('cross_system_concern', $d->yellowSignals);
     }
 
     // ── AUTO 분기 ───────────────────────────────────────────────────────────

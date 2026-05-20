@@ -225,7 +225,7 @@ class MessageController extends Controller
         ]);
     }
 
-    public function emailFile(Message $message)
+    public function emailFile(Request $request, Message $message)
     {
         $user = auth()->user();
         $conversation = $message->conversation;
@@ -237,10 +237,55 @@ class MessageController extends Controller
         $absolutePath = Storage::disk('public')->path($message->file_path);
         abort_unless(is_file($absolutePath), 410, '파일을 찾을 수 없습니다.');
 
-        $recipients = $conversation->participants
-            ->where('id', '!=', $user->id)
-            ->filter(fn($u) => filter_var($u->email, FILTER_VALIDATE_EMAIL))
+        $data = $request->validate([
+            'user_ids'        => 'sometimes|array',
+            'user_ids.*'      => 'integer',
+            'extra_emails'    => 'sometimes|array',
+            'extra_emails.*'  => 'email',
+        ]);
+
+        $requestedUserIds = collect($data['user_ids'] ?? [])->map(fn($v) => (int) $v)->unique()->values();
+        $extraEmails      = collect($data['extra_emails'] ?? [])
+            ->map(fn($e) => trim((string) $e))
+            ->filter(fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
+            ->unique(fn($e) => mb_strtolower($e))
             ->values();
+
+        // 입력이 전혀 없으면 채팅방 전체(본인 제외)로 발송 (기존 동작 유지)
+        if ($requestedUserIds->isEmpty() && $extraEmails->isEmpty()) {
+            $memberRecipients = $conversation->participants
+                ->where('id', '!=', $user->id)
+                ->filter(fn($u) => filter_var($u->email, FILTER_VALIDATE_EMAIL))
+                ->values();
+        } else {
+            // 선택된 user_id는 반드시 채팅방 참여자여야 함 (본인 제외)
+            $allowedIds = $conversation->participants
+                ->where('id', '!=', $user->id)
+                ->pluck('id')
+                ->all();
+
+            $memberRecipients = $conversation->participants
+                ->where('id', '!=', $user->id)
+                ->whereIn('id', $requestedUserIds->intersect($allowedIds)->all())
+                ->filter(fn($u) => filter_var($u->email, FILTER_VALIDATE_EMAIL))
+                ->values();
+        }
+
+        // 중복 제거를 위해 이메일 단위로 모음
+        $seen = [];
+        $recipients = collect();
+        foreach ($memberRecipients as $u) {
+            $key = mb_strtolower($u->email);
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $recipients->push(['email' => $u->email, 'name' => $u->name]);
+        }
+        foreach ($extraEmails as $email) {
+            $key = mb_strtolower($email);
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $recipients->push(['email' => $email, 'name' => null]);
+        }
 
         if ($recipients->isEmpty()) {
             return response()->json([
@@ -255,7 +300,7 @@ class MessageController extends Controller
         $sent = 0; $failed = 0;
         foreach ($recipients as $recipient) {
             try {
-                Mail::to($recipient->email, $recipient->name)
+                Mail::to($recipient['email'], $recipient['name'])
                     ->send(new ChatFileShareMail(
                         senderName:   $user->name ?? '',
                         senderEmail:  $user->email ?? '',
@@ -267,7 +312,7 @@ class MessageController extends Controller
             } catch (\Throwable $e) {
                 $failed++;
                 Log::warning('[ChatFileShare] 발송 실패: ' . $e->getMessage(), [
-                    'to'      => $recipient->email,
+                    'to'      => $recipient['email'],
                     'message' => $message->id,
                 ]);
             }

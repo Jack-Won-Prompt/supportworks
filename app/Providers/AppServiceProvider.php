@@ -61,9 +61,9 @@ use App\Services\Agent\MigrationGuideDataContext;
 use App\Services\Agent\MigrationGuideService;
 use App\Services\Agent\ReleaseCompletionService;
 use App\Services\Agent\TraceabilityService;
-use App\Services\PromptRefiner\Llm\ClaudeProvider;
-use App\Services\PromptRefiner\Llm\LlmRouter;
-use App\Services\PromptRefiner\Llm\OpenAiProvider;
+use App\Services\Llm\ClaudeProvider;
+use App\Services\Llm\LlmRouter;
+use App\Services\Llm\OpenAiProvider;
 use App\View\Composers\AiAgentComposer;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Support\Facades\URL;
@@ -81,10 +81,31 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(OpenAiProvider::class);
         $this->app->singleton(LlmRouter::class);
 
-        // AI Fix 파이프라인 (PoC: stub 분석기). 추후 ClaudeAiAnalyzer 로 교체.
-        $this->app->bind(\App\Services\AiFix\AiAnalyzer::class, \App\Services\AiFix\StubAiAnalyzer::class);
+        // AI Fix 파이프라인 (PoC: 모든 외부 의존이 stub 으로 묶임).
+        // 운영 단계에서 다음을 교체:
+        //   AiAnalyzer       -> ClaudeAiAnalyzer (E 단계)
+        //   WorktreeManager  -> ProcessWorktreeManager (실제 git 호출)
+        //   AiCodeApplier    -> ClaudeAiCodeApplier (실제 코드 수정)
+        //   TestRunner       -> PhpUnitTestRunner (실제 phpunit 실행)
+        //   GitHubMerger     -> GuzzleGitHubMerger (실제 GitHub PR API 호출)
+        //   RemoteDeployer   -> SshRemoteDeployer (phpseclib SSH 로 deploy.sh 실행)
+        $this->app->bind(\App\Services\AiFix\AiAnalyzer::class,      \App\Services\AiFix\StubAiAnalyzer::class);
+        $this->app->bind(\App\Services\AiFix\AiCodeApplier::class,   \App\Services\AiFix\StubCodeApplier::class);
+        $this->app->bind(\App\Services\AiFix\WorktreeManager::class, \App\Services\AiFix\StubWorktreeManager::class);
+        $this->app->bind(\App\Services\AiFix\GitHubMerger::class,    \App\Services\AiFix\StubGitHubMerger::class);
+        $this->app->bind(\App\Services\AiFix\RemoteDeployer::class,  \App\Services\AiFix\StubRemoteDeployer::class);
+
+        // TestRunner 는 결과를 인자로 받는 stub 이라 기본 바인딩 불가 — 컨테이너에 stub_test_runner.result 가 등록돼 있어야 함.
+        // 운영에서 PhpUnitTestRunner 가 들어오면 단순 ->bind 로 충분.
+        $this->app->bind(\App\Services\AiFix\TestRunner::class, function () {
+            return new \App\Services\AiFix\StubTestRunner(
+                new \App\Services\AiFix\TestResult(passed: true, testsRun: 0)
+            );
+        });
+
         $this->app->singleton(\App\Services\AiFix\EscalationEvaluator::class,
             fn() => \App\Services\AiFix\EscalationEvaluator::fromConfig());
+        $this->app->singleton(\App\Services\AiFix\AiFixNotifier::class);
         $this->app->singleton(\App\Services\AiFix\AiFixOrchestrator::class);
 
         // Agent Session 용 AIProvider Factory — config('ai-agent') 기반
@@ -314,5 +335,11 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::composer('ai-agent.*', AiAgentComposer::class);
+
+        // Works Builder Policy 등록 (명세 v11 §1.4.5)
+        \Illuminate\Support\Facades\Gate::policy(
+            \App\Models\WorksBuilder\Task::class,
+            \App\Policies\WorksBuilder\TaskPolicy::class,
+        );
     }
 }

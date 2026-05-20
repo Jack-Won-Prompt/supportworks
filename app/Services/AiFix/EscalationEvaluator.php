@@ -190,13 +190,17 @@ final class EscalationEvaluator
             $signals[] = 'same_error_repeated';
         }
 
-        if ($ctx->testsPassed && $ctx->coverageDeltaLines === 0) {
-            // 테스트는 통과했는데 새로 커버된 라인이 0 → 그 경로를 잡지 못한 것
-            $signals[] = 'tests_pass_but_no_coverage_delta';
-        }
+        // 테스트 관련 신호는 테스트가 실제로 돌아간 단계 (applying 이후) 에서만 평가.
+        // 분석 단계에선 testsRan=false 라 두 신호 모두 발동 안 함.
+        if ($ctx->testsRan) {
+            if ($ctx->testsPassed && $ctx->coverageDeltaLines === 0) {
+                // 테스트는 통과했는데 새로 커버된 라인이 0 → 그 경로를 잡지 못한 것
+                $signals[] = 'tests_pass_but_no_coverage_delta';
+            }
 
-        if (!$ctx->testsPassed) {
-            $signals[] = 'tests_failed';
+            if (!$ctx->testsPassed) {
+                $signals[] = 'tests_failed';
+            }
         }
 
         if ($ctx->aiSelfUnsure) {
@@ -211,7 +215,58 @@ final class EscalationEvaluator
             $signals[] = 'env_specific_error';
         }
 
+        if (!$ctx->hasExistingTests && $ctx->changedFiles !== []) {
+            $signals[] = 'untested_code_path';
+        }
+
+        if ($this->touchesBusinessLogic($ctx->changedFiles)) {
+            $signals[] = 'business_logic_modified';
+        }
+
+        if ($this->matchesAny($ctx->errorBlob, $this->policy['signals']['prod_data_keywords'] ?? [])) {
+            $signals[] = 'requires_prod_data_check';
+        }
+
+        if ($this->matchesMultipleDomains($ctx->errorBlob, $this->policy['signals']['system_domains'] ?? [])) {
+            $signals[] = 'cross_system_concern';
+        }
+
         return $signals;
+    }
+
+    /** 변경 파일 중 하나라도 business_logic_paths 패턴에 매칭되면 true */
+    private function touchesBusinessLogic(array $changedFiles): bool
+    {
+        $patterns = $this->policy['signals']['business_logic_paths'] ?? [];
+        if ($patterns === []) return false;
+        foreach ($changedFiles as $file) {
+            foreach ($patterns as $pattern) {
+                if ($this->matches($file, $pattern)) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * system_domains: ['auth' => [...], 'payment' => [...], ...]
+     * 서로 다른 도메인 키워드가 2개 이상 동시에 errorBlob 에 매칭되면 true.
+     */
+    private function matchesMultipleDomains(string $haystack, array $domains): bool
+    {
+        if ($haystack === '' || $domains === []) return false;
+        $h = strtolower($haystack);
+        $hitDomains = 0;
+        foreach ($domains as $keywords) {
+            if (!is_array($keywords)) continue;
+            foreach ($keywords as $kw) {
+                if (str_contains($h, strtolower($kw))) {
+                    $hitDomains++;
+                    break;
+                }
+            }
+            if ($hitDomains >= 2) return true;
+        }
+        return false;
     }
 
     /** security_keywords 가 변경 파일 경로 또는 errorCategory 에 매칭되는지 */

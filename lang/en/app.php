@@ -77,14 +77,15 @@ return [
 
     // ── Additional sidebar menus
     'nav_weekly'             => 'Weekly',
-    'nav_builder_new'        => 'New Builder',
-    'nav_builder_sequences'  => 'Builder Sequences',
-    'nav_builder_history'    => 'Builder History',
-    'nav_builder_feedback'   => 'Result Feedback',
-    'nav_builder_templates'  => 'Builder Templates',
+    'nav_wb_section'         => 'Works Builder',
+    'nav_wb_new'             => 'New Task',
+    'nav_wb_in_progress'     => 'In Progress',
+    'nav_wb_completed'       => 'Completed',
+    'nav_wb_checklists'      => 'Standard Checklists',
+    'nav_wb_notifications'   => 'Notifications',
     'nav_works_tools'        => 'Works Tools',
     'nav_works_chat'         => 'Works Chat',
-    'nav_prompt_agent'       => 'Prompt Agent',
+    'nav_prompt_agent'       => 'Works Prompt',
     'nav_works_dev_agent'    => 'Works Dev Agent',
 
     // ── Phone not registered notice

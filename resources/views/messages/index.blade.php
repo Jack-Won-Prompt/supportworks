@@ -754,28 +754,68 @@
                 </div>
             @endif
 
-            {{-- 파일 메일 발송 확인 다이얼로그 --}}
+            {{-- 파일 메일 발송 다이얼로그 (구성원 선택 + 이메일 직접 입력) --}}
+            @php
+                $esfMembers = $conversation->participants->where('id', '!=', $me)->values();
+            @endphp
             <div id="esf-modal" onclick="if(event.target===this)esfClose()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
-                <div style="background:#fff;width:440px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
-                    <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="background:#fff;width:520px;max-width:calc(100vw - 48px);max-height:calc(100vh - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
+                    <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;">
                         <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t500)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                             {{ __('messages.file_email_send') }}
                         </h3>
                         <button type="button" onclick="esfClose()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
                     </div>
-                    <div style="padding:18px 22px;">
-                        <p style="margin:0 0 10px;font-size:13.5px;color:#374151;line-height:1.55;">
-                            {!! __('messages.file_email_confirm', ['count' => '<strong id="esf-count">'.__('messages.member_count', ['count' => $conversation->participants->where('id', '!=', $me)->count()]).'</strong>']) !!}
-                        </p>
-                        <div id="esf-filename" style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#6b7280;display:flex;align-items:center;gap:6px;">
+                    <div style="padding:16px 22px;overflow-y:auto;flex:1;">
+                        <div id="esf-filename" style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#6b7280;display:flex;align-items:center;gap:6px;margin-bottom:14px;">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                             <span id="esf-filename-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
                         </div>
+
+                        {{-- 구성원 선택 --}}
+                        <div style="margin-bottom:14px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                <label style="font-size:12px;font-weight:700;color:#374151;">{{ __('messages.esf_members_label') }}</label>
+                                @if($esfMembers->count() > 0)
+                                <div style="display:flex;gap:8px;">
+                                    <button type="button" onclick="esfToggleAllMembers(true)" style="background:none;border:none;font-size:11.5px;color:var(--t500);cursor:pointer;padding:0;">{{ __('messages.esf_select_all') }}</button>
+                                    <span style="color:#d1d5db;">·</span>
+                                    <button type="button" onclick="esfToggleAllMembers(false)" style="background:none;border:none;font-size:11.5px;color:#9ca3af;cursor:pointer;padding:0;">{{ __('messages.esf_deselect_all') }}</button>
+                                </div>
+                                @endif
+                            </div>
+                            <div id="esf-members-list" style="border:1px solid #e5e7eb;border-radius:8px;max-height:160px;overflow-y:auto;background:#fff;">
+                                @forelse($esfMembers as $m)
+                                    @php $hasEmail = (bool) filter_var($m->email ?? '', FILTER_VALIDATE_EMAIL); @endphp
+                                    <label style="display:flex;align-items:center;gap:9px;padding:8px 12px;border-bottom:1px solid #f3f4f6;cursor:{{ $hasEmail ? 'pointer' : 'not-allowed' }};{{ $hasEmail ? '' : 'opacity:.55;' }}">
+                                        <input type="checkbox" class="esf-member-cb" value="{{ $m->id }}" data-email="{{ $m->email }}" @if(!$hasEmail) disabled @endif style="width:15px;height:15px;accent-color:var(--t500);cursor:inherit;">
+                                        <span style="flex:1;font-size:13px;color:#1f2937;font-weight:600;">{{ $m->name }}</span>
+                                        <span style="font-size:11.5px;color:#9ca3af;">{{ $hasEmail ? $m->email : __('messages.esf_no_email') }}</span>
+                                    </label>
+                                @empty
+                                    <div style="padding:14px;text-align:center;font-size:12.5px;color:#9ca3af;">{{ __('messages.esf_no_members') }}</div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        {{-- 이메일 직접 입력 --}}
+                        <div>
+                            <label for="esf-extra-emails" style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">
+                                {{ __('messages.esf_extra_emails_label') }}
+                            </label>
+                            <textarea id="esf-extra-emails" rows="2" placeholder="{{ __('messages.esf_extra_emails_placeholder') }}"
+                                style="width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 11px;font-size:13px;outline:none;font-family:inherit;resize:vertical;line-height:1.5;box-sizing:border-box;transition:border-color .15s;"
+                                onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                            <div style="font-size:11px;color:#9ca3af;margin-top:4px;">{{ __('messages.esf_extra_emails_hint') }}</div>
+                        </div>
                     </div>
-                    <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
-                        <button type="button" onclick="esfClose()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
-                        <button type="button" id="esf-send-btn" onclick="esfDoSend()" style="padding:7px 18px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">{{ __('messages.send_email') }}</button>
+                    <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
+                        <span id="esf-recipients-summary" style="font-size:11.5px;color:#6b7280;"></span>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" onclick="esfClose()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
+                            <button type="button" id="esf-send-btn" onclick="esfDoSend()" style="padding:7px 18px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">{{ __('messages.send_email') }}</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1240,9 +1280,32 @@ function submitInvite(ev) {
     return false;
 }
 
-// ── 파일 메시지 → 채팅방 구성원에게 메일 발송 ─────────────────────────
+// ── 파일 메시지 → 채팅방 구성원/이메일 수신자에게 메일 발송 ─────────────────────────
 let _esfPendingMessageId = null;
 let _esfPendingBtn = null;
+const _esfEmailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function _esfParseExtraEmails(raw) {
+    if (!raw) return [];
+    const seen = new Set(), out = [];
+    raw.split(/[,;\n\r\s]+/).map(s => s.trim()).filter(Boolean).forEach(e => {
+        const key = e.toLowerCase();
+        if (!seen.has(key) && _esfEmailRe.test(e)) { seen.add(key); out.push(e); }
+    });
+    return out;
+}
+function _esfUpdateSummary() {
+    const memberIds = Array.from(document.querySelectorAll('.esf-member-cb:checked')).map(cb => cb.value);
+    const extras = _esfParseExtraEmails(document.getElementById('esf-extra-emails')?.value || '');
+    const total = memberIds.length + extras.length;
+    const summary = document.getElementById('esf-recipients-summary');
+    if (summary) summary.textContent = (MSG_STR.esfSelectedCount || '').replace(':count', total);
+    const sendBtn = document.getElementById('esf-send-btn');
+    if (sendBtn && !sendBtn.dataset.sending) sendBtn.disabled = (total === 0);
+}
+function esfToggleAllMembers(checked) {
+    document.querySelectorAll('.esf-member-cb:not([disabled])').forEach(cb => { cb.checked = !!checked; });
+    _esfUpdateSummary();
+}
 function shareFileByEmail(messageId, btn) {
     _esfPendingMessageId = messageId;
     _esfPendingBtn = btn || null;
@@ -1260,8 +1323,15 @@ function shareFileByEmail(messageId, btn) {
     }
     document.getElementById('esf-filename-text').textContent = fileName || MSG_STR.attachedFileFallback;
 
+    // 폼 초기화
+    document.querySelectorAll('.esf-member-cb').forEach(cb => { cb.checked = false; });
+    const extra = document.getElementById('esf-extra-emails');
+    if (extra) extra.value = '';
+
     const sendBtn = document.getElementById('esf-send-btn');
-    sendBtn.disabled = false; sendBtn.textContent = MSG_STR.sendEmail;
+    delete sendBtn.dataset.sending;
+    sendBtn.textContent = MSG_STR.sendEmail;
+    _esfUpdateSummary();
     document.getElementById('esf-modal').style.display = 'flex';
 }
 function esfClose() {
@@ -1272,14 +1342,33 @@ function esfClose() {
 function esfDoSend() {
     const messageId = _esfPendingMessageId;
     if (!messageId) return;
+    const userIds = Array.from(document.querySelectorAll('.esf-member-cb:checked')).map(cb => cb.value);
+    const extraRaw = document.getElementById('esf-extra-emails')?.value || '';
+    const extraEmails = _esfParseExtraEmails(extraRaw);
+
+    if (extraRaw.trim() && extraEmails.length === 0) {
+        alert(MSG_STR.esfInvalidEmail || 'Invalid email');
+        return;
+    }
+    if (userIds.length === 0 && extraEmails.length === 0) {
+        alert(MSG_STR.esfNoRecipients || 'Select at least one recipient');
+        return;
+    }
+
     const sendBtn = document.getElementById('esf-send-btn');
     const sourceBtn = _esfPendingBtn;
+    sendBtn.dataset.sending = '1';
     sendBtn.disabled = true; sendBtn.textContent = MSG_STR.sending;
     if (sourceBtn) sourceBtn.disabled = true;
 
     fetch(`${LB_BASE}/messages/${messageId}/email-file`, {
         method:'POST',
-        headers:{'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,'Accept':'application/json'},
+        headers:{
+            'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,
+            'Accept':'application/json',
+            'Content-Type':'application/json'
+        },
+        body: JSON.stringify({ user_ids: userIds, extra_emails: extraEmails })
     })
     .then(async r => {
         const d = await r.json().catch(() => ({}));
@@ -1290,8 +1379,13 @@ function esfDoSend() {
         esfClose();
         alert(MSG_STR.networkError);
     })
-    .finally(() => { if (sourceBtn) sourceBtn.disabled = false; });
+    .finally(() => {
+        delete sendBtn.dataset.sending;
+        if (sourceBtn) sourceBtn.disabled = false;
+    });
 }
+document.addEventListener('change', e => { if (e.target?.classList?.contains('esf-member-cb')) _esfUpdateSummary(); });
+document.addEventListener('input',  e => { if (e.target?.id === 'esf-extra-emails') _esfUpdateSummary(); });
 // ESC로 다이얼로그 닫기
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -1367,6 +1461,9 @@ const MSG_STR = {
     sending:              @json(__('messages.sending')),
     emailSent:            @json(__('messages.email_sent')),
     emailSendFail:        @json(__('messages.email_send_fail')),
+    esfNoRecipients:      @json(__('messages.esf_no_recipients')),
+    esfInvalidEmail:      @json(__('messages.esf_invalid_email')),
+    esfSelectedCount:     @json(__('messages.esf_selected_count', ['count' => ':count'])),
     invite:               @json(__('messages.invite')),
     nSelected:            @json(__('messages.n_selected', ['count' => ':count'])),
     mentionPrefix:        @json(__('messages.mention_prefix', ['name' => ':name'])),

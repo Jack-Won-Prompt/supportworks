@@ -199,6 +199,17 @@ return [
     'email_sent'                => 'The email has been sent.',
     'email_send_fail'           => 'Failed to send the email.',
     'attached_file_fallback'    => '(attached file)',
+    'esf_members_label'         => 'Send to chat members',
+    'esf_select_all'            => 'Select all',
+    'esf_deselect_all'          => 'Clear',
+    'esf_no_email'              => 'No email',
+    'esf_no_members'            => 'No conversation members.',
+    'esf_extra_emails_label'    => 'Send to email addresses',
+    'esf_extra_emails_placeholder' => 'e.g. user@example.com, another@example.com',
+    'esf_extra_emails_hint'     => 'Separate multiple addresses with commas or new lines.',
+    'esf_no_recipients'         => 'Select at least one member or enter an email address.',
+    'esf_invalid_email'         => 'One or more email addresses are invalid.',
+    'esf_selected_count'        => ':count recipient(s)',
 
     // ── Translation
     'original_text'             => 'Original',

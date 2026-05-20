@@ -88,7 +88,7 @@ return [
             'timing'         => '개발/구성 작업 시작 전',
             'primaryTools'   => ['DIAGRAM-ARCH', 'DIAGRAM-DFD', 'DIAGRAM-SEQ', 'MAPPING', 'TABLE-DATA'],
             'steps'          => [
-                ['order'=>1,'title'=>'URS 연동','description'=>'URS 항목 자동 import','inputType'=>'review','fields'=>[['key'=>'ursRef','label'=>'URS 참조 내용','type'=>'textarea']],'tools'=>[['toolId'=>'MAPPING']],'required'=>true],
+                ['order'=>1,'title'=>'FRS 개요','description'=>'기능 요구사항 명세서(FRS) 개요','inputType'=>'review','fields'=>[['key'=>'ursRef','label'=>'FRS 산출물 설명','type'=>'textarea']],'tools'=>[],'required'=>true],
                 ['order'=>2,'title'=>'시스템 기능 아키텍처','description'=>'모듈/계층 구조','inputType'=>'diagram','fields'=>[['key'=>'archDescription','label'=>'아키텍처 설명','type'=>'textarea']],'tools'=>[['toolId'=>'DIAGRAM-ARCH']],'required'=>true],
                 ['order'=>3,'title'=>'데이터 흐름도','description'=>'입출력·처리 흐름','inputType'=>'diagram','fields'=>[['key'=>'dfdDescription','label'=>'DFD 설명','type'=>'textarea']],'tools'=>[['toolId'=>'DIAGRAM-DFD']],'required'=>true],
                 ['order'=>4,'title'=>'기능 명세','description'=>'화면·기능별 동작','inputType'=>'table','fields'=>[['key'=>'funcSpec','label'=>'기능 명세','type'=>'table']],'tools'=>[['toolId'=>'TABLE-DATA'],['toolId'=>'AI-CHAT']],'required'=>true],

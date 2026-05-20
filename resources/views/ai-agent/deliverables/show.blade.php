@@ -858,12 +858,17 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
 </div>
 </div>
 {{-- ════ 등록 파일 의견 팝오버 (모든 STEP) ════ --}}
-<div id="dlv-fc-pop" style="display:none;position:fixed;z-index:9500;width:440px;max-width:calc(100vw - 24px);max-height:72vh;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 18px 50px rgba(15,10,40,.28);flex-direction:column;overflow:hidden;">
+<div id="dlv-fc-pop" style="display:none;position:fixed;z-index:9500;width:460px;max-width:calc(100vw - 24px);max-height:72vh;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 18px 50px rgba(15,10,40,.28);flex-direction:column;overflow:hidden;">
     <div style="padding:13px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:flex-start;gap:8px;flex-shrink:0;">
         <div style="flex:1;min-width:0;">
             <div style="font-size:13.5px;font-weight:800;color:#1e1b2e;">{{ __('deliverables.fc_title') }}</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:2px;">{{ __('deliverables.fc_subtitle') }}</div>
         </div>
+        <button type="button" id="dlv-fc-add-btn" onclick="dlvFcToggleAddPanel()"
+                title="{{ __('deliverables.fc_add_file_title') }}"
+                style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid #bae6fd;background:#f0f9ff;color:#0369a1;font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;">
+            {{ __('deliverables.fc_add_file') }}
+        </button>
         <button type="button" id="dlv-fc-map-btn" onclick="dlvMapFileComments()"
                 title="{{ __('deliverables.fc_map_hint') }}"
                 style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid #ddd6fe;background:#f5f3ff;color:#7c3aed;font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;">
@@ -872,6 +877,39 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
         </button>
         <button type="button" onclick="dlvCloseFileComments()" style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">&times;</button>
     </div>
+
+    {{-- 프로젝트 파일+버전 매핑 패널 --}}
+    <div id="dlv-fc-add-panel" style="display:none;padding:10px 14px;background:#f8fafc;border-bottom:1px solid #f1f5f9;flex-shrink:0;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="position:relative;">
+                <label style="font-size:10.5px;font-weight:700;color:#475569;display:block;margin-bottom:4px;">{{ __('deliverables.fc_pick_file') }}</label>
+                <input type="text" id="dlv-fc-file-search" autocomplete="off"
+                       placeholder="{{ __('deliverables.fc_pick_file_search_ph') }}"
+                       oninput="dlvFcFilterFiles()" onfocus="dlvFcShowFileList()"
+                       onkeydown="dlvFcFileKeydown(event)"
+                       style="width:100%;padding:6px 26px 6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#1e293b;box-sizing:border-box;" />
+                <input type="hidden" id="dlv-fc-pick-file" value="" />
+                <button type="button" id="dlv-fc-file-clear" onclick="dlvFcClearFilePick(event)"
+                        title="{{ __('deliverables.fc_pick_file_clear') }}"
+                        style="display:none;position:absolute;right:6px;top:23px;border:0;background:transparent;font-size:14px;color:#94a3b8;cursor:pointer;line-height:1;padding:2px 4px;">&times;</button>
+                <div id="dlv-fc-file-list" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1px solid #cbd5e1;border-radius:6px;max-height:200px;overflow-y:auto;z-index:20;box-shadow:0 4px 14px rgba(15,10,40,.12);"></div>
+            </div>
+            <div>
+                <label style="font-size:10.5px;font-weight:700;color:#475569;display:block;margin-bottom:4px;">{{ __('deliverables.fc_pick_version') }}</label>
+                <select id="dlv-fc-pick-version" disabled style="width:100%;padding:6px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#1e293b;">
+                    <option value="">{{ __('deliverables.fc_pick_version_ph') }}</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <div id="dlv-fc-sync-msg" style="flex:1;font-size:11px;color:#64748b;min-height:14px;"></div>
+            <button type="button" id="dlv-fc-sync-btn" onclick="dlvFcSyncPicked()" disabled
+                    style="padding:5px 14px;font-size:11.5px;font-weight:700;border-radius:6px;background:#0369a1;color:#fff;border:1px solid #0369a1;cursor:pointer;opacity:.5;">
+                {{ __('deliverables.fc_sync') }}
+            </button>
+        </div>
+    </div>
+
     <div id="dlv-fc-tabs" style="display:none;gap:5px;padding:8px 12px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;flex-shrink:0;"></div>
     <div id="dlv-fc-body" style="flex:1;overflow-y:auto;min-height:0;"></div>
 </div>
@@ -898,6 +936,7 @@ const VERSIONS_RESTORE_URL= '{{ route("ai-agent.projects.deliverables.versions.r
 const REGISTER_FILE_URL   = '{{ route("ai-agent.projects.deliverables.register-as-file",     [$project, $typeId]) }}';
 const REGISTERABLE_FILES_URL = '{{ route("ai-agent.projects.deliverables.registerable-files", [$project, $typeId]) }}';
 const FILE_REGISTRATIONS_URL = '{{ route("ai-agent.projects.deliverables.file-registrations", [$project, $typeId]) }}';
+const FILE_REGISTRATIONS_DESTROY_TPL = '{{ route("ai-agent.projects.deliverables.file-registrations.destroy", [$project, $typeId, "__ID__"]) }}';
 
 const LANG = {
     toast_saved:      '{{ addslashes(__('deliverables.toast_saved')) }}',
@@ -983,6 +1022,10 @@ const LANG = {
     reg_count:        '{{ addslashes(__('deliverables.js_reg_count', ['count' => ':count'])) }}',
     reg_file_deleted: '{{ addslashes(__('deliverables.js_reg_file_deleted')) }}',
     reg_history_fail: '{{ addslashes(__('deliverables.js_reg_history_fail', ['message' => ':message'])) }}',
+    reg_history_delete:        '{{ addslashes(__('deliverables.js_reg_history_delete')) }}',
+    reg_history_delete_confirm:'{{ addslashes(__('deliverables.js_reg_history_delete_confirm')) }}',
+    reg_history_delete_fail:   '{{ addslashes(__('deliverables.js_reg_history_delete_fail')) }}',
+    reg_history_deleted:       '{{ addslashes(__('deliverables.js_reg_history_deleted')) }}',
     reg_no_files:     '{{ addslashes(__('deliverables.js_reg_no_files')) }}',
     reg_next_version: '{{ addslashes(__('deliverables.js_reg_next_version', ['version' => ':version'])) }}',
     reg_filelist_fail: '{{ addslashes(__('deliverables.js_reg_filelist_fail', ['message' => ':message'])) }}',
@@ -1102,8 +1145,77 @@ function getFormData() {
     return data;
 }
 
+/**
+ * 폼 저장 직전, 시각 테이블 빌더(TABLE-DATA)의 현재 상태를
+ * 대응되는 textarea(field)·미리보기 패널에 동기화하고,
+ * tool result(markdown) 도 함께 저장한다.
+ *
+ * 주의:
+ *  - 빌더가 페이지 로드 이후 변경된 경우(= 현재 md != data-init-md)에만 textarea 로 동기화한다.
+ *    그래야 사용자가 "편집" 탭의 textarea 만 직접 수정한 경우 빌더의 stale 상태가
+ *    textarea 의 신규 편집을 덮어쓰지 않는다.
+ *  - 빌더 변경이 없더라도 tool_result 는 textarea(field) 값에 맞춰 갱신하여,
+ *    다음 진입 시 빌더가 최신 마크다운으로 초기화되도록 한다.
+ */
+async function _dlvSyncBuildersBeforeSave() {
+    const form = document.getElementById('step-form');
+    if (!form) return;
+    const csrf = document.querySelector('meta[name=csrf-token]')?.content || '';
+    const tasks = [];
+
+    form.querySelectorAll('.dlv-tbl-builder').forEach(b => {
+        if (typeof tblToMarkdown !== 'function') return;
+        const fieldKey = b.dataset.fieldKey || '';
+        const toolId   = b.dataset.toolId   || '';
+        const stepNo   = parseInt(b.dataset.step || '0');
+        let builderMd = '';
+        try { builderMd = tblToMarkdown(b) || ''; } catch (_) { return; }
+        const initMd  = (b.dataset.initMd || '');
+        const ta      = fieldKey ? form.querySelector(`textarea[data-field-key="${CSS.escape(fieldKey)}"]`) : null;
+        const taValue = ta ? (ta.value || '') : '';
+
+        // 빌더가 실제로 변경되었는지 (페이지 로드 시점 대비)
+        const builderChanged = builderMd.trim() !== initMd.trim();
+        // 사용자가 textarea 만 직접 수정했는지
+        const textareaChanged = ta && taValue.trim() !== initMd.trim();
+
+        // tool_result 저장에 사용할 마크다운
+        // - 빌더가 바뀌었으면 빌더 값을 우선
+        // - 그렇지 않으면 textarea 값으로 (textarea 가 source of truth)
+        const persistMd = builderChanged ? builderMd : taValue;
+
+        // 빌더 → textarea / preview 는 빌더가 실제 변경된 경우에만
+        if (builderChanged && ta) {
+            ta.value = builderMd;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.dispatchEvent(new Event('change', { bubbles: true }));
+            const editor = ta.closest('.md-editor');
+            const previewPane = editor?.querySelector('.md-preview-pane');
+            if (previewPane && typeof marked !== 'undefined') {
+                previewPane.innerHTML = builderMd.trim()
+                    ? marked.parse(builderMd)
+                    : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
+            }
+            // 다음 동기화에서 false 양성 발생 방지
+            b.dataset.initMd = builderMd;
+        }
+
+        // tool_result 갱신 — 다음 진입 시 빌더가 최신 마크다운으로 초기화되도록
+        if (toolId && stepNo && (builderChanged || textareaChanged)) {
+            tasks.push(fetch(SAVE_TOOL_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ step: stepNo, tool_id: toolId, result: { markdown: persistMd } }),
+            }).catch(() => {}));
+        }
+    });
+
+    if (tasks.length) await Promise.allSettled(tasks);
+}
+
 // 내부 저장 호출 — version_mode/change_note 를 받아 SAVE_URL 로 POST
 async function _postSaveStep(extra = {}) {
+    await _dlvSyncBuildersBeforeSave();
     const payload = { ...getFormData(), ...extra };
     const res = await fetch(SAVE_URL, {
         method: 'POST',
@@ -1446,38 +1558,97 @@ async function dlvRegisterAsFile() {
                 const note = r.change_note ? `<span style="color:#475569;"> · ${String(r.change_note).replace(/[<>"']/g,'')}</span>` : '';
                 const fname = String(r.file_name || LANG.reg_file_deleted).replace(/[<>"']/g,'');
                 const langTag = r.lang === 'en' ? '<span style="font-size:10px;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:3px;margin-left:4px;">EN</span>' : '';
+                const delBtn = `<button type="button" class="dlv-reg-hist-del" data-rid="${r.id}" title="${LANG.reg_history_delete}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:15px;line-height:1;padding:0 4px;margin-left:6px;align-self:flex-start;flex-shrink:0;">×</button>`;
                 return `
-                  <div data-pf="${r.project_file_id}" class="dlv-reg-row dlv-reg-hist-row">
+                  <div data-pf="${r.project_file_id}" data-rid="${r.id}" class="dlv-reg-row dlv-reg-hist-row" style="display:flex;align-items:center;gap:6px;">
                     <span class="dlv-reg-row-lead dlv-reg-row-vbadge">v${r.file_version}</span>
-                    <div class="dlv-reg-row-body">
+                    <div class="dlv-reg-row-body" style="flex:1;min-width:0;">
                       <div class="dlv-reg-row-title"><span class="dlv-reg-row-title-name">${fname}</span>${langTag}</div>
                       <div class="dlv-reg-row-meta">${r.creator ?? '-'} · ${r.created_at ?? ''}${note}</div>
                     </div>
+                    ${delBtn}
                   </div>`;
             }).join('');
-            historyEl.querySelectorAll('.dlv-reg-hist-row').forEach(row => {
-                row.addEventListener('mouseenter', () => row.style.background = '#f5f3ff');
-                row.addEventListener('mouseleave', () => row.style.background = '');
-                row.addEventListener('click', async () => {
-                    // 이력 클릭 시 → 같은 파일에 새 버전 추가 모드로 자동 선택
-                    const pfId = row.dataset.pf;
-                    const existingRadio = wrap.querySelector('input[name="dlv-reg-target"][value="existing"]');
-                    existingRadio.checked = true;
-                    existingRadio.dispatchEvent(new Event('change'));
-                    // 파일 목록 로드 완료까지 잠시 대기 후 해당 파일 선택
-                    const trySelect = () => {
-                        const fileRadio = wrap.querySelector(`input[name="dlv-reg-file"][value="${pfId}"]`);
-                        if (fileRadio) {
-                            fileRadio.checked = true;
-                            fileRadio.dispatchEvent(new Event('change'));
-                            fileRadio.scrollIntoView({ block: 'nearest' });
-                        } else {
-                            setTimeout(trySelect, 80);
-                        }
-                    };
-                    setTimeout(trySelect, 80);
+            const reloadHistory = async () => {
+                try {
+                    const r2 = await fetch(FILE_REGISTRATIONS_URL, { headers: { 'Accept': 'application/json' } });
+                    const d2 = await r2.json();
+                    if (historyCount) historyCount.textContent = d2.registrations?.length ? LANG.reg_count.replace(':count', d2.registrations.length) : '';
+                    if (!d2.registrations?.length) {
+                        historyEl.innerHTML = `<div style="padding:18px 10px;text-align:center;color:#94a3b8;font-size:12px;">${LANG.reg_no_history}</div>`;
+                        return;
+                    }
+                    historyEl.innerHTML = d2.registrations.map(r => {
+                        const note = r.change_note ? `<span style="color:#475569;"> · ${String(r.change_note).replace(/[<>"']/g,'')}</span>` : '';
+                        const fname = String(r.file_name || LANG.reg_file_deleted).replace(/[<>"']/g,'');
+                        const langTag = r.lang === 'en' ? '<span style="font-size:10px;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:3px;margin-left:4px;">EN</span>' : '';
+                        const delBtn = `<button type="button" class="dlv-reg-hist-del" data-rid="${r.id}" title="${LANG.reg_history_delete}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:15px;line-height:1;padding:0 4px;margin-left:6px;align-self:flex-start;flex-shrink:0;">×</button>`;
+                        return `<div data-pf="${r.project_file_id}" data-rid="${r.id}" class="dlv-reg-row dlv-reg-hist-row" style="display:flex;align-items:center;gap:6px;">
+                            <span class="dlv-reg-row-lead dlv-reg-row-vbadge">v${r.file_version}</span>
+                            <div class="dlv-reg-row-body" style="flex:1;min-width:0;">
+                              <div class="dlv-reg-row-title"><span class="dlv-reg-row-title-name">${fname}</span>${langTag}</div>
+                              <div class="dlv-reg-row-meta">${r.creator ?? '-'} · ${r.created_at ?? ''}${note}</div>
+                            </div>
+                            ${delBtn}
+                          </div>`;
+                    }).join('');
+                    bindHistoryRows();
+                } catch (_) {}
+            };
+            const bindHistoryRows = () => {
+                historyEl.querySelectorAll('.dlv-reg-hist-row').forEach(row => {
+                    row.addEventListener('mouseenter', () => row.style.background = '#f5f3ff');
+                    row.addEventListener('mouseleave', () => row.style.background = '');
+                    row.addEventListener('click', async (ev) => {
+                        if (ev.target && ev.target.closest('.dlv-reg-hist-del')) return;
+                        // 이력 클릭 시 → 같은 파일에 새 버전 추가 모드로 자동 선택
+                        const pfId = row.dataset.pf;
+                        const existingRadio = wrap.querySelector('input[name="dlv-reg-target"][value="existing"]');
+                        existingRadio.checked = true;
+                        existingRadio.dispatchEvent(new Event('change'));
+                        // 파일 목록 로드 완료까지 잠시 대기 후 해당 파일 선택
+                        const trySelect = () => {
+                            const fileRadio = wrap.querySelector(`input[name="dlv-reg-file"][value="${pfId}"]`);
+                            if (fileRadio) {
+                                fileRadio.checked = true;
+                                fileRadio.dispatchEvent(new Event('change'));
+                                fileRadio.scrollIntoView({ block: 'nearest' });
+                            } else {
+                                setTimeout(trySelect, 80);
+                            }
+                        };
+                        setTimeout(trySelect, 80);
+                    });
                 });
-            });
+                historyEl.querySelectorAll('.dlv-reg-hist-del').forEach(btn => {
+                    btn.addEventListener('mouseenter', () => btn.style.color = '#ef4444');
+                    btn.addEventListener('mouseleave', () => btn.style.color = '#cbd5e1');
+                    btn.addEventListener('click', async (ev) => {
+                        ev.stopPropagation();
+                        const rid = btn.dataset.rid;
+                        if (!rid) return;
+                        if (!await __confirm(LANG.reg_history_delete_confirm)) return;
+                        btn.disabled = true;
+                        try {
+                            const dres = await fetch(FILE_REGISTRATIONS_DESTROY_TPL.replace('__ID__', rid), {
+                                method: 'DELETE',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                                },
+                            });
+                            const dd = await dres.json().catch(() => ({}));
+                            if (!dres.ok || !dd.ok) throw new Error(dd.message || '');
+                            await reloadHistory();
+                            showToast(LANG.reg_history_deleted);
+                        } catch (e) {
+                            btn.disabled = false;
+                            showToast(LANG.reg_history_delete_fail);
+                        }
+                    });
+                });
+            };
+            bindHistoryRows();
         } catch (e) {
             historyEl.innerHTML = `<div style="padding:14px;color:#dc2626;">${LANG.reg_history_fail.replace(':message', e.message)}</div>`;
         }
@@ -2934,26 +3105,52 @@ function tblDelCol(btn) {
 
 async function tblSave(btn) {
     const b = tblGetBuilder(btn);
-    const toolId  = b.dataset.toolId;
-    const stepNo  = parseInt(b.dataset.step);
+    const toolId   = b.dataset.toolId;
+    const stepNo   = parseInt(b.dataset.step);
+    const fieldKey = b.dataset.fieldKey || '';
     const md = tblToMarkdown(b);
     btn.disabled = true;
     const origHtml = btn.innerHTML;
     btn.innerHTML = LANG.saving;
     try {
+        // 1) tool result 저장
         const res = await fetch(SAVE_TOOL_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
             body: JSON.stringify({ step: stepNo, tool_id: toolId, result: { markdown: md } }),
         });
         const json = await res.json();
-        if (json.ok) {
-            btn.innerHTML = LANG.saved;
-            setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1500);
-        } else {
+        if (!json.ok) {
             alert(json.message || LANG.save_failed);
             btn.innerHTML = origHtml; btn.disabled = false;
+            return;
         }
+
+        // 2) 동일 step 의 table 필드 textarea / 미리보기와 동기화하고 step data 저장
+        if (fieldKey) {
+            const form = document.getElementById('step-form');
+            const ta = form?.querySelector(`textarea[data-field-key="${CSS.escape(fieldKey)}"]`);
+            if (ta) {
+                ta.value = md;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+                ta.dispatchEvent(new Event('change', { bubbles: true }));
+                const editor = ta.closest('.md-editor');
+                const previewPane = editor?.querySelector('.md-preview-pane');
+                if (previewPane && typeof marked !== 'undefined') {
+                    previewPane.innerHTML = md.trim()
+                        ? marked.parse(md)
+                        : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
+                }
+            }
+            await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                body: JSON.stringify({ ...getFormData(), version_mode: 'none' }),
+            });
+        }
+
+        btn.innerHTML = LANG.saved;
+        setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1500);
     } catch (e) {
         alert(LANG.save_error.replace(':message', e.message));
         btn.innerHTML = origHtml; btn.disabled = false;
@@ -3882,7 +4079,10 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
 {{-- ════ 등록 파일 의견 팝오버 ════ --}}
 <script>
 (function(){
-    const DLV_FC_URL  = @json(route('ai-agent.projects.deliverables.file-comments.index', ['project' => $project->id, 'typeId' => $typeId]));
+    const DLV_FC_URL          = '{{ route("ai-agent.projects.deliverables.file-comments.index",   [$project, $typeId]) }}';
+    const DLV_FC_LINK_URL     = '{{ route("ai-agent.projects.deliverables.file-comments.link",    [$project, $typeId]) }}';
+    const DLV_FC_FILES_URL    = '{{ route("ai-agent.projects.deliverables.registerable-files",    [$project, $typeId]) }}';
+    const DLV_FC_VERSIONS_TPL = '{{ route("ai-agent.projects.deliverables.project-file-versions", [$project, $typeId, "__FID__"]) }}';
     const DLV_FC_CSRF = '{{ csrf_token() }}';
     const DLV_FC_T = {
         version:        @json(__('deliverables.fc_version')),
@@ -3898,7 +4098,22 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         map:            @json(__('deliverables.fc_map')),
         mapping:        @json(__('deliverables.fc_mapping')),
         mapped:         @json(__('deliverables.fc_mapped')),
+        pick_file_ph:   @json(__('deliverables.fc_pick_file_ph')),
+        pick_file_none: @json(__('deliverables.fc_pick_file_none')),
+        pick_ver_ph:    @json(__('deliverables.fc_pick_version_ph')),
+        sync:           @json(__('deliverables.fc_sync')),
+        syncing:        @json(__('deliverables.fc_syncing')),
+        sync_done:      @json(__('deliverables.fc_sync_done')),
+        sync_already:   @json(__('deliverables.fc_sync_already')),
+        sync_failed:    @json(__('deliverables.fc_sync_failed')),
+        files_failed:   @json(__('deliverables.fc_files_load_failed')),
+        vers_failed:    @json(__('deliverables.fc_versions_load_failed')),
+        ref_applied:    @json(__('deliverables.fc_reflect_applied')),
+        ref_applied_t:  @json(__('deliverables.fc_reflect_applied_t')),
+        ref_analyzing:  @json(__('deliverables.fc_reflect_analyzing')),
+        ref_no_target:  @json(__('deliverables.fc_reflect_no_target')),
     };
+    const DLV_FC_STEP_NO = {{ $stepNo }};
     let _dlvFcOpen = false, _dlvFcUnreflected = 0;
     const $fc = id => document.getElementById(id);
     const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3945,6 +4160,209 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
                 if(typeof done==='function') done(false);
             });
     }
+
+    /* ── 파일+버전 매핑 패널 ─────────────────────────────────── */
+    let _dlvFcFilesLoaded = false;
+    let _dlvFcAllFiles = [];          // 전체 파일 캐시 (검색용)
+    let _dlvFcListIdx  = -1;          // 키보드 네비 인덱스
+
+    window.dlvFcToggleAddPanel = function(){
+        const panel = $fc('dlv-fc-add-panel'); if(!panel) return;
+        const opening = panel.style.display === 'none' || !panel.style.display;
+        panel.style.display = opening ? '' : 'none';
+        if (opening && !_dlvFcFilesLoaded) dlvFcLoadFiles();
+    };
+
+    function dlvFcLoadFiles(){
+        fetch(DLV_FC_FILES_URL, {headers:{'Accept':'application/json'}})
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(d => {
+                _dlvFcFilesLoaded = true;
+                _dlvFcAllFiles = d.files || [];
+            })
+            .catch(() => { dlvFcSyncMsg(DLV_FC_T.files_failed, true); });
+    }
+
+    function dlvFcRenderFileList(items){
+        const list = $fc('dlv-fc-file-list'); if(!list) return;
+        if (!items.length){
+            list.innerHTML = `<div style="padding:10px 12px;font-size:11.5px;color:#94a3b8;">${esc(DLV_FC_T.pick_file_none)}</div>`;
+            list.style.display = '';
+            return;
+        }
+        list.innerHTML = items.map((f, i) =>
+            `<div data-fid="${f.id}" data-idx="${i}"
+                  onmousedown="event.preventDefault()" onclick="dlvFcPickFile(${f.id})"
+                  style="padding:6px 10px;font-size:12px;color:#1e293b;cursor:pointer;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:6px;"
+                  onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.7" style="color:#94a3b8;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.original_name)}</span>
+            </div>`
+        ).join('');
+        list.style.display = '';
+    }
+
+    function dlvFcCurrentFilteredFiles(){
+        const q = ($fc('dlv-fc-file-search')?.value || '').trim().toLowerCase();
+        if (!q) return _dlvFcAllFiles.slice(0, 50);
+        return _dlvFcAllFiles
+            .filter(f => (f.original_name || '').toLowerCase().includes(q))
+            .slice(0, 50);
+    }
+
+    window.dlvFcFilterFiles = function(){
+        _dlvFcListIdx = -1;
+        dlvFcRenderFileList(dlvFcCurrentFilteredFiles());
+        // 검색어 비우면 선택 해제
+        const txt = $fc('dlv-fc-file-search').value;
+        const hidden = $fc('dlv-fc-pick-file');
+        if (hidden.value) {
+            const cur = _dlvFcAllFiles.find(f => String(f.id) === String(hidden.value));
+            if (cur && cur.original_name !== txt) {
+                hidden.value = '';
+                dlvFcOnFileChange();
+            }
+        }
+        $fc('dlv-fc-file-clear').style.display = txt ? '' : 'none';
+    };
+
+    window.dlvFcShowFileList = function(){
+        if (!_dlvFcFilesLoaded) { dlvFcLoadFiles(); return; }
+        dlvFcRenderFileList(dlvFcCurrentFilteredFiles());
+    };
+
+    function dlvFcHideFileList(){
+        const list = $fc('dlv-fc-file-list'); if (list) list.style.display = 'none';
+    }
+
+    window.dlvFcPickFile = function(fid){
+        const file = _dlvFcAllFiles.find(f => f.id === fid);
+        if (!file) return;
+        $fc('dlv-fc-pick-file').value = fid;
+        $fc('dlv-fc-file-search').value = file.original_name;
+        $fc('dlv-fc-file-clear').style.display = '';
+        dlvFcHideFileList();
+        dlvFcOnFileChange();
+    };
+
+    window.dlvFcClearFilePick = function(ev){
+        if (ev) ev.stopPropagation();
+        $fc('dlv-fc-pick-file').value = '';
+        $fc('dlv-fc-file-search').value = '';
+        $fc('dlv-fc-file-clear').style.display = 'none';
+        dlvFcHideFileList();
+        dlvFcOnFileChange();
+        $fc('dlv-fc-file-search').focus();
+    };
+
+    window.dlvFcFileKeydown = function(ev){
+        const list = $fc('dlv-fc-file-list');
+        if (!list || list.style.display === 'none') {
+            if (ev.key === 'ArrowDown') dlvFcShowFileList();
+            return;
+        }
+        const items = list.querySelectorAll('[data-fid]');
+        if (ev.key === 'ArrowDown') {
+            ev.preventDefault();
+            _dlvFcListIdx = Math.min(items.length - 1, _dlvFcListIdx + 1);
+        } else if (ev.key === 'ArrowUp') {
+            ev.preventDefault();
+            _dlvFcListIdx = Math.max(0, _dlvFcListIdx - 1);
+        } else if (ev.key === 'Enter') {
+            if (_dlvFcListIdx >= 0 && items[_dlvFcListIdx]) {
+                ev.preventDefault();
+                dlvFcPickFile(parseInt(items[_dlvFcListIdx].dataset.fid, 10));
+            }
+            return;
+        } else if (ev.key === 'Escape') {
+            dlvFcHideFileList();
+            return;
+        } else {
+            return;
+        }
+        items.forEach((el, i) => { el.style.background = (i === _dlvFcListIdx) ? '#eef2ff' : ''; });
+        if (items[_dlvFcListIdx]) items[_dlvFcListIdx].scrollIntoView({ block:'nearest' });
+    };
+
+    // 검색 입력 바깥 클릭 시 리스트 닫기
+    document.addEventListener('click', (e) => {
+        const box = $fc('dlv-fc-file-search');
+        const list = $fc('dlv-fc-file-list');
+        if (!box || !list) return;
+        if (e.target !== box && !list.contains(e.target)) dlvFcHideFileList();
+    });
+
+    window.dlvFcOnFileChange = function(){
+        const fid     = $fc('dlv-fc-pick-file').value;
+        const verSel  = $fc('dlv-fc-pick-version');
+        const syncBtn = $fc('dlv-fc-sync-btn');
+        dlvFcSyncMsg('');
+        verSel.innerHTML = `<option value="">${esc(DLV_FC_T.pick_ver_ph)}</option>`;
+        verSel.disabled = true;
+        syncBtn.disabled = true; syncBtn.style.opacity = '.5';
+        if (!fid) return;
+        const url = DLV_FC_VERSIONS_TPL.replace('__FID__', encodeURIComponent(fid));
+        fetch(url, {headers:{'Accept':'application/json'}})
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(d => {
+                (d.versions || []).forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.version;
+                    const note = v.change_note ? ' — ' + v.change_note : '';
+                    opt.textContent = `v${v.version} (${v.created_at || ''})${note}`;
+                    verSel.appendChild(opt);
+                });
+                verSel.disabled = false;
+                verSel.onchange = () => {
+                    const ok = !!verSel.value;
+                    syncBtn.disabled = !ok;
+                    syncBtn.style.opacity = ok ? '1' : '.5';
+                };
+            })
+            .catch(() => { dlvFcSyncMsg(DLV_FC_T.vers_failed, true); });
+    };
+
+    function dlvFcSyncMsg(text, isError){
+        const m = $fc('dlv-fc-sync-msg'); if(!m) return;
+        m.textContent = text || '';
+        m.style.color = isError ? '#dc2626' : '#64748b';
+    }
+
+    window.dlvFcSyncPicked = function(){
+        const fileSel = $fc('dlv-fc-pick-file');
+        const verSel  = $fc('dlv-fc-pick-version');
+        const btn     = $fc('dlv-fc-sync-btn');
+        const fid = fileSel.value, vno = verSel.value;
+        if (!fid || !vno) return;
+        btn.disabled = true; btn.textContent = DLV_FC_T.syncing;
+        dlvFcSyncMsg('');
+        const fd = new FormData();
+        fd.append('project_file_id', fid);
+        fd.append('file_version', vno);
+        fetch(DLV_FC_LINK_URL, {
+            method:'POST',
+            headers:{'X-CSRF-TOKEN':DLV_FC_CSRF,'Accept':'application/json'},
+            body: fd,
+        })
+        .then(r => r.json().then(d => ({ok:r.ok, d})))
+        .then(({ok, d}) => {
+            btn.textContent = DLV_FC_T.sync;
+            btn.disabled = false;
+            if (!ok || !d.ok) {
+                dlvFcSyncMsg(d.message || DLV_FC_T.sync_failed, true);
+                return;
+            }
+            const tpl = d.already ? DLV_FC_T.sync_already : DLV_FC_T.sync_done;
+            const txt = tpl.replace(':file', d.file_name || '').replace(':v', d.version || '');
+            dlvFcSyncMsg(txt, false);
+            dlvLoadFileComments();
+        })
+        .catch(() => {
+            btn.textContent = DLV_FC_T.sync;
+            btn.disabled = false;
+            dlvFcSyncMsg(DLV_FC_T.sync_failed, true);
+        });
+    };
 
     // 의견 매핑 — 프로젝트 파일 → 버전 → 의견을 다시 끌어와 팝오버에 매핑
     window.dlvMapFileComments = function(){
@@ -4004,6 +4422,47 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
     function dlvRenderFcList(){
         const list = _dlvFcGroups[_dlvFcActiveV] || [];
         $fc('dlv-fc-body').innerHTML = list.map(c => dlvFcCommentHtml(c)).join('');
+        dlvFcAutoAnalyzeLegacy(list);
+    }
+
+    /**
+     * 레거시 — reflected 인데 applied_step 이 비어있는 의견을 순차 분석.
+     * 동시성 1, 한 번 호출에 최대 5건만 (과한 AI 호출 방지).
+     */
+    let _dlvFcAnalyzeBusy = false;
+    function dlvFcAutoAnalyzeLegacy(list){
+        if (_dlvFcAnalyzeBusy) return;
+        const legacy = list.filter(c => c.reflected && !c.applied_step).slice(0, 5);
+        if (!legacy.length) return;
+        _dlvFcAnalyzeBusy = true;
+        let i = 0;
+        const next = () => {
+            if (i >= legacy.length) { _dlvFcAnalyzeBusy = false; return; }
+            const c = legacy[i++];
+            fetch(DLV_FC_URL + '/' + c.id + '/analyze', {
+                method:'POST',
+                headers:{'X-CSRF-TOKEN':DLV_FC_CSRF,'Accept':'application/json'},
+            })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+                if (d && d.ok && d.applied_step) {
+                    // 캐시 갱신
+                    for (const v in _dlvFcGroups) {
+                        const cc = _dlvFcGroups[v].find(x => x.id === c.id);
+                        if (cc) { cc.applied_step = d.applied_step; break; }
+                    }
+                    // 화면의 해당 버튼 갱신
+                    const wrap = document.getElementById('dlv-fc-c-' + c.id);
+                    if (wrap) {
+                        const btn = wrap.querySelector('button[onclick^="dlvReflectComment"]');
+                        if (btn) btn.outerHTML = dlvFcReflectBtn({id:c.id, reflected:true, applied_step:d.applied_step});
+                    }
+                }
+            })
+            .catch(() => {})
+            .finally(next);
+        };
+        next();
     }
 
     function dlvFcRefText(name, date){
@@ -4015,7 +4474,14 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         const style = on
             ? 'background:#16a34a;color:#fff;border:1px solid #16a34a;'
             : 'background:#fff;color:#7c3aed;border:1px solid #ddd6fe;';
-        const label = on ? ('✓ ' + DLV_FC_T.reflected) : DLV_FC_T.reflect;
+        let label;
+        if (on) {
+            label = c.applied_step
+                ? '✓ ' + DLV_FC_T.ref_applied.replace(':n', c.applied_step)
+                : '✓ ' + DLV_FC_T.reflected;
+        } else {
+            label = DLV_FC_T.reflect;
+        }
         return `<button type="button" onclick="dlvReflectComment(${c.id},this)" style="${style}font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 9px;cursor:pointer;white-space:nowrap;">${esc(label)}</button>`;
     }
 
@@ -4040,29 +4506,107 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         </div>`;
     }
 
+    /** 토스트 헬퍼 — 페이지 공용 #dlv-toast 사용 */
+    function dlvFcToast(msg){
+        const toast = $fc('dlv-toast');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    /**
+     * 현재 화면에 표시된 STEP 의 같은 field_key textarea 가 있으면 새 값으로 즉시 갱신.
+     * (다른 STEP 으로 반영된 경우엔 화면 갱신 필요 없음.)
+     */
+    function dlvFcUpdateLiveTextarea(stepOrder, fieldKey, newValue){
+        if (Number(stepOrder) !== DLV_FC_STEP_NO) return;
+        const form = document.getElementById('step-form'); if (!form) return;
+        const ta = form.querySelector(`textarea.dlv-textarea[data-field-key="${CSS.escape(fieldKey)}"]`);
+        if (!ta) return;
+        ta.value = newValue;
+        ta.dispatchEvent(new Event('input', { bubbles:true }));
+        ta.dispatchEvent(new Event('change', { bubbles:true }));
+        const editor = ta.closest('.md-editor');
+        const previewPane = editor?.querySelector('.md-preview-pane');
+        if (previewPane && previewPane.style.display !== 'none' && typeof marked !== 'undefined') {
+            previewPane.innerHTML = marked.parse(ta.value.trim());
+        }
+    }
+
     window.dlvReflectComment = function(id, btn){
+        // 클라이언트 측에 보관된 의견 객체 찾기
+        let target = null;
+        for (const v in _dlvFcGroups) {
+            const c = (_dlvFcGroups[v] || []).find(x => x.id === id);
+            if (c) { target = c; break; }
+        }
+        const willReflect = !(target && target.reflected);
+        const origLabel = btn.textContent;
         btn.disabled = true;
-        fetch(DLV_FC_URL + '/' + id + '/reflect', {
+        if (willReflect) btn.textContent = DLV_FC_T.ref_analyzing;
+
+        fetch(DLV_FC_URL + '/' + id + '/apply', {
             method:'POST',
             headers:{'X-CSRF-TOKEN':DLV_FC_CSRF,'Accept':'application/json'},
         })
-        .then(r => r.ok ? r.json() : Promise.reject())
-        .then(d => {
-            const on = !!d.reflected;
-            btn.outerHTML = dlvFcReflectBtn({id:id, reflected:on});
-            const info = $fc('dlv-fc-refinfo-' + id);
-            if(info){
-                if(on){ info.textContent = dlvFcRefText(d.reflected_by, d.reflected_at); info.style.display = ''; }
-                else { info.style.display = 'none'; }
+        .then(r => r.json().then(d => ({ok:r.ok, d})))
+        .then(({ok, d}) => {
+            if (!ok || !d.ok) {
+                dlvFcToast(d.message || DLV_FC_T.reflect_failed);
+                btn.disabled = false;
+                btn.textContent = origLabel;
+                return;
             }
-            // 저장된 버전별 데이터 갱신 (탭 전환 시 상태 유지)
-            for(const v in _dlvFcGroups){
+            const on = !!d.reflected;
+            // 버튼 — 반영된 경우 STEP 번호 표시
+            const newBtnData = { id:id, reflected:on, applied_step: d.step_order || null };
+            btn.outerHTML = dlvFcReflectBtn(newBtnData);
+
+            const info = $fc('dlv-fc-refinfo-' + id);
+            if (info) {
+                if (on) {
+                    let txt = dlvFcRefText(d.reflected_by, d.reflected_at);
+                    if (d.step_order && d.step_title) {
+                        txt += ' · ' + DLV_FC_T.ref_applied_t
+                            .replace(':n', d.step_order)
+                            .replace(':title', d.step_title)
+                            .replace(':field', d.field_label || d.field_key || '');
+                    }
+                    info.textContent = txt;
+                    info.style.display = '';
+                } else {
+                    info.style.display = 'none';
+                }
+            }
+            // 클라이언트 측 캐시 갱신
+            for (const v in _dlvFcGroups) {
                 const c = _dlvFcGroups[v].find(x => x.id === id);
-                if(c){ c.reflected = on; c.reflected_by = d.reflected_by; c.reflected_at = d.reflected_at; break; }
+                if (c) {
+                    c.reflected = on;
+                    c.reflected_by = d.reflected_by;
+                    c.reflected_at = d.reflected_at;
+                    c.applied_step = d.step_order || null;
+                    break;
+                }
             }
             dlvUpdateFcBadge(_dlvFcUnreflected + (on ? -1 : 1));
+
+            if (on && d.step_order) {
+                dlvFcUpdateLiveTextarea(d.step_order, d.field_key, d.new_value);
+                dlvFcToast(
+                    DLV_FC_T.ref_applied_t
+                        .replace(':n', d.step_order)
+                        .replace(':title', d.step_title || '')
+                        .replace(':field', d.field_label || d.field_key || '')
+                );
+            }
         })
-        .catch(() => { alert(DLV_FC_T.reflect_failed); btn.disabled = false; });
+        .catch(() => {
+            dlvFcToast(DLV_FC_T.reflect_failed);
+            btn.disabled = false;
+            btn.textContent = origLabel;
+        });
     };
 
     document.addEventListener('click', e => {

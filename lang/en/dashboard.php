@@ -12,6 +12,9 @@ return [
     'greeting_wish'             => 'Have a wonderful day',
 
     // ── Stat cards
+    'stat_today'                => 'Today',
+    'stat_today_empty'          => 'Nothing scheduled today',
+    'stat_today_breakdown'      => ':meetings meeting(s) · :schedules event(s) · :actions due',
     'stat_total_projects'       => 'Total Projects',
     'stat_active_count'         => 'Active',
     'stat_minutes_month'        => 'Minutes This Month',
@@ -37,6 +40,11 @@ return [
     'no_files'                  => 'No previewable files.',
     'open_file'                 => 'Open',
     'opinions'                  => 'comments',
+    'fc_loading'                => 'Loading comments…',
+    'fc_load_failed'            => 'Failed to load comments.',
+    'fc_empty'                  => 'No comments yet.',
+    'fc_page'                   => 'p.',
+    'fc_more'                   => 'more',
 
     // ── Recent minutes
     'recent_minutes'            => 'Recent Minutes',

@@ -68,7 +68,7 @@ use App\Http\Controllers\ScreenMappingController;
 use App\Http\Controllers\DesignReviewController;
 use App\Http\Controllers\FigmaSettingsController;
 use App\Http\Controllers\PlanningApprovalController;
-use App\Http\Controllers\PromptRefinerController;
+use App\Http\Controllers\WorksPromptController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\TaskGroupController;
 use App\Http\Controllers\SubTaskController;
@@ -363,6 +363,12 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     Route::get   ('system-errors/{systemError}',        [\App\Http\Controllers\Admin\AdminSystemErrorController::class, 'show'])          ->name('system-errors.show');
     Route::patch ('system-errors/{systemError}/resolve',[\App\Http\Controllers\Admin\AdminSystemErrorController::class, 'resolve'])       ->name('system-errors.resolve');
     Route::delete('system-errors/{systemError}',        [\App\Http\Controllers\Admin\AdminSystemErrorController::class, 'destroy'])       ->name('system-errors.destroy');
+
+    // AI Fix Job 관리 (관리자 승인 큐)
+    Route::get ('ai-fix-jobs',                       [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'index'])  ->name('ai-fix-jobs.index');
+    Route::get ('ai-fix-jobs/{aiFixJob}',            [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'show'])   ->name('ai-fix-jobs.show');
+    Route::post('ai-fix-jobs/{aiFixJob}/approve',    [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'approve'])->name('ai-fix-jobs.approve');
+    Route::post('ai-fix-jobs/{aiFixJob}/reject',     [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'reject']) ->name('ai-fix-jobs.reject');
 
     // Super Admin 데이터 초기화
     Route::delete('reset/inquiries',     [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetInquiries'])    ->name('reset.inquiries');
@@ -818,8 +824,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/{typeId}/versions/{versionId}/restore',   [DeliverableController::class, 'versionRestore'])->name('versions.restore');
                 // 산출물 → 파일 등록 (file_versions 자동 증가)
                 Route::get ('/{typeId}/registerable-files', [DeliverableController::class, 'registerableFiles'])->name('registerable-files');
-                Route::get ('/{typeId}/file-registrations', [DeliverableController::class, 'fileRegistrations'])->name('file-registrations');
-                Route::post('/{typeId}/register-as-file',   [DeliverableController::class, 'registerAsFile'])  ->name('register-as-file');
+                Route::get   ('/{typeId}/file-registrations',                  [DeliverableController::class, 'fileRegistrations'])      ->name('file-registrations');
+                Route::delete('/{typeId}/file-registrations/{registration}',   [DeliverableController::class, 'destroyFileRegistration'])->name('file-registrations.destroy');
+                Route::post  ('/{typeId}/register-as-file',                    [DeliverableController::class, 'registerAsFile'])         ->name('register-as-file');
                 // 뷰어 의견
                 Route::get   ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsIndex'])  ->name('viewer-comments.index');
                 Route::post  ('/{typeId}/viewer-comments',           [DeliverableController::class, 'viewerCommentsStore'])  ->name('viewer-comments.store');
@@ -827,6 +834,11 @@ Route::middleware(['auth'])->group(function () {
                 // 등록 파일 의견 (모든 STEP 팝오버) — 버전별 확인 + 반영 처리
                 Route::get ('/{typeId}/file-comments',                    [DeliverableController::class, 'registeredFileComments'])->name('file-comments.index');
                 Route::post('/{typeId}/file-comments/{comment}/reflect',  [DeliverableController::class, 'reflectFileComment'])    ->name('file-comments.reflect');
+                Route::post('/{typeId}/file-comments/{comment}/apply',    [DeliverableController::class, 'applyCommentToStep'])  ->name('file-comments.apply');
+                Route::post('/{typeId}/file-comments/{comment}/analyze',  [DeliverableController::class, 'analyzeCommentStepOnly'])->name('file-comments.analyze');
+                // 팝오버에서 프로젝트 파일+버전을 직접 매핑
+                Route::get ('/{typeId}/project-files/{file}/versions',    [DeliverableController::class, 'projectFileVersions'])->name('project-file-versions');
+                Route::post('/{typeId}/file-comments/link',               [DeliverableController::class, 'linkProjectFile'])    ->name('file-comments.link');
             });
 
             // 기획 단계
@@ -1357,81 +1369,17 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/screen/end/{sessionKey}',       [CollabController::class, 'screenEnd'])->name('screen.end');
     });
 
-    // Prompt Builder
-    Route::prefix('prompt-builder')->name('builder.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'index'])->name('index');
+    // Works Builder (소스 빌더)
+    require __DIR__.'/works-builder.php';
 
-        // 새 빌더 시작 (Wizard)
-        Route::get('/new', [\App\Http\Controllers\PromptBuilder\WizardController::class, 'create'])->name('new');
-
-        // Wizard API
-        Route::prefix('wizard')->name('wizard.')->group(function () {
-            Route::post  ('/sessions',                      [\App\Http\Controllers\PromptBuilder\WizardController::class, 'startSession'])->name('start');
-            Route::get   ('/sessions/{session}',            [\App\Http\Controllers\PromptBuilder\WizardController::class, 'show'])->name('show');
-            Route::put   ('/sessions/{session}/step/{step}',[\App\Http\Controllers\PromptBuilder\WizardController::class, 'updateStep'])->name('update');
-            Route::post  ('/sessions/{session}/analyze',    [\App\Http\Controllers\PromptBuilder\WizardController::class, 'analyze'])->name('analyze');
-            Route::post  ('/sessions/{session}/generate',   [\App\Http\Controllers\PromptBuilder\WizardController::class, 'generate'])->name('generate');
-            Route::post  ('/sessions/{session}/preview-ai', [\App\Http\Controllers\PromptBuilder\WizardController::class, 'previewWithDifferentAi'])->name('preview');
-            Route::post  ('/sessions/{session}/complete',   [\App\Http\Controllers\PromptBuilder\WizardController::class, 'complete'])->name('complete');
-            Route::delete('/sessions/{session}',            [\App\Http\Controllers\PromptBuilder\WizardController::class, 'abandon'])->name('abandon');
-        });
-
-        // 시퀀스
-        Route::prefix('sequences')->name('sequences.')->group(function () {
-            Route::get  ('/',                           [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forSequences'])->name('select-project');
-            Route::get  ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'index'])->name('index');
-            Route::post ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'store'])->name('store');
-            Route::get  ('/{sequence}',                 [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'show'])->name('show');
-            Route::put  ('/{sequence}/progress',        [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'updateProgress'])->name('progress');
-            Route::get  ('/{sequence}/export',          [\App\Http\Controllers\PromptBuilder\SequenceController::class, 'export'])->name('export');
-        });
-
-        // 이력
-        Route::prefix('history')->name('history.')->group(function () {
-            Route::get  ('/',                           [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forHistory'])->name('select-project');
-            Route::get  ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'index'])->name('index');
-            Route::get  ('/{builder}',                  [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'show'])->name('show');
-            Route::get  ('/{builder}/versions',         [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'versions'])->name('versions');
-            Route::post ('/{builder}/duplicate',        [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'duplicate'])->name('duplicate');
-            Route::post ('/{builder}/revert/{version}', [\App\Http\Controllers\PromptBuilder\HistoryController::class, 'revert'])->name('revert');
-        });
-
-        // 피드백
-        Route::prefix('feedback')->name('feedback.')->group(function () {
-            Route::get  ('/',                           [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forFeedback'])->name('select-project');
-            Route::get  ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'index'])->name('index');
-            Route::get  ('/project/{project}/upload',   [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'uploadForm'])->name('upload');
-            Route::post ('/project/{project}',          [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'store'])->name('store');
-            Route::get  ('/{feedback}',                 [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'show'])->name('show');
-            Route::post ('/{feedback}/apply',           [\App\Http\Controllers\PromptBuilder\FeedbackController::class, 'applyImprovements'])->name('apply');
-        });
-
-        // 템플릿
-        Route::prefix('templates')->name('templates.')->group(function () {
-            Route::get  ('/',                   [\App\Http\Controllers\PromptBuilder\ProjectSelectController::class, 'forTemplates'])->name('select-project');
-            Route::get  ('/all',                [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'all'])->name('all');
-            Route::get  ('/project/{project}',  [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'index'])->name('index');
-            Route::post ('/',                   [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'store'])->name('store');
-            Route::delete('/{template}',        [\App\Http\Controllers\PromptBuilder\TemplateController::class, 'destroy'])->name('destroy');
-        });
-
-        // API
-        Route::prefix('api')->name('api.')->group(function () {
-            Route::get('/projects',                         [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'getProjects'])->name('projects');
-            Route::get ('/projects/{project}/workspaces',    [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'getWorkspaces'])->name('workspaces');
-            Route::post('/projects/{project}/workspaces',    [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'createWorkspace'])->name('workspaces.create');
-            Route::get('/projects/{project}/standards',     [\App\Http\Controllers\PromptBuilder\BuilderController::class, 'getStandards'])->name('standards');
-        });
-    });
-
-    // 프롬프트 정제하기
-    Route::prefix('prompt-refiner')->name('prompt-refiner.')->middleware('throttle:20,1')->group(function () {
-        Route::get   ('/',                              [PromptRefinerController::class, 'index'])          ->name('index');
-        Route::post  ('/refine',                        [PromptRefinerController::class, 'refine'])         ->name('refine');
-        Route::get   ('/projects/{projectId}/tasks',    [PromptRefinerController::class, 'projectTasks'])   ->name('project.tasks');
-        Route::get   ('/history',                       [PromptRefinerController::class, 'history'])        ->name('history');
-        Route::get   ('/history/{id}',                  [PromptRefinerController::class, 'historyShow'])    ->name('history.show');
-        Route::delete('/history/{id}',                  [PromptRefinerController::class, 'historyDestroy']) ->name('history.destroy');
+    // 웍스 프롬프트
+    Route::prefix('works-prompt')->name('works-prompt.')->middleware('throttle:20,1')->group(function () {
+        Route::get   ('/',                              [WorksPromptController::class, 'index'])           ->name('index');
+        Route::post  ('/refine',                        [WorksPromptController::class, 'refine'])          ->name('refine');
+        Route::get   ('/projects/{projectId}/plan',     [WorksPromptController::class, 'projectPlan'])     ->name('project.plan');
+        Route::get   ('/history',                       [WorksPromptController::class, 'history'])         ->name('history');
+        Route::get   ('/history/{id}',                  [WorksPromptController::class, 'historyShow'])     ->name('history.show');
+        Route::delete('/history/{id}',                  [WorksPromptController::class, 'historyDestroy'])  ->name('history.destroy');
     });
 
     // (관리자 패널은 별도 admin.web 미들웨어로 분리됨)

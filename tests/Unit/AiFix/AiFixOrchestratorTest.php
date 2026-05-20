@@ -2,6 +2,8 @@
 
 namespace Tests\Unit\AiFix;
 
+use App\Jobs\ApplyAiFixJob;
+use App\Jobs\DeployAiFixJob;
 use App\Models\AiFixJob;
 use App\Models\SystemErrorLog;
 use App\Services\AiFix\AiAnalyzer;
@@ -10,6 +12,7 @@ use App\Services\AiFix\AiFixOrchestrator;
 use App\Services\AiFix\AnalysisResult;
 use App\Services\AiFix\EscalationEvaluator;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -396,6 +399,9 @@ class AiFixOrchestratorTest extends TestCase
 
     public function test_approve_from_awaiting_approval_transitions_to_applying(): void
     {
+        // Bus::fake 로 후속 ApplyAiFixJob 인라인 실행을 막아 approve() 단독 책임만 검증.
+        Bus::fake([ApplyAiFixJob::class]);
+
         $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
         $this->rawOrchestrator()->approve($job, adminUserId: 42);
 
@@ -403,14 +409,21 @@ class AiFixOrchestratorTest extends TestCase
         $this->assertSame(AiFixJob::STATUS_APPLYING, $fresh->status);
         $this->assertSame(42, $fresh->approved_by_admin_id);
         $this->assertNotNull($fresh->approved_at);
+        Bus::assertDispatched(ApplyAiFixJob::class,
+            fn ($j) => $j->aiFixJobId === $job->id);
     }
 
     public function test_approve_from_ready_to_deploy_transitions_to_deploying(): void
     {
+        // Bus::fake 로 후속 DeployAiFixJob 인라인 실행 차단.
+        Bus::fake([DeployAiFixJob::class]);
+
         $job = $this->makeJob(AiFixJob::STATUS_READY_TO_DEPLOY);
         $this->rawOrchestrator()->approve($job, adminUserId: 7);
 
         $this->assertSame(AiFixJob::STATUS_DEPLOYING, $job->fresh()->status);
+        Bus::assertDispatched(DeployAiFixJob::class,
+            fn ($j) => $j->aiFixJobId === $job->id);
     }
 
     public function test_approve_from_wrong_status_throws(): void

@@ -146,6 +146,28 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
 ═══════════════════════════════════════════ --}}
 <div class="gs-kpi-grid">
 
+                    {{-- 오늘 일정 (회의 + 일정 + 마감 Action item) --}}
+                    <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_today') }}</span>
+                            <div style="width:28px;height:28px;background:#e0e7ff;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                <svg width="14" height="14" fill="none" stroke="#6366f1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                        </div>
+                        <div style="font-size:26px;font-weight:800;color:#1e1b2e;line-height:1;">{{ $todayCount }}</div>
+                        <div style="font-size:10px;color:#a5b4c8;">
+                            @if($todayCount === 0)
+                                {{ __('dashboard.stat_today_empty') }}
+                            @else
+                                {{ __('dashboard.stat_today_breakdown', [
+                                    'meetings'  => $todayMeetings,
+                                    'schedules' => $todaySchedules,
+                                    'actions'   => $todayActions,
+                                ]) }}
+                            @endif
+                        </div>
+                    </div>
+
                     {{-- 전체 프로젝트 --}}
                     <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -483,7 +505,13 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                 <span>·</span>
                                 <span>{{ $file->created_at->format('m.d') }}</span>
                                 @if($file->comments_count > 0)
-                                <span style="color:#7c3aed;font-weight:600;">{{ __('dashboard.opinions') }} {{ $file->comments_count }}</span>
+                                <button type="button"
+                                        onclick="dbToggleFileComments({{ $file->project_id }}, {{ $file->id }}, this, event)"
+                                        title="{{ __('dashboard.opinions') }}"
+                                        style="background:none;border:0;padding:0;color:#7c3aed;font-weight:600;cursor:pointer;font-size:10px;display:inline-flex;align-items:center;gap:2px;">
+                                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>{{ __('dashboard.opinions') }} {{ $file->comments_count }}</span>
+                                </button>
                                 @endif
                             </div>
                         </div>
@@ -888,6 +916,19 @@ async function resetDashboardLayout() {
 
 @include('partials.file-preview-modal')
 
+{{-- 파일 의견 팝오버 (최근 파일 위젯에서 공용 사용) --}}
+<div id="db-fc-pop"
+     style="display:none;position:fixed;z-index:9500;width:380px;max-width:calc(100vw - 24px);max-height:60vh;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 18px 50px rgba(15,10,40,.28);flex-direction:column;overflow:hidden;">
+    <div style="padding:11px 14px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <svg width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div style="flex:1;min-width:0;">
+            <div id="db-fc-pop-title" style="font-size:12.5px;font-weight:700;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ __('dashboard.opinions') }}</div>
+        </div>
+        <button type="button" onclick="dbFcClosePop()" style="background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">&times;</button>
+    </div>
+    <div id="db-fc-pop-body" style="flex:1;overflow-y:auto;padding:8px 12px;min-height:0;font-size:11.5px;color:#6b7280;">{{ __('dashboard.fc_loading') }}</div>
+</div>
+
 {{-- 회의록 상세 팝업 --}}
 <div id="db-minute-popup-overlay"
      style="display:none;position:fixed;inset:0;background:rgba(15,10,40,.6);z-index:2000;align-items:center;justify-content:center;padding:20px;"
@@ -911,6 +952,111 @@ function dbCloseMinutePopup() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') dbCloseMinutePopup();
 });
+
+/* ── 최근 파일 위젯: 의견 팝오버 ─────────────────────────── */
+const DB_FILE_COMMENTS_BASE = '{{ url('projects') }}';
+const DB_FC_TXT = {
+    loading: @json(__('dashboard.fc_loading')),
+    failed:  @json(__('dashboard.fc_load_failed')),
+    empty:   @json(__('dashboard.fc_empty')),
+    page:    @json(__('dashboard.fc_page')),
+    more:    @json(__('dashboard.fc_more')),
+};
+const DB_FC_CACHE = {};            // fileId → 캐시된 HTML
+let _dbFcAnchor   = null;          // 현재 팝오버를 띄운 버튼
+let _dbFcOpen     = false;
+function dbFcEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function dbFcPositionPop(){
+    if (!_dbFcAnchor) return;
+    const pop = document.getElementById('db-fc-pop'); if(!pop) return;
+    const r = _dbFcAnchor.getBoundingClientRect();
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = r.left;
+    if (left + pw > window.innerWidth - 12) left = window.innerWidth - pw - 12;
+    if (left < 12) left = 12;
+    let top = r.bottom + 6;
+    if (top + ph > window.innerHeight - 12) top = Math.max(12, r.top - ph - 6);
+    pop.style.left = left + 'px';
+    pop.style.top  = top + 'px';
+}
+
+function dbFcClosePop(){
+    _dbFcOpen = false;
+    _dbFcAnchor = null;
+    const p = document.getElementById('db-fc-pop'); if(p) p.style.display = 'none';
+}
+
+function dbToggleFileComments(projectId, fileId, btn, ev){
+    if (ev) ev.stopPropagation();
+    const pop = document.getElementById('db-fc-pop'); if(!pop) return;
+    // 같은 버튼 다시 누르면 닫기
+    if (_dbFcOpen && _dbFcAnchor === btn){ dbFcClosePop(); return; }
+    _dbFcOpen = true;
+    _dbFcAnchor = btn;
+    // 제목 — 파일 행의 파일명을 표시
+    const row = btn.closest('div').parentElement?.parentElement;
+    const fileName = row?.querySelector('button div')?.textContent?.trim() || '';
+    document.getElementById('db-fc-pop-title').textContent =
+        '{{ __('dashboard.opinions') }}' + (fileName ? ' · ' + fileName : '');
+
+    const body = document.getElementById('db-fc-pop-body');
+    pop.style.display = 'flex';
+    pop.style.left = '-9999px';  // measure 전에 화면 밖으로
+    pop.style.top  = '0px';
+
+    if (DB_FC_CACHE[fileId]){
+        body.innerHTML = DB_FC_CACHE[fileId];
+        requestAnimationFrame(dbFcPositionPop);
+        return;
+    }
+
+    body.innerHTML = `<div style="padding:6px 0;color:#94a3b8;">${dbFcEsc(DB_FC_TXT.loading)}</div>`;
+    requestAnimationFrame(dbFcPositionPop);
+
+    const url = `${DB_FILE_COMMENTS_BASE}/${projectId}/files/${fileId}/comments`;
+    fetch(url, { headers:{'Accept':'application/json'} })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(d => {
+            const list = (d.comments || []).filter(c => !c.parent_id);
+            let html;
+            if (!list.length){
+                html = `<div style="padding:6px 0;color:#94a3b8;">${dbFcEsc(DB_FC_TXT.empty)}</div>`;
+            } else {
+                html = list.map(c => dbFcCommentHtml(c)).join('');
+            }
+            DB_FC_CACHE[fileId] = html;
+            body.innerHTML = html;
+            requestAnimationFrame(dbFcPositionPop);
+        })
+        .catch(() => { body.innerHTML = `<div style="padding:6px 0;color:#dc2626;">${dbFcEsc(DB_FC_TXT.failed)}</div>`; });
+}
+
+function dbFcCommentHtml(c){
+    const author = c.user_name || c.author || (c.user && c.user.name) || c.guest_name || '';
+    const when   = c.created_at_formatted || c.created_at || '';
+    const page   = c.page ? `<span style="font-size:9.5px;font-weight:700;color:#6d28d9;background:#ede9fe;border-radius:3px;padding:0 4px;margin-left:3px;">${DB_FC_TXT.page} ${c.page}</span>` : '';
+    const replies = (c.replies || []).slice(0, 3).map(r =>
+        `<div style="margin-top:3px;padding-left:8px;border-left:2px solid #ede9fe;color:#6b7280;font-size:10.5px;">↳ <b style="color:#6d28d9;">${dbFcEsc(r.user_name || (r.user && r.user.name) || r.guest_name || '')}</b> ${dbFcEsc(r.content)}</div>`
+    ).join('');
+    return `<div style="padding:6px 0;border-bottom:1px dashed #ede9fe;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#9ca3af;">
+            <b style="color:#1e1b2e;">${dbFcEsc(author)}</b>
+            <span>${dbFcEsc(when)}</span>${page}
+        </div>
+        <div style="font-size:11.5px;color:#374151;white-space:pre-wrap;word-break:break-word;line-height:1.5;margin-top:2px;">${dbFcEsc(c.content)}</div>
+        ${replies}
+    </div>`;
+}
+
+document.addEventListener('click', (e) => {
+    if (!_dbFcOpen) return;
+    const pop = document.getElementById('db-fc-pop');
+    if (pop && !pop.contains(e.target) && _dbFcAnchor && !_dbFcAnchor.contains(e.target)) dbFcClosePop();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && _dbFcOpen) dbFcClosePop(); });
+window.addEventListener('resize', () => { if (_dbFcOpen) dbFcPositionPop(); });
+window.addEventListener('scroll', () => { if (_dbFcOpen) dbFcPositionPop(); }, true);
 </script>
 
 {{-- ─── 대시보드 온보딩 투어 (처음 접속 시 자동 1회) ─── --}}

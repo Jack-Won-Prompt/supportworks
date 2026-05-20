@@ -141,6 +141,13 @@
                     <button onclick="imgZoomOriginal()"
                             style="padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:12px;cursor:pointer;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">{{ __('viewer.zoom_original') }}</button>
+                    <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
+                    <button onclick="downloadViewerImage()" title="{{ __('viewer.download') }}"
+                            style="padding:5px 12px;background:rgba(99,102,241,.18);border:1px solid rgba(165,180,252,.35);color:#c7d2fe;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;"
+                            onmouseover="this.style.background='rgba(99,102,241,.3)'" onmouseout="this.style.background='rgba(99,102,241,.18)'">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+                        {{ __('viewer.download') }}
+                    </button>
                 </div>
             </div>
 
@@ -1383,6 +1390,27 @@ function imgZoomOriginal() {
     imgScale    = 1.0;
     _applyImgZoom();
 }
+
+window.downloadViewerImage = async function () {
+    const img = document.getElementById('viewer-img');
+    const src = (_currentServeUrl || img?.src || '').trim();
+    if (!src) return;
+    const fallback = (_currentFileName || 'image').replace(/[\\/:*?"<>|]+/g, '_');
+    try {
+        const r = await fetch(src, { credentials: 'same-origin' });
+        if (!r.ok) throw new Error('fetch failed');
+        const blob = await r.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = fallback;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (_) {
+        const a = document.createElement('a');
+        a.href = src; a.download = fallback; a.target = '_blank'; a.rel = 'noopener';
+        document.body.appendChild(a); a.click(); a.remove();
+    }
+};
 
 function _applyImgZoom() {
     const img   = document.getElementById('viewer-img');

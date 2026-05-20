@@ -7,8 +7,8 @@ use Illuminate\Console\Command;
 
 class CleanupExpiredPromptSessions extends Command
 {
-    protected $signature   = 'prompt-refiner:cleanup';
-    protected $description = '만료된 프롬프트 정제 세션을 expired 상태로 변경합니다.';
+    protected $signature   = 'prompt-sessions:cleanup';
+    protected $description = '만료된 프롬프트 세션(웍스 프롬프트 등)을 expired 상태로 변경합니다.';
 
     public function handle(): int
     {

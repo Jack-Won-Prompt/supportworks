@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\PromptSuffix;
 use App\Models\QuickPrompt;
-use App\Services\PromptRefiner\Llm\Exceptions\AllProvidersFailedException;
-use App\Services\PromptRefiner\Llm\Exceptions\LlmFatalException;
-use App\Services\PromptRefiner\Llm\LlmRequest;
-use App\Services\PromptRefiner\Llm\LlmRouter;
+use App\Services\Llm\Exceptions\AllProvidersFailedException;
+use App\Services\Llm\Exceptions\LlmFatalException;
+use App\Services\Llm\LlmRequest;
+use App\Services\Llm\LlmRouter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;

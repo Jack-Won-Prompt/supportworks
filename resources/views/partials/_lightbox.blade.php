@@ -9,8 +9,10 @@
 /* 이미지 리뷰 라이트박스 */
 #img-lightbox{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.82);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
 #img-lightbox.open{display:flex;}
+#img-lightbox.lb-full{background:rgba(0,0,0,.96);backdrop-filter:none;}
 @keyframes lb-in{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-#img-lb-container{display:flex;flex-direction:column;width:min(1100px,96vw);height:min(82vh,820px);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.45);animation:lb-in .18s ease;}
+#img-lb-container{display:flex;flex-direction:column;width:min(1100px,96vw);height:min(82vh,820px);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.45);animation:lb-in .18s ease;transition:width .2s ease,height .2s ease,border-radius .2s ease;}
+#img-lightbox.lb-full #img-lb-container{width:100vw;height:100vh;border-radius:0;box-shadow:none;}
 #img-lb-toolbar{display:flex;align-items:center;gap:4px;padding:0 14px;height:42px;background:rgba(12,9,26,.98);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06);border-radius:16px 16px 0 0;}
 #img-lb-body{display:flex;flex:1;min-height:0;overflow:hidden;}
 #img-lb-ann-svg{position:absolute;z-index:20;pointer-events:none;overflow:visible;}
@@ -65,6 +67,16 @@
             <button id="img-lb-close" onclick="closeLightbox()">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 {{ __('viewer.close') }}
+            </button>
+            <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 8px;"></div>
+            <button id="img-lb-download" onclick="lbDownloadImage()" title="{{ __('viewer.download') }}" style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.85);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+                {{ __('viewer.download') }}
+            </button>
+            <button id="img-lb-fullscreen" onclick="lbToggleFullscreen()" title="{{ __('viewer.fullscreen_title') }}" style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.85);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;margin-left:6px;">
+                <svg id="img-lb-fullscreen-icon-on"  width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <svg id="img-lb-fullscreen-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 0H5m4 4L4 4m11 5h4m0 0V5m0 4l5-5M9 15v4m0 0H5m4 0l-5 5m11-5h4m0 0v4m0-4l5 5"/></svg>
+                <span id="img-lb-fullscreen-label">{{ __('viewer.fullscreen') }}</span>
             </button>
             <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 8px;"></div>
             <span style="font-size:10px;font-weight:600;color:#6b7280;letter-spacing:.4px;margin-right:4px;">{{ __('viewer.ann_shapes') }}</span>
@@ -157,8 +169,11 @@ const LB_STR = {
     ann_text_title:        '{{ __("viewer.ann_text_title") }}',
     count_suffix:          '{{ __("viewer.count_suffix") }}',
     delete_title:          '{{ __("viewer.delete_title") }}',
+    fullscreen:            '{{ __("viewer.fullscreen") }}',
+    fullscreen_exit:       '{{ __("viewer.fullscreen_exit") }}',
 };
 let lbMsgId=null;
+let _lbCurrentSrc='',_lbCurrentName='';
 const _lbRenderedCommentIds=new Set();
 let _lbImgNatW=0,_lbImgNatH=0,lbImgScale=1.0,_lbImgFitMode=true,_lbSvgPosRaf=null;
 
@@ -268,6 +283,7 @@ async function _lbResetAnnState(){
 
 window.openLightbox=async function(src,alt,msgId){
     lbMsgId=msgId||null;
+    _lbCurrentSrc=src||'';_lbCurrentName=alt||'';
     _lbResetAnnState();
     document.getElementById('img-lightbox').classList.add('open');
     document.body.style.overflow='hidden';
@@ -283,9 +299,18 @@ window.openLightbox=async function(src,alt,msgId){
 };
 
 window.closeLightbox=async function(){
-    document.getElementById('img-lightbox').classList.remove('open');
+    const lb=document.getElementById('img-lightbox');
+    lb.classList.remove('open');
+    lb.classList.remove('lb-full');
+    _lbFull=false;
+    const iconOn =document.getElementById('img-lb-fullscreen-icon-on');
+    const iconOff=document.getElementById('img-lb-fullscreen-icon-off');
+    const fLabel =document.getElementById('img-lb-fullscreen-label');
+    if(iconOn) iconOn.style.display ='';
+    if(iconOff)iconOff.style.display='none';
+    if(fLabel) fLabel.textContent=LB_STR.fullscreen;
     document.body.style.overflow='';
-    lbMsgId=null;_lbRenderedCommentIds.clear();_lbResetAnnState();
+    lbMsgId=null;_lbCurrentSrc='';_lbCurrentName='';_lbRenderedCommentIds.clear();_lbResetAnnState();
     if(_lbReviewCollapsed){
         _lbReviewCollapsed=false;
         document.getElementById('img-lb-review').classList.remove('lb-collapsed');
@@ -612,9 +637,57 @@ document.getElementById('lb-ann-text-input').addEventListener('keydown',e=>{
 lbSetAnnColor('#ef4444');
 window.lbImgZoom=lbImgZoom;window.lbImgZoomFit=lbImgZoomFit;window.lbImgZoomOriginal=lbImgZoomOriginal;
 
-// ESC 키
+window.lbDownloadImage=async function(){
+    if(!_lbCurrentSrc)return;
+    const fallbackName=(_lbCurrentName||'image').replace(/[\\/:*?"<>|]+/g,'_');
+    try{
+        const r=await fetch(_lbCurrentSrc,{credentials:'same-origin'});
+        if(!r.ok)throw new Error('fetch failed');
+        const blob=await r.blob();
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download=fallbackName;
+        document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }catch(_){
+        const a=document.createElement('a');
+        a.href=_lbCurrentSrc;a.download=fallbackName;a.target='_blank';a.rel='noopener';
+        document.body.appendChild(a);a.click();a.remove();
+    }
+};
+
+let _lbFull=false;
+window.lbToggleFullscreen=async function(){
+    const lb=document.getElementById('img-lightbox');
+    if(!lb||!lb.classList.contains('open'))return;
+    _lbFull=!_lbFull;
+    lb.classList.toggle('lb-full',_lbFull);
+    const iconOn =document.getElementById('img-lb-fullscreen-icon-on');
+    const iconOff=document.getElementById('img-lb-fullscreen-icon-off');
+    const label  =document.getElementById('img-lb-fullscreen-label');
+    if(iconOn) iconOn.style.display =_lbFull?'none':'';
+    if(iconOff)iconOff.style.display=_lbFull?'':'none';
+    if(label)label.textContent=_lbFull?LB_STR.fullscreen_exit:LB_STR.fullscreen;
+    if(_lbImgFitMode){
+        setTimeout(()=>{lbImgZoomFit();requestAnimationFrame(_lbUpdateSvgPosition);},230);
+    }else{
+        setTimeout(()=>requestAnimationFrame(_lbUpdateSvgPosition),230);
+    }
+};
+
+// ESC / F 키
 document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&document.getElementById('img-lightbox')?.classList.contains('open')){closeLightbox();}
+    const lb=document.getElementById('img-lightbox');
+    if(!lb?.classList.contains('open'))return;
+    if(e.key==='Escape'){
+        if(_lbFull){e.preventDefault();lbToggleFullscreen();return;}
+        closeLightbox();return;
+    }
+    if((e.key==='f'||e.key==='F')&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+        const tag=(e.target?.tagName||'').toLowerCase();
+        if(tag==='input'||tag==='textarea'||e.target?.isContentEditable)return;
+        e.preventDefault();lbToggleFullscreen();
+    }
 });
 
 })();

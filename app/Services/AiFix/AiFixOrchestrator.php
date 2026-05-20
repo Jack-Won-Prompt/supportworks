@@ -74,6 +74,7 @@ final class AiFixOrchestrator
             coverageDeltaLines:       0,
             aiSelfUnsure:             $analysis->unsure,
             touchesSchema:            $this->touchesSchema($analysis->changedFiles),
+            hasExistingTests:         $this->hasExistingTests($analysis->changedFiles),
         );
 
         // ── 4) 평가 ─────────────────────────────────────────────────────────
@@ -114,6 +115,10 @@ final class AiFixOrchestrator
     /**
      * 관리자 승인. awaiting_approval -> applying 또는 ready_to_deploy -> deploying.
      * approvedBy 는 어떤 가드의 사용자든 id 만 받으면 됨 (admin_users.id).
+     *
+     * applying 진입 시 ApplyAiFixJob 자동 dispatch — worktree 생성 / 코드 적용 / 테스트 실행.
+     * deploying 진입 시 DeployAiFixJob 자동 dispatch — PR 머지 / SSH deploy.sh / 헬스체크.
+     * QUEUE_CONNECTION=sync 면 inline 실행.
      */
     public function approve(AiFixJob $job, int $adminUserId): AiFixJob
     {
@@ -132,6 +137,15 @@ final class AiFixOrchestrator
 
         // 다음 상태가 transient(applying/deploying)면 notifier 정책상 침묵.
         $this->notifier?->notify($job);
+
+        // applying 진입 시 후속 파이프라인(worktree·코드 적용·테스트) 시작.
+        if ($next === AiFixJob::STATUS_APPLYING) {
+            \App\Jobs\ApplyAiFixJob::dispatch($job->id);
+        }
+        // deploying 진입 시 PR 머지 + 운영 SSH deploy.sh 시작.
+        if ($next === AiFixJob::STATUS_DEPLOYING) {
+            \App\Jobs\DeployAiFixJob::dispatch($job->id);
+        }
 
         return $job;
     }
@@ -179,5 +193,40 @@ final class AiFixOrchestrator
             }
         }
         return false;
+    }
+
+    /**
+     * 변경 파일 *전부* 에 대응되는 기존 테스트 파일이 있으면 true.
+     * 매핑 규칙: app/Foo/Bar.php → tests/{Unit,Feature}/Foo/BarTest.php
+     * (PSR-4 컨벤션 기반; 둘 중 하나라도 존재하면 매칭으로 본다)
+     *
+     * 변경 파일이 0개거나, app/ 가 아닌 파일(blade/lang 등) 이면 그 파일은 검사 대상에서 제외.
+     * 모든 검사 대상 파일에 테스트가 있으면 true; 하나라도 없으면 false.
+     */
+    private function hasExistingTests(array $files): bool
+    {
+        $base = base_path();
+        $relevantCount = 0;
+        foreach ($files as $f) {
+            $norm = str_replace('\\', '/', (string) $f);
+            if (!str_starts_with($norm, 'app/')) {
+                continue;
+            }
+            $relevantCount++;
+            $rel = substr($norm, strlen('app/'));
+            $rel = preg_replace('/\.php$/', '', $rel);
+            $testRel = $rel . 'Test.php';
+            $candidates = [
+                $base . '/tests/Unit/'    . $testRel,
+                $base . '/tests/Feature/' . $testRel,
+            ];
+            $found = false;
+            foreach ($candidates as $c) {
+                if (file_exists($c)) { $found = true; break; }
+            }
+            if (!$found) return false;
+        }
+        // 검사 대상이 0개면 신호 발동 안 함 (기본값 true 유지)
+        return true;
     }
 }

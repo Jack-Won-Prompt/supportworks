@@ -206,6 +206,11 @@
                 ->get();
             $unreadMessages  = $myConvs->whereNull('type')->sum(fn($c) => $c->unreadCount(auth()->id()));
             $unreadInquiries = $myConvs->where('type', 'inquiry')->sum(fn($c) => $c->unreadCount(auth()->id()));
+
+            // Works Builder 읽지 않은 알림 수
+            $unreadWbNotifications = \Illuminate\Support\Facades\Schema::hasTable('wb_notifications')
+                ? \App\Models\WorksBuilder\Notification::where('recipient_id', auth()->id())->unread()->count()
+                : 0;
             $myConvIds         = $myConvs->pluck('id');
             $myInquiryConvIds  = $myConvs->where('type', 'inquiry')->pluck('id');
 
@@ -487,34 +492,39 @@
 
                     <div class="sidebar-divider"></div>
 
-                    {{-- Prompt Builder 섹션 --}}
-                    @if(auth()->user()->hasFeature('prompt_builder'))
+                    {{-- Works Builder 섹션 --}}
+                    @if(auth()->user()->hasFeature('works_builder'))
                     <div style="margin-bottom:4px;">
                         <div class="gsb-hide" style="padding:6px 10px 4px;">
-                            <span class="section-label">Prompt Builder</span>
+                            <span class="section-label">{{ __('app.nav_wb_section') }}</span>
                         </div>
-                        <a href="{{ route('builder.new') }}" class="sidebar-item {{ request()->routeIs('builder.new') || request()->routeIs('builder.wizard.*') ? 'active' : '' }}">
+                        <a href="{{ route('wb.tasks.create') }}" class="sidebar-item {{ request()->routeIs('wb.tasks.create') || request()->routeIs('wb.tasks.options.*') || request()->routeIs('wb.tasks.prompts.*') || request()->routeIs('wb.tasks.result-confirm.*') || request()->routeIs('wb.tasks.review.*') || request()->routeIs('wb.tasks.ng-input.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_builder_new') }}</span>
+                            <span class="gsb-hide">{{ __('app.nav_wb_new') }}</span>
                         </a>
-                        <a href="{{ route('builder.sequences.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.sequences.*') ? 'active' : '' }}">
+                        <a href="{{ route('wb.tasks.index') }}" class="sidebar-item {{ request()->routeIs('wb.tasks.index') || request()->routeIs('wb.tasks.show') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_builder_sequences') }}</span>
+                            <span class="gsb-hide">{{ __('app.nav_wb_in_progress') }}</span>
                         </a>
-                        <a href="{{ route('builder.history.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.history.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_builder_history') }}</span>
+                        <a href="{{ route('wb.tasks.completed') }}" class="sidebar-item {{ request()->routeIs('wb.tasks.completed') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                            <span class="gsb-hide">{{ __('app.nav_wb_completed') }}</span>
                         </a>
-                        <a href="{{ route('builder.feedback.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.feedback.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_builder_feedback') }}</span>
+                        <a href="{{ route('wb.checklists.entry') }}" class="sidebar-item {{ request()->routeIs('wb.checklists.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                            <span class="gsb-hide">{{ __('app.nav_wb_checklists') }}</span>
                         </a>
-                        <a href="{{ route('builder.templates.select-project') }}" class="sidebar-item {{ request()->routeIs('builder.templates.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_builder_templates') }}</span>
+                        <a href="{{ route('wb.ai-call-logs.index') }}" class="sidebar-item {{ request()->routeIs('wb.ai-call-logs.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            <span class="gsb-hide">웍스 호출 이력</span>
+                        </a>
+                        <a href="{{ route('wb.notifications.index') }}" class="sidebar-item {{ request()->routeIs('wb.notifications.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                            <span class="gsb-hide">{{ __('app.nav_wb_notifications') }}</span>
+                            <span id="sidebar-wb-badge" class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;display:{{ $unreadWbNotifications > 0 ? 'inline-block' : 'none' }};">{{ $unreadWbNotifications ?: '' }}</span>
                         </a>
                     </div>
-                    @endif {{-- prompt_builder feature --}}
+                    @endif {{-- works_builder feature --}}
 
                     <div class="sidebar-divider"></div>
 
@@ -530,7 +540,7 @@
                         </a>
                         @endif {{-- ai_chat feature --}}
                         @if(auth()->user()->hasFeature('prompt_agent'))
-                        <a href="{{ route('prompt-refiner.index') }}" class="sidebar-item {{ request()->routeIs('prompt-refiner.*') ? 'active' : '' }}">
+                        <a href="{{ route('works-prompt.index') }}" class="sidebar-item {{ request()->routeIs('works-prompt.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                             <span class="gsb-hide">{{ __('app.nav_prompt_agent') }}</span>
                         </a>

@@ -12,6 +12,9 @@ return [
     'greeting_wish'             => '오늘도 좋은 하루 되세요',
 
     // ── 통계 카드
+    'stat_today'                => '오늘 일정',
+    'stat_today_empty'          => '오늘 일정 없음',
+    'stat_today_breakdown'      => '회의 :meetings · 일정 :schedules · 마감 :actions',
     'stat_total_projects'       => '전체 프로젝트',
     'stat_active_count'         => '진행중',
     'stat_minutes_month'        => '이번달 회의록',
@@ -37,6 +40,11 @@ return [
     'no_files'                  => '미리볼 수 있는 파일이 없습니다.',
     'open_file'                 => '열기',
     'opinions'                  => '의견',
+    'fc_loading'                => '의견 불러오는 중…',
+    'fc_load_failed'            => '의견을 불러오지 못했습니다.',
+    'fc_empty'                  => '등록된 의견이 없습니다.',
+    'fc_page'                   => 'p.',
+    'fc_more'                   => '개 더',
 
     // ── 최근 회의록
     'recent_minutes'            => '최근 회의록',

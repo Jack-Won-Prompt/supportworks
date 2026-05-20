@@ -25,6 +25,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -1339,6 +1340,10 @@ class DeliverableController extends Controller
                 } else {
                     $val = $stepValueGetter($step['order'], $field['key']);
                 }
+                // FRS Step 1 — 사용자가 입력하지 않으면 FRS 산출물 자체에 대한 표준 소개 텍스트로 채움
+                if (!$val && $typeId === 'FRS' && $step['order'] === 1 && ($field['key'] ?? '') === 'ursRef') {
+                    $val = $this->buildFrsOverviewContent($isEn);
+                }
                 if (!$val) continue;
 
                 // 필드 레이블 번역
@@ -1932,6 +1937,21 @@ class DeliverableController extends Controller
         return response()->json(['ok' => true, 'registrations' => $rows]);
     }
 
+    public function destroyFileRegistration(Project $project, string $typeId, DeliverableFileRegistration $registration): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->firstOrFail();
+
+        abort_if($registration->deliverable_id !== $deliverable->id, 404);
+
+        $registration->delete();
+
+        return response()->json(['ok' => true]);
+    }
+
     /**
      * 산출물에 등록된 파일의 의견 목록 — 버전별로 정리하여 반환.
      * 모든 STEP의 팝오버에서 사용한다.
@@ -1987,6 +2007,7 @@ class DeliverableController extends Controller
                 'reflected'    => $reflected,
                 'reflected_by' => $c->reflectedBy?->name,
                 'reflected_at' => optional($c->reflected_at)->format('Y-m-d H:i'),
+                'applied_step' => $c->applied_step_order,
                 'replies'      => $c->replies->map(fn ($r) => [
                     'id'         => $r->id,
                     'content'    => $r->content,
@@ -2000,6 +2021,103 @@ class DeliverableController extends Controller
             'ok'          => true,
             'comments'    => $out,
             'unreflected' => $unreflected,
+        ]);
+    }
+
+    /**
+     * 프로젝트 파일의 버전 목록 — 등록 파일 의견 팝오버의 버전 선택 드롭다운에서 사용.
+     */
+    public function projectFileVersions(Project $project, string $typeId, ProjectFile $file): JsonResponse
+    {
+        $this->authorizeProject($project);
+        abort_unless($file->project_id === $project->id, 404);
+
+        $versions = $file->versions()
+            ->orderByDesc('version')
+            ->get(['id', 'version', 'change_note', 'uploaded_by', 'created_at'])
+            ->map(fn ($v) => [
+                'version'     => (int) $v->version,
+                'change_note' => $v->change_note,
+                'created_at'  => optional($v->created_at)->format('Y-m-d H:i'),
+            ]);
+
+        if ($versions->isEmpty()) {
+            // file_versions 가 비어 있는 경우 현재 파일 자체를 v1 로 표시
+            $versions = collect([[
+                'version'     => 1,
+                'change_note' => null,
+                'created_at'  => optional($file->updated_at)->format('Y-m-d H:i'),
+            ]]);
+        }
+
+        return response()->json(['ok' => true, 'versions' => $versions->values()]);
+    }
+
+    /**
+     * 등록 파일 의견 팝오버에서 프로젝트 파일+버전을 산출물에 매핑.
+     * 동일 (deliverable, file, version) 조합이 이미 있으면 스킵하고 already=true 반환.
+     */
+    public function linkProjectFile(Project $project, string $typeId, Request $request): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $typeDef = $this->config['deliverables'][$typeId] ?? null;
+        abort_if(!$typeDef, 404);
+
+        $data = $request->validate([
+            'project_file_id' => 'required|integer',
+            'file_version'    => 'required|integer|min:1',
+        ]);
+
+        $deliverable = Deliverable::firstOrCreate(
+            ['project_id' => $project->id, 'type_id' => $typeId],
+            ['current_step' => 1, 'status' => 'in_progress']
+        );
+
+        $file = ProjectFile::where('id', $data['project_file_id'])
+            ->where('project_id', $project->id)
+            ->first();
+        abort_unless($file, 404, '선택한 파일을 찾을 수 없습니다.');
+
+        $version = (int) $data['file_version'];
+        $maxVer  = (int) ($file->versions()->max('version') ?? 1);
+        if ($version < 1 || $version > $maxVer) {
+            return response()->json([
+                'ok' => false,
+                'message' => "버전 v{$version} 은(는) 이 파일에 존재하지 않습니다.",
+            ], 422);
+        }
+
+        $existing = DeliverableFileRegistration::where('deliverable_id', $deliverable->id)
+            ->where('project_file_id', $file->id)
+            ->where('file_version', $version)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'ok'        => true,
+                'already'   => true,
+                'message'   => "'{$file->original_name}' v{$version} 은(는) 이미 매핑되어 있습니다.",
+                'file_name' => $file->original_name,
+                'version'   => $version,
+            ]);
+        }
+
+        DeliverableFileRegistration::create([
+            'deliverable_id'  => $deliverable->id,
+            'project_file_id' => $file->id,
+            'file_version'    => $version,
+            'lang'            => 'ko',
+            'change_note'     => null,
+            'created_by'      => Auth::id(),
+        ]);
+
+        return response()->json([
+            'ok'        => true,
+            'already'   => false,
+            'message'   => "'{$file->original_name}' v{$version} 의 의견을 동기화했습니다.",
+            'file_name' => $file->original_name,
+            'version'   => $version,
         ]);
     }
 
@@ -2020,7 +2138,7 @@ class DeliverableController extends Controller
         abort_if($comment->parent_id !== null, 422, __('deliverables.fc_reply_no_reflect'));
 
         if ($comment->reflected_at) {
-            $comment->update(['reflected_at' => null, 'reflected_by' => null]);
+            $comment->update(['reflected_at' => null, 'reflected_by' => null, 'applied_step_order' => null]);
             $reflected = false;
         } else {
             $comment->update(['reflected_at' => now(), 'reflected_by' => Auth::id()]);
@@ -2032,6 +2150,287 @@ class DeliverableController extends Controller
             'reflected'    => $reflected,
             'reflected_by' => $reflected ? Auth::user()->name : null,
             'reflected_at' => $reflected ? $comment->reflected_at->format('Y-m-d H:i') : null,
+        ]);
+    }
+
+    /**
+     * 레거시 보강 — 이미 reflected 상태인데 applied_step_order 가 비어있는 의견에 대해
+     * AI 로 STEP 만 분석하여 채워준다 (본문은 손대지 않음).
+     */
+    public function analyzeCommentStepOnly(Project $project, string $typeId, FileComment $comment): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $typeDef = $this->config['deliverables'][$typeId] ?? null;
+        abort_if(!$typeDef, 404);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->firstOrFail();
+
+        $registered = DeliverableFileRegistration::where('deliverable_id', $deliverable->id)
+            ->where('project_file_id', $comment->project_file_id)
+            ->exists();
+        abort_unless($registered, 404);
+
+        if (!$comment->reflected_at || $comment->applied_step_order) {
+            return response()->json([
+                'ok'           => true,
+                'skipped'      => true,
+                'applied_step' => $comment->applied_step_order,
+            ]);
+        }
+
+        $analysis = $this->analyzeCommentTargetStep($deliverable, $typeDef, $comment);
+        if (!$analysis['ok']) {
+            return response()->json(['ok' => false, 'message' => $analysis['message']], 422);
+        }
+
+        $stepNo  = (int) $analysis['step_order'];
+        $stepDef = collect($typeDef['steps'])->firstWhere('order', $stepNo);
+
+        $comment->update(['applied_step_order' => $stepNo]);
+
+        return response()->json([
+            'ok'           => true,
+            'skipped'      => false,
+            'applied_step' => $stepNo,
+            'step_title'   => $stepDef['title'] ?? "STEP {$stepNo}",
+        ]);
+    }
+
+    /**
+     * 웍스 반영 — 의견을 AI로 분석해 가장 적합한 STEP/필드에 적용한 뒤 reflected 표시.
+     * 이미 반영된 의견을 다시 호출하면 reflected 만 토글 해제(본문 변경 없음).
+     */
+    public function applyCommentToStep(Project $project, string $typeId, FileComment $comment): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $typeDef = $this->config['deliverables'][$typeId] ?? null;
+        abort_if(!$typeDef, 404);
+
+        $deliverable = Deliverable::where('project_id', $project->id)
+            ->where('type_id', $typeId)
+            ->firstOrFail();
+
+        $registered = DeliverableFileRegistration::where('deliverable_id', $deliverable->id)
+            ->where('project_file_id', $comment->project_file_id)
+            ->exists();
+        abort_unless($registered, 404);
+        abort_if($comment->parent_id !== null, 422, __('deliverables.fc_reply_no_reflect'));
+
+        // 토글 해제 — applied_step_order 도 같이 정리
+        if ($comment->reflected_at) {
+            $comment->update(['reflected_at' => null, 'reflected_by' => null, 'applied_step_order' => null]);
+            return response()->json(['ok' => true, 'reflected' => false]);
+        }
+
+        $analysis = $this->analyzeCommentTargetStep($deliverable, $typeDef, $comment);
+        if (!$analysis['ok']) {
+            return response()->json(['ok' => false, 'message' => $analysis['message']], 422);
+        }
+
+        $stepNo    = (int) $analysis['step_order'];
+        $fieldKey  = (string) $analysis['field_key'];
+        $reason    = (string) ($analysis['reason'] ?? '');
+        $stepDef   = collect($typeDef['steps'])->firstWhere('order', $stepNo);
+        $fieldDef  = collect($stepDef['fields'] ?? [])->firstWhere('key', $fieldKey);
+
+        // 본문에 의견을 일반 텍스트로 추가 (직접 작성 의견과 동일한 형식)
+        $deliverable->load('stepData');
+        $current = (string) ($deliverable->getStepValue($stepNo, $fieldKey) ?? '');
+
+        $author = $comment->user?->name ?? $comment->guest_name ?? '외부 리뷰어';
+        $date   = optional($comment->created_at)->format('Y-m-d H:i');
+        $content = trim((string) $comment->content);
+        $line    = "{$author} ({$date}): {$content}";
+        $newVal  = (rtrim($current) === '' ? '' : rtrim($current) . "\n") . $line;
+
+        DeliverableStepData::updateOrCreate(
+            ['deliverable_id' => $deliverable->id, 'step_order' => $stepNo, 'field_key' => $fieldKey],
+            ['value' => $newVal]
+        );
+
+        $comment->update([
+            'reflected_at'       => now(),
+            'reflected_by'       => Auth::id(),
+            'applied_step_order' => $stepNo,
+        ]);
+
+        return response()->json([
+            'ok'           => true,
+            'reflected'    => true,
+            'reflected_by' => Auth::user()->name,
+            'reflected_at' => $comment->reflected_at->format('Y-m-d H:i'),
+            'step_order'   => $stepNo,
+            'step_title'   => $stepDef['title'] ?? "STEP {$stepNo}",
+            'field_key'    => $fieldKey,
+            'field_label'  => $fieldDef['label'] ?? $fieldKey,
+            'new_value'    => $newVal,
+            'reason'       => $reason,
+            'provider'     => $analysis['provider'] ?? null,
+        ]);
+    }
+
+    /**
+     * AI 로 의견의 대상 STEP·필드를 분석한다.
+     * 적합 후보(textarea/table 만)를 추려 LLM 에 제시하고 JSON 으로 step_order+field_key 를 받는다.
+     * AI 키가 없거나 응답 파싱 실패 시 현재 STEP 의 첫 textarea 로 폴백.
+     */
+    private function analyzeCommentTargetStep(Deliverable $deliverable, array $typeDef, FileComment $comment): array
+    {
+        // 텍스트 입력 가능한 필드(textarea / table)만 후보
+        $candidates = [];
+        foreach ($typeDef['steps'] as $s) {
+            foreach (($s['fields'] ?? []) as $f) {
+                if (in_array($f['type'] ?? 'textarea', ['textarea', 'table'], true)) {
+                    $candidates[] = [
+                        'step_order'  => (int) $s['order'],
+                        'step_title'  => $s['title'] ?? '',
+                        'step_desc'   => $s['description'] ?? '',
+                        'field_key'   => $f['key'],
+                        'field_label' => $f['label'] ?? $f['key'],
+                    ];
+                }
+            }
+        }
+
+        $fallback = $this->fallbackTargetField($deliverable, $candidates);
+
+        if (empty($candidates)) {
+            return ['ok' => false, 'message' => __('deliverables.fc_reflect_no_target')];
+        }
+
+        $aiSetting = AiSetting::current();
+        if (!$aiSetting->anthropicKey() && !$aiSetting->openaiKey() && !$aiSetting->manusKey()) {
+            // AI 키 없음 — 폴백 사용
+            return $fallback;
+        }
+
+        $stepsBlock = collect($candidates)->groupBy('step_order')->map(function ($items, $order) {
+            $first = $items->first();
+            $fields = $items->map(fn ($x) => "    - field_key={$x['field_key']} (label: {$x['field_label']})")->implode("\n");
+            return "- STEP {$order}: {$first['step_title']} — {$first['step_desc']}\n{$fields}";
+        })->values()->implode("\n");
+
+        $commentText = trim((string) $comment->content);
+
+        $system = "당신은 산출물 문서 구조 전문가입니다. 사용자의 리뷰 의견을 산출물의 가장 적합한 STEP과 필드에 반영해야 합니다.\n"
+                . "반드시 다음 형식으로만 응답하세요. 다른 설명은 금지합니다.\n"
+                . "<ANALYSIS>{\"step_order\": <int>, \"field_key\": \"<string>\", \"reason\": \"<짧은 이유 한 줄>\"}</ANALYSIS>";
+
+        $user = "산출물: {$typeDef['name']} ({$typeDef['shortName']})\n\n"
+              . "## 의견\n{$commentText}\n\n"
+              . "## STEP/필드 후보\n{$stepsBlock}\n\n"
+              . "위 의견을 가장 잘 반영할 수 있는 STEP 과 field_key 를 골라 ANALYSIS JSON 으로 응답하세요. "
+              . "field_key 는 위 후보 목록에서 정확히 한 개를 선택해야 합니다.";
+
+        try {
+            $orchestrator = new AiOrchestrator(
+                $aiSetting->anthropicKey(),
+                $aiSetting->openaiKey(),
+                $aiSetting->manusKey(),
+                $aiSetting->manusEndpoint(),
+            );
+            $result = $orchestrator->chatRawDirect(
+                [['role' => 'user', 'content' => $user]],
+                $system,
+            );
+            $text = (string) ($result['text'] ?? '');
+
+            $json = null;
+            if (preg_match('/<ANALYSIS>(.*?)<\/ANALYSIS>/s', $text, $m)) {
+                $json = trim($m[1]);
+            } elseif (preg_match('/\{[^{}]*"step_order"[^{}]*\}/s', $text, $m)) {
+                $json = $m[0];
+            }
+            $parsed = $json ? json_decode($json, true) : null;
+
+            if (is_array($parsed) && isset($parsed['step_order'], $parsed['field_key'])) {
+                $stepOrder = (int) $parsed['step_order'];
+                $fieldKey  = (string) $parsed['field_key'];
+                $match = collect($candidates)->first(fn ($c) =>
+                    $c['step_order'] === $stepOrder && $c['field_key'] === $fieldKey
+                );
+                if ($match) {
+                    return [
+                        'ok'         => true,
+                        'step_order' => $match['step_order'],
+                        'field_key'  => $match['field_key'],
+                        'reason'     => (string) ($parsed['reason'] ?? ''),
+                        'provider'   => $result['provider'] ?? null,
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('analyzeCommentTargetStep AI failure', ['err' => $e->getMessage()]);
+        }
+
+        // 폴백
+        return $fallback;
+    }
+
+    /** AI 가 불가하거나 응답이 부적합할 때, 현재 STEP 의 첫 textarea 필드를 대상으로 한다. */
+    private function fallbackTargetField(Deliverable $deliverable, array $candidates): array
+    {
+        $cur = (int) ($deliverable->current_step ?: 1);
+        $byStep = collect($candidates);
+        $picked = $byStep->firstWhere('step_order', $cur) ?? $byStep->first();
+        if (!$picked) {
+            return ['ok' => false, 'message' => __('deliverables.fc_reflect_no_target')];
+        }
+        return [
+            'ok'         => true,
+            'step_order' => $picked['step_order'],
+            'field_key'  => $picked['field_key'],
+            'reason'     => 'AI 비활성 — 현재 STEP 으로 폴백',
+            'provider'   => 'fallback',
+        ];
+    }
+
+    /**
+     * FRS(기능 요구사항 명세서) 자체에 대한 표준 소개 텍스트.
+     * Step 1 ursRef 가 비어 있을 때 export 단계에서만 사용 (DB 미저장).
+     */
+    private function buildFrsOverviewContent(bool $isEn): string
+    {
+        if ($isEn) {
+            return implode("\n\n", [
+                '> Functional Requirement Specifications (FRS) defines, in concrete and verifiable terms, the functions the system must perform.',
+                '## Purpose',
+                "- Translate user expectations (USR) into developer-actionable specifications\n"
+                . "- Define system behavior, inputs/outputs, and constraints unambiguously\n"
+                . "- Provide a shared baseline for development, testing, and acceptance",
+                '## Composition',
+                "- System functional architecture (modules/layers)\n"
+                . "- Data flow diagrams (DFD)\n"
+                . "- Functional specification per screen / function\n"
+                . "- Interface definitions (APIs and integrations)\n"
+                . "- Review and approval record",
+                '## Relationship with USR',
+                "- USR describes *what* users need.\n"
+                . "- FRS describes *how* the system will behave to satisfy USR.\n"
+                . "- Every USR requirement should be mapped to one or more FRS functions.",
+            ]);
+        }
+
+        return implode("\n\n", [
+            '> FRS(Functional Requirement Specifications)는 시스템이 수행해야 할 기능을 구체적이고 검증 가능한 형태로 정의한 문서입니다.',
+            '## 목적',
+            "- 사용자 요구(USR)를 개발자가 곧바로 구현할 수 있는 명세로 구체화\n"
+            . "- 시스템 동작·입출력·제약사항을 모호함 없이 정의\n"
+            . "- 개발·테스트·검수 단계의 공통 기준선을 제공",
+            '## 구성 항목',
+            "- 시스템 기능 아키텍처 (모듈/계층 구조)\n"
+            . "- 데이터 흐름도 (DFD)\n"
+            . "- 화면·기능별 기능 명세\n"
+            . "- 인터페이스 정의 (API · 연계 시스템)\n"
+            . "- 검토 및 확정 이력",
+            '## URS 와의 관계',
+            "- URS 는 사용자가 *무엇을* 원하는지 기술합니다.\n"
+            . "- FRS 는 그 요구를 만족시키기 위해 시스템이 *어떻게* 동작할지 명세합니다.\n"
+            . "- URS 의 모든 요구사항은 FRS 의 기능 항목으로 매핑되어야 합니다.",
         ]);
     }
 

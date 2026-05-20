@@ -119,6 +119,38 @@ return [
             'locale',
             'timezone',
         ],
+
+        // 비즈니스 로직 영역 (yellow) — 의도 변경 위험. 패턴 매칭.
+        // EscalationEvaluator 가 changedFiles 중 하나라도 매칭되면 'business_logic_modified' 발동.
+        'business_logic_paths' => [
+            'app/Services/**',
+            'app/Domain/**',
+            'app/Models/**/Concerns/**',
+        ],
+
+        // 운영 DB 실제 데이터 확인 필요 (yellow) — 키워드 매칭.
+        // 메시지가 "데이터 불일치 / 누락 레코드" 를 시사하면 AI 가 운영 DB 를 못 보므로 사람 필요.
+        'prod_data_keywords' => [
+            'row not found',
+            'no query results',
+            'duplicate entry',
+            'data inconsistency',
+            'integrity constraint',
+            'foreign key constraint',
+            'missing record',
+            'data corruption',
+        ],
+
+        // 여러 시스템 간 연관 (yellow) — 도메인 키워드를 그룹화. errorBlob 에
+        // 서로 다른 도메인 키워드가 2개 이상 동시에 매칭되면 'cross_system_concern' 발동.
+        'system_domains' => [
+            'auth'     => ['login', 'logout', 'authentication', 'auth guard'],
+            'payment'  => ['payment', 'billing', 'invoice', 'stripe', 'iamport'],
+            'queue'    => ['queue', 'job dispatched', 'failed_jobs'],
+            'fcm'      => ['firebase', 'fcm', 'push notification'],
+            'file'     => ['file upload', 'storage::disk', 'multipart'],
+            'realtime' => ['websocket', 'broadcast', 'pusher'],
+        ],
     ],
 
     /*

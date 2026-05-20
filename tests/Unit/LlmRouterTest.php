@@ -2,14 +2,14 @@
 
 namespace Tests\Unit;
 
-use App\Services\PromptRefiner\Llm\ClaudeProvider;
-use App\Services\PromptRefiner\Llm\Exceptions\AllProvidersFailedException;
-use App\Services\PromptRefiner\Llm\Exceptions\LlmFatalException;
-use App\Services\PromptRefiner\Llm\Exceptions\LlmRetryableException;
-use App\Services\PromptRefiner\Llm\LlmRequest;
-use App\Services\PromptRefiner\Llm\LlmResponse;
-use App\Services\PromptRefiner\Llm\LlmRouter;
-use App\Services\PromptRefiner\Llm\OpenAiProvider;
+use App\Services\Llm\ClaudeProvider;
+use App\Services\Llm\Exceptions\AllProvidersFailedException;
+use App\Services\Llm\Exceptions\LlmFatalException;
+use App\Services\Llm\Exceptions\LlmRetryableException;
+use App\Services\Llm\LlmRequest;
+use App\Services\Llm\LlmResponse;
+use App\Services\Llm\LlmRouter;
+use App\Services\Llm\OpenAiProvider;
 use Tests\TestCase;
 
 class LlmRouterTest extends TestCase
