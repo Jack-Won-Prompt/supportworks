@@ -5,6 +5,7 @@ namespace Tests\Unit\AiFix;
 use App\Models\AiFixJob;
 use App\Models\SystemErrorLog;
 use App\Services\AiFix\AiAnalyzer;
+use App\Services\AiFix\AiFixNotifier;
 use App\Services\AiFix\AiFixOrchestrator;
 use App\Services\AiFix\AnalysisResult;
 use App\Services\AiFix\EscalationEvaluator;
@@ -282,5 +283,92 @@ class AiFixOrchestratorTest extends TestCase
 
         $this->assertSame('[stub] guard against null', $job->proposed_fix_summary);
         $this->assertSame(['app/Http/Requests/A.php', 'app/Http/Requests/B.php'], $job->changed_files);
+    }
+
+    // ── 알림 hook (notifier 가 호출되는지) ───────────────────────────────────
+
+    /** notify() 호출을 기록만 하고 실제 FCM 은 안 보내는 스파이 */
+    private function spyNotifier(): AiFixNotifier
+    {
+        return new class extends AiFixNotifier {
+            public array $notified = [];
+            public function notify(\App\Models\AiFixJob $job): int
+            {
+                $this->notified[] = ['id' => $job->id, 'status' => $job->status];
+                return 1;
+            }
+        };
+    }
+
+    private function orchestratorWithNotifier(AnalysisResult $r, AiFixNotifier $n): AiFixOrchestrator
+    {
+        return new AiFixOrchestrator(
+            analyzer:  $this->fakeAnalyzer($r),
+            evaluator: EscalationEvaluator::fromConfig(),
+            notifier:  $n,
+        );
+    }
+
+    public function test_notifier_called_on_escalate(): void
+    {
+        $spy = $this->spyNotifier();
+        $analysis = new AnalysisResult(
+            category: 'null_check', confidence: 0.92,
+            changedFiles: ['app/Services/UserService.php'],
+            summary: '[stub]',
+        );
+        $job = $this->orchestratorWithNotifier($analysis, $spy)->analyzeError($this->makeError());
+
+        $this->assertSame(AiFixJob::STATUS_AWAITING_APPROVAL, $job->status);
+        $this->assertCount(1, $spy->notified);
+        $this->assertSame($job->id, $spy->notified[0]['id']);
+        $this->assertSame(AiFixJob::STATUS_AWAITING_APPROVAL, $spy->notified[0]['status']);
+    }
+
+    public function test_notifier_called_on_block(): void
+    {
+        $spy = $this->spyNotifier();
+        $analysis = new AnalysisResult(
+            category: 'unknown', confidence: 0.9,
+            changedFiles: ['app/Services/Payment/Foo.php'],
+            summary: '[stub]',
+        );
+        $job = $this->orchestratorWithNotifier($analysis, $spy)->analyzeError($this->makeError());
+
+        $this->assertSame(AiFixJob::STATUS_BLOCKED, $job->status);
+        $this->assertCount(1, $spy->notified);
+    }
+
+    public function test_notifier_called_on_auto_approved_but_real_notifier_would_short_circuit(): void
+    {
+        // orchestrator 는 항상 notifier->notify() 를 호출. 정책 필터는 notifier 안에서.
+        // (실제 AiFixNotifier 의 shouldNotify(auto_approved)=false 이므로 0 반환)
+        $spy = $this->spyNotifier();
+        $analysis = new AnalysisResult(
+            category: 'unknown', confidence: 0.95,
+            changedFiles: ['app/Http/Requests/LoginRequest.php'],
+            summary: '[stub]', unsure: false,
+        );
+        $job = $this->orchestratorWithNotifier($analysis, $spy)->analyzeError($this->makeError());
+
+        $this->assertSame(AiFixJob::STATUS_AUTO_APPROVED, $job->status);
+        $this->assertCount(1, $spy->notified);
+    }
+
+    public function test_notifier_not_called_for_existing_active_job(): void
+    {
+        $spy = $this->spyNotifier();
+        $err = $this->makeError();
+        $analysis = new AnalysisResult(
+            category: 'unknown', confidence: 0.9,
+            changedFiles: ['app/Services/UserService.php'],
+            summary: '[stub]',
+        );
+        $orch = $this->orchestratorWithNotifier($analysis, $spy);
+
+        $orch->analyzeError($err);
+        $orch->analyzeError($err);
+
+        $this->assertCount(1, $spy->notified, 'idempotent branch should skip notify on 2nd call');
     }
 }

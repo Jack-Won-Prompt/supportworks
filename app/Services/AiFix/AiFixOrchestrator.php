@@ -27,14 +27,17 @@ final class AiFixOrchestrator
     public function __construct(
         private readonly AiAnalyzer $analyzer,
         private readonly EscalationEvaluator $evaluator,
+        // 알림 발송 (null 이면 발송 생략 — 테스트 등에서 사용)
+        private readonly ?AiFixNotifier $notifier = null,
     ) {}
 
-    /** 컨테이너에서 자동 조립 (config + StubAiAnalyzer 기본) */
+    /** 컨테이너에서 자동 조립 (config + StubAiAnalyzer + AiFixNotifier 기본) */
     public static function default(): self
     {
         return new self(
             analyzer:  new StubAiAnalyzer(),
             evaluator: EscalationEvaluator::fromConfig(),
+            notifier:  new AiFixNotifier(),
         );
     }
 
@@ -100,6 +103,10 @@ final class AiFixOrchestrator
         }
 
         $job->transitionTo($next, $extras);
+
+        // 정책에 해당하는 상태(awaiting_approval / blocked / …) 면 관리자에게 알림.
+        // notifier 가 null 이면 침묵 (PoC/테스트 시 외부 발송 차단).
+        $this->notifier?->notify($job);
 
         return $job->fresh();
     }
