@@ -1,0 +1,125 @@
+<?php
+
+/*
+ * AI Fix 자동화 정책
+ *
+ * 시스템 에러를 AI가 자동 수정할지, 사람이 검토해야 할지를 결정하는 규칙 집합.
+ * EscalationEvaluator 가 이 설정을 읽어 FixContext 를 평가하고
+ * 'auto' / 'escalate' / 'block' 중 하나의 결정을 내린다.
+ *
+ * 결정 순서:
+ *   1) 변경 파일이 always_block 패턴에 매칭 → 'block' (사람 수동 처리)
+ *   2) red 신호가 하나라도 → 'escalate' (관리자 승인 필요)
+ *   3) yellow 신호 누적 >= yellow_threshold → 'escalate'
+ *   4) 모든 변경 파일이 auto_eligible 패턴에 매칭 + red 0 + yellow < threshold → 'auto'
+ *   5) 그 외 → 'escalate' (안전 기본값)
+ *
+ * 경로 패턴은 fnmatch() 구문 (* / ? / ** / [chars]).
+ */
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | 자동 수정 화이트리스트 (auto_eligible)
+    |--------------------------------------------------------------------------
+    | 변경 파일 *전체*가 이 패턴에 매칭되고 red/yellow 신호가 임계값 미만이면
+    | 관리자 승인 없이 PR 생성 + 자동 머지 가능 (운영 정책에 따라).
+    */
+    'auto_eligible' => [
+        'app/Http/Requests/**/*Request.php',
+        'resources/lang/**',
+        'resources/views/**/*.blade.php',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 절대 차단 (always_block)
+    |--------------------------------------------------------------------------
+    | 어떤 변경이든 이 경로에 영향을 주면 'block'. 자동 수정 불가, 사람 수동.
+    */
+    'always_block' => [
+        'app/Services/Payment/**',
+        'app/Services/Billing/**',
+        'app/Http/Middleware/Auth*.php',
+        'app/Http/Middleware/Admin*.php',
+        'database/migrations/**',
+        'config/database.php',
+        'config/auth.php',
+        'config/services.php',
+        '.env*',
+        'storage/app/firebase/**',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 보안/민감 키워드 (security_keywords)
+    |--------------------------------------------------------------------------
+    | 변경 파일 경로 또는 진단된 카테고리 문자열에 이 키워드가 있으면
+    | 자동으로 red 신호 'security_keyword_match' 추가.
+    */
+    'security_keywords' => [
+        'password',
+        'token',
+        'api_key',
+        'apikey',
+        'secret',
+        'permission',
+        'authorize',
+        'encrypt',
+        'decrypt',
+        'session',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 신호 임계값 (signals)
+    |--------------------------------------------------------------------------
+    */
+    'signals' => [
+
+        // 변경 파일 수 (red): 영향 범위가 너무 크면 즉시 사람.
+        'many_files_changed_threshold' => 5,
+
+        // AI 분류 신뢰도 (yellow): 0.0~1.0, 이 값 미만이면 신호 발동.
+        'classification_confidence_min' => 0.5,
+
+        // 같은 에러 반복 (yellow): 동일 fingerprint 가 최근 1시간 내 N회 이상.
+        'same_error_repeat_threshold' => 3,
+        'same_error_window_minutes'   => 60,
+
+        // 외부 API 의존 키워드 (yellow) — 스택트레이스/메시지에 매칭되면 발동.
+        'external_api_keywords' => [
+            'curl_exec',
+            'GuzzleHttp',
+            'Connection refused',
+            'cURL error',
+            'timed out',
+            'TLS handshake',
+            'SMTP',
+        ],
+
+        // 환경 의존 (yellow) — 재현 불가 가능성 시그널.
+        'env_specific_keywords' => [
+            'browser',
+            'user agent',
+            'platform',
+            'locale',
+            'timezone',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 결정 임계값 (decision)
+    |--------------------------------------------------------------------------
+    */
+    'decision' => [
+        // red 신호 1개라도 → escalate
+        'red_max'    => 0,
+
+        // yellow 신호가 이 개수 이상이면 escalate
+        'yellow_max' => 1,
+    ],
+
+];
