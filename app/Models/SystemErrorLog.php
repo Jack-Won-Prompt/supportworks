@@ -6,6 +6,8 @@ use App\Services\FcmService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SystemErrorLog extends Model
 {
@@ -179,8 +181,9 @@ class SystemErrorLog extends Model
     }
 
     /**
-     * 에러 수준(error/critical/alert/emergency) 발생 시 관리자 사용자(role=admin)에게 FCM 발송.
-     * 같은 (exception+file+line) 조합은 5분 쿨다운으로 스팸 방지.
+     * 에러 수준(error/critical/alert/emergency) 발생 시 관리자(role=admin)에게
+     * FCM + 이메일 동시 발송. 같은 (exception+file+line) 조합은 5분 쿨다운.
+     * 각 채널은 독립 try-catch — 한 채널 실패가 다른 채널 막지 않음.
      */
     protected static function notifyAdmins(self $log): void
     {
@@ -192,21 +195,59 @@ class SystemErrorLog extends Model
             if (Cache::has($cacheKey)) return;
             Cache::put($cacheKey, 1, 300);
 
-            $adminIds = User::where('role', 'admin')->pluck('id')->all();
-            if (empty($adminIds)) return;
+            $admins = User::where('role', 'admin')->get(['id', 'name', 'email']);
+            if ($admins->isEmpty()) return;
 
             $title = '시스템 에러 (' . $log->level . ')';
             $bodyShort = $log->exception
                 ? $log->exception . ': ' . mb_substr($log->message ?? '', 0, 100)
                 : mb_substr($log->message ?? '', 0, 140);
 
-            FcmService::notifyUsers($adminIds, $title, $bodyShort, [
-                'type'     => 'system_error',
-                'error_id' => (string) $log->id,
-                'level'    => (string) $log->level,
-            ]);
+            // 1) FCM (batch)
+            try {
+                FcmService::notifyUsers($admins->pluck('id')->all(), $title, $bodyShort, [
+                    'type'     => 'system_error',
+                    'error_id' => (string) $log->id,
+                    'level'    => (string) $log->level,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('[SystemErrorLog] FCM 발송 실패: ' . $e->getMessage());
+            }
+
+            // 2) Email (admin 별 개별 발송, 한 명 실패해도 나머지 계속)
+            $emailBody = static::buildAdminEmailBody($log);
+            foreach ($admins as $admin) {
+                if (empty($admin->email)) continue;
+                try {
+                    Mail::raw($emailBody, function ($m) use ($admin, $title) {
+                        $m->to($admin->email, $admin->name ?? null)
+                          ->subject('[SupportWorks] ' . $title);
+                    });
+                } catch (\Throwable $e) {
+                    Log::warning("[SystemErrorLog] email to {$admin->email} 실패: " . $e->getMessage());
+                }
+            }
         } catch (\Throwable) {
-            // 알림 실패는 무시 — 에러 로그 자체 기록은 성공해야 함
+            // 채널 외부 실패는 무시 — 에러 로그 자체 기록은 성공해야 함
         }
+    }
+
+    /** 관리자 이메일 본문 (plain text). APP_URL 있으면 admin 상세 링크 포함. */
+    protected static function buildAdminEmailBody(self $log): string
+    {
+        $appUrl    = rtrim((string) config('app.url'), '/');
+        $detailUrl = $appUrl !== '' ? "$appUrl/admin/system-errors/{$log->id}" : '';
+
+        return implode("\n", array_filter([
+            '시스템 에러가 발생했습니다.',
+            '',
+            'Level     : ' . $log->level,
+            'Exception : ' . ($log->exception ?? '-'),
+            'Message   : ' . mb_substr($log->message ?? '', 0, 500),
+            'File      : ' . ($log->file ?? '-') . ($log->line ? ':' . $log->line : ''),
+            'Occurred  : ' . optional($log->created_at)->toIso8601String(),
+            $detailUrl !== '' ? '' : null,
+            $detailUrl !== '' ? "Detail    : $detailUrl" : null,
+        ], fn ($x) => $x !== null));
     }
 }
