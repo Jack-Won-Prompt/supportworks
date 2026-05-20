@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\SystemErrorLog;
 
 /**
- * 웍스 요청 오케스트레이터 — 모든 기능에 Claude → OpenAI → Manus 폴백 적용
+ * 웍스 요청 오케스트레이터 — 모든 기능에 OpenAI → Anthropic(Claude) → Manus 폴백 적용.
+ * Anthropic 결제 이슈 우회 정책에 따라 OpenAI 가 primary. 결제 복구 시 swap 또는 config 플래그화 검토.
  */
 class AiOrchestrator
 {
@@ -14,7 +15,7 @@ class AiOrchestrator
     public const PROVIDER_OPENAI = 'openai';
     public const PROVIDER_MANUS  = 'manus';
 
-    private const NO_KEY_MESSAGE = '사용 가능한 웍스 API 키가 없습니다. 설정에서 Anthropic 또는 OpenAI API 키를 등록하세요.';
+    private const NO_KEY_MESSAGE = '사용 가능한 웍스 API 키가 없습니다. 설정에서 OpenAI 또는 Anthropic API 키를 등록하세요.';
 
     public function __construct(
         private ?string $anthropicKey,
@@ -31,7 +32,7 @@ class AiOrchestrator
     }
 
     /**
-     * 코드 생성용. Claude → OpenAI → Manus 순으로 시도합니다.
+     * 코드 생성용. OpenAI → Claude → Manus 순으로 시도합니다.
      *
      * @return array{result: array, provider: string}
      */
@@ -39,22 +40,22 @@ class AiOrchestrator
     {
         $lastException = null;
 
-        if ($this->anthropicKey) {
-            try {
-                $result = (new ClaudeService($this->anthropicKey))->chat($messages, $figmaContext, $systemOverride);
-                return ['result' => $result, 'provider' => self::PROVIDER_CLAUDE];
-            } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] Claude chat 실패, OpenAI 폴백: ' . $e->getMessage());
-                $lastException = $e;
-            }
-        }
-
         if ($this->openaiKey) {
             try {
                 $result = (new OpenAiService($this->openaiKey))->chat($messages, $figmaContext, $systemOverride);
                 return ['result' => $result, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] OpenAI chat 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chat 실패, Claude 폴백: ' . $e->getMessage());
+                $lastException = $e;
+            }
+        }
+
+        if ($this->anthropicKey) {
+            try {
+                $result = (new ClaudeService($this->anthropicKey))->chat($messages, $figmaContext, $systemOverride);
+                return ['result' => $result, 'provider' => self::PROVIDER_CLAUDE];
+            } catch (\Throwable $e) {
+                self::warnAndRecord('[AiOrchestrator] Claude chat 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -76,7 +77,7 @@ class AiOrchestrator
     }
 
     /**
-     * 프롬프트 정제용. Claude → OpenAI → Manus 순으로 시도합니다.
+     * 프롬프트 정제용. OpenAI → Claude → Manus 순으로 시도합니다.
      *
      * @return array{result: array, provider: string}
      */
@@ -84,22 +85,22 @@ class AiOrchestrator
     {
         $lastException = null;
 
-        if ($this->anthropicKey) {
-            try {
-                $result = (new ClaudeService($this->anthropicKey))->refinePrompt($userInput, $existing);
-                return ['result' => $result, 'provider' => self::PROVIDER_CLAUDE];
-            } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] Claude refine 실패, OpenAI 폴백: ' . $e->getMessage());
-                $lastException = $e;
-            }
-        }
-
         if ($this->openaiKey) {
             try {
                 $result = (new OpenAiService($this->openaiKey))->refinePrompt($userInput, $existing);
                 return ['result' => $result, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] OpenAI refine 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI refine 실패, Claude 폴백: ' . $e->getMessage());
+                $lastException = $e;
+            }
+        }
+
+        if ($this->anthropicKey) {
+            try {
+                $result = (new ClaudeService($this->anthropicKey))->refinePrompt($userInput, $existing);
+                return ['result' => $result, 'provider' => self::PROVIDER_CLAUDE];
+            } catch (\Throwable $e) {
+                self::warnAndRecord('[AiOrchestrator] Claude refine 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -122,7 +123,7 @@ class AiOrchestrator
     }
 
     /**
-     * 대용량 HTML 생성용. Claude → OpenAI → Manus 순으로 시도합니다. (16000 tokens)
+     * 대용량 HTML 생성용. OpenAI → Claude → Manus 순으로 시도합니다. (16000 tokens)
      *
      * @return array{text: string, provider: string}
      */
@@ -130,22 +131,22 @@ class AiOrchestrator
     {
         $lastException = null;
 
-        if ($this->anthropicKey) {
-            try {
-                $text = (new ClaudeService($this->anthropicKey))->chatRawLarge($messages, $systemPrompt);
-                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
-            } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] Claude chatRawLarge 실패, OpenAI 폴백: ' . $e->getMessage());
-                $lastException = $e;
-            }
-        }
-
         if ($this->openaiKey) {
             try {
                 $text = (new OpenAiService($this->openaiKey))->chatRawLarge($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawLarge 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawLarge 실패, Claude 폴백: ' . $e->getMessage());
+                $lastException = $e;
+            }
+        }
+
+        if ($this->anthropicKey) {
+            try {
+                $text = (new ClaudeService($this->anthropicKey))->chatRawLarge($messages, $systemPrompt);
+                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
+            } catch (\Throwable $e) {
+                self::warnAndRecord('[AiOrchestrator] Claude chatRawLarge 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -162,12 +163,12 @@ class AiOrchestrator
         }
 
         throw $lastException ?? new \RuntimeException(
-            '사용 가능한 웍스 API 키가 없습니다. 설정에서 Anthropic, OpenAI 또는 Manus API 키를 등록하세요.'
+            '사용 가능한 웍스 API 키가 없습니다. 설정에서 OpenAI, Anthropic 또는 Manus API 키를 등록하세요.'
         );
     }
 
     /**
-     * 텍스트 생성용. Claude → OpenAI → Manus 순으로 시도합니다.
+     * 텍스트 생성용. OpenAI → Claude → Manus 순으로 시도합니다.
      *
      * @return array{text: string, provider: string}
      */
@@ -175,22 +176,22 @@ class AiOrchestrator
     {
         $lastException = null;
 
-        if ($this->anthropicKey) {
-            try {
-                $text = (new ClaudeService($this->anthropicKey))->chatRaw($messages, $systemPrompt);
-                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
-            } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] Claude chatRawDirect 실패, OpenAI 폴백: ' . $e->getMessage());
-                $lastException = $e;
-            }
-        }
-
         if ($this->openaiKey) {
             try {
                 $text = (new OpenAiService($this->openaiKey))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawDirect 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawDirect 실패, Claude 폴백: ' . $e->getMessage());
+                $lastException = $e;
+            }
+        }
+
+        if ($this->anthropicKey) {
+            try {
+                $text = (new ClaudeService($this->anthropicKey))->chatRaw($messages, $systemPrompt);
+                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
+            } catch (\Throwable $e) {
+                self::warnAndRecord('[AiOrchestrator] Claude chatRawDirect 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -210,29 +211,28 @@ class AiOrchestrator
     }
 
     /**
-     * 빠른 정제·요약용 — Claude Haiku → OpenAI gpt-4o-mini 폴백.
-     * Sonnet 4.6 기준 대비 응답 속도 2~3배.
+     * 빠른 정제·요약용 — OpenAI gpt-4o-mini → Claude Haiku 폴백.
      */
     public function chatRawFast(array $messages, string $systemPrompt): array
     {
         $lastException = null;
-
-        if ($this->anthropicKey) {
-            try {
-                $text = (new ClaudeService($this->anthropicKey))->chatRawFast($messages, $systemPrompt);
-                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
-            } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] Claude chatRawFast 실패, OpenAI 폴백: ' . $e->getMessage());
-                $lastException = $e;
-            }
-        }
 
         if ($this->openaiKey) {
             try {
                 $text = (new OpenAiService($this->openaiKey))->chatRawFast($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawFast 실패: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRawFast 실패, Claude 폴백: ' . $e->getMessage());
+                $lastException = $e;
+            }
+        }
+
+        if ($this->anthropicKey) {
+            try {
+                $text = (new ClaudeService($this->anthropicKey))->chatRawFast($messages, $systemPrompt);
+                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
+            } catch (\Throwable $e) {
+                self::warnAndRecord('[AiOrchestrator] Claude chatRawFast 실패: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -241,7 +241,7 @@ class AiOrchestrator
     }
 
     /**
-     * 산출물 단계 초안 생성 — Claude → OpenAI → Manus 순으로 시도합니다.
+     * 산출물 단계 초안 생성 — OpenAI → Claude → Manus 순으로 시도합니다.
      *
      * @param  array  $fieldSchema  JSON Schema {type, properties, required}
      * @return array{fields: array, provider: string}
@@ -249,6 +249,17 @@ class AiOrchestrator
     public function generateDraft(string $systemPrompt, string $userPrompt, array $fieldSchema): array
     {
         $lastException = null;
+
+        if ($this->openaiKey) {
+            try {
+                $fields = (new OpenAiService($this->openaiKey))
+                    ->generateDraftFields($systemPrompt, $userPrompt, $fieldSchema);
+                return ['fields' => $fields, 'provider' => self::PROVIDER_OPENAI];
+            } catch (\Throwable $e) {
+                self::warnAndRecord('[AiOrchestrator] OpenAI generateDraft 실패, Claude 폴백: ' . $e->getMessage());
+                $lastException = $e;
+            }
+        }
 
         if ($this->anthropicKey) {
             try {
@@ -266,18 +277,7 @@ class AiOrchestrator
                     );
                 return ['fields' => $response->toolInput, 'provider' => self::PROVIDER_CLAUDE];
             } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] Claude generateDraft 실패, OpenAI 폴백: ' . $e->getMessage());
-                $lastException = $e;
-            }
-        }
-
-        if ($this->openaiKey) {
-            try {
-                $fields = (new OpenAiService($this->openaiKey))
-                    ->generateDraftFields($systemPrompt, $userPrompt, $fieldSchema);
-                return ['fields' => $fields, 'provider' => self::PROVIDER_OPENAI];
-            } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] OpenAI generateDraft 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] Claude generateDraft 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -309,7 +309,7 @@ class AiOrchestrator
     }
 
     /**
-     * 문서/텍스트 생성용. Claude → OpenAI → Manus 순으로 시도합니다.
+     * 문서/텍스트 생성용. OpenAI → Claude → Manus 순으로 시도합니다.
      *
      * @return array{text: string, provider: string}
      */
@@ -317,22 +317,22 @@ class AiOrchestrator
     {
         $lastException = null;
 
-        if ($this->anthropicKey) {
-            try {
-                $text = (new ClaudeService($this->anthropicKey))->chatRaw($messages, $systemPrompt);
-                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
-            } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] Claude chatRaw 실패, OpenAI 폴백: ' . $e->getMessage());
-                $lastException = $e;
-            }
-        }
-
         if ($this->openaiKey) {
             try {
                 $text = (new OpenAiService($this->openaiKey))->chatRaw($messages, $systemPrompt);
                 return ['text' => $text, 'provider' => self::PROVIDER_OPENAI];
             } catch (\Throwable $e) {
-                self::warnAndRecord('[AiOrchestrator] OpenAI chatRaw 실패, Manus 폴백: ' . $e->getMessage());
+                self::warnAndRecord('[AiOrchestrator] OpenAI chatRaw 실패, Claude 폴백: ' . $e->getMessage());
+                $lastException = $e;
+            }
+        }
+
+        if ($this->anthropicKey) {
+            try {
+                $text = (new ClaudeService($this->anthropicKey))->chatRaw($messages, $systemPrompt);
+                return ['text' => $text, 'provider' => self::PROVIDER_CLAUDE];
+            } catch (\Throwable $e) {
+                self::warnAndRecord('[AiOrchestrator] Claude chatRaw 실패, Manus 폴백: ' . $e->getMessage());
                 $lastException = $e;
             }
         }
@@ -349,7 +349,7 @@ class AiOrchestrator
         }
 
         throw $lastException ?? new \RuntimeException(
-            '사용 가능한 웍스 API 키가 없습니다. 설정에서 Anthropic, OpenAI 또는 Manus API 키를 등록하세요.'
+            '사용 가능한 웍스 API 키가 없습니다. 설정에서 OpenAI, Anthropic 또는 Manus API 키를 등록하세요.'
         );
     }
 }
