@@ -114,6 +114,35 @@ class SystemErrorLog extends Model
         return $out;
     }
 
+    /**
+     * 브라우저(또는 모바일) 클라이언트에서 발생한 JS/Dart 에러를 기록.
+     * Throwable 인스턴스가 없으니 record() 대신 이 메서드 사용.
+     *
+     * notifyAdmins / maybeTriggerAiFix 동일하게 호출 — level=error 이면 FCM 발송.
+     * (자동 AI Fix 트리거는 config('ai-fix.auto_trigger')=false default 라서 침묵)
+     *
+     * @param  array{exception?:string, message?:string, file?:string, line?:int, trace?:string, context?:array}  $data
+     */
+    public static function recordClient(array $data, string $level = 'error'): void
+    {
+        try {
+            $log = static::create([
+                'level'     => $level,
+                'exception' => mb_substr((string) ($data['exception'] ?? 'ClientError'), 0, 255),
+                'message'   => mb_substr((string) ($data['message']   ?? ''), 0, 65535),
+                'file'      => mb_substr((string) ($data['file']      ?? ''), 0, 255),
+                'line'      => isset($data['line']) ? (int) $data['line'] : null,
+                'trace'     => mb_substr((string) ($data['trace']     ?? ''), 0, 65535),
+                'context'   => is_array($data['context'] ?? null) ? $data['context'] : [],
+            ]);
+
+            static::notifyAdmins($log);
+            static::maybeTriggerAiFix($log);
+        } catch (\Throwable) {
+            // 에러 기록 중 에러는 조용히 무시 (무한 루프 방지)
+        }
+    }
+
     /** 예외 없이 info/warning 메시지를 DB에 기록 */
     public static function log(string $level, string $message, array $context = []): void
     {

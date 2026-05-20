@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials._client-error-reporter')
     @stack('styles')
     @php
         $__hYear = (int)date('Y');

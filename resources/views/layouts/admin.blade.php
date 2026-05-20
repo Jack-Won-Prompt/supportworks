@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <script>window.broadcastAuthPath = '{{ request()->getBasePath() }}/broadcasting/auth';</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials._client-error-reporter')
     @stack('styles')
     @php
         $__hYear = (int)date('Y');

@@ -127,6 +127,12 @@ Route::get('/healthz', function () {
     ], $allOk ? 200 : 503);
 });
 
+// 브라우저(또는 모바일) 클라이언트 JS/Dart 에러 수집 — 인증 없음 (anonymous 도 보낼 수 있어야).
+// CSRF 면제는 bootstrap/app.php 의 validateCsrfTokens(except:) 에서 처리.
+// throttle: IP 당 분당 60회 (브라우저 1대가 도배할 수 있는 합리적 상한).
+Route::post('/client-errors', [\App\Http\Controllers\ClientErrorController::class, 'store'])
+    ->middleware('throttle:60,1');
+
 // 언어 전환
 Route::post('/locale', function (\Illuminate\Http\Request $request) {
     $locale = $request->input('locale', config('app.locale'));

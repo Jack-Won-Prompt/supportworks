@@ -26,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.token'  => \App\Http\Middleware\AdminTokenMiddleware::class,
             'admin.role'   => \App\Http\Middleware\AdminRoleMiddleware::class,
         ]);
-        $middleware->validateCsrfTokens(except: ['collab/heartbeat']);
+        $middleware->validateCsrfTokens(except: ['collab/heartbeat', 'client-errors']);
         $middleware->encryptCookies(except: ['app_locale']);
         $middleware->appendToGroup('web', \App\Http\Middleware\SetLocale::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\LogPageAccess::class);
