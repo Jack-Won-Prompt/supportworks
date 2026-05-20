@@ -18,10 +18,21 @@ class OpenAiProvider implements AIProvider
     private const DEFAULT_TIMEOUT    = 240;
 
     public function __construct(
-        private readonly string $apiKey,
+        private readonly ?string $apiKey = null,
         private readonly string $model = 'gpt-4o',
         private readonly string $baseUrl = 'https://api.openai.com/v1',
     ) {}
+
+    /** API 호출 직전에만 호출. boot 자체는 깨지 않게 lazy 검증. */
+    private function ensureApiKey(): string
+    {
+        if ($this->apiKey === null || $this->apiKey === '') {
+            throw new \RuntimeException(
+                'OpenAI API key not configured. Set it in AiSetting (admin) or OPENAI_API_KEY env.'
+            );
+        }
+        return $this->apiKey;
+    }
 
     public function generate(string $systemPrompt, array $messages, array $options = []): AIResponse
     {
@@ -87,7 +98,7 @@ class OpenAiProvider implements AIProvider
 
         $response = Http::withOptions(['verify' => false, 'stream' => true])
             ->withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer ' . $this->ensureApiKey(),
                 'Content-Type'  => 'application/json',
             ])
             ->timeout($timeout)
@@ -189,7 +200,7 @@ class OpenAiProvider implements AIProvider
     {
         $res = Http::withOptions(['verify' => false])
             ->withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer ' . $this->ensureApiKey(),
                 'Content-Type'  => 'application/json',
             ])
             ->timeout($timeout)

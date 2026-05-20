@@ -37,7 +37,7 @@ IFS=$'\n\t'
 # ── Config (env overridable) ─────────────────────────────────────────────────
 APP_ROOT="${APP_ROOT:-$(pwd)}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/supportworks}"
-HEALTH_URL="${HEALTH_URL:-http://localhost/healthz}"
+HEALTH_URL="${HEALTH_URL:-https://localhost/healthz}"
 PHP_FPM_SOCK="${PHP_FPM_SOCK:-/run/php/php8.3-fpm.sock}"
 PHP_FPM_SERVICE="${PHP_FPM_SERVICE:-php8.3-fpm}"
 BRANCH="master"
@@ -236,7 +236,7 @@ for attempt in 1 2 3; do
         HEALTH_OK=1
         break
     fi
-    if curl -fsS --max-time 10 "$HEALTH_URL" > /tmp/healthz.out 2>&1; then
+    if curl -fsSk --max-time 10 "$HEALTH_URL" > /tmp/healthz.out 2>&1; then
         ok "healthz: $(cat /tmp/healthz.out)"
         HEALTH_OK=1
         rm -f /tmp/healthz.out
@@ -282,7 +282,7 @@ if [ "$HEALTH_OK" -ne 1 ]; then
 
     # Verify rollback healthz
     sleep 2
-    if curl -fsS --max-time 10 "$HEALTH_URL" > /dev/null 2>&1; then
+    if curl -fsSk --max-time 10 "$HEALTH_URL" > /dev/null 2>&1; then
         ok "rollback healthz OK"
         exit 4
     else

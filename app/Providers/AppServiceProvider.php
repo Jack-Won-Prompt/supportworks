@@ -206,8 +206,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(DesignSystemTemplateService::class, fn() => new DesignSystemTemplateService());
 
         $this->app->singleton(DesignSystemAiService::class, fn($app) => new DesignSystemAiService(
-            provider: new \App\Services\Agent\AnthropicProvider(
-                \App\Models\AiSetting::current()->anthropicKey()
+            // Claude (Anthropic) primary, OpenAI secondary. AnthropicProvider 가
+            // 실패하면(키 미설정 / API 장애 등) FallbackAIProvider 가 자동으로 OpenAI 로 재시도.
+            // 둘 다 키 없으면 사용 시점에 명시적 RuntimeException — boot 자체는 통과.
+            provider: new \App\Services\Agent\FallbackAIProvider(
+                primary:   new \App\Services\Agent\AnthropicProvider(
+                    \App\Models\AiSetting::current()->anthropicKey()
+                ),
+                secondary: new \App\Services\Agent\OpenAiProvider(
+                    \App\Models\AiSetting::current()->openaiKey()
+                ),
             ),
             usageLog: $app->make(AgentUsageLogService::class),
         ));

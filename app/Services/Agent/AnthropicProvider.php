@@ -15,7 +15,21 @@ class AnthropicProvider implements AIProvider
     private const DEFAULT_MAX_TOKENS = 16000;
     private const DEFAULT_TIMEOUT    = 240;
 
-    public function __construct(private readonly string $apiKey) {}
+    public function __construct(private readonly ?string $apiKey = null) {}
+
+    /**
+     * 실제 API 호출 직전에만 호출. 키가 없으면 명시적 예외 — boot 자체는 깨지 않게.
+     * (AiSetting 미설정/ai_settings 테이블 비어있는 환경에서도 application 부팅 가능)
+     */
+    private function ensureApiKey(): string
+    {
+        if ($this->apiKey === null || $this->apiKey === '') {
+            throw new \RuntimeException(
+                'Anthropic API key not configured. Set it in AiSetting (admin 패널) or ANTHROPIC_API_KEY env.'
+            );
+        }
+        return $this->apiKey;
+    }
 
     public function generate(string $systemPrompt, array $messages, array $options = []): AIResponse
     {
@@ -83,7 +97,7 @@ class AnthropicProvider implements AIProvider
 
         $response = Http::withOptions(['verify' => false, 'stream' => true])
             ->withHeaders([
-                'x-api-key'         => $this->apiKey,
+                'x-api-key'         => $this->ensureApiKey(),
                 'anthropic-version' => '2023-06-01',
                 'content-type'      => 'application/json',
             ])
@@ -223,7 +237,7 @@ class AnthropicProvider implements AIProvider
 
         $res = Http::withOptions(['verify' => false])
             ->withHeaders([
-                'x-api-key'         => $this->apiKey,
+                'x-api-key'         => $this->ensureApiKey(),
                 'anthropic-version' => '2023-06-01',
                 'content-type'      => 'application/json',
             ])
