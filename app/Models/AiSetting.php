@@ -10,7 +10,14 @@ class AiSetting extends Model
 
     public static function current(): self
     {
-        return self::firstOrCreate([]);
+        // 테이블이 아직 없는 시점(마이그레이션 직전, 신규 환경, 복구 중)에도
+        // artisan 부팅이 막히지 않도록 방어. fallback 인스턴스는 저장되지 않으며
+        // 모든 키 조회는 anthropicKey() 등의 env() fallback 경로로 떨어진다.
+        try {
+            return self::firstOrCreate([]);
+        } catch (\Throwable) {
+            return new self();
+        }
     }
 
     private function safeDecrypt(?string $value): ?string
