@@ -81,6 +81,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(OpenAiProvider::class);
         $this->app->singleton(LlmRouter::class);
 
+        // AI Fix 파이프라인 (PoC: stub 분석기). 추후 ClaudeAiAnalyzer 로 교체.
+        $this->app->bind(\App\Services\AiFix\AiAnalyzer::class, \App\Services\AiFix\StubAiAnalyzer::class);
+        $this->app->singleton(\App\Services\AiFix\EscalationEvaluator::class,
+            fn() => \App\Services\AiFix\EscalationEvaluator::fromConfig());
+        $this->app->singleton(\App\Services\AiFix\AiFixOrchestrator::class);
+
         // Agent Session 용 AIProvider Factory — config('ai-agent') 기반
         $this->app->singleton(AiProviderFactory::class);
 
