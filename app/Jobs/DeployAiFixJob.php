@@ -104,6 +104,7 @@ class DeployAiFixJob implements ShouldQueue
             $job->transitionTo(AiFixJob::STATUS_DEPLOYED, [
                 'deployed_commit' => $merge->mergedSha,
                 'deployed_at'     => now(),
+                'pr_url'          => $merge->prUrl,
                 'test_result'     => $testResult,
             ]);
         } elseif ($deploy->rolledBack) {

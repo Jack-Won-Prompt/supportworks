@@ -173,11 +173,35 @@ class SystemErrorLog extends Model
             $critical = ['error', 'critical', 'alert', 'emergency'];
             if (!in_array($log->level, $critical, true)) return;
 
+            // 메타 루프 가드: AI Fix 시스템 자체에서 발생한 에러는 분석 대상에서 제외.
+            // (AiFix 가 자기 결함을 자기가 또 fix 시도하는 무한 루프 방지 — E2E 검증 중
+            // 발견된 결함, 2026-05-21)
+            if (static::isAiFixInternalError($log)) return;
+
             \App\Jobs\AnalyzeSystemErrorJob::dispatch($log->id);
         } catch (\Throwable) {
             // 트리거 실패는 무시 — 에러 기록 자체는 이미 성공했고
             // 운영자가 ai-fix:analyze 로 수동 트리거 가능
         }
+    }
+
+    /**
+     * 에러가 AI Fix 시스템 내부에서 발생했는지 판정. 메타 루프 방지용.
+     */
+    protected static function isAiFixInternalError(self $log): bool
+    {
+        $file = (string) ($log->file ?? '');
+        $msg  = (string) ($log->message ?? '');
+        return str_contains($file, '/app/Services/AiFix/')
+            || str_contains($file, '/app/Jobs/AnalyzeSystemErrorJob')
+            || str_contains($file, '/app/Jobs/ApplyAiFixJob')
+            || str_contains($file, '/app/Jobs/DeployAiFixJob')
+            || str_contains($file, '/app/Http/Controllers/Admin/AdminAiFixJobController')
+            || str_contains($file, '/app/Http/Controllers/Api/Mobile/AiFixJobController')
+            || str_contains($file, '/app/Models/AiFixJob.php')
+            // ai_fix_jobs 테이블에 대한 DB 결함 (FK violation 등) 도 메타 루프 대상
+            || str_contains($msg, '`ai_fix_jobs`')
+            || str_contains($msg, 'ai_fix_jobs.');
     }
 
     /**
