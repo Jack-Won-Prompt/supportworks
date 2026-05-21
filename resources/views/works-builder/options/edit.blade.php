@@ -82,8 +82,9 @@
 
             <div class="bg-gray-50 p-4"
                  :class="full ? 'flex-1 overflow-auto' : ''">
+                {{-- 비 fullscreen 시 viewport 기반 높이로 제한 (헤더 + 푸터 + 카드 헤더 + 패딩 ≈ 380px 차감) --}}
                 <div class="w-full mx-auto flex items-center justify-center overflow-hidden"
-                     :style="full ? 'height: 100%;' : 'aspect-ratio: 16 / 9;'">
+                     :style="full ? 'height: 100%;' : 'height: calc(100vh - 380px); min-height: 260px; max-height: 620px;'">
                     <div class="w-full h-full" x-html="svg"></div>
                 </div>
             </div>
