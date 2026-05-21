@@ -139,6 +139,7 @@ return [
     'search_name_email'  => '이름 또는 이메일 검색...',
     'all_roles'          => '전체 역할',
     'role_admin'         => '관리자',
+    'role_manager'       => '매니저',
     'role_member'        => '멤버',
     'role_client'        => '외부사용자',
     'user_create_title'  => '사용자 추가',

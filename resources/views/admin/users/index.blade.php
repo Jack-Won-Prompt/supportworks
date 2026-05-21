@@ -14,9 +14,10 @@
                class="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64">
         <select name="role" onchange="this.form.submit()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">{{ __('admin.all_roles') }}</option>
-            <option value="admin"  {{ request('role') === 'admin'  ? 'selected' : '' }}>{{ __('admin.role_admin') }}</option>
-            <option value="member" {{ request('role') === 'member' ? 'selected' : '' }}>{{ __('admin.role_member') }}</option>
-            <option value="client" {{ request('role') === 'client' ? 'selected' : '' }}>{{ __('admin.role_client') }}</option>
+            <option value="admin"   {{ request('role') === 'admin'   ? 'selected' : '' }}>{{ __('admin.role_admin') }}</option>
+            <option value="manager" {{ request('role') === 'manager' ? 'selected' : '' }}>{{ __('admin.role_manager') }}</option>
+            <option value="member"  {{ request('role') === 'member'  ? 'selected' : '' }}>{{ __('admin.role_member') }}</option>
+            <option value="client"  {{ request('role') === 'client'  ? 'selected' : '' }}>{{ __('admin.role_client') }}</option>
         </select>
         @if($groups->isNotEmpty())
         <select name="group_id" onchange="this.form.submit()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -88,6 +89,7 @@
                                     data-company="{{ $user->company ?? '' }}"
                                     data-phone="{{ $user->phone ?? '' }}"
                                     data-group="{{ $user->company_group_id ?? '' }}"
+                                    data-sr-agent="{{ $user->is_sr_agent ? 1 : 0 }}"
                                     data-project-ids="{{ $user->projects->pluck('id')->implode(',') }}"
                                     class="text-xs text-indigo-600 hover:text-indigo-700">{{ __('admin.usr_edit') }}</button>
                             <button onclick="impersonateUser('{{ route('admin.users.impersonate', $user) }}', '{{ addslashes($user->name) }}')"
@@ -213,9 +215,10 @@
                         <select name="role" required
                                 style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;"
                                 onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
-                            <option value="client" {{ old('role', 'client') === 'client' ? 'selected' : '' }}>{{ __('admin.role_client') }}</option>
-                            <option value="member" {{ old('role') === 'member' ? 'selected' : '' }}>{{ __('admin.role_member') }}</option>
-                            <option value="admin"  {{ old('role') === 'admin'  ? 'selected' : '' }}>{{ __('admin.role_admin') }}</option>
+                            <option value="client"  {{ old('role', 'client') === 'client'  ? 'selected' : '' }}>{{ __('admin.role_client') }}</option>
+                            <option value="member"  {{ old('role') === 'member'  ? 'selected' : '' }}>{{ __('admin.role_member') }}</option>
+                            <option value="manager" {{ old('role') === 'manager' ? 'selected' : '' }}>{{ __('admin.role_manager') }}</option>
+                            <option value="admin"   {{ old('role') === 'admin'   ? 'selected' : '' }}>{{ __('admin.role_admin') }}</option>
                         </select>
                     </div>
                     <div>
@@ -229,6 +232,16 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
+
+                {{-- SR 담당자 --}}
+                <div>
+                    <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:13px;color:#475569;cursor:pointer;">
+                        <input type="checkbox" name="is_sr_agent" value="1" {{ old('is_sr_agent') ? 'checked' : '' }}
+                               style="width:16px;height:16px;accent-color:#6366f1;flex-shrink:0;">
+                        <span style="font-weight:500;">SR 담당자</span>
+                        <span style="font-size:11px;color:#94a3b8;margin-left:auto;">SR 관리에서 회사 필터 노출</span>
+                    </label>
                 </div>
 
                 {{-- 회사 / 연락처 --}}
@@ -316,6 +329,7 @@
                                 onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
                             <option value="client">{{ __('admin.role_client') }}</option>
                             <option value="member">{{ __('admin.role_member') }}</option>
+                            <option value="manager">{{ __('admin.role_manager') }}</option>
                             <option value="admin">{{ __('admin.role_admin') }}</option>
                         </select>
                     </div>
@@ -330,6 +344,15 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
+
+                {{-- SR 담당자 --}}
+                <div>
+                    <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:13px;color:#475569;cursor:pointer;">
+                        <input type="checkbox" id="edit-sr-agent" style="width:16px;height:16px;accent-color:#6366f1;flex-shrink:0;">
+                        <span style="font-weight:500;">SR 담당자</span>
+                        <span style="font-size:11px;color:#94a3b8;margin-left:auto;">SR 관리에서 회사 필터 노출</span>
+                    </label>
                 </div>
 
                 {{-- 회사 / 연락처 --}}
@@ -555,6 +578,7 @@ async function openEditModal(btn) {
     document.getElementById('edit-company').value = d.company;
     document.getElementById('edit-phone').value   = d.phone;
     document.getElementById('edit-group').value   = d.group;
+    document.getElementById('edit-sr-agent').checked = d.srAgent === '1';
     document.getElementById('edit-password').value         = '';
     document.getElementById('edit-password-confirm').value = '';
     document.getElementById('edit-error').style.display    = 'none';
@@ -598,6 +622,7 @@ async function submitEditModal(e) {
         company:             document.getElementById('edit-company').value,
         phone:               document.getElementById('edit-phone').value,
         company_group_id:    document.getElementById('edit-group').value || null,
+        is_sr_agent:         document.getElementById('edit-sr-agent').checked ? 1 : 0,
         project_ids:         projectIds,
         project_ids_present: 1,
     };

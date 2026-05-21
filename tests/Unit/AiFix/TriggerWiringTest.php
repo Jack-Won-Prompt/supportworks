@@ -26,7 +26,6 @@ class TriggerWiringTest extends TestCase
             $t->string('password')->default('x');
             $t->string('role')->nullable();
             $t->boolean('is_guest')->default(false);
-            $t->boolean('is_sr_agent')->default(false);
             $t->string('company')->nullable();
             $t->string('phone')->nullable();
             $t->string('avatar')->nullable();

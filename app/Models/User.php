@@ -15,12 +15,11 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'is_sr_agent', 'company', 'phone', 'avatar', 'agent_status', 'company_group_id', 'is_guest',
+        'name', 'email', 'password', 'role', 'company', 'phone', 'avatar', 'agent_status', 'company_group_id', 'is_guest', 'is_sr_agent',
     ];
 
     protected $attributes = [
-        'is_guest'    => false,
-        'is_sr_agent' => false,
+        'is_guest' => false,
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -30,7 +29,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_sr_agent' => 'boolean',
         ];
     }
 
@@ -47,12 +45,6 @@ class User extends Authenticatable
     public function isMember(): bool
     {
         return in_array($this->role, ['admin', 'member']);
-    }
-
-    // ── SR 담당자 여부 (관리자 사용자 관리에서 지정) ─────────────────────
-    public function isSrAgent(): bool
-    {
-        return (bool) $this->is_sr_agent;
     }
 
     public function hasFeature(string $key): bool

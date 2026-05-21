@@ -24,7 +24,6 @@ class AiFixNotifierTest extends TestCase
             $t->string('role')->nullable();
             // User 모델의 $attributes 기본값이 사용하는 컬럼들
             $t->boolean('is_guest')->default(false);
-            $t->boolean('is_sr_agent')->default(false);
             $t->string('company')->nullable();
             $t->string('phone')->nullable();
             $t->string('avatar')->nullable();

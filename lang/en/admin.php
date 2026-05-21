@@ -139,6 +139,7 @@ return [
     'search_name_email'  => 'Search by name or email...',
     'all_roles'          => 'All Roles',
     'role_admin'         => 'Admin',
+    'role_manager'       => 'Manager',
     'role_member'        => 'Member',
     'role_client'        => 'External User',
     'user_create_title'  => 'Add User',

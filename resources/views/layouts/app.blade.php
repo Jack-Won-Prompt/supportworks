@@ -199,8 +199,6 @@
                 ? \App\Models\Project::orderBy('name')->get()
                 : auth()->user()->projects()->orderBy('name')->get();
 
-            $mySrTargets = \App\Models\SrTarget::visibleTo(auth()->user())->orderBy('title')->get();
-
             // 안읽은 메시지 수 & 구독할 대화 ID 목록
             $myConvs = \App\Models\Conversation::whereHas('participants', fn($q) => $q->where('user_id', auth()->id()))
                 ->with(['participants' => fn($q) => $q->where('user_id', auth()->id()), 'messages'])
@@ -242,8 +240,6 @@
                 $currentProjectId = $rs instanceof \App\Models\Schedule ? $rs->project_id : null;
             } elseif ($rq = request()->route('question')) {
                 $currentProjectId = $rq instanceof \App\Models\Question ? $rq->project_id : null;
-            } elseif ($rmt = request()->route('maintenance')) {
-                $currentProjectId = ($rmt instanceof \App\Models\ProjectMaintenance) ? $rmt->project_id : null;
             }
         @endphp
 
@@ -422,73 +418,49 @@
 
                     <div class="sidebar-divider"></div>
 
-                    {{-- SR 접수 섹션 --}}
-                    @if(auth()->user()->hasFeature('sr') || auth()->user()->isSrAgent())
-                    <div id="sr-menu-items" style="margin-bottom:4px;">
-                        <div class="gsb-hide" style="display:flex;align-items:center;padding:6px 10px 4px;">
-                            <button onclick="toggleSection('sr-list')" style="display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:0;flex:1;text-align:left;">
-                                <span class="section-label" style="pointer-events:none;">{{ __('app.nav_sr') }}</span>
-                                <svg id="chevron-sr-list" width="10" height="10" fill="none" stroke="#b8b0d8" viewBox="0 0 24 24" style="flex-shrink:0;transition:transform .2s;pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
+                    {{-- SR 관리 --}}
+                    @php
+                        $__u = auth()->user();
+                        $__srAll = $__u && ($__u->isAdmin() || (bool) ($__u->is_sr_agent ?? false));
+                        $__myCgId = $__u?->company_group_id;
+                        $__srCompanies = \DB::table('company_groups as cg')
+                            ->join('maint_users as mu', 'mu.company_group_id', '=', 'cg.id')
+                            ->join('maint_requests as mr', 'mr.colo_user_id', '=', 'mu.id')
+                            ->where('mu.team', 'colo')
+                            ->select('cg.id', 'cg.name', \DB::raw('COUNT(DISTINCT mr.id) as sr_count'))
+                            ->groupBy('cg.id', 'cg.name')
+                            ->orderBy('cg.name')
+                            ->get();
+                        if (!$__srAll) {
+                            $__srCompanies = $__myCgId
+                                ? $__srCompanies->where('id', $__myCgId)->values()
+                                : collect();
+                        }
+                        $__currentCgId = (int) request('company_group_id');
+                    @endphp
+                    <a href="{{ route('maint-requests.index') }}"
+                       class="project-item {{ request()->routeIs('maint-requests.*') && !$__currentCgId ? 'active' : '' }}"
+                       style="margin-top:4px;">
+                        <svg width="13" height="13" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" style="flex-shrink:0;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h4"/>
+                        </svg>
+                        <span class="gsb-hide" style="flex:1;">SR 관리</span>
+                    </a>
+                    @if($__srCompanies->count() > 0)
+                        <div class="gsb-hide" style="margin: 2px 0 4px 16px;">
+                            @foreach($__srCompanies as $__cg)
+                                <a href="{{ route('maint-requests.index', ['company_group_id' => $__cg->id, 'bucket' => 'all']) }}"
+                                   class="project-item {{ $__currentCgId === (int)$__cg->id ? 'active' : '' }}"
+                                   style="padding: 4px 10px; font-size: 12px; gap: 6px;">
+                                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;opacity:.6;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $__cg->name }}</span>
+                                    <span style="opacity:.5;font-size:11px;">{{ $__cg->sr_count }}</span>
+                                </a>
+                            @endforeach
                         </div>
-
-                        <div id="sr-list" style="overflow:hidden;max-height:600px;transition:max-height .22s ease;">
-                        @php $_activeSrId = optional(request()->route('srTarget'))->id; @endphp
-                        @forelse($mySrTargets as $index => $st)
-                        @php $srColor = $projectColors[$index % count($projectColors)]; @endphp
-                        <a href="{{ route('sr-targets.maintenances.index', $st) }}"
-                           class="project-item {{ ($_activeSrId == $st->id && request()->routeIs('sr-targets.maintenances.*')) ? 'active' : '' }}"
-                           data-sr-id="{{ $st->id }}"
-                           title="{{ $st->title }}">
-                            <svg width="13" height="13" fill="none" stroke="{{ $srColor }}" viewBox="0 0 24 24" style="flex-shrink:0;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h4"/>
-                            </svg>
-                            <span class="gsb-hide" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $st->title }}</span>
-                        </a>
-                        @empty
-                        <div class="gsb-hide" style="padding:8px 10px;font-size:12px;color:#a1a1aa;">{{ __('app.sr_no_targets') }}</div>
-                        @endforelse
-                        <button type="button" onclick="srtOpenModal()" class="project-item gsb-hide"
-                                style="background:none;border:none;cursor:pointer;width:100%;color:#7c3aed;font-weight:600;font-family:inherit;">
-                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
-                            <span style="flex:1;text-align:left;">{{ __('app.sr_add_target') }}</span>
-                        </button>
-                        </div>
-                    </div>
-                    @endif {{-- sr feature --}}
-
-                    @if(auth()->user()->hasFeature('sr') || auth()->user()->isSrAgent())
-                    {{-- SR 대상 추가 모달 --}}
-                    <div id="srt-overlay" onclick="srtCloseModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:11000;"></div>
-                    <div id="srt-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:11001;background:#fff;border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.2);width:420px;max-width:calc(100vw - 32px);">
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0;">
-                            <h3 style="margin:0;font-size:15px;font-weight:700;color:#18181b;">{{ __('app.sr_add_target') }}</h3>
-                            <button onclick="srtCloseModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;padding:0;">&times;</button>
-                        </div>
-                        <form method="POST" action="{{ route('sr-targets.store') }}" style="padding:18px 20px;">
-                            @csrf
-                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('app.sr_target_title') }} <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="title" required maxlength="255" placeholder="{{ __('app.sr_target_title_ph') }}"
-                                   style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:14px;font-family:inherit;">
-                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('app.sr_target_project') }}</label>
-                            <select name="project_id"
-                                    style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:18px;background:#fff;font-family:inherit;">
-                                <option value="">{{ __('app.sr_target_no_project') }}</option>
-                                @foreach($myProjects as $proj)
-                                <option value="{{ $proj->id }}">{{ $proj->name }}</option>
-                                @endforeach
-                            </select>
-                            <div style="display:flex;gap:8px;justify-content:flex-end;">
-                                <button type="button" onclick="srtCloseModal()" style="padding:9px 16px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;font-family:inherit;">{{ __('common.cancel') }}</button>
-                                <button type="submit" style="padding:9px 18px;border:none;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">{{ __('app.sr_add_target') }}</button>
-                            </div>
-                        </form>
-                    </div>
-                    <script>
-                    function srtOpenModal(){document.getElementById('srt-modal').style.display='block';document.getElementById('srt-overlay').style.display='block';}
-                    function srtCloseModal(){document.getElementById('srt-modal').style.display='none';document.getElementById('srt-overlay').style.display='none';}
-                    </script>
                     @endif
 
                     <div class="sidebar-divider"></div>
@@ -2012,7 +1984,6 @@
             window.MAINTENANCE_BLADE = '';
         }
         </script>
-        {{-- @include('maintenance._panel') --}}
 
         {{-- ===== 메모 시스템 JS ===== --}}
         <script>

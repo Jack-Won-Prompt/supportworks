@@ -108,11 +108,6 @@ class Project extends Model
         return $this->hasMany(\App\Models\ProjectFileCategory::class)->orderBy('sort_order');
     }
 
-    public function maintenanceFileCategories()
-    {
-        return $this->hasMany(\App\Models\MaintenanceFileCategory::class)->orderBy('sort_order');
-    }
-
     public function planningDocs()
     {
         return $this->hasMany(PlanningDoc::class);
@@ -121,11 +116,6 @@ class Project extends Model
     public function urs()
     {
         return $this->hasMany(\App\Models\ProjectUrs::class);
-    }
-
-    public function maintenances()
-    {
-        return $this->hasMany(ProjectMaintenance::class);
     }
 
     public function leaves()

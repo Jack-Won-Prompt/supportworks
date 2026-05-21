@@ -64,11 +64,13 @@ class UserController extends Controller
             'name'             => 'required|string|max:255',
             'email'            => 'required|email|unique:users',
             'password'         => 'required|min:8|confirmed',
-            'role'             => 'required|in:admin,member,client',
+            'role'             => 'required|in:admin,manager,member,client',
             'company'          => 'nullable|string|max:255',
             'phone'            => 'nullable|string|max:20',
             'company_group_id' => 'nullable|exists:company_groups,id',
+            'is_sr_agent'      => 'nullable|boolean',
         ]);
+        $validated['is_sr_agent'] = $request->boolean('is_sr_agent');
 
         // 비super_admin은 자신의 그룹에만 배정 가능
         if (!$admin->isSuperAdmin() && $validated['company_group_id']) {
@@ -80,8 +82,7 @@ class UserController extends Controller
 
         User::create([
             ...$validated,
-            'password'    => Hash::make($validated['password']),
-            'is_sr_agent' => $request->boolean('is_sr_agent'),
+            'password' => Hash::make($validated['password']),
         ]);
 
         return redirect()->route('admin.users.index')
@@ -104,14 +105,16 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'             => 'required|string|max:255',
             'email'            => 'required|email|unique:users,email,'.$user->id,
-            'role'             => 'required|in:admin,member,client',
+            'role'             => 'required|in:admin,manager,member,client',
             'company'          => 'nullable|string|max:255',
             'phone'            => 'nullable|string|max:20',
             'password'         => 'nullable|min:8|confirmed',
             'company_group_id' => 'nullable|exists:company_groups,id',
+            'is_sr_agent'      => 'nullable|boolean',
             'project_ids'      => 'nullable|array',
             'project_ids.*'    => 'exists:projects,id',
         ]);
+        $validated['is_sr_agent'] = $request->boolean('is_sr_agent');
 
         if (!$admin->isSuperAdmin() && $validated['company_group_id']) {
             $admin->load('companyGroups');
@@ -125,8 +128,6 @@ class UserController extends Controller
 
         $projectIds = $validated['project_ids'] ?? [];
         unset($validated['project_ids']);
-
-        $validated['is_sr_agent'] = $request->boolean('is_sr_agent');
 
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
