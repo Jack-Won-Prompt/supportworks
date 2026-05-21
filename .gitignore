@@ -44,3 +44,4 @@ Thumbs.db
 .playwright-mcp/
 프롬프트/
 /*.png
+/storage/backups/
