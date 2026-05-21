@@ -7,10 +7,12 @@ use App\Jobs\WorksBuilder\GenerateHtmlJob;
 use App\Models\PlanningDoc;
 use App\Models\WorksBuilder\Task;
 use App\Services\WorksBuilder\TaskActions\OptionRevisionService;
+use App\Services\WorksBuilder\Theme\ThemeRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -18,7 +20,10 @@ use Illuminate\View\View;
  */
 class SpecReviewController extends Controller
 {
-    public function __construct(private OptionRevisionService $revision) {}
+    public function __construct(
+        private OptionRevisionService $revision,
+        private ThemeRegistry $themes,
+    ) {}
 
     public function show(Task $task): View
     {
@@ -30,19 +35,24 @@ class SpecReviewController extends Controller
             $plan = PlanningDoc::find($task->spec_reference_id);
         }
 
-        return view('works-builder.spec-review.show', compact('task', 'plan'));
+        $themes = $this->themes->list();
+
+        return view('works-builder.spec-review.show', compact('task', 'plan', 'themes'));
     }
 
     public function confirm(Request $request, Task $task): RedirectResponse|JsonResponse
     {
         $this->authorize('update', $task);
 
+        $themeKeys = array_keys($this->themes->list());
         $data = $request->validate([
             'gnb_position'    => 'required|in:top,left,right',
             'tab_structure'   => 'required|in:single,top_tabs,left_tabs,sidebar_tabs,none',
             'transition_type' => 'required|in:page,slide,tab_switch',
             'main_color'      => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'theme_key'       => ['nullable', Rule::in($themeKeys)],
         ]);
+        $data['theme_key'] = $data['theme_key'] ?: $this->themes->defaultKey();
 
         $this->revision->revise($task, $data, Auth::user());
 

@@ -1,0 +1,12 @@
+{
+  "key": "tap_theme_v1",
+  "name": "TAP 테마 v1",
+  "version": "1.0.0",
+  "description": "BEM 스타일 표준 컴포넌트 라이브러리. CSS 변수 기반 디자인 토큰 + datatable/badge/btn/checkbox/breadcrumb 등 제공.",
+  "assets": {
+    "css": ["css/components.css"],
+    "js":  ["js/screens.views.js", "js/spis-datatable.js"]
+  },
+  "prompt_file": "prompt.md",
+  "is_default": true
+}

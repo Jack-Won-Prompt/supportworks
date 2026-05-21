@@ -22,6 +22,7 @@ node_modules/
 /storage/app/*
 !/storage/app/.gitignore
 /storage/fonts/
+/storage/wb-theme-archive/
 /storage/framework/cache/*
 !/storage/framework/cache/.gitignore
 /storage/framework/sessions/*

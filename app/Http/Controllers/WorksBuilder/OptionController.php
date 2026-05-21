@@ -8,10 +8,12 @@ use App\Models\WorksBuilder\Task;
 use App\Models\WorksBuilder\TaskOption;
 use App\Services\WorksBuilder\Preview\LayoutPreviewBuilder;
 use App\Services\WorksBuilder\TaskActions\OptionRevisionService;
+use App\Services\WorksBuilder\Theme\ThemeRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class OptionController extends Controller
@@ -19,6 +21,7 @@ class OptionController extends Controller
     public function __construct(
         private LayoutPreviewBuilder $previewBuilder,
         private OptionRevisionService $revision,
+        private ThemeRegistry $themes,
     ) {}
 
     public function edit(Task $task): View
@@ -38,8 +41,9 @@ class OptionController extends Controller
         }
 
         $svg = $this->previewBuilder->build($option);
+        $themes = $this->themes->list();
 
-        return view('works-builder.options.edit', compact('task', 'option', 'svg'));
+        return view('works-builder.options.edit', compact('task', 'option', 'svg', 'themes'));
     }
 
     public function update(Request $request, Task $task): RedirectResponse|JsonResponse
@@ -80,12 +84,21 @@ class OptionController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $themeKeys = array_keys($this->themes->list());
+        $defaultTheme = $this->themes->defaultKey();
+
+        $data = $request->validate([
             'gnb_position'    => 'required|in:top,left,right',
             'tab_structure'   => 'required|in:single,top_tabs,left_tabs,sidebar_tabs,none',
             'transition_type' => 'required|in:page,slide,tab_switch',
             'main_color'      => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'theme_key'       => ['nullable', Rule::in($themeKeys)],
         ]);
+
+        // theme_key 비어있으면 기본 테마 채움 (테마가 1개라도 항상 명시되도록)
+        $data['theme_key'] = $data['theme_key'] ?: $defaultTheme;
+
+        return $data;
     }
 
     private function defaults(): array
@@ -95,6 +108,7 @@ class OptionController extends Controller
             'tab_structure'   => 'single',
             'transition_type' => 'page',
             'main_color'      => '#3b82f6',
+            'theme_key'       => $this->themes->defaultKey(),
         ];
     }
 }

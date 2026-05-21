@@ -7,6 +7,7 @@ use App\Models\WorksBuilder\ChecklistItem;
 use App\Models\WorksBuilder\InternalPrompt;
 use App\Models\WorksBuilder\Task;
 use App\Models\WorksBuilder\TaskOption;
+use App\Services\WorksBuilder\Theme\ThemeRegistry;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -93,6 +94,9 @@ SYSTEM;
         $lines[] = '- 탭 구조: '    . ($d['tab_structure']   ?? 'single');
         $lines[] = '- 화면 전환: '  . ($d['transition_type'] ?? 'page');
         $lines[] = '- 메인 색상: '  . ($d['main_color']      ?? '#3b82f6');
+        if (!empty($d['theme_key'])) {
+            $lines[] = '- 테마: '   . $d['theme_key'];
+        }
 
         $extra = $d['extra'] ?? null;
         if (!empty($extra)) {
@@ -130,6 +134,36 @@ SYSTEM;
             $lines[] = Str::limit($content, self::PLAN_CONTENT_LIMIT);
         }
         return implode("\n", $lines);
+    }
+
+    /**
+     * 선택된 테마의 prompt.md 본문을 통째로 user prompt 에 주입.
+     *
+     * 표준/검증 규칙을 추가할 때는 theme 디렉터리의 prompt.md 를 직접 편집한다.
+     * 옵션에 theme_key 가 없거나 레지스트리에 없는 경우 기본 테마로 폴백.
+     */
+    protected function themeBlock(Task $task): string
+    {
+        /** @var ThemeRegistry $registry */
+        $registry = app(ThemeRegistry::class);
+
+        $key = $task->currentOption?->options_data['theme_key'] ?? null;
+        if (!$key || !$registry->exists($key)) {
+            $key = $registry->defaultKey();
+        }
+        if (!$key) {
+            return '';
+        }
+
+        $manifest = $registry->get($key);
+        $body = $registry->promptText($key);
+
+        $header  = "## 적용 테마: {$manifest['name']} (key: {$key}, v" . ($manifest['version'] ?? '?') . ')';
+        $header .= "\n다음 규약을 **반드시 준수**하여 HTML 을 생성합니다. 에셋은 출력 패키지의 `assets/theme/` 하위에 자동 포함됩니다.";
+
+        return $body !== ''
+            ? $header . "\n\n" . trim($body)
+            : $header;
     }
 
     protected function checklistBlock(Task $task): string

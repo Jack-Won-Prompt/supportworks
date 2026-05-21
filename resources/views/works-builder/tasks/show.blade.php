@@ -191,7 +191,7 @@
                     <a href="{{ route('wb.tasks.options.edit', $task) }}" class="text-xs text-indigo-600 hover:text-indigo-700 font-medium">편집 →</a>
                 @endif
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                 <div>
                     <p class="text-xs text-gray-400 mb-1">GNB 위치</p>
                     <p class="text-sm font-medium text-gray-700">{{ $d['gnb_position'] ?? '—' }}</p>
@@ -210,6 +210,10 @@
                         <span class="inline-block w-4 h-4 rounded border border-gray-200" style="background: {{ $d['main_color'] ?? '#3b82f6' }};"></span>
                         <code class="text-xs text-gray-700 font-mono">{{ $d['main_color'] ?? '#3b82f6' }}</code>
                     </div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">테마</p>
+                    <p class="text-sm font-medium text-gray-700">{{ $d['theme_key'] ?? '—' }}</p>
                 </div>
             </div>
         </div>

@@ -63,6 +63,13 @@ class RegenerationPromptBuilder extends BasePromptBuilder
 
         $parts[] = '';
         $parts[] = $this->optionsBlock($task->currentOption);
+
+        $theme = $this->themeBlock($task);
+        if ($theme !== '') {
+            $parts[] = '';
+            $parts[] = $theme;
+        }
+
         $parts[] = '';
         $parts[] = $this->checklistBlock($task);
 

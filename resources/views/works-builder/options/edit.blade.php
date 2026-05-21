@@ -25,6 +25,7 @@
             'tab_structure'   => $data['tab_structure']   ?? 'single',
             'transition_type' => $data['transition_type'] ?? 'page',
             'main_color'      => $data['main_color']      ?? '#3b82f6',
+            'theme_key'       => $data['theme_key']       ?? (array_key_first($themes) ?? ''),
         ],
      ]))" class="space-y-6">
 
@@ -81,6 +82,21 @@
                         <input type="text" x-model="form.main_color" @input.debounce.300ms="schedulePreview"
                                class="flex-1 border border-gray-200 rounded-lg px-3 py-2 font-mono text-xs">
                     </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">테마</label>
+                    @if (empty($themes))
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+                            등록된 테마가 없습니다. resources/wb-themes/ 하위에 테마 디렉터리를 추가하세요.
+                        </div>
+                    @else
+                        <select x-model="form.theme_key" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @foreach ($themes as $key => $m)
+                                <option value="{{ $key }}">{{ $m['name'] ?? $key }} (v{{ $m['version'] ?? '?' }})</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">현재 옵션의 테마 자산이 출력 zip의 <code>assets/theme/</code> 에 자동 포함됩니다.</p>
+                    @endif
                 </div>
                 <div class="pt-4 border-t border-gray-50 flex justify-end gap-2">
                     <a href="{{ route('wb.tasks.show', $task) }}" class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm">취소</a>

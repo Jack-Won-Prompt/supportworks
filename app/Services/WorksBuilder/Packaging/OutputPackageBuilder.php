@@ -7,6 +7,7 @@ use App\Models\WorksBuilder\GeneratedHtml;
 use App\Models\WorksBuilder\OutputPackage;
 use App\Models\WorksBuilder\Task;
 use App\Services\WorksBuilder\Preview\LayoutPreviewBuilder;
+use App\Services\WorksBuilder\Theme\ThemeRegistry;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
@@ -29,6 +30,7 @@ class OutputPackageBuilder
     public function __construct(
         private LayoutPreviewBuilder $previewBuilder,
         private HtmlAssetSplitter $splitter,
+        private ThemeRegistry $themes,
     ) {}
 
     public function buildFor(Task $task): OutputPackage
@@ -52,25 +54,29 @@ class OutputPackageBuilder
         // 원본 HTML → assets 분리 (output.html은 풀어서 단독 뷰어 가능)
         $split = $this->splitter->split($finalHtml->html_content);
 
+        // assets/{css,js,icon} 분리 파일 작성
+        $this->writeAssets($tmpDir, $split);
+
+        // assets/theme/{...} — 선택된 테마의 원본 에셋 복사 + manifest 사본
+        $themeKey = $task->currentOption?->options_data['theme_key'] ?? null;
+        $themeInfo = $this->writeThemeAssets($tmpDir, $themeKey);
+
         $files = [
             'output.html'             => $split['html'],
             'integrity.json'          => $this->jsonPretty($this->integrityPayload($task, $finalHtml, $split)),
-            'meta.json'               => $this->jsonPretty($this->metaPayload($task, $finalHtml)),
+            'meta.json'               => $this->jsonPretty($this->metaPayload($task, $finalHtml, $themeInfo)),
             'options.json'            => $this->jsonPretty($task->currentOption?->options_data ?? []),
             'layout_preview.svg'      => $task->currentOption
                 ? $this->previewBuilder->build($task->currentOption)
                 : '<svg/>',
             'ai_call_history.json'    => $this->jsonPretty($this->aiCallHistoryPayload($task)),
             'checklist_applied.json'  => $this->jsonPretty($this->checklistPayload($task)),
-            'README.md'               => $this->readme($task, $split),
+            'README.md'               => $this->readme($task, $split, $themeInfo),
         ];
 
         foreach ($files as $name => $content) {
             file_put_contents($tmpDir.DIRECTORY_SEPARATOR.$name, $content);
         }
-
-        // assets/{css,js,icon} 분리 파일 작성
-        $this->writeAssets($tmpDir, $split);
 
         $reviewDir = $tmpDir.DIRECTORY_SEPARATOR.'review_history';
         if (!is_dir($reviewDir)) mkdir($reviewDir, 0775, true);
@@ -159,6 +165,62 @@ class OutputPackageBuilder
         ];
     }
 
+    /**
+     * 선택된 테마의 자산 (CSS/JS 등) 을 `assets/theme/` 하위에 매니페스트 구조 그대로 복사.
+     * theme.json 사본도 같이 포함하여 패키지 단독 검증이 가능하도록 한다.
+     *
+     * @return array{key:?string, name:?string, files:array<int,string>}
+     */
+    private function writeThemeAssets(string $tmpDir, ?string $themeKey): array
+    {
+        $resolved = ['key' => null, 'name' => null, 'files' => []];
+
+        if (!$themeKey || !$this->themes->exists($themeKey)) {
+            $themeKey = $this->themes->defaultKey();
+        }
+        if (!$themeKey) return $resolved;
+
+        $manifest = $this->themes->get($themeKey);
+        $srcDir   = $this->themes->themeDir($themeKey);
+        $dstDir   = $tmpDir . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'theme';
+        if (!is_dir($dstDir)) mkdir($dstDir, 0775, true);
+
+        // theme.json 사본 (manifest_only — assets path 는 zip 내부 상대경로)
+        $manifestCopy = $manifest;
+        file_put_contents(
+            $dstDir . DIRECTORY_SEPARATOR . 'theme.json',
+            $this->jsonPretty($manifestCopy)
+        );
+
+        // prompt.md 도 함께 포함 (검수자가 어떤 규약으로 생성됐는지 확인 가능)
+        $promptFile = $manifest['prompt_file'] ?? null;
+        if ($promptFile && is_file($srcDir . DIRECTORY_SEPARATOR . $promptFile)) {
+            copy(
+                $srcDir . DIRECTORY_SEPARATOR . $promptFile,
+                $dstDir . DIRECTORY_SEPARATOR . basename($promptFile)
+            );
+        }
+
+        // assets/css/*, assets/js/* 등 매니페스트에 선언된 파일 복사
+        $assets = $manifest['assets'] ?? [];
+        foreach ($assets as $type => $files) {
+            foreach ((array) $files as $rel) {
+                $absSrc = $srcDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
+                if (!is_file($absSrc)) continue;
+
+                $absDst = $dstDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
+                $dstParent = dirname($absDst);
+                if (!is_dir($dstParent)) mkdir($dstParent, 0775, true);
+                copy($absSrc, $absDst);
+                $resolved['files'][] = $rel;
+            }
+        }
+
+        $resolved['key']  = $themeKey;
+        $resolved['name'] = $manifest['name'] ?? $themeKey;
+        return $resolved;
+    }
+
     private function writeAssets(string $tmpDir, array $split): void
     {
         $assetsDir = $tmpDir.DIRECTORY_SEPARATOR.'assets';
@@ -183,7 +245,7 @@ class OutputPackageBuilder
         }
     }
 
-    private function metaPayload(Task $task, GeneratedHtml $html): array
+    private function metaPayload(Task $task, GeneratedHtml $html, array $themeInfo): array
     {
         return [
             'task_id'        => $task->id,
@@ -201,6 +263,7 @@ class OutputPackageBuilder
             'total_ai_calls' => $task->total_ai_calls,
             'total_tokens'   => $task->total_tokens_used,
             'total_cost_usd' => (float) $task->total_cost_usd,
+            'theme'          => $themeInfo,
         ];
     }
 
@@ -242,11 +305,20 @@ class OutputPackageBuilder
             ])->toArray();
     }
 
-    private function readme(Task $task, array $split): string
+    private function readme(Task $task, array $split, array $themeInfo): string
     {
         $hasCss   = $split['css'] !== null;
         $hasJs    = $split['js']  !== null;
         $iconCnt  = count($split['icons']);
+
+        $themeLines = [];
+        if (!empty($themeInfo['key'])) {
+            $themeLines[] = '';
+            $themeLines[] = '## 적용 테마';
+            $themeLines[] = sprintf('- %s (`%s`)', $themeInfo['name'], $themeInfo['key']);
+            $themeLines[] = '- 에셋: assets/theme/{theme.json,prompt.md, css/*, js/*}';
+            $themeLines[] = '- 생성된 HTML 은 assets/theme/ 하위 파일을 상대 경로로 참조합니다.';
+        }
 
         $lines = [
             "# Works Builder Task #{$task->id}",
@@ -254,19 +326,23 @@ class OutputPackageBuilder
             "프로젝트: " . ($task->project?->name ?? '-'),
             "모드: " . ($task->mode === 'enhance' ? '고도화' : '신규'),
             "최종 검수 차수: {$task->current_review_round}",
+        ];
+        $lines = array_merge($lines, $themeLines);
+        $lines = array_merge($lines, [
             '',
             '## 단독 뷰어',
             '- 이 zip을 풀어서 `output.html`을 브라우저에 더블클릭하면 그대로 동작합니다.',
-            '- `output.html`은 `assets/css/main.css`, `assets/js/main.js`, `assets/icon/*.svg`를 상대 경로로 참조합니다.',
+            '- `output.html`은 `assets/css/main.css`, `assets/js/main.js`, `assets/icon/*.svg`, `assets/theme/...` 를 상대 경로로 참조합니다.',
             '',
             '## 포함 파일',
             '- output.html — 분리된 표준 HTML (단독 뷰어 가능)',
             '- assets/css/main.css' . ($hasCss ? '' : ' — (없음)'),
             '- assets/js/main.js'   . ($hasJs  ? '' : ' — (없음)'),
             "- assets/icon/icon-N.svg — 인라인 SVG 분리 {$iconCnt}개" . ($iconCnt === 0 ? ' (없음)' : ''),
+            '- assets/theme/ — 선택된 테마 원본 에셋 (CSS/JS) + theme.json + prompt.md',
             '- integrity.json — 원본 HTML SHA-256 + 분리본 hash',
-            '- meta.json — Task 메타 (parent/reopen 정보 포함)',
-            '- options.json — 사용된 레이아웃 옵션',
+            '- meta.json — Task 메타 (parent/reopen/theme 정보 포함)',
+            '- options.json — 사용된 레이아웃 옵션 (theme_key 포함)',
             '- layout_preview.svg — 와이어프레임 (담당자 확인용)',
             '- ai_call_history.json — AI 호출 이력 (토큰/비용/폴백)',
             '- review_history/round_*.json — 차수별 검수 기록',
@@ -274,7 +350,7 @@ class OutputPackageBuilder
             '',
             '## 원본 단일 HTML이 필요할 때',
             '- Task 상세 화면의 [📥 HTML 다운] 버튼을 사용하세요. 그 다운로드는 AI가 만든 단일 HTML (인라인 CSS/JS/SVG)을 hash 그대로 반환합니다.',
-        ];
+        ]);
         return implode("\n", $lines);
     }
 
