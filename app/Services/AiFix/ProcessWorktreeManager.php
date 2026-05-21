@@ -101,11 +101,14 @@ final class ProcessWorktreeManager implements WorktreeManager
     {
         $env = is_file($this->sourceEnv) ? file_get_contents($this->sourceEnv) : '';
 
-        // DB_DATABASE 만 격리 — host/port/user/password 는 운영 .env 그대로 사용 (같은 mysql 서버).
+        // DB 만 격리 — host/port/user/password 는 운영 .env 그대로 사용 (같은 mysql 서버).
+        // config/database.php 의 supportworks connection 이 DB_SUPPORTWORKS_DATABASE → DB_DATABASE
+        // 순으로 fallback 하므로 둘 다 명시적으로 셋팅 (어떤 connection 이름이든 안전).
         // 나머지는 운영 자원(메일/큐/캐시/세션)을 건드리지 않도록 분리.
         $overrides = [
-            'DB_DATABASE'          => $this->testDatabase,
-            'APP_ENV'              => 'testing',
+            'DB_DATABASE'              => $this->testDatabase,
+            'DB_SUPPORTWORKS_DATABASE' => $this->testDatabase,
+            'APP_ENV'                  => 'testing',
             'APP_DEBUG'            => 'true',
             'APP_URL'              => 'http://localhost',
             'MAIL_MAILER'          => 'log',

@@ -47,11 +47,13 @@ return [
         'supportworks' => [
             'driver' => 'mysql',
             'url' => '',
-            'host' => '43.203.246.90',
-            'port' => '3306',
-            'database' => 'supportworks',
-            'username' => 'supportworks',
-            'password' => 'supportworks!@^',
+            'host'     => env('DB_HOST',                  '43.203.246.90'),
+            'port'     => env('DB_PORT',                  '3306'),
+            // database 만 connection 전용 변수로 분리 — worktree 격리 시 다른 DB
+            // (supportworks_ai_test) 로 override 가능. fallback: DB_DATABASE → hardcoded.
+            'database' => env('DB_SUPPORTWORKS_DATABASE', env('DB_DATABASE', 'supportworks')),
+            'username' => env('DB_USERNAME',              'supportworks'),
+            'password' => env('DB_PASSWORD',              'supportworks!@^'),
             'unix_socket' => '',
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
