@@ -58,7 +58,7 @@ class AiFixJobController extends Controller
     {
         $this->authorizeAdmin($request);
         try {
-            $this->orchestrator->approve($aiFixJob, $request->user()->id);
+            $this->orchestrator->approve($aiFixJob, $request->user());
         } catch (\DomainException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
@@ -70,7 +70,7 @@ class AiFixJobController extends Controller
         $this->authorizeAdmin($request);
         $reason = (string) $request->input('reason', '');
         try {
-            $this->orchestrator->reject($aiFixJob, $request->user()->id, $reason ?: null);
+            $this->orchestrator->reject($aiFixJob, $request->user(), $reason ?: null);
         } catch (\DomainException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }

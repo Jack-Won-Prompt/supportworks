@@ -66,11 +66,11 @@ class AdminAiFixJobController extends Controller
     {
         $admin = auth('admin')->user();
         try {
-            $this->orchestrator->approve($aiFixJob, $admin->id);
+            $this->orchestrator->approve($aiFixJob, $admin);
         } catch (\DomainException $e) {
             return back()->withErrors(['status' => $e->getMessage()]);
         }
-        return redirect()->route('admin.ai-fix-jobs.show', $aiFixJob)
+        return redirect()->route('admin.ai-fix-jobs.index')
             ->with('success', '승인되었습니다.');
     }
 
@@ -79,11 +79,11 @@ class AdminAiFixJobController extends Controller
         $admin  = auth('admin')->user();
         $reason = (string) $request->input('reason', '');
         try {
-            $this->orchestrator->reject($aiFixJob, $admin->id, $reason ?: null);
+            $this->orchestrator->reject($aiFixJob, $admin, $reason ?: null);
         } catch (\DomainException $e) {
             return back()->withErrors(['status' => $e->getMessage()]);
         }
-        return redirect()->route('admin.ai-fix-jobs.show', $aiFixJob)
+        return redirect()->route('admin.ai-fix-jobs.index')
             ->with('success', '거부되었습니다.');
     }
 }

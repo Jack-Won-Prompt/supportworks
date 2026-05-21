@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @property int             $id
@@ -86,7 +87,8 @@ class AiFixJob extends Model
         'branch_name', 'worktree_path',
         'proposed_fix_summary', 'changed_files', 'test_result', 'pr_url',
         'deployed_commit', 'deploy_log',
-        'approved_by_admin_id', 'escalated_at', 'approved_at', 'deployed_at', 'finished_at',
+        'approved_by_admin_id', 'approved_by_id', 'approved_by_type',
+        'escalated_at', 'approved_at', 'deployed_at', 'finished_at',
         'error_message', 'retry_count',
     ];
 
@@ -107,9 +109,19 @@ class AiFixJob extends Model
         return $this->belongsTo(SystemErrorLog::class);
     }
 
+    /** @deprecated approved_by_admin_id 컬럼 기반. 새 코드는 approvedBy() polymorphic 관계 사용. */
     public function approvedByAdmin(): BelongsTo
     {
         return $this->belongsTo(AdminUser::class, 'approved_by_admin_id');
+    }
+
+    /**
+     * 승인자 polymorphic 관계.
+     * 모델은 App\Models\AdminUser (웹 admin) 또는 App\Models\User (모바일 role=admin).
+     */
+    public function approvedBy(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     // ── 스코프 ──────────────────────────────────────────────────────────────

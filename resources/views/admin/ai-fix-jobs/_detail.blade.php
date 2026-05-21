@@ -107,7 +107,14 @@
             <div>
                 <dt class="text-xs text-slate-400 mb-0.5">승인자</dt>
                 <dd class="text-slate-700 text-xs">
-                    @if($job->approved_by_admin_id) admin id #{{ $job->approved_by_admin_id }} @else — @endif
+                    @if($job->approved_by_id && $job->approved_by_type)
+                        {{ optional($job->approvedBy)->name ?? '(unknown)' }}
+                        <span class="text-slate-400">({{ class_basename($job->approved_by_type) }} #{{ $job->approved_by_id }})</span>
+                    @elseif($job->approved_by_admin_id)
+                        admin id #{{ $job->approved_by_admin_id }}
+                    @else
+                        —
+                    @endif
                 </dd>
             </div>
             <div>

@@ -114,13 +114,15 @@ final class AiFixOrchestrator
 
     /**
      * 관리자 승인. awaiting_approval -> applying 또는 ready_to_deploy -> deploying.
-     * approvedBy 는 어떤 가드의 사용자든 id 만 받으면 됨 (admin_users.id).
      *
-     * applying 진입 시 ApplyAiFixJob 자동 dispatch — worktree 생성 / 코드 적용 / 테스트 실행.
-     * deploying 진입 시 DeployAiFixJob 자동 dispatch — PR 머지 / SSH deploy.sh / 헬스체크.
+     * $approver: 승인한 사용자 모델. App\Models\AdminUser (웹 admin) 또는
+     * App\Models\User (모바일 role=admin) 둘 다 지원. polymorphic 컬럼
+     * (approved_by_id + approved_by_type) 에 저장.
+     *
+     * applying 진입 시 ApplyAiFixJob, deploying 진입 시 DeployAiFixJob 자동 dispatch.
      * QUEUE_CONNECTION=sync 면 inline 실행.
      */
-    public function approve(AiFixJob $job, int $adminUserId): AiFixJob
+    public function approve(AiFixJob $job, \Illuminate\Database\Eloquent\Model $approver): AiFixJob
     {
         $next = match ($job->status) {
             AiFixJob::STATUS_AWAITING_APPROVAL => AiFixJob::STATUS_APPLYING,
@@ -130,10 +132,9 @@ final class AiFixOrchestrator
             ),
         };
 
-        $job->transitionTo($next, [
-            'approved_at'          => now(),
-            'approved_by_admin_id' => $adminUserId,
-        ]);
+        $job->transitionTo($next, $this->approverExtras($approver, [
+            'approved_at' => now(),
+        ]));
 
         // 다음 상태가 transient(applying/deploying)면 notifier 정책상 침묵.
         $this->notifier?->notify($job);
@@ -152,17 +153,17 @@ final class AiFixOrchestrator
 
     /**
      * 관리자 거부. awaiting_approval / ready_to_deploy 에서만 허용.
+     * $approver 시그니처는 approve 와 동일.
      */
-    public function reject(AiFixJob $job, int $adminUserId, ?string $reason = null): AiFixJob
+    public function reject(AiFixJob $job, \Illuminate\Database\Eloquent\Model $approver, ?string $reason = null): AiFixJob
     {
         if (!in_array($job->status, [AiFixJob::STATUS_AWAITING_APPROVAL, AiFixJob::STATUS_READY_TO_DEPLOY], true)) {
             throw new \DomainException("Cannot reject from status '{$job->status}'");
         }
 
-        $extras = [
-            'approved_by_admin_id' => $adminUserId,
-            'approved_at'          => now(),
-        ];
+        $extras = $this->approverExtras($approver, [
+            'approved_at' => now(),
+        ]);
         if ($reason !== null && $reason !== '') {
             $extras['error_message'] = mb_substr($reason, 0, 500);
         }
@@ -171,6 +172,20 @@ final class AiFixOrchestrator
         $this->notifier?->notify($job);
 
         return $job;
+    }
+
+    /**
+     * 승인자 polymorphic 컬럼 + (backward compat) admin_id 컬럼을 함께 채워주는 헬퍼.
+     */
+    private function approverExtras(\Illuminate\Database\Eloquent\Model $approver, array $base): array
+    {
+        $base['approved_by_id']   = $approver->getKey();
+        $base['approved_by_type'] = $approver::class;
+        // backward compat: AdminUser 일 때만 기존 admin_id 컬럼도 채움
+        if ($approver instanceof \App\Models\AdminUser) {
+            $base['approved_by_admin_id'] = $approver->getKey();
+        }
+        return $base;
     }
 
     private function countRecentSameErrors(SystemErrorLog $errorLog): int
