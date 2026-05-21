@@ -89,6 +89,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | AiCodeApplier (코드 수정 적용기)
+    |--------------------------------------------------------------------------
+    | driver=stub: 실제 코드 수정 없이 항상 true (PoC).
+    | driver=openai: OpenAiCodeApplier 가 각 changed_files 에 대해 AI 호출 → 새
+    |   파일 전체 내용 받음 → php -l syntax 통과 시만 write. fallback chain 동일.
+    | timeout 120s (파일 큰 경우 대비). API key 는 AiSetting 에서.
+    */
+    'applier' => [
+        'driver'         => env('AI_FIX_APPLIER_DRIVER',          'stub'),
+        'model'          => env('AI_FIX_APPLIER_MODEL',           'gpt-4.1'),
+        'fallback_model' => env('AI_FIX_APPLIER_FALLBACK_MODEL',  'gpt-4o'),
+        'timeout'        => (int) env('AI_FIX_APPLIER_TIMEOUT',   120),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 자동 수정 화이트리스트 (auto_eligible)
     |--------------------------------------------------------------------------
     | 변경 파일 *전체*가 이 패턴에 매칭되고 red/yellow 신호가 임계값 미만이면

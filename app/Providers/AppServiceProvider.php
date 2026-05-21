@@ -110,7 +110,27 @@ class AppServiceProvider extends ServiceProvider
             }
             return new \App\Services\AiFix\StubAiAnalyzer();
         });
-        $this->app->bind(\App\Services\AiFix\AiCodeApplier::class,   \App\Services\AiFix\StubCodeApplier::class);
+        // AiCodeApplier: driver=openai + AiSetting 의 openaiKey 가 있으면 OpenAiCodeApplier,
+        // 아니면 Stub. 운영 .env 의 AI_FIX_APPLIER_DRIVER 로 활성화.
+        $this->app->bind(\App\Services\AiFix\AiCodeApplier::class, function ($app) {
+            $cfg = config('ai-fix.applier');
+            if (($cfg['driver'] ?? 'stub') === 'openai') {
+                try {
+                    $apiKey = \App\Models\AiSetting::current()->openaiKey();
+                } catch (\Throwable) {
+                    $apiKey = null;
+                }
+                if (!empty($apiKey)) {
+                    return new \App\Services\AiFix\OpenAiCodeApplier(
+                        apiKey:        $apiKey,
+                        model:         $cfg['model']          ?? 'gpt-4.1',
+                        fallbackModel: $cfg['fallback_model'] ?? 'gpt-4o',
+                        timeout:       (int) ($cfg['timeout'] ?? 120),
+                    );
+                }
+            }
+            return new \App\Services\AiFix\StubCodeApplier();
+        });
         // WorktreeManager: driver=process 이고 경로 두 개 셋팅돼있으면 ProcessWorktreeManager,
         // 아니면 안전한 StubWorktreeManager 로 fallback. 운영 .env 의 AI_FIX_WORKTREE_DRIVER 로 활성화.
         $this->app->bind(\App\Services\AiFix\WorktreeManager::class, function ($app) {
