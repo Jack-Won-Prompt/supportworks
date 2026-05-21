@@ -90,15 +90,14 @@ run() {
 
 # Helper: extract MySQL DSN from config/database.php into a temp .my.cnf file.
 # This avoids passing the password on the command line (which would leak to ps).
+#
+# 이전 패턴(`php -r 'require config/database.php'`) 은 Laravel context 밖이라
+# env() 가 미정의 → fatal → 빈 파일. 결과: mysqldump 가 password 없이 시도해
+# 0 byte backup. artisan command 로 booted context 에서 정상 호출.
 make_mysql_cnf() {
     local target="$1"
-    php -r '
-        $c = (require "config/database.php")["connections"]["supportworks"];
-        $body = sprintf("[client]\nhost=%s\nport=%s\nuser=%s\npassword=%s\n",
-            $c["host"], $c["port"] ?? 3306, $c["username"], $c["password"]);
-        file_put_contents($argv[1], $body);
-        chmod($argv[1], 0600);
-    ' "$target"
+    php artisan db:cnf-dump "$target" >/dev/null \
+        || die "make_mysql_cnf: artisan db:cnf-dump failed (target=$target)" 1
 }
 
 # ── 0) Preflight ─────────────────────────────────────────────────────────────
