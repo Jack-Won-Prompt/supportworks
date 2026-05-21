@@ -26,7 +26,7 @@
     <div class="flex items-start justify-between gap-4">
         <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2 flex-wrap">
-                <span class="text-base font-bold text-slate-800">AI Fix Job #{{ $job->id }}</span>
+                <span class="text-base font-bold text-slate-800">윅스 수정 #{{ $job->id }}</span>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badge['classes'] }}">{{ $badge['label'] }}</span>
                 @if($job->decision)
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-slate-100 text-slate-600">decision: {{ $job->decision }}</span>

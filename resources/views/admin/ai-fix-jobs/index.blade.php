@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'AI Fix Jobs')
+@section('title', '윅스 수정 검토')
 
 @php
     $statusBadges = [
@@ -35,7 +35,7 @@
     {{-- 헤더 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-xl font-bold text-slate-800">AI Fix Jobs</h1>
+            <h1 class="text-xl font-bold text-slate-800">윅스 수정 검토</h1>
             <p class="text-sm text-slate-500 mt-0.5">시스템 에러 자동 수정 작업 승인 큐</p>
         </div>
     </div>
@@ -167,7 +167,7 @@
      style="display:none; position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; padding:1rem;">
     <div style="background:white; border-radius:12px; max-width:64rem; width:100%; max-height:90vh; display:flex; flex-direction:column;">
         <div style="position:sticky; top:0; background:white; border-bottom:1px solid #e2e8f0; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-top-left-radius:12px; border-top-right-radius:12px;">
-            <h2 style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">AI Fix 상세</h2>
+            <h2 style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">윅스 수정 상세</h2>
             <button type="button" id="aifix-modal-close" style="background:none; border:none; font-size:20px; color:#94a3b8; cursor:pointer; padding:4px 8px;">✕</button>
         </div>
         <div id="aifix-detail-body" style="padding:20px; overflow-y:auto; flex:1;">

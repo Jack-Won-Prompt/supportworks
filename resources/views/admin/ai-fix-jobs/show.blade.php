@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'AI Fix Job #' . $job->id)
+@section('title', '윅스 수정 #' . $job->id)
 
 @section('content')
 <div class="p-6 max-w-5xl mx-auto">
