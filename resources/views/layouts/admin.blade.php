@@ -209,6 +209,16 @@
                 </span>
                 @endif
             </a>
+            @php $aiFixAwaiting = \App\Models\AiFixJob::where('status', 'awaiting_approval')->count(); @endphp
+            <a href="{{ route('admin.ai-fix-jobs.index') }}" class="{{ request()->routeIs('admin.ai-fix-jobs.*') ? 'active' : '' }}" style="position:relative">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                윅스 수정 검토
+                @if($aiFixAwaiting > 0)
+                <span style="margin-left:auto;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:9999px;min-width:18px;text-align:center">
+                    {{ $aiFixAwaiting > 99 ? '99+' : $aiFixAwaiting }}
+                </span>
+                @endif
+            </a>
             @if(auth('admin')->user()->isSuperAdmin())
             @php $maintenanceOn = \App\Models\SystemSetting::isMaintenanceMode(); @endphp
             <a href="{{ route('admin.system-maintenance.index') }}" class="{{ request()->routeIs('admin.system-maintenance.*') ? 'active' : '' }}">
@@ -297,6 +307,7 @@ const ADMIN_STR = {
         { label:'{{ __("admin.admin_manage") }}',     url:'{{ route("admin.management.index") }}',    icon:'👥' },
         { label:'{{ __("admin.logs") }}',             url:'{{ route("admin.logs.index") }}',          icon:'📋' },
         { label:'{{ __("admin.system_errors") }}',    url:'{{ route("admin.system-errors.index") }}', icon:'⚠️' },
+        { label:'윅스 수정 검토',                       url:'{{ route("admin.ai-fix-jobs.index") }}',   icon:'🔧' },
         @if(auth('admin')->user()->isSuperAdmin())
         { label:'{{ __("admin.app_versions") }}',     url:'{{ route("admin.app-versions.index") }}',  icon:'📦' },
         { label:'{{ __("admin.ai_settings") }}',      url:'{{ route("admin.ai-settings.index") }}',   icon:'⚙️' },
