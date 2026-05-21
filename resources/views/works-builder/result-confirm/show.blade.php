@@ -28,76 +28,108 @@
             <p class="text-xs">옵션 입력 화면에서 [확정 후 웍스 호출 →]을 눌러 생성을 시작하세요.</p>
         </div>
     @else
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {{-- 좌측: 메타 + 의사결정 --}}
-            <div class="lg:col-span-1 space-y-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+             x-data="{ full: false, openPop: null }"
+             :class="full ? 'fixed inset-0 z-50 m-0 rounded-none' : 'relative'"
+             @keydown.escape.window="full = false; openPop = null"
+             @click.outside="openPop = null">
+
+            {{-- 네비게이션 바 --}}
+            <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex flex-wrap items-center gap-3">
+                <div class="text-sm font-semibold text-gray-900 flex items-center gap-1.5 flex-shrink-0">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    웍스 결과 미리보기
+                    <span class="text-xs font-normal text-gray-400">sandbox · 스크립트 차단</span>
+                </div>
+
+                <div class="ml-auto flex items-center gap-2">
+                    {{-- 메타 버튼 + 팝오버 --}}
+                    <div class="relative">
+                        <button type="button" @click.stop="openPop = openPop === 'meta' ? null : 'meta'"
+                                :class="openPop === 'meta' ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'border-gray-200 text-gray-700 hover:bg-white'"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border rounded-md transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             메타
-                        </h3>
-                    </div>
-                    <dl class="space-y-2.5 text-sm">
-                        <div class="flex justify-between"><dt class="text-xs text-gray-400">버전</dt><dd class="font-medium text-gray-700">v{{ $latest->version }}</dd></div>
-                        <div class="flex justify-between"><dt class="text-xs text-gray-400">차수</dt><dd class="font-medium text-gray-700">{{ $latest->review_round }}차</dd></div>
-                        <div class="flex justify-between"><dt class="text-xs text-gray-400">생성 엔진</dt><dd><span class="inline-block text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">{{ $latest->generated_by }}</span></dd></div>
-                        <div class="flex justify-between"><dt class="text-xs text-gray-400">크기</dt><dd class="font-medium text-gray-700">{{ number_format(strlen($latest->html_content)) }} B</dd></div>
-                        <div class="flex justify-between"><dt class="text-xs text-gray-400">생성</dt><dd class="text-xs text-gray-600">{{ $latest->created_at?->format('Y-m-d H:i') }}</dd></div>
-                        <div class="pt-2 border-t border-gray-50">
-                            <dt class="text-xs text-gray-400 mb-1">SHA-256</dt>
-                            <dd class="font-mono text-xs text-gray-600 break-all">{{ $latest->html_hash }}</dd>
+                            <span class="px-1.5 py-0.5 text-[10px] font-mono bg-gray-100 text-gray-600 rounded">v{{ $latest->version }}</span>
+                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+
+                        <div x-show="openPop === 'meta'" x-cloak x-transition.opacity.duration.150ms @click.stop
+                             class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-30 overflow-hidden">
+                            <div class="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                                <h4 class="text-xs font-semibold text-gray-700">생성 메타</h4>
+                                <button type="button" @click="openPop = null" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            <dl class="p-4 space-y-2.5 text-sm">
+                                <div class="flex justify-between"><dt class="text-xs text-gray-400">버전</dt><dd class="font-medium text-gray-700">v{{ $latest->version }}</dd></div>
+                                <div class="flex justify-between"><dt class="text-xs text-gray-400">차수</dt><dd class="font-medium text-gray-700">{{ $latest->review_round }}차</dd></div>
+                                <div class="flex justify-between"><dt class="text-xs text-gray-400">생성 엔진</dt><dd><span class="inline-block text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">{{ $latest->generated_by }}</span></dd></div>
+                                <div class="flex justify-between"><dt class="text-xs text-gray-400">크기</dt><dd class="font-medium text-gray-700">{{ number_format(strlen($latest->html_content)) }} B</dd></div>
+                                <div class="flex justify-between"><dt class="text-xs text-gray-400">생성</dt><dd class="text-xs text-gray-600">{{ $latest->created_at?->format('Y-m-d H:i') }}</dd></div>
+                                <div class="pt-2 border-t border-gray-50">
+                                    <dt class="text-xs text-gray-400 mb-1">SHA-256</dt>
+                                    <dd class="font-mono text-[11px] text-gray-600 break-all leading-relaxed">{{ $latest->html_hash }}</dd>
+                                </div>
+                            </dl>
                         </div>
-                    </dl>
-                </div>
+                    </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    {{-- 의사결정 버튼 + 팝오버 --}}
+                    <div class="relative">
+                        <button type="button" @click.stop="openPop = openPop === 'decide' ? null : 'decide'"
+                                :class="openPop === 'decide' ? 'bg-indigo-700' : 'bg-indigo-600 hover:bg-indigo-700'"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-white rounded-md font-medium transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             의사 결정
-                        </h3>
-                    </div>
-                    <form method="POST" action="{{ route('wb.tasks.result-confirm.decide', ['task' => $task, 'html' => $latest]) }}" class="space-y-3">
-                        @csrf
-                        <textarea name="note" rows="2" placeholder="메모 (선택)"
-                                  class="w-full border border-gray-200 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                        <button type="submit" name="decision" value="regenerate"
-                                class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            재생성 요청
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <button type="submit" name="decision" value="proceed_to_review"
-                                class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            검수 진행
-                        </button>
-                    </form>
-                </div>
-            </div>
 
-            {{-- 우측: 미리보기 --}}
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-                 x-data="{ full: false }"
-                 :class="full ? 'fixed inset-0 z-50 m-0 rounded-none' : 'relative'"
-                 @keydown.escape.window="full = false">
-                <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <div class="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        웍스 결과 미리보기
-                        <span class="text-xs font-normal text-gray-400">sandbox · 스크립트 차단</span>
+                        <div x-show="openPop === 'decide'" x-cloak x-transition.opacity.duration.150ms @click.stop
+                             class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-30 overflow-hidden">
+                            <div class="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                                <h4 class="text-xs font-semibold text-gray-700">의사 결정</h4>
+                                <button type="button" @click="openPop = null" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            <form method="POST" action="{{ route('wb.tasks.result-confirm.decide', ['task' => $task, 'html' => $latest]) }}" class="p-4 space-y-3">
+                                @csrf
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">메모 (선택)</label>
+                                    <textarea name="note" rows="3"
+                                              class="w-full border border-gray-200 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                              placeholder="결정 사유를 남기면 이력에 기록됩니다."></textarea>
+                                </div>
+                                <button type="submit" name="decision" value="regenerate"
+                                        class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    재생성 요청
+                                </button>
+                                <button type="submit" name="decision" value="proceed_to_review"
+                                        class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    검수 진행
+                                </button>
+                            </form>
+                        </div>
                     </div>
+
+                    {{-- 전체화면 --}}
                     <button type="button" @click="full = !full"
-                            class="inline-flex items-center gap-1 px-2 py-1 text-xs border border-gray-200 rounded-md hover:bg-white text-gray-700">
+                            class="inline-flex items-center gap-1 px-2 py-1.5 text-xs border border-gray-200 rounded-md hover:bg-white text-gray-700">
                         <svg x-show="!full" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0-4h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                         <svg x-show="full" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         <span x-text="full ? '닫기 (Esc)' : '전체 화면'"></span>
                     </button>
                 </div>
-                <iframe sandbox="" srcdoc="{{ \App\Services\WorksBuilder\Preview\PreviewHtmlSanitizer::prepareForIframe($latest->html_content) }}"
-                        class="w-full bg-white block"
-                        :style="full ? 'height: calc(100vh - 50px);' : 'height: 720px;'"></iframe>
             </div>
+
+            {{-- iframe --}}
+            <iframe sandbox="" srcdoc="{{ \App\Services\WorksBuilder\Preview\PreviewHtmlSanitizer::prepareForIframe($latest->html_content) }}"
+                    class="w-full bg-white block"
+                    :style="full ? 'height: calc(100vh - 50px);' : 'height: 760px;'"></iframe>
         </div>
     @endif
 </div>
