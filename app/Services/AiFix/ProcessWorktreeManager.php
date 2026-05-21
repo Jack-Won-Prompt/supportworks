@@ -68,19 +68,75 @@ final class ProcessWorktreeManager implements WorktreeManager
         $this->writeIsolatedEnv($worktreePath);
 
         // 3) composer install (--no-scripts: 일부 ServiceProvider 가 미생성 테이블 eager
-        //    조회하는 걸 우회. package:discover 는 migrate 다음에 분리 실행)
+        //    조회하는 걸 우회. package:discover 는 schema 적용 후 분리 실행)
         $this->run(['composer', 'install', '--no-interaction', '--no-scripts', '--prefer-dist'], $worktreePath);
 
         // 4) APP_KEY 보장
         $this->run(['php', 'artisan', 'key:generate', '--force'], $worktreePath, allowFail: true);
 
-        // 5) migrate (mysql dialect — 운영과 같은 schema)
-        $this->run(['php', 'artisan', 'migrate', '--force', '--no-interaction'], $worktreePath);
+        // 5) 운영 schema 를 test DB 로 import (migration 처음부터 돌리는 대신).
+        //    이전 패턴(`artisan migrate --force`)은 data-migration 단계에서 schema-evolution
+        //    가정 차이로 fail 한 결함이 발견됨. schema dump 는 운영 현재 상태와 정확히 동일.
+        $this->importProductionSchema();
 
         // 6) package:discover (이제 테이블 다 있으니 안전)
         $this->run(['php', 'artisan', 'package:discover'], $worktreePath, allowFail: true);
 
         return $worktreePath;
+    }
+
+    /**
+     * 운영 supportworks DB 의 schema(DDL) + migrations 테이블의 row 만 test DB 로 복제.
+     * - DDL: mysqldump --no-data — 모든 CREATE TABLE/INDEX/VIEW/FUNCTION
+     * - data: migrations 테이블만 (worktree 가 "이미 적용된 migration" 인식하도록)
+     * - 다른 운영 data 는 가져오지 않음 (격리 + 개인정보 보호)
+     *
+     * mysqldump 가 default 로 `DROP TABLE IF EXISTS` 포함하므로 재실행 시에도 안전.
+     * config('database.connections.supportworks') 의 자격증명을 사용.
+     */
+    private function importProductionSchema(): void
+    {
+        $src = config('database.connections.supportworks');
+        if (!is_array($src) || empty($src['host']) || empty($src['username'])) {
+            throw new RuntimeException('importProductionSchema: supportworks connection config 가 비어있음');
+        }
+        // 원본 DB (격리 DB 가 아닌 운영 DB) 를 명시적으로 결정.
+        // worktree 안에서 호출돼도 ProcessWorktreeManager 인스턴스는 host 정보가 운영 .env 기준.
+        // database 이름은 fallback 으로 'supportworks' 사용 (test DB 와 분리하기 위함).
+        $sourceDb = $src['database'] === $this->testDatabase ? 'supportworks' : $src['database'];
+
+        $cnf = tempnam(sys_get_temp_dir(), 'aifix-src-');
+        file_put_contents($cnf, sprintf(
+            "[client]\nhost=%s\nport=%s\nuser=%s\npassword=%s\n",
+            $src['host'], $src['port'] ?? 3306, $src['username'], $src['password']
+        ));
+        chmod($cnf, 0600);
+
+        try {
+            // 1) schema only (DDL) — DROP TABLE IF EXISTS 포함, 모든 테이블 구조 + 인덱스/FK
+            $dump = new Process(['mysqldump', "--defaults-extra-file=$cnf",
+                '--no-data', '--no-tablespaces', '--single-transaction',
+                '--routines', '--triggers', $sourceDb]);
+            $dump->setTimeout(180);
+            $dump->mustRun();
+            $schemaDdl = $dump->getOutput();
+
+            // 2) migrations 테이블의 row 만 (data + INSERT 문)
+            $dump2 = new Process(['mysqldump', "--defaults-extra-file=$cnf",
+                '--no-create-info', '--no-tablespaces', '--single-transaction',
+                $sourceDb, 'migrations']);
+            $dump2->setTimeout(60);
+            $dump2->mustRun();
+            $migrationsData = $dump2->getOutput();
+
+            // 3) test DB 로 import (같은 자격증명, 다른 database)
+            $import = new Process(['mysql', "--defaults-extra-file=$cnf", $this->testDatabase]);
+            $import->setTimeout(300);
+            $import->setInput($schemaDdl . "\n" . $migrationsData);
+            $import->mustRun();
+        } finally {
+            @unlink($cnf);
+        }
     }
 
     public function remove(int $jobId): void
