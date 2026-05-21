@@ -109,9 +109,15 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Services\AiFix\GitHubMerger::class,    \App\Services\AiFix\StubGitHubMerger::class);
         $this->app->bind(\App\Services\AiFix\RemoteDeployer::class,  \App\Services\AiFix\StubRemoteDeployer::class);
 
-        // TestRunner 는 결과를 인자로 받는 stub 이라 기본 바인딩 불가 — 컨테이너에 stub_test_runner.result 가 등록돼 있어야 함.
-        // 운영에서 PhpUnitTestRunner 가 들어오면 단순 ->bind 로 충분.
+        // TestRunner: driver=phpunit 이면 PhpUnitTestRunner, 아니면 default-pass Stub.
+        // 운영 .env 의 AI_FIX_TEST_RUNNER_DRIVER=phpunit 으로 활성화.
         $this->app->bind(\App\Services\AiFix\TestRunner::class, function () {
+            $cfg = config('ai-fix.test_runner');
+            if (($cfg['driver'] ?? 'stub') === 'phpunit') {
+                return new \App\Services\AiFix\PhpUnitTestRunner(
+                    timeout: (int) ($cfg['timeout'] ?? 600),
+                );
+            }
             return new \App\Services\AiFix\StubTestRunner(
                 new \App\Services\AiFix\TestResult(passed: true, testsRun: 0)
             );
@@ -358,6 +364,52 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::composer('ai-agent.*', AiAgentComposer::class);
+
+        // 유지보수 요청 화면 공통 라벨/색상 주입
+        View::composer('maint-requests.*', function ($view) {
+            $view->with([
+                'priorityLabels' => [
+                    'normal'   => '일반',
+                    'urgent'   => '긴급',
+                    'critical' => '초긴급',
+                    'recheck'  => '재확인',
+                ],
+                'priorityStyles' => [
+                    'normal'   => 'background:#f4f4f5;color:#52525b;',
+                    'urgent'   => 'background:#fef3c7;color:#92400e;',
+                    'critical' => 'background:#fee2e2;color:#991b1b;',
+                    'recheck'  => 'background:#e0e7ff;color:#3730a3;',
+                ],
+                'statusLabels' => [
+                    'draft'             => '작성중',
+                    'requested'         => '요청',
+                    'planned'           => '개발예정',
+                    'in_progress'       => '진행중',
+                    'pending_check'     => '확인대기',
+                    'discussion_needed' => '논의필요',
+                    'on_hold'           => '보류',
+                    'awaiting_file'     => '파일대기',
+                    'replied'           => '답변완료',
+                    'review_requested'  => '검토요청',
+                    'review_again'      => '재확인',
+                    'completed'         => '완료',
+                ],
+                'statusStyles' => [
+                    'draft'             => 'background:#f4f4f5;color:#71717a;',
+                    'requested'         => 'background:#dbeafe;color:#1e40af;',
+                    'planned'           => 'background:#e0e7ff;color:#3730a3;',
+                    'in_progress'       => 'background:#fef3c7;color:#92400e;',
+                    'pending_check'     => 'background:#fce7f3;color:#9d174d;',
+                    'discussion_needed' => 'background:#fee2e2;color:#991b1b;',
+                    'on_hold'           => 'background:#f3e8ff;color:#6b21a8;',
+                    'awaiting_file'     => 'background:#e0f2fe;color:#075985;',
+                    'replied'           => 'background:#dcfce7;color:#166534;',
+                    'review_requested'  => 'background:#ffedd5;color:#9a3412;',
+                    'review_again'      => 'background:#fee2e2;color:#991b1b;',
+                    'completed'         => 'background:#d1fae5;color:#065f46;',
+                ],
+            ]);
+        });
 
         // Works Builder Policy 등록 (명세 v11 §1.4.5)
         \Illuminate\Support\Facades\Gate::policy(

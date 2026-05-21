@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | TestRunner (테스트 실행기)
+    |--------------------------------------------------------------------------
+    | driver=stub: 미리 정해둔 TestResult 반환 (PoC).
+    | driver=phpunit: PhpUnitTestRunner 가 worktree 안 vendor/bin/phpunit 실행 후
+    |   stdout 파싱해 TestResult 채움. AI_FIX_TEST_RUNNER_TIMEOUT 로 timeout 조절.
+    */
+    'test_runner' => [
+        'driver'  => env('AI_FIX_TEST_RUNNER_DRIVER', 'stub'),
+        'timeout' => (int) env('AI_FIX_TEST_RUNNER_TIMEOUT', 600),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 자동 수정 화이트리스트 (auto_eligible)
     |--------------------------------------------------------------------------
     | 변경 파일 *전체*가 이 패턴에 매칭되고 red/yellow 신호가 임계값 미만이면
