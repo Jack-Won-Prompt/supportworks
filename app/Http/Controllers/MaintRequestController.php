@@ -678,13 +678,21 @@ class MaintRequestController extends Controller
             'priority'  => 'nullable|in:' . implode(',', MaintRequest::PRIORITIES),
         ]);
 
-        $companyGroupId = auth()->user()?->company_group_id;
-        abort_if(empty($companyGroupId), 422, '회사 소속이 없는 사용자는 사용할 수 없습니다.');
+        // 권한 — index 의 access scope 로직과 동일하게 처리.
+        // 권한자(admin / sr_agent): 모든 회사 SR 접근, 본인 company_group_id 없어도 OK.
+        // 비권한자: 자기 회사 SR 만, company_group_id 필수.
+        $u = auth()->user();
+        $isSrPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+        $userCompanyId  = $u?->company_group_id;
 
         // 기존 SR 이면 로드, 아니면 transient 인스턴스로 SrSummaryService 에 넘김.
         if (!empty($data['id'])) {
             $req = MaintRequest::with('menu')->findOrFail($data['id']);
-            abort_if((int) $req->company_group_id !== (int) $companyGroupId, 403);
+
+            // 비권한자는 자기 회사 SR 만 처리 가능
+            if (!$isSrPrivileged) {
+                abort_if(empty($userCompanyId) || (int) $req->company_group_id !== (int) $userCompanyId, 403);
+            }
 
             // 폼에서 사용자가 막 수정한 값으로 덮어 컨텍스트 일치
             $req->summary  = $data['summary']  ?? $req->summary;
@@ -692,20 +700,23 @@ class MaintRequestController extends Controller
             $req->category = $data['category'] ?? $req->category;
             $req->menu_id  = $this->resolveMenu($data) ?? $req->menu_id;
             $req->priority = $data['priority'] ?? $req->priority;
+            // company_group_id 는 SR 원본 그대로 유지 (유사 검색 컨텍스트가 SR 소속 회사 기준이 되도록)
         } else {
+            // 신규(create) 시: 비권한자는 자기 회사로 강제, 권한자는 본인 회사 또는 null 허용
+            abort_if(!$isSrPrivileged && empty($userCompanyId), 422, '회사 소속이 없는 사용자는 사용할 수 없습니다.');
+
             $req = new MaintRequest([
                 'summary'          => $data['summary']  ?? '',
                 'content'          => $data['content']  ?? '',
                 'category'         => $data['category'] ?? null,
                 'priority'         => $data['priority'] ?? 'normal',
-                'company_group_id' => $companyGroupId,
+                'company_group_id' => $userCompanyId,
                 'menu_id'          => $this->resolveMenu($data),
             ]);
             if ($req->menu_id) {
                 $req->setRelation('menu', MaintMenu::find($req->menu_id));
             }
         }
-        $req->company_group_id = $companyGroupId;
 
         if (trim((string) $req->content) === '' && trim((string) $req->summary) === '') {
             return response()->json([

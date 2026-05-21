@@ -44,7 +44,9 @@
              })">
             <div class="flex items-center justify-between mb-1">
                 <label class="block text-sm font-medium text-gray-700">상세 내용</label>
+                {{-- 요약 없음 OR 원본 수정됨 → 버튼 표시. 요약 있고 원본 미수정 → 숨김 --}}
                 <button type="button" @click="generate()" :disabled="loading"
+                        x-show="!summary || dirty" x-cloak
                         :class="loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-50 hover:border-indigo-300'"
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md text-indigo-700 bg-white transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
