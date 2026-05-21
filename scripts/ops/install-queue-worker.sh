@@ -43,11 +43,31 @@ chmod 0644 "$DST"
 echo ">> systemctl daemon-reload"
 systemctl daemon-reload
 
-echo ">> systemctl enable --now supportworks-queue"
-systemctl enable --now supportworks-queue
+echo ">> systemctl enable supportworks-queue"
+systemctl enable supportworks-queue >/dev/null
+
+echo ">> systemctl restart supportworks-queue"
+# enable --now 는 시작 실패를 silent 로 넘기는 경우가 있어 분리 실행 + 상태 확인.
+if ! systemctl restart supportworks-queue; then
+    echo "" >&2
+    echo "✗ supportworks-queue 시작 실패." >&2
+    echo "  systemctl status supportworks-queue --no-pager" >&2
+    echo "  journalctl -u supportworks-queue -n 50 --no-pager" >&2
+    systemctl status supportworks-queue --no-pager || true
+    exit 3
+fi
+
+# active 상태 검증 (시작 직후 즉시 종료된 경우 잡기)
+sleep 1
+if ! systemctl is-active --quiet supportworks-queue; then
+    echo "" >&2
+    echo "✗ supportworks-queue 시작 후 즉시 비활성. 로그 확인:" >&2
+    journalctl -u supportworks-queue -n 30 --no-pager || true
+    exit 4
+fi
 
 echo ""
-echo "✓ supportworks-queue installed and started."
+echo "✓ supportworks-queue installed and ACTIVE."
 echo ""
 echo "  Status:  systemctl status supportworks-queue"
 echo "  Logs:    journalctl -u supportworks-queue -f --since '5 min ago'"

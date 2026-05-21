@@ -23,8 +23,10 @@
 
 [Unit]
 Description=SupportWorks Laravel queue worker (Works Builder + AI fix)
-After=mysql.service network.target
-Requires=mysql.service
+# DB 는 RDS 또는 외부 호스트일 수 있으므로 로컬 mysql.service 에 의존하지 않음.
+# 네트워크만 올라온 뒤 시작. DB 미접속 시 Laravel 이 자체적으로 재시도/에러 로깅.
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
