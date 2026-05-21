@@ -19,19 +19,36 @@ use Illuminate\Support\Facades\Log;
 final class OpenAiAnalyzer implements AiAnalyzer
 {
     public function __construct(
-        private readonly string $apiKey,
-        private readonly string $model = 'gpt-4o-mini',
-        private readonly int    $timeout = 60,
+        private readonly string  $apiKey,
+        private readonly string  $model = 'gpt-5.5',
+        private readonly ?string $fallbackModel = 'gpt-4.0',
+        private readonly int     $timeout = 60,
     ) {}
 
     public function analyze(SystemErrorLog $errorLog): AnalysisResult
+    {
+        $result = $this->tryAnalyze($errorLog, $this->model);
+        if ($result !== null) return $result;
+
+        if ($this->fallbackModel !== null && $this->fallbackModel !== $this->model) {
+            Log::info("[OpenAiAnalyzer] primary {$this->model} failed — falling back to {$this->fallbackModel}");
+            $result = $this->tryAnalyze($errorLog, $this->fallbackModel);
+            if ($result !== null) return $result;
+        }
+
+        return $this->fallback($errorLog, "all models failed (primary={$this->model}, fallback="
+            . ($this->fallbackModel ?? 'none') . ')');
+    }
+
+    /** 한 모델로 호출 시도. 성공 시 AnalysisResult, 실패(HTTP/JSON) 시 null. */
+    private function tryAnalyze(SystemErrorLog $errorLog, string $model): ?AnalysisResult
     {
         try {
             $response = Http::timeout($this->timeout)
                 ->withToken($this->apiKey)
                 ->acceptJson()
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model'           => $this->model,
+                    'model'           => $model,
                     'response_format' => ['type' => 'json_object'],
                     'temperature'     => 0.2,
                     'messages'        => [
@@ -40,18 +57,20 @@ final class OpenAiAnalyzer implements AiAnalyzer
                     ],
                 ]);
         } catch (\Throwable $e) {
-            Log::warning('[OpenAiAnalyzer] HTTP failed: ' . $e->getMessage());
-            return $this->fallback($errorLog, 'http error: ' . $e->getMessage());
+            Log::warning("[OpenAiAnalyzer:$model] HTTP threw: " . $e->getMessage());
+            return null;
         }
 
         if (!$response->successful()) {
-            return $this->fallback($errorLog, 'HTTP ' . $response->status() . ': ' . $response->body());
+            Log::warning("[OpenAiAnalyzer:$model] HTTP " . $response->status() . ': ' . mb_substr($response->body(), 0, 300));
+            return null;
         }
 
         $content = (string) $response->json('choices.0.message.content', '');
         $data    = json_decode($content, true);
         if (!is_array($data)) {
-            return $this->fallback($errorLog, 'invalid JSON: ' . mb_substr($content, 0, 200));
+            Log::warning("[OpenAiAnalyzer:$model] invalid JSON: " . mb_substr($content, 0, 200));
+            return null;
         }
 
         return new AnalysisResult(
