@@ -13,7 +13,7 @@ use App\Http\Controllers\Controller;
  */
 class AiFixTestController extends Controller
 {
-    public function trigger(): never
+    public function trigger(): void
     {
         throw new \TypeError('AI Fix E2E full-cycle test: intentional null reference for trigger');
     }
