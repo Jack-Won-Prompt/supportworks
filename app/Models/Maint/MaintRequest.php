@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class MaintRequest extends Model
 {
     protected $fillable = [
-        'excel_no', 'source_sheet', 'menu_id',
+        'excel_no', 'source_sheet', 'menu_id', 'company_group_id',
         'request_date', 'priority', 'category',
         'summary', 'content', 'status',
         'progress_raw', 'colo_check_raw',

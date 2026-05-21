@@ -36,11 +36,7 @@ class MaintRequestController extends Controller
                 // 비권한자 + 회사 없음 → 결과 없음
                 $qb->whereRaw('1=0');
             } elseif ($accessScope !== null) {
-                $qb->whereIn('colo_user_id', function ($sub) use ($accessScope) {
-                    $sub->select('id')->from('maint_users')
-                        ->where('team', 'colo')
-                        ->where('company_group_id', $accessScope);
-                });
+                $qb->where('company_group_id', $accessScope);
             }
         };
 
@@ -61,11 +57,7 @@ class MaintRequestController extends Controller
         if ($c = $request->integer('colo_user_id'))        $q->where('colo_user_id', $c);
         // company_group_id 파라미터는 권한자만 허용 (비권한자는 자기 회사로 고정됨)
         if ($isSrPrivileged && ($cg = $request->integer('company_group_id'))) {
-            $q->whereIn('colo_user_id', function ($sub) use ($cg) {
-                $sub->select('id')->from('maint_users')
-                    ->where('team', 'colo')
-                    ->where('company_group_id', $cg);
-            });
+            $q->where('company_group_id', $cg);
         }
         if ($kw = trim($request->string('q')->toString())) {
             $q->where(function ($x) use ($kw) {
@@ -159,6 +151,10 @@ class MaintRequestController extends Controller
             'assignee_name'    => 'nullable|string|max:100',
             'status'           => 'nullable|in:' . implode(',', MaintRequest::STATUSES),
         ]);
+
+        // 회사는 로그인 사용자 본인 소속으로 자동 지정
+        $data['company_group_id'] = auth()->user()?->company_group_id;
+        abort_if(empty($data['company_group_id']), 422, '회사 소속이 없는 사용자는 SR을 등록할 수 없습니다.');
 
         DB::transaction(function () use (&$data) {
             $data['menu_id']      = $this->resolveMenu($data);
@@ -383,14 +379,18 @@ class MaintRequestController extends Controller
                 $menuName = $row['menu'] ?: '(미지정)';
                 $summary  = mb_substr(explode("\n", $row['content'] ?: '(내용없음)')[0], 0, 500);
 
-                // ── 중복 판정 ──
+                // ── 중복 판정 (같은 회사 내에서만) ──
                 if ($row['no'] !== null) {
-                    // Sheet1: excel_no가 유일 키
-                    $exists = DB::table('maint_requests')->where('excel_no', $row['no'])->exists();
+                    // Sheet1: 회사 + excel_no 조합이 유일 키
+                    $exists = DB::table('maint_requests')
+                        ->where('company_group_id', $companyGroupId)
+                        ->where('excel_no', $row['no'])
+                        ->exists();
                 } else {
-                    // Sheet1 (2): excel_no 없음 → 메뉴 + summary 조합으로 판정
+                    // Sheet1 (2): excel_no 없음 → 회사 + 메뉴 + summary 조합으로 판정
                     $menuId = $resolveMenu($menuName);
                     $exists = DB::table('maint_requests')
+                        ->where('company_group_id', $companyGroupId)
                         ->where('source_sheet', $row['sheet'])
                         ->where('menu_id', $menuId)
                         ->where('summary', $summary)
@@ -423,10 +423,11 @@ class MaintRequestController extends Controller
                 $completedAt = ($status === 'completed' && $row['eta']) ? ($row['eta'] . ' 00:00:00') : null;
 
                 $reqId = DB::table('maint_requests')->insertGetId([
-                    'excel_no'       => $row['no'],
-                    'source_sheet'   => $row['sheet'],
-                    'menu_id'        => $menuId,
-                    'request_date'   => $row['req_date'],
+                    'excel_no'         => $row['no'],
+                    'source_sheet'     => $row['sheet'],
+                    'menu_id'          => $menuId,
+                    'company_group_id' => $companyGroupId,
+                    'request_date'     => $row['req_date'],
                     'priority'       => $row['priority'],
                     'category'       => $row['category'],
                     'summary'        => $summary,

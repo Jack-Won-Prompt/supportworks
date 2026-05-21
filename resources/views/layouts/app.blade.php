@@ -424,10 +424,8 @@
                         $__srAll = $__u && ($__u->isAdmin() || (bool) ($__u->is_sr_agent ?? false));
                         $__myCgId = $__u?->company_group_id;
                         $__srCompanies = \DB::table('company_groups as cg')
-                            ->join('maint_users as mu', 'mu.company_group_id', '=', 'cg.id')
-                            ->join('maint_requests as mr', 'mr.colo_user_id', '=', 'mu.id')
-                            ->where('mu.team', 'colo')
-                            ->select('cg.id', 'cg.name', \DB::raw('COUNT(DISTINCT mr.id) as sr_count'))
+                            ->join('maint_requests as mr', 'mr.company_group_id', '=', 'cg.id')
+                            ->select('cg.id', 'cg.name', \DB::raw('COUNT(*) as sr_count'))
                             ->groupBy('cg.id', 'cg.name')
                             ->orderBy('cg.name')
                             ->get();
