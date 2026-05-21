@@ -44,8 +44,8 @@
                     <p class="text-sm text-gray-500">명세 v11 §1.4 — 옵션을 정하고 [옵션 확정 → 웍스 호출]을 누르면 웍스가 HTML을 생성합니다.</p>
                 </div>
 
-                {{-- 옵션 버튼 + 팝오버 --}}
-                <div class="relative flex-shrink-0">
+                {{-- 옵션 버튼 (팝오버 본체는 body 로 teleport — 와이어프레임 stacking context 회피) --}}
+                <div class="flex-shrink-0">
                     <button type="button" @click.stop="openPop = !openPop"
                             :class="openPop ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'"
                             class="inline-flex items-center gap-2 px-4 py-2 text-sm border rounded-lg font-medium transition-colors">
@@ -53,68 +53,6 @@
                         옵션
                         <svg class="w-3 h-3 text-gray-400 transition-transform" :class="openPop ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-
-                    <div x-show="openPop" x-cloak x-transition.opacity.duration.150ms @click.stop
-                         class="absolute right-0 top-full mt-2 w-[560px] max-w-[92vw] bg-white rounded-xl shadow-2xl border border-gray-200 z-[100] overflow-hidden">
-                        {{-- 팝오버 상단: 옵션 타이틀 (prominent) --}}
-                        <div class="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <h4 class="text-sm font-semibold text-gray-900">레이아웃 옵션</h4>
-                                <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-100 text-indigo-700">v{{ $option->version }}</span>
-                            </div>
-                            <button type="button" @click="openPop = false" class="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
-                        <div class="p-5 grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">GNB 위치</label>
-                                <select x-model="form.gnb_position" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="top">상단</option>
-                                    <option value="left">좌측</option>
-                                    <option value="right">우측</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">탭 구조</label>
-                                <select x-model="form.tab_structure" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="single">단일</option><option value="top_tabs">상단 탭</option>
-                                    <option value="left_tabs">좌측 탭</option><option value="sidebar_tabs">사이드 + 탭</option>
-                                    <option value="none">없음</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">화면 전환</label>
-                                <select x-model="form.transition_type" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="page">페이지 전환</option>
-                                    <option value="slide">슬라이드</option>
-                                    <option value="tab_switch">탭 전환</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">메인 색상</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="color" x-model="form.main_color" @input="schedulePreview" class="w-10 h-10 border border-gray-200 rounded-lg cursor-pointer flex-shrink-0">
-                                    <input type="text" x-model="form.main_color" @input.debounce.300ms="schedulePreview"
-                                           class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2.5 font-mono text-xs">
-                                </div>
-                            </div>
-                            <div class="col-span-2">
-                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">테마</label>
-                                @if (empty($themes))
-                                    <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-700">등록된 테마 없음.</div>
-                                @else
-                                    <select x-model="form.theme_key" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                        @foreach ($themes as $key => $m)
-                                            <option value="{{ $key }}">{{ $m['name'] ?? $key }} (v{{ $m['version'] ?? '?' }})</option>
-                                        @endforeach
-                                    </select>
-                                    <p class="text-xs text-gray-400 mt-1.5">선택한 테마 자산이 출력 zip의 <code>assets/theme/</code> 에 자동 포함됩니다.</p>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -161,6 +99,76 @@
                 <span x-show="saving">저장 중...</span>
             </button>
         </div>
+
+        {{-- 옵션 팝오버 (body 로 teleport — stacking context 회피) --}}
+        <template x-teleport="body">
+            <div x-show="openPop" x-cloak x-transition.opacity.duration.150ms
+                 class="fixed inset-0 z-[200] flex items-start justify-center pt-20 px-4"
+                 @click.self="openPop = false">
+                <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-[1100px] max-w-[96vw] overflow-hidden"
+                     @click.stop>
+                    {{-- 팝오버 상단: 옵션 타이틀 --}}
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <h4 class="text-base font-semibold text-gray-900">레이아웃 옵션</h4>
+                            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-100 text-indigo-700">v{{ $option->version }}</span>
+                            <span class="text-xs text-gray-400 ml-2">변경 즉시 와이어프레임에 반영</span>
+                        </div>
+                        <button type="button" @click="openPop = false" class="w-7 h-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    {{-- 5-col 가로 한 줄 그리드 --}}
+                    <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">GNB 위치</label>
+                            <select x-model="form.gnb_position" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="top">상단</option>
+                                <option value="left">좌측</option>
+                                <option value="right">우측</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">탭 구조</label>
+                            <select x-model="form.tab_structure" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="single">단일</option><option value="top_tabs">상단 탭</option>
+                                <option value="left_tabs">좌측 탭</option><option value="sidebar_tabs">사이드 + 탭</option>
+                                <option value="none">없음</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">화면 전환</label>
+                            <select x-model="form.transition_type" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="page">페이지 전환</option>
+                                <option value="slide">슬라이드</option>
+                                <option value="tab_switch">탭 전환</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">메인 색상</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" x-model="form.main_color" @input="schedulePreview" class="w-10 h-10 border border-gray-200 rounded-lg cursor-pointer flex-shrink-0">
+                                <input type="text" x-model="form.main_color" @input.debounce.300ms="schedulePreview"
+                                       class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2.5 font-mono text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">테마</label>
+                            @if (empty($themes))
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-700">등록된 테마 없음.</div>
+                            @else
+                                <select x-model="form.theme_key" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    @foreach ($themes as $key => $m)
+                                        <option value="{{ $key }}">{{ $m['name'] ?? $key }} (v{{ $m['version'] ?? '?' }})</option>
+                                    @endforeach
+                                </select>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
     </form>
 </div>
 
