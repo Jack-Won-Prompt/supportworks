@@ -91,7 +91,7 @@
                     옵션 보정
                 </h3>
             </div>
-            <form id="wb-spec-form" method="POST" action="{{ route('wb.tasks.spec-review.confirm', $task) }}" class="space-y-4"
+            <form id="wb-spec-form" method="POST" action="{{ route('wb.tasks.spec-review.confirm', $task) }}"
                   x-data="{ saving: false }" @submit.prevent="
                       saving = true;
                       const fd = new FormData($el);
@@ -116,55 +116,57 @@
                       finally { saving = false; }
                   ">
                 @csrf
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">GNB 위치</label>
-                    <select name="gnb_position" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        @foreach (['top'=>'상단','left'=>'좌측','right'=>'우측'] as $v=>$lbl)
-                            <option value="{{ $v }}" @selected(old('gnb_position', $d['gnb_position'] ?? 'top') === $v)>{{ $lbl }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">탭 구조</label>
-                    <select name="tab_structure" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        @foreach (['single'=>'단일','top_tabs'=>'상단 탭','left_tabs'=>'좌측 탭','sidebar_tabs'=>'사이드 + 탭','none'=>'없음'] as $v=>$lbl)
-                            <option value="{{ $v }}" @selected(old('tab_structure', $d['tab_structure'] ?? 'single') === $v)>{{ $lbl }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">화면 전환</label>
-                    <select name="transition_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        @foreach (['page'=>'페이지 전환','slide'=>'슬라이드','tab_switch'=>'탭 전환'] as $v=>$lbl)
-                            <option value="{{ $v }}" @selected(old('transition_type', $d['transition_type'] ?? 'page') === $v)>{{ $lbl }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">메인 색상</label>
-                    <div class="flex items-center gap-2">
-                        <input type="color" name="main_color" value="{{ old('main_color', $d['main_color'] ?? '#3b82f6') }}"
-                               class="h-9 w-12 border border-gray-200 rounded-lg cursor-pointer" oninput="this.nextElementSibling.value=this.value">
-                        <input type="text" value="{{ old('main_color', $d['main_color'] ?? '#3b82f6') }}"
-                               class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" readonly>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">테마</label>
-                    @if (empty($themes))
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
-                            등록된 테마가 없습니다.
-                        </div>
-                    @else
-                        <select name="theme_key" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            @foreach ($themes as $key => $m)
-                                <option value="{{ $key }}" @selected(old('theme_key', $d['theme_key'] ?? array_key_first($themes)) === $key)>{{ $m['name'] ?? $key }} (v{{ $m['version'] ?? '?' }})</option>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">GNB 위치</label>
+                        <select name="gnb_position" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @foreach (['top'=>'상단','left'=>'좌측','right'=>'우측'] as $v=>$lbl)
+                                <option value="{{ $v }}" @selected(old('gnb_position', $d['gnb_position'] ?? 'top') === $v)>{{ $lbl }}</option>
                             @endforeach
                         </select>
-                        <p class="text-xs text-gray-400 mt-1">선택한 테마의 자산이 출력 zip에 자동 포함됩니다.</p>
-                    @endif
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">탭 구조</label>
+                        <select name="tab_structure" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @foreach (['single'=>'단일','top_tabs'=>'상단 탭','left_tabs'=>'좌측 탭','sidebar_tabs'=>'사이드 + 탭','none'=>'없음'] as $v=>$lbl)
+                                <option value="{{ $v }}" @selected(old('tab_structure', $d['tab_structure'] ?? 'single') === $v)>{{ $lbl }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">화면 전환</label>
+                        <select name="transition_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @foreach (['page'=>'페이지 전환','slide'=>'슬라이드','tab_switch'=>'탭 전환'] as $v=>$lbl)
+                                <option value="{{ $v }}" @selected(old('transition_type', $d['transition_type'] ?? 'page') === $v)>{{ $lbl }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">메인 색상</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" name="main_color" value="{{ old('main_color', $d['main_color'] ?? '#3b82f6') }}"
+                                   class="h-9 w-12 border border-gray-200 rounded-lg cursor-pointer flex-shrink-0" oninput="this.nextElementSibling.value=this.value">
+                            <input type="text" value="{{ old('main_color', $d['main_color'] ?? '#3b82f6') }}"
+                                   class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" readonly>
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">테마</label>
+                        @if (empty($themes))
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+                                등록된 테마가 없습니다.
+                            </div>
+                        @else
+                            <select name="theme_key" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                @foreach ($themes as $key => $m)
+                                    <option value="{{ $key }}" @selected(old('theme_key', $d['theme_key'] ?? array_key_first($themes)) === $key)>{{ $m['name'] ?? $key }} (v{{ $m['version'] ?? '?' }})</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">선택한 테마의 자산이 출력 zip에 자동 포함됩니다.</p>
+                        @endif
+                    </div>
                 </div>
-                <div class="pt-4 border-t border-gray-50 flex justify-end gap-2">
+                <div class="mt-5 pt-4 border-t border-gray-50 flex justify-end gap-2">
                     <a href="{{ route('wb.tasks.show', $task) }}" class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">취소</a>
                     <button type="submit" :disabled="saving"
                             class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium disabled:opacity-50">

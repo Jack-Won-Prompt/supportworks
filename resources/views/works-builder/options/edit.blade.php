@@ -49,56 +49,58 @@
                     레이아웃 옵션
                 </h3>
             </div>
-            <form @submit.prevent="save()" class="space-y-4 text-sm">
+            <form @submit.prevent="save()" class="text-sm">
                 @csrf
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">GNB 위치</label>
-                    <select x-model="form.gnb_position" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="top">상단</option>
-                        <option value="left">좌측</option>
-                        <option value="right">우측</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">탭 구조</label>
-                    <select x-model="form.tab_structure" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="single">단일</option><option value="top_tabs">상단 탭</option>
-                        <option value="left_tabs">좌측 탭</option><option value="sidebar_tabs">사이드 + 탭</option>
-                        <option value="none">없음</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">화면 전환 방식</label>
-                    <select x-model="form.transition_type" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="page">페이지 전환</option>
-                        <option value="slide">슬라이드</option>
-                        <option value="tab_switch">탭 전환</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">메인 색상</label>
-                    <div class="flex items-center gap-2">
-                        <input type="color" x-model="form.main_color" @input="schedulePreview" class="w-12 h-9 border border-gray-200 rounded-lg cursor-pointer">
-                        <input type="text" x-model="form.main_color" @input.debounce.300ms="schedulePreview"
-                               class="flex-1 border border-gray-200 rounded-lg px-3 py-2 font-mono text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">GNB 위치</label>
+                        <select x-model="form.gnb_position" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="top">상단</option>
+                            <option value="left">좌측</option>
+                            <option value="right">우측</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">탭 구조</label>
+                        <select x-model="form.tab_structure" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="single">단일</option><option value="top_tabs">상단 탭</option>
+                            <option value="left_tabs">좌측 탭</option><option value="sidebar_tabs">사이드 + 탭</option>
+                            <option value="none">없음</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">화면 전환 방식</label>
+                        <select x-model="form.transition_type" @change="schedulePreview" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="page">페이지 전환</option>
+                            <option value="slide">슬라이드</option>
+                            <option value="tab_switch">탭 전환</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">메인 색상</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" x-model="form.main_color" @input="schedulePreview" class="w-12 h-9 border border-gray-200 rounded-lg cursor-pointer flex-shrink-0">
+                            <input type="text" x-model="form.main_color" @input.debounce.300ms="schedulePreview"
+                                   class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 font-mono text-xs">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">테마</label>
+                        @if (empty($themes))
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+                                등록된 테마가 없습니다. resources/wb-themes/ 하위에 테마 디렉터리를 추가하세요.
+                            </div>
+                        @else
+                            <select x-model="form.theme_key" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                @foreach ($themes as $key => $m)
+                                    <option value="{{ $key }}">{{ $m['name'] ?? $key }} (v{{ $m['version'] ?? '?' }})</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">현재 옵션의 테마 자산이 출력 zip의 <code>assets/theme/</code> 에 자동 포함됩니다.</p>
+                        @endif
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">테마</label>
-                    @if (empty($themes))
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
-                            등록된 테마가 없습니다. resources/wb-themes/ 하위에 테마 디렉터리를 추가하세요.
-                        </div>
-                    @else
-                        <select x-model="form.theme_key" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            @foreach ($themes as $key => $m)
-                                <option value="{{ $key }}">{{ $m['name'] ?? $key }} (v{{ $m['version'] ?? '?' }})</option>
-                            @endforeach
-                        </select>
-                        <p class="text-xs text-gray-400 mt-1">현재 옵션의 테마 자산이 출력 zip의 <code>assets/theme/</code> 에 자동 포함됩니다.</p>
-                    @endif
-                </div>
-                <div class="pt-4 border-t border-gray-50 flex justify-end gap-2">
+                <div class="mt-5 pt-4 border-t border-gray-50 flex justify-end gap-2">
                     <a href="{{ route('wb.tasks.show', $task) }}" class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm">취소</a>
                     <button type="submit" :disabled="saving"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium disabled:opacity-50">
