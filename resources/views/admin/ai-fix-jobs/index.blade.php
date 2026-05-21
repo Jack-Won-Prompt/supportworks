@@ -145,7 +145,8 @@
                     <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap align-top">{{ $job->created_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3 text-right align-top">
                         <a href="{{ route('admin.ai-fix-jobs.show', $job) }}"
-                           class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap">
+                           data-job-id="{{ $job->id }}"
+                           class="ai-fix-detail-link inline-flex items-center px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap">
                             상세
                         </a>
                     </td>
@@ -160,4 +161,65 @@
     @endif
 
 </div>
+
+{{-- 상세 모달 --}}
+<div id="aifix-detail-modal"
+     style="display:none; position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:white; border-radius:12px; max-width:64rem; width:100%; max-height:90vh; display:flex; flex-direction:column;">
+        <div style="position:sticky; top:0; background:white; border-bottom:1px solid #e2e8f0; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; border-top-left-radius:12px; border-top-right-radius:12px;">
+            <h2 style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">AI Fix 상세</h2>
+            <button type="button" id="aifix-modal-close" style="background:none; border:none; font-size:20px; color:#94a3b8; cursor:pointer; padding:4px 8px;">✕</button>
+        </div>
+        <div id="aifix-detail-body" style="padding:20px; overflow-y:auto; flex:1;">
+            <div style="text-align:center; color:#94a3b8; padding:40px 0;">로딩중...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const modal = document.getElementById('aifix-detail-modal');
+    const body  = document.getElementById('aifix-detail-body');
+    const close = document.getElementById('aifix-modal-close');
+
+    function open(jobId) {
+        body.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:40px 0;">로딩중...</div>';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        fetch('{{ url('admin/ai-fix-jobs') }}/' + jobId + '/modal', {
+            credentials: 'same-origin',
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        })
+        .then(function(html) { body.innerHTML = html; })
+        .catch(function(e) {
+            body.innerHTML = '<div style="text-align:center; color:#dc2626; padding:40px 0;">로딩 실패: ' + e.message + '</div>';
+        });
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.ai-fix-detail-link').forEach(function(a) {
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            open(this.dataset.jobId);
+        });
+    });
+
+    close.addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+    });
+})();
+</script>
 @endsection

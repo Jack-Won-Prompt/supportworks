@@ -373,6 +373,7 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     // AI Fix Job 관리 (관리자 승인 큐)
     Route::get ('ai-fix-jobs',                       [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'index'])  ->name('ai-fix-jobs.index');
     Route::get ('ai-fix-jobs/{aiFixJob}',            [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'show'])   ->name('ai-fix-jobs.show');
+    Route::get ('ai-fix-jobs/{aiFixJob}/modal',      [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'modal'])  ->name('ai-fix-jobs.modal');
     Route::post('ai-fix-jobs/{aiFixJob}/approve',    [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'approve'])->name('ai-fix-jobs.approve');
     Route::post('ai-fix-jobs/{aiFixJob}/reject',     [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'reject']) ->name('ai-fix-jobs.reject');
 

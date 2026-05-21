@@ -53,6 +53,15 @@ class AdminAiFixJobController extends Controller
         ]);
     }
 
+    /** 목록 모달 전용 — partial(_detail.blade) 만 반환. layout 없음. */
+    public function modal(AiFixJob $aiFixJob): View
+    {
+        return view('admin.ai-fix-jobs._detail', [
+            'job'   => $aiFixJob->load('systemErrorLog'),
+            'error' => $aiFixJob->systemErrorLog,
+        ]);
+    }
+
     public function approve(Request $request, AiFixJob $aiFixJob): RedirectResponse
     {
         $admin = auth('admin')->user();
