@@ -16,8 +16,16 @@
 @endsection
 
 @section('content')
-<div class="pt-4 space-y-5">
-    <p class="text-sm text-gray-500">명세 v11 §1.3 — 기획서를 확인하고 옵션을 보정한 뒤 [확정 후 웍스 호출 →]을 누르면 웍스가 HTML을 생성합니다.</p>
+<div class="space-y-6">
+    {{-- 헤더 카드 --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center gap-3 mb-2 flex-wrap">
+            <h2 class="text-xl font-bold text-gray-900">기획서 검토</h2>
+            <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">고도화 (B)</span>
+            <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">Task #{{ $task->id }}</span>
+        </div>
+        <p class="text-sm text-gray-500">명세 v11 §1.3 — 기획서를 확인하고 옵션을 보정한 뒤 [확정 후 웍스 호출 →]을 누르면 웍스가 HTML을 생성합니다.</p>
+    </div>
 
     @if ($errors->any())
         <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
@@ -25,34 +33,64 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        <div class="lg:col-span-3 bg-white rounded-xl border border-gray-100 p-5">
-            <h2 class="font-semibold mb-3 text-gray-900">참조 기획서</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {{-- 기획서 --}}
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    참조 기획서
+                </h3>
+                @if ($plan)
+                    <span class="text-xs text-gray-400">v{{ $plan->version }} · {{ $plan->status_label }}</span>
+                @endif
+            </div>
+
             @if ($plan)
-                <div class="grid grid-cols-3 gap-3 text-sm mb-4 pb-4 border-b border-gray-100">
-                    <div><dt class="text-xs text-gray-500">제목</dt><dd class="font-medium">{{ $plan->title }}</dd></div>
-                    <div><dt class="text-xs text-gray-500">버전</dt><dd>v{{ $plan->version }}</dd></div>
-                    <div><dt class="text-xs text-gray-500">상태</dt><dd>{{ $plan->status_label }}</dd></div>
+                <div class="grid grid-cols-3 gap-4 text-sm mb-4 pb-4 border-b border-gray-50">
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">제목</p>
+                        <p class="text-sm font-medium text-gray-700">{{ $plan->title }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">버전</p>
+                        <p class="text-sm font-medium text-gray-700">v{{ $plan->version }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">상태</p>
+                        <p class="text-sm font-medium text-gray-700">{{ $plan->status_label }}</p>
+                    </div>
                 </div>
+
                 @if ($plan->ai_summary)
                     <div class="mb-4">
-                        <p class="text-xs text-indigo-700 font-semibold mb-1">요약</p>
+                        <p class="text-xs text-indigo-600 font-semibold mb-1.5 flex items-center gap-1">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            AI 요약
+                        </p>
                         <p class="text-sm text-gray-700 bg-indigo-50 border border-indigo-100 rounded-lg p-3 leading-relaxed whitespace-pre-line">{{ $plan->ai_summary }}</p>
                     </div>
                 @endif
+
                 <div>
-                    <p class="text-xs text-gray-500 font-semibold mb-1">본문</p>
-                    <div class="max-h-[480px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs leading-relaxed whitespace-pre-line font-mono">{{ $plan->content ?: '(본문 없음)' }}</div>
+                    <p class="text-xs text-gray-500 font-semibold mb-1.5">본문</p>
+                    <div class="max-h-[480px] overflow-y-auto bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs leading-relaxed whitespace-pre-line font-mono text-gray-700">{{ $plan->content ?: '(본문 없음)' }}</div>
                 </div>
             @else
-                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
                     참조 기획서가 지정되지 않았습니다. 옵션만으로 웍스 호출이 진행됩니다.
                 </div>
             @endif
         </div>
 
-        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5">
-            <h2 class="font-semibold mb-3 text-gray-900">옵션 보정</h2>
+        {{-- 옵션 보정 --}}
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    옵션 보정
+                </h3>
+            </div>
             <form id="wb-spec-form" method="POST" action="{{ route('wb.tasks.spec-review.confirm', $task) }}" class="space-y-4"
                   x-data="{ saving: false }" @submit.prevent="
                       saving = true;
@@ -77,7 +115,7 @@
                   ">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium mb-1">GNB 위치</label>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">GNB 위치</label>
                     <select name="gnb_position" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         @foreach (['top'=>'상단','left'=>'좌측','right'=>'우측'] as $v=>$lbl)
                             <option value="{{ $v }}" @selected(old('gnb_position', $d['gnb_position'] ?? 'top') === $v)>{{ $lbl }}</option>
@@ -85,7 +123,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium mb-1">탭 구조</label>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">탭 구조</label>
                     <select name="tab_structure" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         @foreach (['single'=>'단일','top_tabs'=>'상단 탭','left_tabs'=>'좌측 탭','sidebar_tabs'=>'사이드 + 탭','none'=>'없음'] as $v=>$lbl)
                             <option value="{{ $v }}" @selected(old('tab_structure', $d['tab_structure'] ?? 'single') === $v)>{{ $lbl }}</option>
@@ -93,7 +131,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium mb-1">화면 전환</label>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">화면 전환</label>
                     <select name="transition_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         @foreach (['page'=>'페이지 전환','slide'=>'슬라이드','tab_switch'=>'탭 전환'] as $v=>$lbl)
                             <option value="{{ $v }}" @selected(old('transition_type', $d['transition_type'] ?? 'page') === $v)>{{ $lbl }}</option>
@@ -101,7 +139,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium mb-1">메인 색상</label>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">메인 색상</label>
                     <div class="flex items-center gap-2">
                         <input type="color" name="main_color" value="{{ old('main_color', $d['main_color'] ?? '#3b82f6') }}"
                                class="h-9 w-12 border border-gray-200 rounded-lg cursor-pointer" oninput="this.nextElementSibling.value=this.value">
@@ -109,11 +147,12 @@
                                class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" readonly>
                     </div>
                 </div>
-                <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
+                <div class="pt-4 border-t border-gray-50 flex justify-end gap-2">
                     <a href="{{ route('wb.tasks.show', $task) }}" class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">취소</a>
                     <button type="submit" :disabled="saving"
-                            class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
-                        <span x-show="!saving">확정 후 웍스 호출 →</span>
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium disabled:opacity-50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span x-show="!saving">확정 후 웍스 호출</span>
                         <span x-show="saving">저장 중...</span>
                     </button>
                 </div>
