@@ -89,7 +89,26 @@ class AppServiceProvider extends ServiceProvider
         //   TestRunner       -> PhpUnitTestRunner (실제 phpunit 실행)
         //   GitHubMerger     -> GuzzleGitHubMerger (실제 GitHub PR API 호출)
         //   RemoteDeployer   -> SshRemoteDeployer (phpseclib SSH 로 deploy.sh 실행)
-        $this->app->bind(\App\Services\AiFix\AiAnalyzer::class,      \App\Services\AiFix\StubAiAnalyzer::class);
+        // AiAnalyzer: driver=openai + AiSetting 의 openaiKey 가 있으면 OpenAiAnalyzer,
+        // 아니면 휴리스틱 Stub. 운영 .env 의 AI_FIX_ANALYZER_DRIVER 로 활성화.
+        $this->app->bind(\App\Services\AiFix\AiAnalyzer::class, function ($app) {
+            $cfg = config('ai-fix.analyzer');
+            if (($cfg['driver'] ?? 'stub') === 'openai') {
+                try {
+                    $apiKey = \App\Models\AiSetting::current()->openaiKey();
+                } catch (\Throwable) {
+                    $apiKey = null;
+                }
+                if (!empty($apiKey)) {
+                    return new \App\Services\AiFix\OpenAiAnalyzer(
+                        apiKey:  $apiKey,
+                        model:   $cfg['model']   ?? 'gpt-4o-mini',
+                        timeout: (int) ($cfg['timeout'] ?? 60),
+                    );
+                }
+            }
+            return new \App\Services\AiFix\StubAiAnalyzer();
+        });
         $this->app->bind(\App\Services\AiFix\AiCodeApplier::class,   \App\Services\AiFix\StubCodeApplier::class);
         // WorktreeManager: driver=process 이고 경로 두 개 셋팅돼있으면 ProcessWorktreeManager,
         // 아니면 안전한 StubWorktreeManager 로 fallback. 운영 .env 의 AI_FIX_WORKTREE_DRIVER 로 활성화.

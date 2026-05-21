@@ -69,6 +69,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | AiAnalyzer (에러 분석기)
+    |--------------------------------------------------------------------------
+    | driver=stub: 휴리스틱 기반 분류 (PoC).
+    | driver=openai: OpenAI Chat Completions 호출 (response_format=json_object).
+    |   API key 는 AiSetting::current()->openaiKey() 에서. binding 단계에서 자동 주입.
+    | model: gpt-4o-mini default (비용·성능 균형). gpt-4o 또는 더 작은 모델로 변경 가능.
+    */
+    'analyzer' => [
+        'driver'  => env('AI_FIX_ANALYZER_DRIVER',  'stub'),
+        'model'   => env('AI_FIX_ANALYZER_MODEL',   'gpt-4o-mini'),
+        'timeout' => (int) env('AI_FIX_ANALYZER_TIMEOUT', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 자동 수정 화이트리스트 (auto_eligible)
     |--------------------------------------------------------------------------
     | 변경 파일 *전체*가 이 패턴에 매칭되고 red/yellow 신호가 임계값 미만이면
