@@ -33,6 +33,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Worktree (격리 작업 트리)
+    |--------------------------------------------------------------------------
+    | driver=stub: 가짜 경로만 반환, 파일시스템 영향 0. PoC/테스트 default.
+    | driver=process: ProcessWorktreeManager 가 실제 git worktree + sqlite +
+    |   composer install + migrate 까지 자동 셋업. bare_path/base_path 필수.
+    |
+    | 운영 사전 셋업 (driver=process 활성화 전):
+    |   mkdir -p /home/ubuntu/ai-maintenance
+    |   git clone --bare https://github.com/Jack-Won-Prompt/supportworks.git \
+    |       /home/ubuntu/ai-maintenance/supportworks.git
+    */
+    'worktree' => [
+        'driver'     => env('AI_FIX_WORKTREE_DRIVER', 'stub'),
+        'bare_path'  => env('AI_FIX_WORKTREE_BARE_PATH'),
+        'base_path'  => env('AI_FIX_WORKTREE_BASE_PATH'),
+        'source_env' => env('AI_FIX_WORKTREE_SOURCE_ENV', base_path('.env')),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 자동 수정 화이트리스트 (auto_eligible)
     |--------------------------------------------------------------------------
     | 변경 파일 *전체*가 이 패턴에 매칭되고 red/yellow 신호가 임계값 미만이면

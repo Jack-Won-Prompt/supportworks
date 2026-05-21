@@ -91,7 +91,20 @@ class AppServiceProvider extends ServiceProvider
         //   RemoteDeployer   -> SshRemoteDeployer (phpseclib SSH 로 deploy.sh 실행)
         $this->app->bind(\App\Services\AiFix\AiAnalyzer::class,      \App\Services\AiFix\StubAiAnalyzer::class);
         $this->app->bind(\App\Services\AiFix\AiCodeApplier::class,   \App\Services\AiFix\StubCodeApplier::class);
-        $this->app->bind(\App\Services\AiFix\WorktreeManager::class, \App\Services\AiFix\StubWorktreeManager::class);
+        // WorktreeManager: driver=process 이고 경로 두 개 셋팅돼있으면 ProcessWorktreeManager,
+        // 아니면 안전한 StubWorktreeManager 로 fallback. 운영 .env 의 AI_FIX_WORKTREE_DRIVER 로 활성화.
+        $this->app->bind(\App\Services\AiFix\WorktreeManager::class, function ($app) {
+            $cfg = config('ai-fix.worktree');
+            if (($cfg['driver'] ?? 'stub') === 'process'
+                && !empty($cfg['bare_path']) && !empty($cfg['base_path'])) {
+                return new \App\Services\AiFix\ProcessWorktreeManager(
+                    barePath:  $cfg['bare_path'],
+                    basePath:  $cfg['base_path'],
+                    sourceEnv: $cfg['source_env'] ?? base_path('.env'),
+                );
+            }
+            return new \App\Services\AiFix\StubWorktreeManager();
+        });
         $this->app->bind(\App\Services\AiFix\GitHubMerger::class,    \App\Services\AiFix\StubGitHubMerger::class);
         $this->app->bind(\App\Services\AiFix\RemoteDeployer::class,  \App\Services\AiFix\StubRemoteDeployer::class);
 
