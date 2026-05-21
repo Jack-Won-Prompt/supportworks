@@ -94,8 +94,8 @@
         해당 상태의 작업이 없습니다.
     </div>
     @else
-    <div class="bg-white border border-slate-200 rounded-xl overflow-x-auto">
-        <table class="w-full text-sm table-fixed">
+    <div class="bg-white border border-slate-200 rounded-xl" style="overflow-x: auto;">
+        <table class="w-full text-sm" style="table-layout: fixed; width: 100%;">
             <colgroup>
                 <col style="width: 60px">
                 <col style="width: 110px">
@@ -126,10 +126,10 @@
                             {{ $badge['label'] }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 align-top overflow-hidden">
+                    <td class="px-4 py-3 align-top" style="overflow: hidden;">
                         @if($job->systemErrorLog)
-                            <div class="text-xs font-mono text-indigo-500 truncate">{{ $job->systemErrorLog->exception }}</div>
-                            <div class="text-xs text-slate-600 truncate">{{ $job->systemErrorLog->message }}</div>
+                            <div class="text-xs font-mono text-indigo-500" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $job->systemErrorLog->exception }}</div>
+                            <div class="text-xs text-slate-600" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $job->systemErrorLog->message }}</div>
                         @else
                             <span class="text-xs text-slate-400">—</span>
                         @endif
@@ -141,7 +141,7 @@
                             <span class="text-slate-400">—</span>
                         @endif
                     </td>
-                    <td class="px-4 py-3 text-xs font-mono text-slate-500 align-top truncate">{{ $job->branch_name ?? '—' }}</td>
+                    <td class="px-4 py-3 text-xs font-mono text-slate-500 align-top" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $job->branch_name ?? '—' }}</td>
                     <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap align-top">{{ $job->created_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3 text-right align-top">
                         <a href="{{ route('admin.ai-fix-jobs.show', $job) }}"
