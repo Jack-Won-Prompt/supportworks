@@ -56,6 +56,11 @@ final class ProcessWorktreeManager implements WorktreeManager
             return $worktreePath;
         }
 
+        // 0) bare 의 master 를 origin 최신으로 fast-forward.
+        // 안 하면 bare 는 처음 clone 시점의 코드만 가지고 있어 운영의 최근 commit 이
+        // worktree 에 안 반영. AI Fix 가 stale 코드로 작업하는 결함 방지.
+        $this->git(['fetch', 'origin', 'master:master'], allowFail: true);
+
         // 1) git worktree add — bare 에서 새 worktree + 새 브랜치 (master 기준)
         $this->git(['worktree', 'add', $worktreePath, '-b', $branch, 'master']);
 
