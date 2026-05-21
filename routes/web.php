@@ -30,8 +30,6 @@ use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PlanningDocController;
 use App\Http\Controllers\UrsController;
 use App\Http\Controllers\DeliverableController;
-use App\Http\Controllers\ProjectMaintenanceController;
-use App\Http\Controllers\ProjectMaintenanceReplyController;
 use App\Http\Controllers\TeamsController;
 use App\Http\Controllers\MessageAnalyzeController;
 use App\Http\Controllers\MessageImageCommentController;
@@ -194,9 +192,6 @@ Route::get('/autocomplete/companies', function (\Illuminate\Http\Request $reques
 // 파일 미리보기 서빙 — 서명된 URL로만 접근 (Office Online Viewer에서 파일을 가져가기 위해 auth 불필요)
 Route::get('/files/serve/{file}',         [ProjectFileController::class, 'servePreview'])->name('files.serve');
 Route::get('/files/serve-pdf/{file}',     [ProjectFileController::class, 'serveConvertedPdf'])->name('files.serve-pdf');
-Route::get('/maintenance-files/serve/{maintenanceFile}',     [\App\Http\Controllers\MaintenanceFileController::class, 'serve'])->name('maintenance-files.serve');
-Route::get('/maintenance-files/serve-pdf/{maintenanceFile}', [\App\Http\Controllers\MaintenanceFileController::class, 'servePdf'])->name('maintenance-files.serve-pdf');
-
 // 기획서 외부 공유 — 로그인 불필요
 Route::get('/share/planning/{token}',       [\App\Http\Controllers\PublicPlanningShareController::class, 'show'])->name('planning.public-share');
 Route::get('/share/planning/{token}/print', [\App\Http\Controllers\PublicPlanningShareController::class, 'printPdf'])->name('planning.public-print');
@@ -221,17 +216,6 @@ Route::get('/share/deliverable/{token}', [\App\Http\Controllers\DeliverableContr
 
 // 논의 의견 외부 공유 — 로그인 불필요
 Route::get('/share/discussion-comment/{token}', [\App\Http\Controllers\DiscussionController::class, 'publicShowComment'])->name('discussions.public-comment');
-
-// SR 접수 파일 외부 공유 — 로그인 불필요
-Route::get ('/share/maintenance-file/{token}',             [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'show'])->name('maintenance-files.public-share');
-Route::get ('/share/maintenance-file/{token}/serve',       [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'serve'])->name('maintenance-files.public-serve');
-Route::get ('/share/maintenance-file/{token}/serve-pdf',   [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'servePdf'])->name('maintenance-files.public-serve-pdf');
-Route::get ('/share/maintenance-file/{token}/comments',    [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'getComments'])->name('maintenance-files.public-comments.index');
-Route::post('/share/maintenance-file/{token}/comments',    [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'storeComment'])->name('maintenance-files.public-comments.store');
-Route::get ('/share/maintenance-file/{token}/annotations', [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'getAnnotations'])->name('maintenance-files.public-annotations.index');
-Route::post  ('/share/maintenance-file/{token}/annotations',              [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'storeAnnotation'])->name('maintenance-files.public-annotations.store');
-Route::patch ('/share/maintenance-file/{token}/annotations/{annotation}', [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'updateAnnotation'])->name('maintenance-files.public-annotations.update');
-Route::delete('/share/maintenance-file/{token}/annotations/{annotation}', [\App\Http\Controllers\PublicMaintenanceFileShareController::class, 'destroyAnnotation'])->name('maintenance-files.public-annotations.destroy');
 
 // 초대 수락 — auth 미들웨어 없이 접근 가능 (기존 로그인 여부 무관)
 Route::get('/team/accept/{token}',  [TeamController::class, 'accept'])->name('team.accept');
@@ -329,15 +313,6 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     Route::post('/inquiries/{conversation}/reopen',   [\App\Http\Controllers\Admin\AdminInquiryController::class, 'reopen'])->name('inquiries.reopen');
     Route::post('/inquiries/analyze',                 [MessageAnalyzeController::class, 'analyze'])->name('inquiries.analyze');
 
-    // 유지보수 관리
-    Route::get ('/maintenances',                                    [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'index'])->name('maintenances.index');
-    Route::get ('/maintenances/{maintenance}',                      [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'show'])->name('maintenances.show');
-    Route::get ('/maintenances/{maintenance}/detail',               [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'detail'])->name('maintenances.detail');
-    Route::patch('/maintenances/{maintenance}/status',              [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'updateStatus'])->name('maintenances.status');
-    Route::patch('/maintenances/{maintenance}/schedule',            [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'updateSchedule'])->name('maintenances.schedule');
-    Route::post ('/maintenances/{maintenance}/replies',             [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'storeReply'])->name('maintenances.replies.store');
-    Route::delete('/maintenance-replies/{reply}',                   [\App\Http\Controllers\Admin\AdminMaintenanceController::class, 'destroyReply'])->name('maintenance-replies.destroy');
-
     // 하위 호환 리다이렉트
     Route::get('/login-logs',      fn() => redirect()->route('admin.logs.index', ['tab' => 'login']))->name('login-logs.index');
     Route::get('/user-login-logs', fn() => redirect()->route('admin.logs.index', ['tab' => 'user-login']))->name('user-login-logs.index');
@@ -376,6 +351,9 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     Route::get ('ai-fix-jobs/{aiFixJob}/modal',      [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'modal'])  ->name('ai-fix-jobs.modal');
     Route::post('ai-fix-jobs/{aiFixJob}/approve',    [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'approve'])->name('ai-fix-jobs.approve');
     Route::post('ai-fix-jobs/{aiFixJob}/reject',     [\App\Http\Controllers\Admin\AdminAiFixJobController::class, 'reject']) ->name('ai-fix-jobs.reject');
+
+    // [임시] AI Fix E2E full-cycle 검증용 트리거 — 검증 후 라우트 + AiFixTestController 같이 제거
+    Route::get('ai-fix/test-trigger',                [\App\Http\Controllers\Admin\AiFixTestController::class, 'trigger'])    ->name('ai-fix.test-trigger');
 
     // Super Admin 데이터 초기화
     Route::delete('reset/inquiries',     [\App\Http\Controllers\Admin\AdminDataResetController::class, 'resetInquiries'])    ->name('reset.inquiries');
@@ -653,47 +631,12 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('answers/{answer}', [AnswerController::class, 'destroy'])->name('answers.destroy');
     Route::patch('answers/{answer}/accept', [AnswerController::class, 'accept'])->name('answers.accept');
 
-    // SR 접수 (SR 대상 단위 — 프로젝트와 분리)
-    Route::resource('sr-targets', \App\Http\Controllers\SrTargetController::class)
-        ->only(['store', 'destroy'])
-        ->parameters(['sr-targets' => 'srTarget']);
-    Route::resource('sr-targets.maintenances', ProjectMaintenanceController::class)
-        ->shallow()->except(['edit'])
-        ->parameters(['sr-targets' => 'srTarget']);
-    Route::get ('maintenances/{maintenance}/detail', [ProjectMaintenanceController::class, 'detail'])->name('maintenances.detail');
-    Route::patch('maintenances/{maintenance}/status', [ProjectMaintenanceController::class, 'updateStatus'])->name('maintenances.status');
-    Route::patch('maintenances/{maintenance}/dates',  [ProjectMaintenanceController::class, 'updateDates'])->name('maintenances.dates');
-    Route::post('maintenances/{maintenance}/replies', [ProjectMaintenanceReplyController::class, 'store'])->name('maintenances.replies.store');
-    Route::delete('maintenance-replies/{reply}', [ProjectMaintenanceReplyController::class, 'destroy'])->name('maintenance-replies.destroy');
-
-    // SR 첨부파일 (SR 항목 연결)
-    Route::post  ('maintenances/{maintenance}/files',                                               [\App\Http\Controllers\MaintenanceFileController::class, 'store'])->name('maintenances.files.store');
-    Route::get   ('maintenances/{maintenance}/files/{maintenanceFile}/download',                   [\App\Http\Controllers\MaintenanceFileController::class, 'download'])->name('maintenances.files.download');
-    Route::get   ('maintenances/{maintenance}/files/{maintenanceFile}/preview-data',               [\App\Http\Controllers\MaintenanceFileController::class, 'previewData'])->name('maintenances.files.preview-data');
-    Route::delete('maintenances/{maintenance}/files/{maintenanceFile}',                            [\App\Http\Controllers\MaintenanceFileController::class, 'destroy'])->name('maintenances.files.destroy');
-    Route::post  ('maintenances/{maintenance}/files/{maintenanceFile}/share',                      [\App\Http\Controllers\MaintenanceFileController::class, 'toggleShare'])->name('maintenances.files.share');
-    Route::patch ('maintenances/{maintenance}/files/{maintenanceFile}/category',                   [\App\Http\Controllers\MaintenanceFileController::class, 'updateCategory'])->name('maintenances.files.update-category');
-
-    // SR 첨부파일 (SR 항목 미연결 — SR 대상 레벨)
-    Route::post  ('sr-targets/{srTarget}/maintenance-files',                                           [\App\Http\Controllers\MaintenanceFileController::class, 'storeProject'])->name('sr-targets.maintenance-files.store');
-    Route::get   ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/download',               [\App\Http\Controllers\MaintenanceFileController::class, 'downloadProject'])->name('sr-targets.maintenance-files.download');
-    Route::get   ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/preview-data',           [\App\Http\Controllers\MaintenanceFileController::class, 'previewDataProject'])->name('sr-targets.maintenance-files.preview-data');
-    Route::delete('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}',                        [\App\Http\Controllers\MaintenanceFileController::class, 'destroyProject'])->name('sr-targets.maintenance-files.destroy');
-    Route::post  ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/share',                  [\App\Http\Controllers\MaintenanceFileController::class, 'toggleShareProject'])->name('sr-targets.maintenance-files.share');
-    Route::patch ('sr-targets/{srTarget}/maintenance-files/{maintenanceFile}/category',               [\App\Http\Controllers\MaintenanceFileController::class, 'updateCategoryProject'])->name('sr-targets.maintenance-files.update-category');
-
-    // SR 파일 의견/주석 (인증)
-    Route::get   ('maintenance-files/{maintenanceFile}/comments',                          [\App\Http\Controllers\MaintenanceFileController::class, 'getComments'])->name('maintenance-files.comments.index');
-    Route::post  ('maintenance-files/{maintenanceFile}/comments',                          [\App\Http\Controllers\MaintenanceFileController::class, 'storeComment'])->name('maintenance-files.comments.store');
-    Route::delete('maintenance-files/{maintenanceFile}/comments/{comment}',                [\App\Http\Controllers\MaintenanceFileController::class, 'destroyComment'])->name('maintenance-files.comments.destroy');
-    Route::get   ('maintenance-files/{maintenanceFile}/annotations',                       [\App\Http\Controllers\MaintenanceFileController::class, 'getAnnotations'])->name('maintenance-files.annotations.index');
-    Route::post  ('maintenance-files/{maintenanceFile}/annotations',                       [\App\Http\Controllers\MaintenanceFileController::class, 'storeAnnotation'])->name('maintenance-files.annotations.store');
-    Route::patch ('maintenance-files/{maintenanceFile}/annotations/{annotation}',           [\App\Http\Controllers\MaintenanceFileController::class, 'updateAnnotation'])->name('maintenance-files.annotations.update');
-    Route::delete('maintenance-files/{maintenanceFile}/annotations/{annotation}',           [\App\Http\Controllers\MaintenanceFileController::class, 'destroyAnnotation'])->name('maintenance-files.annotations.destroy');
-
-    // SR 파일 카테고리 (SR 대상 단위)
-    Route::post  ('sr-targets/{srTarget}/maintenance-file-categories',           [\App\Http\Controllers\MaintenanceFileCategoryController::class, 'store'])->name('sr-targets.maintenance-file-categories.store');
-    Route::delete('sr-targets/{srTarget}/maintenance-file-categories/{category}',[\App\Http\Controllers\MaintenanceFileCategoryController::class, 'destroy'])->name('sr-targets.maintenance-file-categories.destroy');
+    // 유지보수 요청 (콜로/위드웍스 — 프로젝트와 무관한 독립 시스템)
+    Route::resource('maint-requests', \App\Http\Controllers\MaintRequestController::class)
+        ->except(['edit'])
+        ->parameters(['maint-requests' => 'maintRequest']);
+    Route::post  ('maint-requests/{maintRequest}/notes',              [\App\Http\Controllers\MaintRequestController::class, 'storeNote'])  ->name('maint-requests.notes.store');
+    Route::delete('maint-requests/{maintRequest}/notes/{note}',        [\App\Http\Controllers\MaintRequestController::class, 'destroyNote'])->name('maint-requests.notes.destroy');
 
     // 파일 카테고리
     Route::get   ('projects/{project}/file-categories',                   [\App\Http\Controllers\ProjectFileCategoryController::class, 'index'])->name('projects.file-categories.index');
