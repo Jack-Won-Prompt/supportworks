@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Log;
 /**
  * 명세 v11 §1.7 — AI 호출 오케스트레이터.
  *
- * Primary(Claude) → Fallback(OpenAI). 401/403 Fatal은 즉시 중단.
+ * Primary(OpenAI) → Fallback(Claude). Anthropic 결제 이슈 우회를 위해 OpenAI 가 primary.
+ * AppServiceProvider 의 DesignSystemAiService, AiOrchestrator 와 정책 통일.
+ * 401/403 Fatal 은 즉시 중단.
  */
 class AiCallOrchestrator
 {
@@ -32,17 +34,17 @@ class AiCallOrchestrator
         ?int $reviewRound,
         InternalPrompt $prompt,
     ): array {
-        $log = $this->logger->startLog($task, $stage, $reviewRound, $prompt);
+        $log = $this->logger->startLog($task, $stage, $reviewRound, $prompt, primaryProvider: 'openai');
 
-        // Primary: Claude
+        // Primary: OpenAI
         try {
-            $result = $this->claude->generate($prompt->system_prompt ?? '', $prompt->user_prompt);
+            $result = $this->openai->generate($prompt->system_prompt ?? '', $prompt->user_prompt);
             $log = $this->logger->finalize($log, $result);
             return ['result' => $result, 'log' => $log];
         } catch (AiAttemptException $e) {
             $this->logger->recordPrimaryFailure($log, $e);
 
-            Log::warning('[WorksBuilder] Claude primary failed', [
+            Log::warning('[WorksBuilder] OpenAI primary failed', [
                 'task_id'   => $task->id,
                 'log_id'    => $log->id,
                 'status'    => $e->statusCode,
@@ -54,15 +56,15 @@ class AiCallOrchestrator
                 $this->logger->markFailed($log);
                 throw new AiAttemptException(
                     $e->statusCode,
-                    "AI 호출 실패 (Claude 인증/권한 오류): {$e->getMessage()}",
+                    "AI 호출 실패 (OpenAI 인증/권한 오류): {$e->getMessage()}",
                     fatal: true,
                 );
             }
         }
 
-        // Fallback: OpenAI
+        // Fallback: Claude
         try {
-            $result = $this->openai->generate($prompt->system_prompt ?? '', $prompt->user_prompt);
+            $result = $this->claude->generate($prompt->system_prompt ?? '', $prompt->user_prompt);
             $this->logger->recordFallbackUsed($log);
             $log = $this->logger->finalize($log, $result);
             return ['result' => $result, 'log' => $log];
@@ -70,7 +72,7 @@ class AiCallOrchestrator
             $this->logger->recordFallbackFailure($log, $e);
             $this->logger->markFailed($log);
 
-            Log::error('[WorksBuilder] OpenAI fallback failed', [
+            Log::error('[WorksBuilder] Claude fallback failed', [
                 'task_id'   => $task->id,
                 'log_id'    => $log->id,
                 'status'    => $e->statusCode,
@@ -79,7 +81,7 @@ class AiCallOrchestrator
 
             throw new AiAttemptException(
                 $e->statusCode,
-                'AI 호출 실패 (Claude + OpenAI 모두 실패): ' . $e->getMessage(),
+                'AI 호출 실패 (OpenAI + Claude 모두 실패): ' . $e->getMessage(),
             );
         }
     }

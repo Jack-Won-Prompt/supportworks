@@ -65,7 +65,19 @@ log()  { printf '[%s] %s\n' "$(date '+%F %T')" "$*"; }
 step() { log ">> $*"; }
 ok()   { log "   OK $*"; }
 warn() { log "   WARN $*"; }
-die()  { log "   FATAL $*"; exit "${2:-1}"; }
+die()  {
+    log "   FATAL $*"
+    # git pull 이후 fatal 이면 운영 HEAD 가 이미 새 commit 으로 진행된 상태 —
+    # 다음 실행이 "nothing to deploy" 로 잘못 skip 되지 않도록 PREV_HEAD 로 자동 rollback.
+    if [ -n "${PREV_HEAD:-}" ]; then
+        CURR=$(git rev-parse HEAD 2>/dev/null || echo "")
+        if [ -n "$CURR" ] && [ "$CURR" != "$PREV_HEAD" ]; then
+            log "   Auto-rollback on fatal: $CURR -> $PREV_HEAD"
+            git reset --hard "$PREV_HEAD" 2>&1 | sed 's/^/   /' || log "   WARN: rollback git reset failed"
+        fi
+    fi
+    exit "${2:-1}"
+}
 # run() echoes command then executes (or just echoes in dry-run mode)
 run() {
     if [ "$DRY_RUN" -eq 1 ]; then

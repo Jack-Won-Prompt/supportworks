@@ -16,6 +16,16 @@
         'cancelUrl'     => route('wb.tasks.ai-progress.cancel', $task),
         'csrf'          => csrf_token(),
         'initialStatus' => $task->status,
+        'initialSteps'  => $steps->map(fn ($s) => [
+            'sequence'    => $s->sequence,
+            'code'        => $s->code,
+            'label'       => $s->label,
+            'status'      => $s->status,
+            'context'     => $s->context,
+            'started_at'  => $s->started_at?->toIso8601String(),
+            'ended_at'    => $s->ended_at?->toIso8601String(),
+            'duration_ms' => $s->duration_ms,
+        ])->toArray(),
      ]))" x-init="poll(); tickProgress()" class="space-y-6">
 
     {{-- 헤더 카드 --}}
@@ -98,6 +108,59 @@
             </div>
         </div>
     </div>
+
+    {{-- 처리 과정 audit 로그 --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                처리 과정 로그
+                <span class="text-xs font-normal text-gray-400" x-text="`(${steps.length})`"></span>
+            </h3>
+            <span class="text-[11px] text-gray-400">실시간 폴링 · 2초 간격</span>
+        </div>
+
+        <template x-if="steps.length === 0">
+            <p class="text-xs text-gray-400 text-center py-8">아직 기록된 단계가 없습니다.</p>
+        </template>
+
+        <ol class="relative border-l-2 border-gray-100 ml-2 space-y-3" x-show="steps.length > 0">
+            <template x-for="step in steps" :key="step.sequence">
+                <li class="ml-4">
+                    <span class="absolute -left-[7px] mt-1.5 w-3 h-3 rounded-full ring-4 ring-white"
+                          :class="{
+                              'bg-emerald-500': step.status === 'success',
+                              'bg-rose-500':    step.status === 'failed',
+                              'bg-amber-500':   step.status === 'running',
+                              'bg-gray-300':    step.status === 'pending' || step.status === 'skipped',
+                          }"></span>
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-[10px] text-gray-400 font-mono" x-text="'#' + step.sequence"></span>
+                            <span class="text-sm font-medium text-gray-800" x-text="step.label"></span>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-500" x-text="step.code"></span>
+                        </div>
+                        <div class="flex items-center gap-2 text-[11px] text-gray-500 tabular-nums">
+                            <span x-show="step.duration_ms !== null && step.duration_ms !== undefined"
+                                  x-text="(step.duration_ms / 1000).toFixed(2) + 's'"></span>
+                            <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium"
+                                  :class="{
+                                      'bg-emerald-100 text-emerald-700': step.status === 'success',
+                                      'bg-rose-100 text-rose-700':       step.status === 'failed',
+                                      'bg-amber-100 text-amber-700':     step.status === 'running',
+                                      'bg-gray-100 text-gray-600':       step.status === 'pending' || step.status === 'skipped',
+                                  }"
+                                  x-text="step.status"></span>
+                            <span x-show="step.started_at" class="text-gray-400" x-text="formatTime(step.started_at)"></span>
+                        </div>
+                    </div>
+                    <template x-if="step.context && Object.keys(step.context).length > 0">
+                        <div class="mt-1 text-[11px] text-gray-500 font-mono bg-gray-50 border border-gray-100 rounded px-2 py-1 break-all" x-text="JSON.stringify(step.context)"></div>
+                    </template>
+                </li>
+            </template>
+        </ol>
+    </div>
 </div>
 
 <style>[x-cloak]{display:none !important}</style>
@@ -114,6 +177,7 @@ function wbAiProgress(cfg) {
         elapsedMs: 0,
         startedAt: Date.now(),
         summary: null,
+        steps: cfg.initialSteps || [],
         _stopped: false,
 
         get elapsedLabel() {
@@ -124,6 +188,14 @@ function wbAiProgress(cfg) {
             if (this.state === 'done')   return '완료';
             if (this.state === 'failed') return '실패';
             return `${Math.floor(this.progress)}%`;
+        },
+
+        formatTime(iso) {
+            if (!iso) return '';
+            try {
+                const d = new Date(iso);
+                return d.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            } catch (e) { return ''; }
         },
 
         tickProgress() {
@@ -142,6 +214,8 @@ function wbAiProgress(cfg) {
                 try {
                     const r = await fetch(cfg.statusUrl, {headers:{'Accept':'application/json'}});
                     const d = await r.json();
+
+                    if (Array.isArray(d.steps)) this.steps = d.steps;
 
                     if (d.task_status === 'ai_calling') {
                         this.state = 'calling';

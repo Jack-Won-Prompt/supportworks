@@ -63,6 +63,9 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            // group write 권장 — www-data(웹) 와 ubuntu(queue worker) 둘 다 쓸 수 있도록.
+            // 미설정 시 OS umask(022) 적용 → 0644 → group rw 불가 → 한 쪽이 다음 쓰기 시 throw.
+            'permission' => 0664,
         ],
 
         'daily' => [
@@ -71,6 +74,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+            'permission' => 0664,
         ],
 
         'slack' => [
@@ -129,6 +133,7 @@ return [
             'level'  => 'debug',
             'days'   => 30,
             'replace_placeholders' => true,
+            'permission' => 0664,
         ],
 
         'emergency' => [

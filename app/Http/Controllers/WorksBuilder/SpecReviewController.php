@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\WorksBuilder\GenerateHtmlJob;
 use App\Models\PlanningDoc;
 use App\Models\WorksBuilder\Task;
+use App\Services\WorksBuilder\Audit\TaskStepLogger;
 use App\Services\WorksBuilder\Preview\LayoutPreviewBuilder;
 use App\Services\WorksBuilder\TaskActions\OptionRevisionService;
 use App\Services\WorksBuilder\Theme\ThemeRegistry;
@@ -25,6 +26,7 @@ class SpecReviewController extends Controller
         private OptionRevisionService $revision,
         private ThemeRegistry $themes,
         private LayoutPreviewBuilder $previewBuilder,
+        private TaskStepLogger $audit,
     ) {}
 
     public function show(Task $task): View
@@ -57,6 +59,13 @@ class SpecReviewController extends Controller
         $data['theme_key'] = $data['theme_key'] ?: $this->themes->defaultKey();
 
         $this->revision->revise($task, $data, Auth::user());
+        $this->audit->event($task, 'option_saved', '옵션 확정 (모드 B - 기획서 검토)', context: [
+            'gnb_position'    => $data['gnb_position']    ?? null,
+            'tab_structure'   => $data['tab_structure']   ?? null,
+            'transition_type' => $data['transition_type'] ?? null,
+            'main_color'      => $data['main_color']      ?? null,
+            'theme_key'       => $data['theme_key']       ?? null,
+        ]);
 
         // 폴링이 옛 상태를 보고 즉시 리다이렉트하는 race를 막기 위해 동기 전환
         $task->update([
@@ -65,6 +74,7 @@ class SpecReviewController extends Controller
         ]);
 
         GenerateHtmlJob::dispatch($task->id);
+        $this->audit->event($task, 'job_queued', 'GenerateHtmlJob 큐 등록', context: ['queue' => config('queue.default')]);
 
         if ($request->expectsJson()) {
             return response()->json([

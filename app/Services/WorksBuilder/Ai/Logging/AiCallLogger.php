@@ -18,13 +18,14 @@ class AiCallLogger
         string $stage,
         ?int $reviewRound,
         InternalPrompt $prompt,
+        string $primaryProvider = 'openai',
     ): AiCallLog {
         return AiCallLog::create([
             'task_id'             => $task->id,
             'stage'               => $stage,
             'review_round'        => $reviewRound,
             'internal_prompt_id'  => $prompt->id,
-            'primary_provider'    => 'claude',
+            'primary_provider'    => $primaryProvider,
             'fallback_used'       => false,
             'final_provider'      => 'none',
             'status'              => AiCallLog::STATUS_SUCCESS,

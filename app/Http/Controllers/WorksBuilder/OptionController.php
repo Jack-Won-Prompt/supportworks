@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\WorksBuilder\GenerateHtmlJob;
 use App\Models\WorksBuilder\Task;
 use App\Models\WorksBuilder\TaskOption;
+use App\Services\WorksBuilder\Audit\TaskStepLogger;
 use App\Services\WorksBuilder\Preview\LayoutPreviewBuilder;
 use App\Services\WorksBuilder\TaskActions\OptionRevisionService;
 use App\Services\WorksBuilder\Theme\ThemeRegistry;
@@ -22,6 +23,7 @@ class OptionController extends Controller
         private LayoutPreviewBuilder $previewBuilder,
         private OptionRevisionService $revision,
         private ThemeRegistry $themes,
+        private TaskStepLogger $audit,
     ) {}
 
     public function edit(Task $task): View
@@ -52,6 +54,13 @@ class OptionController extends Controller
 
         $data = $this->validated($request);
         $this->revision->revise($task, $data, Auth::user());
+        $this->audit->event($task, 'option_saved', '옵션 확정 (모드 A)', context: [
+            'gnb_position'    => $data['gnb_position']    ?? null,
+            'tab_structure'   => $data['tab_structure']   ?? null,
+            'transition_type' => $data['transition_type'] ?? null,
+            'main_color'      => $data['main_color']      ?? null,
+            'theme_key'       => $data['theme_key']       ?? null,
+        ]);
 
         // 폴링이 옛 result_confirm 상태를 보고 즉시 리다이렉트하는 race를 막기 위해 동기 전환
         $task->update([
@@ -61,6 +70,7 @@ class OptionController extends Controller
 
         // 옵션 확정 → AI HTML 생성 Job 큐
         GenerateHtmlJob::dispatch($task->id);
+        $this->audit->event($task, 'job_queued', 'GenerateHtmlJob 큐 등록', context: ['queue' => config('queue.default')]);
 
         if ($request->expectsJson()) {
             return response()->json([

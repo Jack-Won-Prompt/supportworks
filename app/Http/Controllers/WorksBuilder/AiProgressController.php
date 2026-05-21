@@ -4,6 +4,7 @@ namespace App\Http\Controllers\WorksBuilder;
 
 use App\Http\Controllers\Controller;
 use App\Models\WorksBuilder\Task;
+use App\Models\WorksBuilder\TaskStep;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,12 @@ class AiProgressController extends Controller
     public function show(Task $task): View
     {
         $this->authorize('view', $task);
-        return view('works-builder.ai-progress.show', compact('task'));
+
+        $steps = TaskStep::where('task_id', $task->id)
+            ->orderBy('sequence')
+            ->get();
+
+        return view('works-builder.ai-progress.show', compact('task', 'steps'));
     }
 
     public function status(Task $task): JsonResponse
@@ -32,6 +38,19 @@ class AiProgressController extends Controller
             'current_stage' => $task->current_stage,
             'next_url'      => null,
             'log'           => null,
+            'steps'         => TaskStep::where('task_id', $task->id)
+                ->orderBy('sequence')
+                ->get()
+                ->map(fn ($s) => [
+                    'sequence'    => $s->sequence,
+                    'code'        => $s->code,
+                    'label'       => $s->label,
+                    'status'      => $s->status,
+                    'context'     => $s->context,
+                    'started_at'  => $s->started_at?->toIso8601String(),
+                    'ended_at'    => $s->ended_at?->toIso8601String(),
+                    'duration_ms' => $s->duration_ms,
+                ])->toArray(),
         ];
 
         if ($latestLog) {
