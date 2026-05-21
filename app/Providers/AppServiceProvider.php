@@ -98,9 +98,10 @@ class AppServiceProvider extends ServiceProvider
             if (($cfg['driver'] ?? 'stub') === 'process'
                 && !empty($cfg['bare_path']) && !empty($cfg['base_path'])) {
                 return new \App\Services\AiFix\ProcessWorktreeManager(
-                    barePath:  $cfg['bare_path'],
-                    basePath:  $cfg['base_path'],
-                    sourceEnv: $cfg['source_env'] ?? base_path('.env'),
+                    barePath:     $cfg['bare_path'],
+                    basePath:     $cfg['base_path'],
+                    sourceEnv:    $cfg['source_env']    ?? base_path('.env'),
+                    testDatabase: $cfg['test_database'] ?? 'supportworks_ai_test',
                 );
             }
             return new \App\Services\AiFix\StubWorktreeManager();

@@ -45,10 +45,13 @@ return [
     |       /home/ubuntu/ai-maintenance/supportworks.git
     */
     'worktree' => [
-        'driver'     => env('AI_FIX_WORKTREE_DRIVER', 'stub'),
-        'bare_path'  => env('AI_FIX_WORKTREE_BARE_PATH'),
-        'base_path'  => env('AI_FIX_WORKTREE_BASE_PATH'),
-        'source_env' => env('AI_FIX_WORKTREE_SOURCE_ENV', base_path('.env')),
+        'driver'        => env('AI_FIX_WORKTREE_DRIVER', 'stub'),
+        'bare_path'     => env('AI_FIX_WORKTREE_BARE_PATH'),
+        'base_path'     => env('AI_FIX_WORKTREE_BASE_PATH'),
+        'source_env'    => env('AI_FIX_WORKTREE_SOURCE_ENV', base_path('.env')),
+        // 격리 테스트 DB (운영 mysql 서버에 별도 database). dialect 일치라 모든 migration
+        // 정상. 운영 사전 셋업: CREATE DATABASE + GRANT ALL TO 운영 DB user.
+        'test_database' => env('AI_FIX_WORKTREE_TEST_DB', 'supportworks_ai_test'),
     ],
 
     /*

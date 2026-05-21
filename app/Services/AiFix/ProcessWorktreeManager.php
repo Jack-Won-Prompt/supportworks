@@ -13,16 +13,28 @@ use Symfony\Component\Process\Process;
  * 같은 책임을 OS 독립적으로 PHP/Symfony Process 로 수행.
  *
  * 필수 환경:
- *   - bare_path: bare clone 의 .git 디렉터리 경로 (예: /home/ubuntu/ai-maintenance/supportworks.git)
- *   - base_path: worktree 들이 생성될 부모 디렉터리 (예: /home/ubuntu/ai-maintenance)
- *   - source_env: 복사 원본 .env (예: /home/ubuntu/www/supportworks/.env)
+ *   - bare_path:     bare clone 의 .git 디렉터리 경로 (예: /home/ubuntu/ai-maintenance/supportworks.git)
+ *   - base_path:     worktree 들이 생성될 부모 디렉터리
+ *   - source_env:    복사 원본 .env (운영 mysql credentials 포함)
+ *   - test_database: 격리 테스트용 mysql database 이름 (예: supportworks_ai_test).
+ *                    운영 mysql 서버에 미리 생성돼 있어야 하고 운영 DB user 가 GRANT 받음.
  *
  * 운영 사전 셋업:
  *   mkdir -p /home/ubuntu/ai-maintenance
  *   git clone --bare https://github.com/Jack-Won-Prompt/supportworks.git \
  *       /home/ubuntu/ai-maintenance/supportworks.git
  *
- * 안전 오버라이드: 운영 DB·메일·큐·세션·캐시를 건드리지 않도록 모두 격리 환경으로.
+ *   # 격리 테스트 DB (운영 mysql 같은 서버, 다른 database)
+ *   mysql -e "CREATE DATABASE supportworks_ai_test
+ *             CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+ *   mysql -e "GRANT ALL ON supportworks_ai_test.* TO '<운영_db_user>'@'%';"
+ *
+ * 격리 .env 가 DB_DATABASE 만 운영 → test 로 오버라이드. host/port/user/password 는
+ * 운영 .env 값 그대로 사용. mail/queue/cache/session 등은 운영 자원 안 건드리도록 분리.
+ *
+ * 멀티-worktree 충돌: 단일 test_database 공유. migration 은 멱등이라 첫 worktree 만 시간
+ * 많이 들고, 그 다음 worktree 는 nothing to migrate. 테스트 데이터는 phpunit 의 transaction
+ * rollback 또는 RefreshDatabase trait 으로 분리.
  */
 final class ProcessWorktreeManager implements WorktreeManager
 {
@@ -32,6 +44,7 @@ final class ProcessWorktreeManager implements WorktreeManager
         private readonly string $barePath,
         private readonly string $basePath,
         private readonly string $sourceEnv,
+        private readonly string $testDatabase,
     ) {}
 
     public function create(int $jobId, string $branch): string
@@ -46,29 +59,20 @@ final class ProcessWorktreeManager implements WorktreeManager
         // 1) git worktree add — bare 에서 새 worktree + 새 브랜치 (master 기준)
         $this->git(['worktree', 'add', $worktreePath, '-b', $branch, 'master']);
 
-        // 2) 격리 .env 작성 (sqlite + mail=log + queue=sync 등으로 운영 의존성 차단)
+        // 2) 격리 .env 작성 (DB_DATABASE 만 test DB 로 오버라이드, 나머지는 운영 .env 그대로)
         $this->writeIsolatedEnv($worktreePath);
 
-        // 3) 빈 sqlite (testing DB)
-        $sqlite = $worktreePath . '/database/ai-test.sqlite';
-        if (!is_dir(dirname($sqlite))) {
-            mkdir(dirname($sqlite), 0775, true);
-        }
-        if (!is_file($sqlite)) {
-            touch($sqlite);
-        }
-
-        // 4) composer install (--no-scripts: 일부 ServiceProvider 가 미생성 테이블 eager
+        // 3) composer install (--no-scripts: 일부 ServiceProvider 가 미생성 테이블 eager
         //    조회하는 걸 우회. package:discover 는 migrate 다음에 분리 실행)
         $this->run(['composer', 'install', '--no-interaction', '--no-scripts', '--prefer-dist'], $worktreePath);
 
-        // 5) APP_KEY 보장
+        // 4) APP_KEY 보장
         $this->run(['php', 'artisan', 'key:generate', '--force'], $worktreePath, allowFail: true);
 
-        // 6) migrate
+        // 5) migrate (mysql dialect — 운영과 같은 schema)
         $this->run(['php', 'artisan', 'migrate', '--force', '--no-interaction'], $worktreePath);
 
-        // 7) package:discover (이제 테이블 다 있으니 안전)
+        // 6) package:discover (이제 테이블 다 있으니 안전)
         $this->run(['php', 'artisan', 'package:discover'], $worktreePath, allowFail: true);
 
         return $worktreePath;
@@ -97,9 +101,10 @@ final class ProcessWorktreeManager implements WorktreeManager
     {
         $env = is_file($this->sourceEnv) ? file_get_contents($this->sourceEnv) : '';
 
+        // DB_DATABASE 만 격리 — host/port/user/password 는 운영 .env 그대로 사용 (같은 mysql 서버).
+        // 나머지는 운영 자원(메일/큐/캐시/세션)을 건드리지 않도록 분리.
         $overrides = [
-            'DB_CONNECTION'        => 'sqlite',
-            'DB_DATABASE'          => $worktreePath . '/database/ai-test.sqlite',
+            'DB_DATABASE'          => $this->testDatabase,
             'APP_ENV'              => 'testing',
             'APP_DEBUG'            => 'true',
             'APP_URL'              => 'http://localhost',
