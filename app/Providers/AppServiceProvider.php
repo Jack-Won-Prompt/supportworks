@@ -102,8 +102,8 @@ class AppServiceProvider extends ServiceProvider
                 if (!empty($apiKey)) {
                     return new \App\Services\AiFix\OpenAiAnalyzer(
                         apiKey:        $apiKey,
-                        model:         $cfg['model']          ?? 'gpt-5.5',
-                        fallbackModel: $cfg['fallback_model'] ?? 'gpt-4.0',
+                        model:         $cfg['model']          ?? 'gpt-4o',
+                        fallbackModel: $cfg['fallback_model'] ?? 'gpt-4o-mini',
                         timeout:       (int) ($cfg['timeout'] ?? 60),
                     );
                 }

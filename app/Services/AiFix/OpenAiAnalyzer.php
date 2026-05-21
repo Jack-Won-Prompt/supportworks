@@ -20,8 +20,8 @@ final class OpenAiAnalyzer implements AiAnalyzer
 {
     public function __construct(
         private readonly string  $apiKey,
-        private readonly string  $model = 'gpt-5.5',
-        private readonly ?string $fallbackModel = 'gpt-4.0',
+        private readonly string  $model = 'gpt-4o',
+        private readonly ?string $fallbackModel = 'gpt-4o-mini',
         private readonly int     $timeout = 60,
     ) {}
 
