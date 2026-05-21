@@ -288,6 +288,18 @@
     box-shadow:0 24px 64px rgba(0,0,0,.45);
     animation:lb-in .18s ease;
 }
+/* 전체 창 모드 — Fullscreen API 가 외곽 overlay 만 키우면 안쪽이 그대로라
+   사용자가 [전체 창] 눌러도 뷰어가 안 커보임. fullscreen 활성 시 컨테이너를
+   100% 로 펼치고 둥근 모서리/그림자 제거. */
+#img-lightbox:fullscreen #img-lb-container,
+#img-lightbox:-webkit-full-screen #img-lb-container {
+    width:100%; height:100%; max-width:none; max-height:none;
+    border-radius:0; box-shadow:none;
+}
+#img-lightbox:fullscreen #img-lb-toolbar,
+#img-lightbox:-webkit-full-screen #img-lb-toolbar {
+    border-radius:0;
+}
 #img-lb-toolbar {
     display:flex; align-items:center; gap:4px; padding:0 14px;
     height:42px; background:rgba(12,9,26,.98); flex-shrink:0;
@@ -1062,6 +1074,16 @@
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 {{ __('common.close') }}
             </button>
+            <button id="img-lb-fullscreen" onclick="lbToggleFullscreen()" title="{{ __('files.fullscreen_title') }}"
+                    style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;margin-left:6px;">
+                <svg id="img-lb-fullscreen-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0-4h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <span id="img-lb-fullscreen-label">{{ __('files.fullscreen') }}</span>
+            </button>
+            <button id="img-lb-download" onclick="lbDownloadCurrent()" title="{{ __('common.download') }}"
+                    style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;margin-left:6px;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>{{ __('common.download') }}</span>
+            </button>
             <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 8px;"></div>
             <span style="font-size:10px;font-weight:600;color:#6b7280;letter-spacing:.4px;margin-right:4px;">{{ __('messages.annotation_label') }}</span>
             <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 4px;"></div>
@@ -1446,6 +1468,8 @@ const MSG_STR = {
     lbLoading:            '{{ __("messages.lb_loading") }}',
     lbDeleteTitle:        '{{ __("messages.lb_delete_title") }}',
     lbCountSuffix:        '{{ __("messages.lb_count_suffix") }}',
+    lbFullscreen:         @js(__('files.fullscreen')),
+    lbFullscreenExit:     @js(__('files.fullscreen_exit')),
     noOpinionYet:         '{{ __("messages.no_opinion_yet") }}',
     confirmDeleteOpinion: '{{ __("viewer.confirm_delete_opinion") }}',
     confirmDeleteAnn:     '{{ __("viewer.confirm_delete_ann") }}',
@@ -2702,6 +2726,10 @@ async function openLightbox(src, alt, msgId) {
 }
 
 async function closeLightbox() {
+    // 전체창 활성 상태에서 닫으면 fullscreen 도 종료
+    if (document.fullscreenElement) {
+        try { await document.exitFullscreen(); } catch (e) {}
+    }
     document.getElementById('img-lightbox').classList.remove('open');
     document.body.style.overflow = '';
     lbMsgId = null;
@@ -2714,6 +2742,48 @@ async function closeLightbox() {
         _setLbReviewTabDir(false);
     }
 }
+
+/* 전체창 토글 — 브라우저 Fullscreen API 사용 */
+function lbToggleFullscreen() {
+    const el = document.getElementById('img-lightbox');
+    if (!el) return;
+    if (!document.fullscreenElement) {
+        const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (req) req.call(el).catch(() => { /* 사용자 거부 / 미지원 무시 */ });
+    } else {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+        if (exit) exit.call(document).catch(() => {});
+    }
+}
+
+/* 현재 표시 중인 이미지 다운로드 */
+function lbDownloadCurrent() {
+    const img = document.getElementById('img-lightbox-img');
+    if (!img || !img.src) return;
+    const a = document.createElement('a');
+    a.href = img.src;
+    a.download = (img.alt && img.alt.trim()) || 'image';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+/* 전체창 상태 변경 시 버튼 라벨 / 아이콘 토글 */
+document.addEventListener('fullscreenchange', function () {
+    const label = document.getElementById('img-lb-fullscreen-label');
+    const icon  = document.getElementById('img-lb-fullscreen-icon');
+    if (!label || !icon) return;
+    if (document.fullscreenElement) {
+        label.textContent = MSG_STR.lbFullscreenExit;
+        // 축소 아이콘 (4 화살표 안으로)
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 4H5m10 0V5m0 4h4M9 15v4m0-4H5m10 0v4m0-4h4"/>';
+    } else {
+        label.textContent = MSG_STR.lbFullscreen;
+        // 확대 아이콘 (4 화살표 밖으로)
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0-4h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>';
+    }
+});
 
 async function loadLbComments(msgId) {
     fetch(`${LB_BASE}/messages/${msgId}/image-comments`, {
