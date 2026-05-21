@@ -80,10 +80,10 @@ return [
         'driver'         => env('AI_FIX_ANALYZER_DRIVER',         'stub'),
         // primary 모델이 5xx / timeout / invalid JSON 등 어떤 이유로든 실패하면
         // fallback_model 로 한 번 재시도. 둘 다 실패해야 fallback() AnalysisResult 반환.
-        // default: gpt-5 (최신·최강) → gpt-5-mini (저렴·빠름). primary 가 5xx/limit
-        // 등으로 실패하면 자동 fallback. env 로 override 가능.
-        'model'          => env('AI_FIX_ANALYZER_MODEL',          'gpt-5'),
-        'fallback_model' => env('AI_FIX_ANALYZER_FALLBACK_MODEL', 'gpt-5-mini'),
+        // default: gpt-4.1 (2025-04 최신, 사용자 키 가용 확인) → gpt-4o (안정·범용).
+        // primary 가 5xx/limit/timeout 등으로 실패하면 자동 fallback. env 로 override 가능.
+        'model'          => env('AI_FIX_ANALYZER_MODEL',          'gpt-4.1'),
+        'fallback_model' => env('AI_FIX_ANALYZER_FALLBACK_MODEL', 'gpt-4o'),
         'timeout'        => (int) env('AI_FIX_ANALYZER_TIMEOUT',  60),
     ],
 
