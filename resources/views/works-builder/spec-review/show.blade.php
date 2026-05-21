@@ -105,8 +105,10 @@
                         const d = await res.json();
                         if (d.ok) {
                           window.dispatchEvent(new CustomEvent('wb-ai-start', { detail: {
-                            statusUrl: d.status_url,
-                            cancelUrl: d.cancel_url,
+                            statusUrl:  d.status_url,
+                            cancelUrl:  d.cancel_url,
+                            taskUrl:    d.task_url    || '',
+                            previewSvg: d.preview_svg || '',
                             csrf: document.querySelector('meta[name=csrf-token]').content,
                           }}));
                         }

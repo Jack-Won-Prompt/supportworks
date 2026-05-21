@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\WorksBuilder\GenerateHtmlJob;
 use App\Models\PlanningDoc;
 use App\Models\WorksBuilder\Task;
+use App\Services\WorksBuilder\Preview\LayoutPreviewBuilder;
 use App\Services\WorksBuilder\TaskActions\OptionRevisionService;
 use App\Services\WorksBuilder\Theme\ThemeRegistry;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,7 @@ class SpecReviewController extends Controller
     public function __construct(
         private OptionRevisionService $revision,
         private ThemeRegistry $themes,
+        private LayoutPreviewBuilder $previewBuilder,
     ) {}
 
     public function show(Task $task): View
@@ -66,9 +68,11 @@ class SpecReviewController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'ok'         => true,
-                'status_url' => route('wb.tasks.ai-progress.status', $task),
-                'cancel_url' => route('wb.tasks.ai-progress.cancel', $task),
+                'ok'          => true,
+                'status_url'  => route('wb.tasks.ai-progress.status', $task),
+                'cancel_url'  => route('wb.tasks.ai-progress.cancel', $task),
+                'task_url'    => route('wb.tasks.show', $task),
+                'preview_svg' => $this->previewBuilder->build($data),
             ]);
         }
 

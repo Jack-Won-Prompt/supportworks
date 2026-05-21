@@ -64,9 +64,11 @@ class OptionController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'ok'         => true,
-                'status_url' => route('wb.tasks.ai-progress.status', $task),
-                'cancel_url' => route('wb.tasks.ai-progress.cancel', $task),
+                'ok'          => true,
+                'status_url'  => route('wb.tasks.ai-progress.status', $task),
+                'cancel_url'  => route('wb.tasks.ai-progress.cancel', $task),
+                'task_url'    => route('wb.tasks.show', $task),
+                'preview_svg' => $this->previewBuilder->build($data),
             ]);
         }
 
