@@ -50,9 +50,11 @@ final class PhpUnitTestRunner implements TestRunner
     }
 
     /**
-     * phpunit summary 파싱.
-     * 성공: "OK (12 tests, 34 assertions)"
-     * 실패: "Tests: 12, Assertions: 34, Failures: 1, Errors: 0."
+     * phpunit summary 파싱. phpunit 은 항목 순서가 일정하지 않음
+     * (예: "Tests: 159, Assertions: 290, Errors: 29, Failures: 3." 처럼 Errors 가 먼저 올 수도).
+     * 각 항목을 독립 정규로 매칭해 순서 무관하게 추출.
+     *
+     * 성공 케이스만 별도: "OK (12 tests, 34 assertions)" (failures/errors 항목 자체 없음)
      *
      * @return array{0:int,1:int,2:int,3:int} [testsRun, assertions, failures, errors]
      */
@@ -61,14 +63,11 @@ final class PhpUnitTestRunner implements TestRunner
         if (preg_match('/OK \((\d+) tests?, (\d+) assertions?\)/i', $output, $m)) {
             return [(int) $m[1], (int) $m[2], 0, 0];
         }
-        if (preg_match('/Tests:\s*(\d+),\s*Assertions:\s*(\d+)(?:,\s*Failures:\s*(\d+))?(?:,\s*Errors:\s*(\d+))?/i', $output, $m)) {
-            return [
-                (int) $m[1],
-                (int) $m[2],
-                (int) ($m[3] ?? 0),
-                (int) ($m[4] ?? 0),
-            ];
-        }
-        return [0, 0, 0, 0];
+        // 항목별 독립 매칭 — 순서 무관
+        $testsRun   = preg_match('/Tests:\s*(\d+)/i',      $output, $m) ? (int) $m[1] : 0;
+        $assertions = preg_match('/Assertions:\s*(\d+)/i', $output, $m) ? (int) $m[1] : 0;
+        $failures   = preg_match('/Failures:\s*(\d+)/i',   $output, $m) ? (int) $m[1] : 0;
+        $errors     = preg_match('/Errors:\s*(\d+)/i',     $output, $m) ? (int) $m[1] : 0;
+        return [$testsRun, $assertions, $failures, $errors];
     }
 }
