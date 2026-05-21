@@ -12,16 +12,19 @@ class MaintRequest extends Model
         'excel_no', 'source_sheet', 'menu_id', 'company_group_id',
         'request_date', 'priority', 'category',
         'summary', 'content', 'status',
+        'ai_summary', 'ai_summary_at', 'ai_summary_context_ids',
         'progress_raw', 'colo_check_raw',
         'colo_user_id', 'assignee_id', 'assignee_raw',
         'eta', 'grid_refresh', 'completed_at',
     ];
 
     protected $casts = [
-        'request_date' => 'date',
-        'eta'          => 'date',
-        'completed_at' => 'datetime',
-        'excel_no'     => 'integer',
+        'request_date'            => 'date',
+        'eta'                     => 'date',
+        'completed_at'            => 'datetime',
+        'excel_no'                => 'integer',
+        'ai_summary_at'           => 'datetime',
+        'ai_summary_context_ids'  => 'array',
     ];
 
     public const PRIORITIES = ['normal', 'urgent', 'critical', 'recheck'];

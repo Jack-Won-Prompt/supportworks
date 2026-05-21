@@ -635,6 +635,7 @@ Route::middleware(['auth'])->group(function () {
         ->parameters(['maint-requests' => 'maintRequest']);
     Route::post  ('maint-requests/{maintRequest}/notes',              [\App\Http\Controllers\MaintRequestController::class, 'storeNote'])  ->name('maint-requests.notes.store');
     Route::delete('maint-requests/{maintRequest}/notes/{note}',        [\App\Http\Controllers\MaintRequestController::class, 'destroyNote'])->name('maint-requests.notes.destroy');
+    Route::post  ('maint-requests/works-summary',                      [\App\Http\Controllers\MaintRequestController::class, 'worksSummary'])->name('maint-requests.works-summary');
 
     // 파일 카테고리
     Route::get   ('projects/{project}/file-categories',                   [\App\Http\Controllers\ProjectFileCategoryController::class, 'index'])->name('projects.file-categories.index');

@@ -6,6 +6,7 @@ use App\Models\Maint\MaintMenu;
 use App\Models\Maint\MaintRequest;
 use App\Models\Maint\MaintRequestNote;
 use App\Models\Maint\MaintUser;
+use App\Services\Maint\SrSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -143,6 +144,8 @@ class MaintRequestController extends Controller
             'category'         => 'nullable|string|max:100',
             'summary'          => 'required|string|max:500',
             'content'          => 'nullable|string',
+            'ai_summary'       => 'nullable|string',
+            'ai_summary_context_ids' => 'nullable|string', // JSON 문자열로 전송
             'request_date'     => 'nullable|date',
             'eta'              => 'nullable|date',
             'colo_user_id'     => 'nullable|exists:maint_users,id',
@@ -151,6 +154,7 @@ class MaintRequestController extends Controller
             'assignee_name'    => 'nullable|string|max:100',
             'status'           => 'nullable|in:' . implode(',', MaintRequest::STATUSES),
         ]);
+        $this->normalizeAiSummaryFields($data);
 
         // 회사는 로그인 사용자 본인 소속으로 자동 지정
         $data['company_group_id'] = auth()->user()?->company_group_id;
@@ -179,6 +183,8 @@ class MaintRequestController extends Controller
             'category'         => 'nullable|string|max:100',
             'summary'          => 'required|string|max:500',
             'content'          => 'nullable|string',
+            'ai_summary'       => 'nullable|string',
+            'ai_summary_context_ids' => 'nullable|string',
             'request_date'     => 'nullable|date',
             'eta'              => 'nullable|date',
             'colo_user_id'     => 'nullable|exists:maint_users,id',
@@ -187,6 +193,7 @@ class MaintRequestController extends Controller
             'assignee_name'    => 'nullable|string|max:100',
             'status'           => 'required|in:' . implode(',', MaintRequest::STATUSES),
         ]);
+        $this->normalizeAiSummaryFields($data);
 
         DB::transaction(function () use (&$data, $maintRequest) {
             $data['menu_id']      = $this->resolveMenu($data);
@@ -622,5 +629,105 @@ class MaintRequestController extends Controller
             ['team' => $team, 'name' => $name],
             ['is_active' => true],
         )->id;
+    }
+
+    /**
+     * 폼에서 hidden input 으로 받은 ai_summary_context_ids(JSON 문자열) 를 array 로 변환
+     * 후 ai_summary_at 자동 기록. ai_summary 비어있으면 모든 ai_summary_* 칼럼 비움 (요약 제거).
+     */
+    private function normalizeAiSummaryFields(array &$data): void
+    {
+        if (!array_key_exists('ai_summary', $data)) return;
+
+        $sum = trim((string) ($data['ai_summary'] ?? ''));
+        if ($sum === '') {
+            $data['ai_summary']             = null;
+            $data['ai_summary_at']          = null;
+            $data['ai_summary_context_ids'] = null;
+            return;
+        }
+
+        $data['ai_summary']    = $sum;
+        $data['ai_summary_at'] = now();
+
+        $rawIds = $data['ai_summary_context_ids'] ?? null;
+        if (is_string($rawIds) && $rawIds !== '') {
+            $decoded = json_decode($rawIds, true);
+            $data['ai_summary_context_ids'] = is_array($decoded) ? $decoded : null;
+        } elseif (!is_array($rawIds)) {
+            $data['ai_summary_context_ids'] = null;
+        }
+    }
+
+    /**
+     * [웍스 요약 생성] AJAX 엔드포인트.
+     *
+     * 신규(create) / 수정(edit) 양쪽에서 호출 가능. 폼이 아직 저장 안 된 상태라도
+     * body 의 summary / content / menu_id / category 로 transient MaintRequest 를
+     * 만들어 SrSummaryService 에 전달. company_group_id 는 로그인 사용자 소속으로 강제.
+     */
+    public function worksSummary(Request $request, SrSummaryService $service)
+    {
+        $data = $request->validate([
+            'id'        => 'nullable|integer|exists:maint_requests,id',
+            'summary'   => 'nullable|string|max:500',
+            'content'   => 'nullable|string',
+            'menu_id'   => 'nullable|integer|exists:maint_menus,id',
+            'menu_name' => 'nullable|string|max:255',
+            'category'  => 'nullable|string|max:100',
+            'priority'  => 'nullable|in:' . implode(',', MaintRequest::PRIORITIES),
+        ]);
+
+        $companyGroupId = auth()->user()?->company_group_id;
+        abort_if(empty($companyGroupId), 422, '회사 소속이 없는 사용자는 사용할 수 없습니다.');
+
+        // 기존 SR 이면 로드, 아니면 transient 인스턴스로 SrSummaryService 에 넘김.
+        if (!empty($data['id'])) {
+            $req = MaintRequest::with('menu')->findOrFail($data['id']);
+            abort_if((int) $req->company_group_id !== (int) $companyGroupId, 403);
+
+            // 폼에서 사용자가 막 수정한 값으로 덮어 컨텍스트 일치
+            $req->summary  = $data['summary']  ?? $req->summary;
+            $req->content  = $data['content']  ?? $req->content;
+            $req->category = $data['category'] ?? $req->category;
+            $req->menu_id  = $this->resolveMenu($data) ?? $req->menu_id;
+            $req->priority = $data['priority'] ?? $req->priority;
+        } else {
+            $req = new MaintRequest([
+                'summary'          => $data['summary']  ?? '',
+                'content'          => $data['content']  ?? '',
+                'category'         => $data['category'] ?? null,
+                'priority'         => $data['priority'] ?? 'normal',
+                'company_group_id' => $companyGroupId,
+                'menu_id'          => $this->resolveMenu($data),
+            ]);
+            if ($req->menu_id) {
+                $req->setRelation('menu', MaintMenu::find($req->menu_id));
+            }
+        }
+        $req->company_group_id = $companyGroupId;
+
+        if (trim((string) $req->content) === '' && trim((string) $req->summary) === '') {
+            return response()->json([
+                'ok'      => false,
+                'message' => '요약 또는 상세 내용을 먼저 입력하세요.',
+            ], 422);
+        }
+
+        try {
+            $result = $service->summarize($req);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok'      => false,
+                'message' => '웍스 요약 생성 실패: ' . $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'ok'           => true,
+            'summary'      => $result['summary'],
+            'context_ids'  => $result['context_ids'],
+            'provider'     => $result['provider'],
+        ]);
     }
 }
