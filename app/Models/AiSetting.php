@@ -28,22 +28,23 @@ class AiSetting extends Model
 
     public function anthropicKey(): ?string
     {
-        return $this->safeDecrypt($this->anthropic_key) ?? (env('ANTHROPIC_API_KEY') ?: null);
+        // env() 는 config:cache 시 작동 안 함 → config() 통해 fallback
+        return $this->safeDecrypt($this->anthropic_key) ?? (config('services.anthropic.key') ?: null);
     }
 
     public function openaiKey(): ?string
     {
-        return $this->safeDecrypt($this->openai_key) ?? (env('OPENAI_API_KEY') ?: null);
+        return $this->safeDecrypt($this->openai_key) ?? (config('services.openai.key') ?: null);
     }
 
     public function figmaToken(): ?string
     {
-        return $this->safeDecrypt($this->figma_token) ?? (env('FIGMA_TOKEN') ?: null);
+        return $this->safeDecrypt($this->figma_token) ?? (config('services.figma.token') ?: null);
     }
 
     public function manusKey(): ?string
     {
-        return $this->safeDecrypt($this->manus_key) ?? (env('MANUS_API_KEY') ?: null);
+        return $this->safeDecrypt($this->manus_key) ?? (config('services.manus.key') ?: null);
     }
 
     public function manusEndpoint(): string

@@ -72,4 +72,13 @@ return [
         'fallback_enabled' => env('LLM_FALLBACK_ENABLED', true),
     ],
 
+    // AiSetting::figmaToken() / manusKey() 가 fallback 으로 사용 — config 통해 env() 캡처.
+    'figma' => [
+        'token' => env('FIGMA_TOKEN'),
+    ],
+
+    'manus' => [
+        'key' => env('MANUS_API_KEY'),
+    ],
+
 ];
