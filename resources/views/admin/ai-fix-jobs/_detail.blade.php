@@ -42,19 +42,23 @@
     </div>
 
     @if($canAct)
-    <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100">
-        <form method="POST" action="{{ route('admin.ai-fix-jobs.approve', $job) }}" class="flex-1"
+    <div style="display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid #f1f5f9;">
+        <form method="POST" action="{{ route('admin.ai-fix-jobs.approve', $job) }}" style="flex:1;"
               onsubmit="return confirm('{{ $actionLabel }} 처리하시겠습니까?')">
             @csrf
-            <button type="submit" class="w-full px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition">
+            <button type="submit"
+                    style="width:100%; padding:10px 16px; font-size:14px; font-weight:600; color:#ffffff; background:#059669; border:none; border-radius:8px; cursor:pointer;"
+                    onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
                 ✓ {{ $actionLabel }}
             </button>
         </form>
-        <form method="POST" action="{{ route('admin.ai-fix-jobs.reject', $job) }}" class="flex-1"
+        <form method="POST" action="{{ route('admin.ai-fix-jobs.reject', $job) }}" style="flex:1;"
               onsubmit="this.querySelector('input[name=reason]').value = (prompt('거부 사유 (선택)') ?? ''); return confirm('거부 처리하시겠습니까?');">
             @csrf
             <input type="hidden" name="reason" value="">
-            <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition">
+            <button type="submit"
+                    style="width:100%; padding:10px 16px; font-size:14px; font-weight:500; color:#dc2626; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; cursor:pointer;"
+                    onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
                 거부
             </button>
         </form>
