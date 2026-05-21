@@ -76,17 +76,47 @@ final class OpenAiAnalyzer implements AiAnalyzer
         return new AnalysisResult(
             category:     (string) ($data['category']   ?? 'unknown'),
             confidence:   (float)  ($data['confidence'] ?? 0.3),
-            changedFiles: array_values(array_filter((array) ($data['changed_files'] ?? []), 'is_string')),
+            changedFiles: self::filterApplicationFiles((array) ($data['changed_files'] ?? [])),
             summary:      mb_substr((string) ($data['summary'] ?? '[no summary]'), 0, 1000),
             unsure:       (bool)   ($data['unsure'] ?? false),
         );
+    }
+
+    /**
+     * changed_files 화이트리스트 — application 소스만 통과.
+     * AI 가 무시하더라도 여기서 한 번 더 거른다.
+     */
+    private static function filterApplicationFiles(array $files): array
+    {
+        $allowedPrefixes = ['app/', 'resources/', 'routes/', 'database/', 'config/', 'tests/'];
+        $out = [];
+        foreach ($files as $f) {
+            if (!is_string($f) || $f === '') continue;
+            // 절대경로 / 외부 path 제외
+            if ($f[0] === '/' || $f[0] === '\\') continue;
+            if (str_starts_with($f, 'vendor/') || str_starts_with($f, 'node_modules/')) continue;
+            if (str_starts_with($f, 'storage/') || str_starts_with($f, 'bootstrap/cache/')) continue;
+            // 허용 prefix 중 하나라도 매칭
+            foreach ($allowedPrefixes as $p) {
+                if (str_starts_with($f, $p)) {
+                    $out[] = $f;
+                    continue 2;
+                }
+            }
+        }
+        return array_values(array_unique($out));
     }
 
     private function systemPrompt(): string
     {
         return 'You are a senior PHP/Laravel engineer analyzing runtime errors. '
             . 'Identify the root cause and the minimum set of source files that likely need '
-            . 'modification to fix it. Respond with strict JSON only (no markdown, no commentary).';
+            . 'modification to fix it. Respond with strict JSON only (no markdown, no commentary). '
+            . 'CRITICAL: changed_files MUST contain only application source files using RELATIVE paths '
+            . 'under these prefixes: app/, resources/, routes/, database/, config/, tests/. '
+            . 'NEVER include: vendor/, node_modules/, storage/, bootstrap/cache/, /tmp/, /var/, /home/, '
+            . 'any absolute path, or any third-party library file. If the error originates inside '
+            . 'vendor code, instead point to the application file that calls into it.';
     }
 
     private function userPrompt(SystemErrorLog $errorLog): string
