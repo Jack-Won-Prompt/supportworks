@@ -1,0 +1,58 @@
+# SupportWorks queue worker — Laravel database queue runner.
+#
+# Install:
+#   sudo cp scripts/ops/supportworks-queue.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now supportworks-queue
+#
+# Verify:
+#   systemctl status supportworks-queue
+#   journalctl -u supportworks-queue -f --since "5 min ago"
+#
+# Graceful restart (e.g., after deploy):
+#   php artisan queue:restart                 # 워커가 다음 잡 사이에 종료 → systemd 가 자동 재시작
+#   sudo systemctl restart supportworks-queue # 강제 즉시 재시작 (실행 중인 잡 끊김 — 신중히)
+#
+# Tuning notes:
+#   --timeout=300  : GenerateHtmlJob 의 max 300s 와 일치 (Claude 120 + OpenAI 180 폴백)
+#                    systemd TimeoutStopSec 는 그보다 더 길게 두어 graceful kill 시간 확보
+#   --tries=1      : 잡 본문이 자체 try/catch 로 audit · notify 처리 — 큐 차원 재시도 X
+#   --sleep=3      : DB queue 폴링 간격 3초
+#   --max-time=3600: 워커 1시간 후 자체 종료 → systemd 가 재기동 (memory leak 방어)
+#   --max-jobs=0   : 잡 개수 제한 없음 (--max-time 으로 충분)
+
+[Unit]
+Description=SupportWorks Laravel queue worker (Works Builder + AI fix)
+After=mysql.service network.target
+Requires=mysql.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+
+WorkingDirectory=/var/www/supportworks
+EnvironmentFile=-/var/www/supportworks/.env
+
+ExecStart=/usr/bin/php /var/www/supportworks/artisan queue:work \
+    --queue=default \
+    --sleep=3 \
+    --tries=1 \
+    --timeout=300 \
+    --max-time=3600
+
+# graceful: SIGTERM → 현재 잡 끝까지 마치고 종료
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=360
+
+# 비정상 종료 시 5초 대기 후 재시작
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=supportworks-queue
+
+[Install]
+WantedBy=multi-user.target
