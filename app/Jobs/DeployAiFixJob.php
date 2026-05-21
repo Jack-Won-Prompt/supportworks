@@ -63,10 +63,11 @@ class DeployAiFixJob implements ShouldQueue
         // ── 1) GitHub PR 머지 ───────────────────────────────────────────────
         try {
             $merge = $merger->mergeBranch(
-                branch:      $job->branch_name ?? "ai-fix/{$job->id}",
-                target:      'master',
-                commitTitle: "AI Fix #{$job->id}",
-                commitBody:  (string) ($job->proposed_fix_summary ?? ''),
+                branch:       $job->branch_name ?? "ai-fix/{$job->id}",
+                target:       'master',
+                commitTitle:  "AI Fix #{$job->id}",
+                commitBody:   (string) ($job->proposed_fix_summary ?? ''),
+                worktreePath: $job->worktree_path,
             );
         } catch (\Throwable $e) {
             $this->terminate($job, AiFixJob::STATUS_DEPLOY_FAILED,

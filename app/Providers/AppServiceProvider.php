@@ -146,7 +146,21 @@ class AppServiceProvider extends ServiceProvider
             }
             return new \App\Services\AiFix\StubWorktreeManager();
         });
-        $this->app->bind(\App\Services\AiFix\GitHubMerger::class,    \App\Services\AiFix\StubGitHubMerger::class);
+        // GitHubMerger: driver=github + token 있으면 GuzzleGitHubMerger, 아니면 Stub.
+        // 운영 .env 의 AI_FIX_MERGER_DRIVER + AI_FIX_MERGER_GITHUB_TOKEN 로 활성화.
+        $this->app->bind(\App\Services\AiFix\GitHubMerger::class, function ($app) {
+            $cfg = config('ai-fix.merger');
+            if (($cfg['driver'] ?? 'stub') === 'github' && !empty($cfg['token'])) {
+                return new \App\Services\AiFix\GuzzleGitHubMerger(
+                    token:       $cfg['token'],
+                    owner:       $cfg['owner']        ?? 'Jack-Won-Prompt',
+                    repo:        $cfg['repo']         ?? 'supportworks',
+                    mergeMethod: $cfg['merge_method'] ?? 'squash',
+                    timeout:     (int) ($cfg['timeout'] ?? 60),
+                );
+            }
+            return new \App\Services\AiFix\StubGitHubMerger();
+        });
         $this->app->bind(\App\Services\AiFix\RemoteDeployer::class,  \App\Services\AiFix\StubRemoteDeployer::class);
 
         // TestRunner: driver=phpunit 이면 PhpUnitTestRunner, 아니면 default-pass Stub.

@@ -20,6 +20,7 @@ final class StubGitHubMerger implements GitHubMerger
         string $target,
         string $commitTitle,
         string $commitBody = '',
+        ?string $worktreePath = null,
     ): MergeResult {
         if ($this->shouldFail) {
             return new MergeResult(

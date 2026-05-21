@@ -105,6 +105,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | GitHubMerger (PR 생성 + auto merge)
+    |--------------------------------------------------------------------------
+    | driver=stub: 가짜 PR/SHA 반환 (PoC).
+    | driver=github: GuzzleGitHubMerger 가 worktree 에서 git push → GitHub PR
+    |   생성 → squash merge. token 은 AI_FIX_MERGER_GITHUB_TOKEN (PAT 또는 GitHub
+    |   App). owner/repo default 는 운영 repo.
+    */
+    'merger' => [
+        'driver'       => env('AI_FIX_MERGER_DRIVER',       'stub'),
+        'token'        => env('AI_FIX_MERGER_GITHUB_TOKEN'),
+        'owner'        => env('AI_FIX_MERGER_OWNER',        'Jack-Won-Prompt'),
+        'repo'         => env('AI_FIX_MERGER_REPO',         'supportworks'),
+        'merge_method' => env('AI_FIX_MERGER_METHOD',       'squash'),
+        'timeout'      => (int) env('AI_FIX_MERGER_TIMEOUT', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 자동 수정 화이트리스트 (auto_eligible)
     |--------------------------------------------------------------------------
     | 변경 파일 *전체*가 이 패턴에 매칭되고 red/yellow 신호가 임계값 미만이면

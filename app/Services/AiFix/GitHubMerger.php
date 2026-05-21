@@ -20,10 +20,17 @@ namespace App\Services\AiFix;
  */
 interface GitHubMerger
 {
+    /**
+     * branch 의 변경을 origin 에 push + GitHub PR 생성 + merge.
+     *
+     * worktreePath: AI 가 수정한 코드가 있는 worktree 의 경로. 구현체가 그 안에서
+     * `git add + commit + push` 까지 책임. null 이면 Stub 또는 push 책임 외부.
+     */
     public function mergeBranch(
         string $branch,
         string $target,
         string $commitTitle,
         string $commitBody = '',
+        ?string $worktreePath = null,
     ): MergeResult;
 }
