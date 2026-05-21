@@ -123,6 +123,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | RemoteDeployer (deploy.sh 실행기)
+    |--------------------------------------------------------------------------
+    | driver=stub: 가짜 exit=0 반환 (PoC).
+    | driver=process: ProcessRemoteDeployer 가 bash <script> 를 cwd=app_path 로 실행.
+    |   AI Fix worker 가 같은 EC2 의 ubuntu user 라 SSH 거치지 않고 self-deploy.
+    | script: deploy.sh 의 절대 경로
+    | app_path: deploy.sh 가 실행될 cwd (운영 supportworks repo 루트)
+    */
+    'deployer' => [
+        'driver'   => env('AI_FIX_DEPLOYER_DRIVER',   'stub'),
+        'script'   => env('AI_FIX_DEPLOYER_SCRIPT',   '/home/ubuntu/www/supportworks/scripts/deploy.sh'),
+        'app_path' => env('AI_FIX_DEPLOYER_APP_PATH', '/home/ubuntu/www/supportworks'),
+        'timeout'  => (int) env('AI_FIX_DEPLOYER_TIMEOUT', 900),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 자동 수정 화이트리스트 (auto_eligible)
     |--------------------------------------------------------------------------
     | 변경 파일 *전체*가 이 패턴에 매칭되고 red/yellow 신호가 임계값 미만이면

@@ -161,7 +161,19 @@ class AppServiceProvider extends ServiceProvider
             }
             return new \App\Services\AiFix\StubGitHubMerger();
         });
-        $this->app->bind(\App\Services\AiFix\RemoteDeployer::class,  \App\Services\AiFix\StubRemoteDeployer::class);
+        // RemoteDeployer: driver=process + script 가용 시 ProcessRemoteDeployer (local bash),
+        // 아니면 Stub. 운영 .env 의 AI_FIX_DEPLOYER_DRIVER 로 활성화.
+        $this->app->bind(\App\Services\AiFix\RemoteDeployer::class, function ($app) {
+            $cfg = config('ai-fix.deployer');
+            if (($cfg['driver'] ?? 'stub') === 'process' && !empty($cfg['script'])) {
+                return new \App\Services\AiFix\ProcessRemoteDeployer(
+                    script:   $cfg['script'],
+                    appPath:  $cfg['app_path'] ?? dirname($cfg['script']),
+                    timeout:  (int) ($cfg['timeout'] ?? 900),
+                );
+            }
+            return new \App\Services\AiFix\StubRemoteDeployer();
+        });
 
         // TestRunner: driver=phpunit 이면 PhpUnitTestRunner, 아니면 default-pass Stub.
         // 운영 .env 의 AI_FIX_TEST_RUNNER_DRIVER=phpunit 으로 활성화.
