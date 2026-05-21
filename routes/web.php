@@ -636,6 +636,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post  ('maint-requests/{maintRequest}/notes',              [\App\Http\Controllers\MaintRequestController::class, 'storeNote'])  ->name('maint-requests.notes.store');
     Route::delete('maint-requests/{maintRequest}/notes/{note}',        [\App\Http\Controllers\MaintRequestController::class, 'destroyNote'])->name('maint-requests.notes.destroy');
     Route::post  ('maint-requests/works-summary',                      [\App\Http\Controllers\MaintRequestController::class, 'worksSummary'])->name('maint-requests.works-summary');
+    Route::post  ('maint-requests/import',                             [\App\Http\Controllers\MaintRequestController::class, 'import'])->name('maint-requests.import');
+    Route::patch ('maint-requests/{maintRequest}/quick',               [\App\Http\Controllers\MaintRequestController::class, 'quickUpdate'])->name('maint-requests.quick');
+    Route::get   ('maint-requests/embed/closed',                       [\App\Http\Controllers\MaintRequestController::class, 'embedClosed'])->name('maint-requests.embed.closed');
+    Route::get   ('maint-requests/{maintRequest}/embed',               [\App\Http\Controllers\MaintRequestController::class, 'embed'])->name('maint-requests.embed');
 
     // 파일 카테고리
     Route::get   ('projects/{project}/file-categories',                   [\App\Http\Controllers\ProjectFileCategoryController::class, 'index'])->name('projects.file-categories.index');
