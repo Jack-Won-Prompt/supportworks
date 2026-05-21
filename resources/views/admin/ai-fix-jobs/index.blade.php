@@ -94,8 +94,17 @@
         해당 상태의 작업이 없습니다.
     </div>
     @else
-    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <table class="w-full text-sm">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-x-auto">
+        <table class="w-full text-sm table-fixed">
+            <colgroup>
+                <col style="width: 60px">
+                <col style="width: 110px">
+                <col>
+                <col style="width: 110px">
+                <col style="width: 140px">
+                <col style="width: 130px">
+                <col style="width: 90px">
+            </colgroup>
             <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
                 <tr>
                     <th class="text-left px-4 py-3 font-semibold">#</th>
@@ -111,32 +120,32 @@
                 @foreach($jobs as $job)
                 @php $badge = $statusBadges[$job->status] ?? ['label' => $job->status, 'classes' => 'bg-slate-100 text-slate-700']; @endphp
                 <tr class="hover:bg-slate-50/60 transition">
-                    <td class="px-4 py-3 font-mono text-xs text-slate-700">#{{ $job->id }}</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badge['classes'] }}">
+                    <td class="px-4 py-3 font-mono text-xs text-slate-700 align-top whitespace-nowrap">#{{ $job->id }}</td>
+                    <td class="px-4 py-3 align-top">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap {{ $badge['classes'] }}">
                             {{ $badge['label'] }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 max-w-md">
+                    <td class="px-4 py-3 align-top overflow-hidden">
                         @if($job->systemErrorLog)
-                            <div class="text-xs font-mono text-indigo-500">{{ $job->systemErrorLog->exception }}</div>
+                            <div class="text-xs font-mono text-indigo-500 truncate">{{ $job->systemErrorLog->exception }}</div>
                             <div class="text-xs text-slate-600 truncate">{{ $job->systemErrorLog->message }}</div>
                         @else
                             <span class="text-xs text-slate-400">—</span>
                         @endif
                     </td>
-                    <td class="px-4 py-3 text-xs">
+                    <td class="px-4 py-3 text-xs align-top">
                         @if($job->decision)
                             <span class="font-mono text-slate-600">{{ $job->decision }}</span>
                         @else
                             <span class="text-slate-400">—</span>
                         @endif
                     </td>
-                    <td class="px-4 py-3 text-xs font-mono text-slate-500">{{ $job->branch_name ?? '—' }}</td>
-                    <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ $job->created_at->format('Y-m-d H:i') }}</td>
-                    <td class="px-4 py-3 text-right">
+                    <td class="px-4 py-3 text-xs font-mono text-slate-500 align-top truncate">{{ $job->branch_name ?? '—' }}</td>
+                    <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap align-top">{{ $job->created_at->format('Y-m-d H:i') }}</td>
+                    <td class="px-4 py-3 text-right align-top">
                         <a href="{{ route('admin.ai-fix-jobs.show', $job) }}"
-                           class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition">
+                           class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition whitespace-nowrap">
                             상세
                         </a>
                     </td>
