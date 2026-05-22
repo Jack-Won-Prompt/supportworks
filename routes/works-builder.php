@@ -80,9 +80,11 @@ Route::prefix('works-builder')->name('wb.')->group(function () {
     Route::get('/ai-call-logs', [AiCallLogController::class, 'index'])->name('ai-call-logs.index');
 
     Route::prefix('notifications')->name('notifications.')->group(function () {
-        Route::get  ('/',                       [NotificationController::class, 'index'])->name('index');
-        Route::get  ('/unread-count',           [NotificationController::class, 'unreadCountJson'])->name('unread-count');
-        Route::post ('/{notification}/read',    [NotificationController::class, 'markRead'])->name('read');
-        Route::post ('/mark-all-read',          [NotificationController::class, 'markAllRead'])->name('mark-all-read');
+        Route::get   ('/',                       [NotificationController::class, 'index'])->name('index');
+        Route::get   ('/unread-count',           [NotificationController::class, 'unreadCountJson'])->name('unread-count');
+        Route::post  ('/{notification}/read',    [NotificationController::class, 'markRead'])->name('read');
+        Route::post  ('/mark-all-read',          [NotificationController::class, 'markAllRead'])->name('mark-all-read');
+        Route::delete('/{notification}',         [NotificationController::class, 'destroy'])->name('destroy');
+        Route::delete('/',                       [NotificationController::class, 'destroyAll'])->name('destroy-all');
     });
 });

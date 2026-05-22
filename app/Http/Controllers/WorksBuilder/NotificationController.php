@@ -43,6 +43,27 @@ class NotificationController extends Controller
         return back()->with('status', '모든 알림을 읽음 처리했습니다.');
     }
 
+    public function destroy(Notification $notification): RedirectResponse
+    {
+        abort_unless($notification->recipient_id === Auth::id(), 403);
+        $notification->delete();
+        return back()->with('success', '알림을 삭제했습니다.');
+    }
+
+    public function destroyAll(Request $request): RedirectResponse
+    {
+        $scope = $request->string('scope')->toString();   // 'read' | 'all'
+        $q = Notification::where('recipient_id', Auth::id());
+        if ($scope === 'read') {
+            $q->where('is_read', true);
+            $msg = '읽은 알림을 모두 삭제했습니다.';
+        } else {
+            $msg = '모든 알림을 삭제했습니다.';
+        }
+        $q->delete();
+        return back()->with('success', $msg);
+    }
+
     public function unreadCountJson(): JsonResponse
     {
         $count = Notification::where('recipient_id', Auth::id())->unread()->count();
