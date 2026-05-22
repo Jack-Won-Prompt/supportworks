@@ -24,8 +24,21 @@ class MyWeeklyReportController extends Controller
             ->orderByDesc('updated_at');
 
         if (!$isManager) {
+            // 팀원: 본인 보고서만
             $query->where('user_id', $user->id);
+        } elseif (!$user->isAdmin()) {
+            // 매니저(비관리자): 자기 회사 사용자들의 보고서만
+            $companyGroupId = $user->company_group_id;
+            if ($companyGroupId) {
+                $query->whereHas('user', function ($q) use ($companyGroupId) {
+                    $q->where('company_group_id', $companyGroupId);
+                });
+            } else {
+                // 회사 미소속 매니저는 본인 것만
+                $query->where('user_id', $user->id);
+            }
         }
+        // 관리자: 제한 없음 (전체 조회)
 
         $reports = $query->get();
 

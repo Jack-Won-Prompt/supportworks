@@ -470,8 +470,8 @@
     var pct      = document.getElementById('maint-import-progress-label');
     var company  = document.getElementById('maint-import-company');
 
-    if (!form || !input) return;
-
+    // 엑셀 업로드는 권한자에게만 노출되므로, 폼이 없으면 그 블록만 건너뛰고 아래 로직(멀티 필터 등)은 계속 실행
+    if (form && input) {
     // 회사 선택 여부에 따른 업로드 버튼 활성/비활성
     function refreshImportEnabled(){
         if (!company) return;
@@ -576,6 +576,7 @@
         };
         xhr.send(fd);
     });
+    } // end if (form && input)
 
     // ── 인라인 우선순위/상태 빠른 변경 ──────────────────
     var csrfTok = document.querySelector('meta[name="csrf-token"]')?.content || '';
