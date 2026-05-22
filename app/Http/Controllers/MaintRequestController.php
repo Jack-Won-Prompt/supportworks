@@ -58,8 +58,27 @@ class MaintRequestController extends Controller
         };
 
         $q = MaintRequest::query()
-            ->with(['menu', 'coloUser', 'assignee'])
-            ->latest('id');
+            ->with(['menu', 'coloUser', 'assignee']);
+
+        // 정렬 — 헤더 클릭으로 토글
+        $sortableMap = [
+            'id'           => 'id',
+            'priority'     => 'priority',
+            'status'       => 'status',
+            'request_date' => 'request_date',
+            'eta'          => 'eta',
+        ];
+        $sort = $request->string('sort')->toString();
+        $dir  = strtolower($request->string('dir')->toString()) === 'asc' ? 'asc' : 'desc';
+        if ($sort === 'colo_user') {
+            // 요청자 이름으로 정렬 (subquery — JOIN 없이 안전)
+            $q->orderBy(MaintUser::select('name')->whereColumn('id', 'maint_requests.colo_user_id'), $dir)
+              ->orderBy('id', 'desc');
+        } elseif (isset($sortableMap[$sort])) {
+            $q->orderBy($sortableMap[$sort], $dir)->orderBy('id', 'desc');
+        } else {
+            $q->latest('id'); // 기본: 최신 순
+        }
 
         $applyAccessScope($q);
 
@@ -67,11 +86,19 @@ class MaintRequestController extends Controller
             $q->whereIn('status', $bucketStatuses[$bucket]);
         }
 
-        if ($s = $request->string('status')->toString())   $q->where('status', $s);
-        if ($p = $request->string('priority')->toString()) $q->where('priority', $p);
+        // 상태·우선순위·담당자·요청자는 멀티 체크 필터 — 배열 또는 단일 값 모두 지원
+        $statusArr   = array_values(array_filter((array) $request->input('status'),   fn ($v) => $v !== null && $v !== ''));
+        $priorityArr = array_values(array_filter((array) $request->input('priority'), fn ($v) => $v !== null && $v !== ''));
+        $assigneeArr = array_values(array_filter(array_map('intval', (array) $request->input('assignee_id')),  fn ($v) => $v > 0));
+        $coloUserArr = array_values(array_filter(array_map('intval', (array) $request->input('colo_user_id')), fn ($v) => $v > 0));
+        if (!empty($statusArr))   $q->whereIn('status', $statusArr);
+        if (!empty($priorityArr)) $q->whereIn('priority', $priorityArr);
+        if (!empty($assigneeArr)) $q->whereIn('assignee_id', $assigneeArr);
+        if (!empty($coloUserArr)) $q->whereIn('colo_user_id', $coloUserArr);
         if ($m = $request->integer('menu_id'))             $q->where('menu_id', $m);
-        if ($a = $request->integer('assignee_id'))         $q->where('assignee_id', $a);
-        if ($c = $request->integer('colo_user_id'))        $q->where('colo_user_id', $c);
+        // 요청일 범위 (from ~ to) — 단방향만 입력해도 동작
+        if ($df = $request->date('date_from')) $q->whereDate('request_date', '>=', $df->toDateString());
+        if ($dt = $request->date('date_to'))   $q->whereDate('request_date', '<=', $dt->toDateString());
         // company_group_id 파라미터는 권한자만 허용 (비권한자는 자기 회사로 고정됨)
         if ($isSrPrivileged && ($cg = $request->integer('company_group_id'))) {
             $q->where('company_group_id', $cg);
@@ -106,18 +133,23 @@ class MaintRequestController extends Controller
         $canFilterByCompany = $isSrPrivileged;
         $companyGroups = \DB::table('company_groups')->orderBy('name')->get(['id', 'name']);
 
+        // 담당자 필터 노출 권한 — 관리자/SR 담당자/(어떤 프로젝트든) 매니저만
+        $isProjectManager = $u && \App\Models\ProjectMember::where('user_id', $u->id)
+            ->where('role', 'manager')->exists();
+        $canFilterByAssignee = $isSrPrivileged || $isProjectManager;
+
         return view('maint-requests.index', compact(
             'requests', 'menus', 'coloUsers', 'devUsers', 'categories', 'bucket', 'perPage',
-            'canFilterByCompany', 'companyGroups', 'statusCounts'
+            'canFilterByCompany', 'canFilterByAssignee', 'companyGroups', 'statusCounts'
         ));
     }
 
     public static function bucketStatuses(): array
     {
-        // 모든 상태가 정확히 한 버킷에만 속하도록 (합계 = 전체)
+        // 5유형(STATUSES) 기준 — 합계 = 전체
         return [
-            'in_progress' => ['draft', 'requested', 'planned', 'in_progress', 'additional_dev'],
-            'reviewing'   => ['pending_check', 'review_requested', 'review_again', 'discussion_needed', 'on_hold', 'awaiting_file', 'replied'],
+            'in_progress' => ['requested', 'in_progress', 'additional_dev'],
+            'reviewing'   => ['reviewing'],
             'completed'   => ['completed'],
         ];
     }
@@ -191,12 +223,13 @@ class MaintRequestController extends Controller
 
         $newSr = null;
         DB::transaction(function () use (&$data, &$newSr) {
+            $companyGroupId       = (int) ($data['company_group_id'] ?? 0) ?: null;
             $data['menu_id']      = $this->resolveMenu($data);
-            $data['colo_user_id'] = $this->resolveUser($data['colo_user_id'] ?? null, $data['colo_user_name'] ?? null, 'colo');
+            $data['colo_user_id'] = $this->resolveUser($data['colo_user_id'] ?? null, $data['colo_user_name'] ?? null, 'colo', $companyGroupId);
             $data['assignee_id']  = $this->resolveUser($data['assignee_id'] ?? null, $data['assignee_name'] ?? null, 'withworks');
             unset($data['menu_name'], $data['colo_user_name'], $data['assignee_name']);
 
-            $data['status'] = $data['status'] ?? 'draft';
+            $data['status'] = $data['status'] ?? 'requested';
 
             $newSr = MaintRequest::create($data);
         });
@@ -233,8 +266,9 @@ class MaintRequestController extends Controller
         $this->normalizeAiSummaryFields($data);
 
         DB::transaction(function () use (&$data, $maintRequest) {
+            $companyGroupId       = (int) ($maintRequest->company_group_id ?? 0) ?: null;
             $data['menu_id']      = $this->resolveMenu($data);
-            $data['colo_user_id'] = $this->resolveUser($data['colo_user_id'] ?? null, $data['colo_user_name'] ?? null, 'colo');
+            $data['colo_user_id'] = $this->resolveUser($data['colo_user_id'] ?? null, $data['colo_user_name'] ?? null, 'colo', $companyGroupId);
             $data['assignee_id']  = $this->resolveUser($data['assignee_id'] ?? null, $data['assignee_name'] ?? null, 'withworks');
             unset($data['menu_name'], $data['colo_user_name'], $data['assignee_name']);
 
@@ -293,7 +327,10 @@ class MaintRequestController extends Controller
 
     public function destroy(MaintRequest $maintRequest)
     {
-        abort_unless(auth()->user()?->isAdmin(), 403, '삭제 권한이 없습니다.');
+        $u = auth()->user();
+        abort_unless($u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false)), 403, '삭제 권한이 없습니다.');
+        // 상태가 '요청(requested)' 일 때만 삭제 가능
+        abort_unless($maintRequest->status === 'requested', 422, "'요청' 상태가 아닌 SR은 삭제할 수 없습니다.");
 
         $maintRequest->delete();
         if (request()->boolean('_modal')) {
@@ -598,7 +635,7 @@ class MaintRequestController extends Controller
     {
         $s = trim((string) $raw);
         if ($s === '') return 'normal';
-        if (mb_strpos($s, '초긴급') !== false) return 'critical';
+        // '초긴급' 은 'urgent' 로 통합됨
         if (mb_strpos($s, '재확인') !== false) return 'recheck';
         if (mb_strpos($s, '긴급')   !== false) return 'urgent';
         return 'normal';
@@ -608,27 +645,26 @@ class MaintRequestController extends Controller
     {
         $c = trim((string) $coloCheck);
         $p = trim((string) $progress);
-        if ($c === '완료' || $c === '재확인') return $c === '재확인' ? 'review_again' : 'completed';
+        if ($c === '완료') return 'completed';
 
         $text = $p !== '' ? $p : $c;
-        if ($text === '') return 'draft';
+        if ($text === '') return 'requested';
 
+        // 5유형으로 매핑 (구 키워드들 → reviewing 으로 합쳐짐)
         if (mb_strpos($text, '완료')     !== false) return 'completed';
-        if (mb_strpos($text, '답변')     !== false) return 'replied';
-        if (mb_strpos($text, '재확인')   !== false) return 'review_again';
-        if (mb_strpos($text, '검토')     !== false) return 'review_requested';
-        if (mb_strpos($text, '확인요청') !== false) return 'pending_check';
-        if (mb_strpos($text, '확인대기') !== false) return 'pending_check';
-        if (mb_strpos($text, '확인필요') !== false) return 'pending_check';
-        if (mb_strpos($text, '논의')     !== false) return 'discussion_needed';
-        if (mb_strpos($text, '보류')     !== false) return 'on_hold';
-        if (mb_strpos($text, '파일')     !== false) return 'awaiting_file';
-        if (mb_strpos($text, '개발예정') !== false) return 'planned';
-        if (mb_strpos($text, '개발대기') !== false) return 'planned';
+        if (mb_strpos($text, '답변')     !== false) return 'reviewing';
+        if (mb_strpos($text, '재확인')   !== false) return 'reviewing';
+        if (mb_strpos($text, '검토')     !== false) return 'reviewing';
+        if (mb_strpos($text, '확인')     !== false) return 'reviewing'; // 확인요청/대기/필요
+        if (mb_strpos($text, '논의')     !== false) return 'reviewing';
+        if (mb_strpos($text, '보류')     !== false) return 'reviewing';
+        if (mb_strpos($text, '파일')     !== false) return 'reviewing';
+        if (mb_strpos($text, '추가 개발')!== false || mb_strpos($text, '추가개발') !== false) return 'additional_dev';
+        if (mb_strpos($text, '개발예정') !== false) return 'in_progress';
+        if (mb_strpos($text, '개발대기') !== false) return 'in_progress';
         if (mb_strpos($text, '진행')     !== false) return 'in_progress';
-        if (mb_strpos($text, '추가요청') !== false) return 'requested';
-        if (mb_strpos($text, '요청')     !== false) return 'requested';
-        return 'draft';
+        if (mb_strpos($text, '요청')     !== false) return 'requested';   // 추가요청 포함
+        return 'requested';
     }
 
     private static function parseXlsxDate($cell): ?string
@@ -667,7 +703,12 @@ class MaintRequestController extends Controller
         return MaintMenu::firstOrCreate(['name' => $name])->id;
     }
 
-    private function resolveUser(?int $id, ?string $name, string $team): ?int
+    /**
+     * MaintUser 해석/생성.
+     *   team='colo' 의 경우 colo_user 는 콜로플라스트 전용이 아니라 SR 의 요청자(비 SR 담당자) —
+     *   $companyGroupId 가 주어지면 같은 이름·같은 회사의 User 가 있을 때 user_id 도 자동 연결.
+     */
+    private function resolveUser(?int $id, ?string $name, string $team, ?int $companyGroupId = null): ?int
     {
         if ($id) {
             return $id;
@@ -676,10 +717,24 @@ class MaintRequestController extends Controller
         if ($name === '') {
             return null;
         }
-        return MaintUser::firstOrCreate(
-            ['team' => $team, 'name' => $name],
-            ['is_active' => true],
-        )->id;
+
+        $attrs = ['team' => $team, 'name' => $name];
+        if ($team === 'colo' && $companyGroupId) {
+            // 회사가 명시된 경우 동일 회사 안에서 매칭
+            $attrs['company_group_id'] = $companyGroupId;
+        }
+
+        $defaults = ['is_active' => true];
+        if ($team === 'colo' && $companyGroupId) {
+            $defaults['company_group_id'] = $companyGroupId;
+            // 동일 회사·동일 이름 User 가 있으면 user_id 도 자동 연결
+            $userId = \App\Models\User::where('company_group_id', $companyGroupId)
+                ->where('name', $name)
+                ->value('id');
+            if ($userId) $defaults['user_id'] = $userId;
+        }
+
+        return MaintUser::firstOrCreate($attrs, $defaults)->id;
     }
 
     /**
@@ -860,13 +915,13 @@ class MaintRequestController extends Controller
         $dash->setTitle('대시보드');
 
         $statusLabels = [
-            'draft' => '작성중', 'requested' => '요청', 'planned' => '진행예정', 'in_progress' => '진행중',
+            'requested'      => '요청',
+            'in_progress'    => '진행중',
             'additional_dev' => '추가 개발',
-            'pending_check' => '확인대기', 'discussion_needed' => '논의필요', 'on_hold' => '보류',
-            'awaiting_file' => '파일대기', 'replied' => '답변완료', 'review_requested' => '검토요청',
-            'review_again' => '재확인', 'completed' => '완료',
+            'reviewing'      => '검토',
+            'completed'      => '완료',
         ];
-        $priorityLabels = ['normal' => '일반', 'urgent' => '긴급', 'critical' => '초긴급', 'recheck' => '재확인'];
+        $priorityLabels = ['normal' => '일반', 'urgent' => '긴급', 'recheck' => '재확인'];
         $bucketDefs = self::bucketStatuses();
 
         // 컬럼 폭 (카드형 레이아웃 8컬럼)
@@ -1019,12 +1074,18 @@ class MaintRequestController extends Controller
             ], null, "A{$r}");
 
             // 우선순위 배경색
-            $priColor = ['urgent' => 'FFE8D7', 'critical' => 'FFEDED', 'recheck' => 'FFF4ED'][$sr->priority] ?? null;
+            $priColor = ['urgent' => 'FFEDED', 'recheck' => 'FFF4ED'][$sr->priority] ?? null;
             if ($priColor) {
                 $list->getStyle("D{$r}")->getFill()->setFillType('solid')->getStartColor()->setRGB($priColor);
             }
             // 상태 배경색
-            $statColor = ['completed' => 'F0FDF4', 'in_progress' => 'EBF6FF', 'on_hold' => 'F1F2F5'][$sr->status] ?? null;
+            $statColor = [
+                'requested'      => 'DBEAFE',
+                'in_progress'    => 'FEF3C7',
+                'additional_dev' => 'EDE9FE',
+                'reviewing'      => 'FFEDD5',
+                'completed'      => 'D1FAE5',
+            ][$sr->status] ?? null;
             if ($statColor) {
                 $list->getStyle("E{$r}")->getFill()->setFillType('solid')->getStartColor()->setRGB($statColor);
             }

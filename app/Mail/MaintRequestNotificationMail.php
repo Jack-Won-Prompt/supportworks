@@ -63,18 +63,18 @@ class MaintRequestNotificationMail extends Mailable
     private static function priorityLabel(?string $p): string
     {
         return [
-            'normal' => '일반', 'urgent' => '긴급', 'critical' => '최긴급', 'recheck' => '재확인',
+            'normal' => '일반', 'urgent' => '긴급', 'recheck' => '재확인',
         ][$p] ?? ($p ?? '');
     }
 
     private static function statusLabel(?string $s): string
     {
         return [
-            'draft' => '작성중', 'requested' => '요청', 'planned' => '진행예정', 'in_progress' => '진행중',
+            'requested'      => '요청',
+            'in_progress'    => '진행중',
             'additional_dev' => '추가 개발',
-            'pending_check' => '확인대기', 'discussion_needed' => '논의필요', 'on_hold' => '보류',
-            'awaiting_file' => '파일대기', 'replied' => '답변완료', 'review_requested' => '검토요청',
-            'review_again' => '재확인', 'completed' => '완료',
+            'reviewing'      => '검토',
+            'completed'      => '완료',
         ][$s] ?? ($s ?? '');
     }
 }

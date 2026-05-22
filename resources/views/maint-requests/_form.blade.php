@@ -17,7 +17,8 @@
     .sr-quill .ql-editor img.sr-img-selected { outline:2px solid var(--t500); outline-offset:1px; }
 
     /* 이미지 리사이즈/뷰어 오버레이 */
-    #sr-img-overlay { position:absolute; pointer-events:none; z-index:50; display:none; }
+    /* z-index: sticky 저장바(30) 보다 아래로 내려, 스크롤 시 저장바에 가려지도록 */
+    #sr-img-overlay { position:absolute; pointer-events:none; z-index:20; display:none; }
     #sr-img-overlay.is-active { display:block; }
     .sr-img-handle { position:absolute; width:10px; height:10px; background:var(--t500); border:1.5px solid #fff; border-radius:2px; pointer-events:auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
     .sr-img-handle.h-tl { top:-5px; left:-5px; cursor:nwse-resize; }
@@ -29,7 +30,7 @@
     .sr-img-handle.h-bm { bottom:-5px; left:50%; margin-left:-5px; cursor:ns-resize; }
     .sr-img-handle.h-br { bottom:-5px; right:-5px; cursor:nwse-resize; }
     /* [이미지 뷰어] 버튼 — 이미지 상단 바깥, 리사이즈 핸들과 겹치지 않도록 충분히 위에 배치 */
-    .sr-img-viewer-btn { position:absolute; top:-34px; right:0; height:26px; padding:0 11px 0 8px; border-radius:13px; background:var(--t600); color:#fff; border:1px solid rgba(255,255,255,.85); box-shadow:0 4px 12px rgba(0,0,0,.22); display:inline-flex; align-items:center; gap:5px; cursor:pointer; pointer-events:auto; font-size:11.5px; font-weight:600; line-height:1; white-space:nowrap; transition:background .12s, transform .08s; z-index:60; }
+    .sr-img-viewer-btn { position:absolute; top:-34px; right:0; height:26px; padding:0 11px 0 8px; border-radius:13px; background:var(--t600); color:#fff; border:1px solid rgba(255,255,255,.85); box-shadow:0 4px 12px rgba(0,0,0,.22); display:inline-flex; align-items:center; gap:5px; cursor:pointer; pointer-events:auto; font-size:11.5px; font-weight:600; line-height:1; white-space:nowrap; transition:background .12s, transform .08s; z-index:21; }
     .sr-img-viewer-btn:hover { background:var(--t700); transform:translateY(-1px); }
     .sr-img-viewer-btn svg { width:13px; height:13px; }
 
@@ -278,8 +279,12 @@
             </div>
         </form>
 
-        {{-- 삭제 (관리자 전용) --}}
-        @if(auth()->user()->isAdmin())
+        {{-- 삭제 — SR 담당자(또는 관리자) + 상태가 '요청' 일 때만 노출 --}}
+        @php
+            $__u = auth()->user();
+            $__canDeleteSr = $__u && ($__u->isAdmin() || (bool) ($__u->is_sr_agent ?? false));
+        @endphp
+        @if($__canDeleteSr && $r->status === 'requested')
             <form method="POST" action="{{ route('maint-requests.destroy', $r) }}" class="mt-3 text-right"
                   onsubmit="return confirm('정말 삭제하시겠습니까?');">
                 @csrf @method('DELETE')

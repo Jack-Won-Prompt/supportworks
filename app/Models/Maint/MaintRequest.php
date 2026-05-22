@@ -32,12 +32,18 @@ class MaintRequest extends Model
         'paid_dev_sent_at'        => 'datetime',
     ];
 
-    public const PRIORITIES = ['normal', 'urgent', 'critical', 'recheck'];
+    public const PRIORITIES = ['normal', 'urgent', 'recheck'];
 
+    /**
+     * SR 상태 5유형.
+     *   requested      : 요청 / 작성중 (초기 등록 상태)
+     *   in_progress    : 진행중 (작업 진행)
+     *   additional_dev : 추가 개발 (유상 — 매니저 승인 후 진행)
+     *   reviewing      : 검토 (확인·논의·보류·파일대기·답변완료 등)
+     *   completed      : 완료
+     */
     public const STATUSES = [
-        'draft', 'requested', 'planned', 'in_progress', 'additional_dev', 'pending_check',
-        'discussion_needed', 'on_hold', 'awaiting_file', 'replied',
-        'review_requested', 'review_again', 'completed',
+        'requested', 'in_progress', 'additional_dev', 'reviewing', 'completed',
     ];
 
     public function menu(): BelongsTo

@@ -99,19 +99,37 @@
         </select>
         @endif
 
-        <select name="status" onchange="this.form.submit()" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-            <option value="">상태: 전체</option>
-            @foreach($statusLabels as $k => $v)
-                <option value="{{ $k }}" {{ request('status')===$k ? 'selected' : '' }}>{{ $v }}</option>
-            @endforeach
-        </select>
+        @php
+            $selPriority = array_values(array_filter((array) request('priority'), fn ($v) => $v !== null && $v !== ''));
+            $selStatus   = array_values(array_filter((array) request('status'),   fn ($v) => $v !== null && $v !== ''));
+            $selAssignee = array_values(array_filter(array_map('intval', (array) request('assignee_id')),  fn ($v) => $v > 0));
+            $selColo     = array_values(array_filter(array_map('intval', (array) request('colo_user_id')), fn ($v) => $v > 0));
+            $labelFor = function (string $title, array $sel, array $labels): string {
+                if (empty($sel)) return $title . ': 전체';
+                if (count($sel) === 1) return $title . ': ' . ($labels[$sel[0]] ?? $sel[0]);
+                return $title . ': ' . count($sel) . '개';
+            };
+        @endphp
 
-        <select name="priority" onchange="this.form.submit()" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-            <option value="">우선순위: 전체</option>
-            @foreach($priorityLabels as $k => $v)
-                <option value="{{ $k }}" {{ request('priority')===$k ? 'selected' : '' }}>{{ $v }}</option>
-            @endforeach
-        </select>
+        {{-- 우선순위 (멀티) --}}
+        <div class="maint-multi" data-maint-multi>
+            <button type="button" class="maint-multi-btn {{ $selPriority ? 'is-active' : '' }}">
+                <span>{{ $labelFor('우선순위', $selPriority, $priorityLabels) }}</span>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="maint-multi-pop">
+                <div class="maint-multi-actions">
+                    <button type="button" data-multi-all>전체 선택</button>
+                    <button type="button" data-multi-none>해제</button>
+                </div>
+                <div class="maint-multi-list">
+                    @foreach($priorityLabels as $k => $v)
+                        <label><input type="checkbox" name="priority[]" value="{{ $k }}" {{ in_array($k, $selPriority, true) ? 'checked' : '' }}><span>{{ $v }}</span></label>
+                    @endforeach
+                </div>
+                <button type="submit" class="maint-multi-apply">적용</button>
+            </div>
+        </div>
 
         <div class="relative">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -119,18 +137,79 @@
                    class="pl-9 pr-3 py-2 w-72 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <select name="assignee_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-            <option value="">담당자: 전체</option>
-            @foreach($devUsers as $u)
-                <option value="{{ $u->id }}" {{ (int)request('assignee_id')===$u->id ? 'selected' : '' }}>{{ $u->name }}</option>
-            @endforeach
-        </select>
+        {{-- 요청자 (멀티) — 콜로플라스트 담당자 --}}
+        @php $coloLabelMap = $coloUsers->pluck('name','id')->toArray(); @endphp
+        <div class="maint-multi" data-maint-multi>
+            <button type="button" class="maint-multi-btn {{ $selColo ? 'is-active' : '' }}">
+                <span>{{ $labelFor('요청자', $selColo, $coloLabelMap) }}</span>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="maint-multi-pop">
+                <div class="maint-multi-actions">
+                    <button type="button" data-multi-all>전체 선택</button>
+                    <button type="button" data-multi-none>해제</button>
+                </div>
+                <div class="maint-multi-list">
+                    @foreach($coloUsers as $u)
+                        <label><input type="checkbox" name="colo_user_id[]" value="{{ $u->id }}" {{ in_array((int)$u->id, $selColo, true) ? 'checked' : '' }}><span>{{ $u->name }}</span></label>
+                    @endforeach
+                </div>
+                <button type="submit" class="maint-multi-apply">적용</button>
+            </div>
+        </div>
 
-        <select name="per_page" onchange="this.form.submit()" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-            @foreach([30, 50, 100] as $n)
-                <option value="{{ $n }}" {{ $perPage===$n ? 'selected' : '' }}>{{ $n }}개씩</option>
-            @endforeach
-        </select>
+        {{-- 요청일 범위 (from ~ to) --}}
+        <div class="inline-flex items-center gap-1.5">
+            <span class="text-sm text-gray-500 ml-1">요청일</span>
+            <input type="date" name="date_from" value="{{ request('date_from') }}" title="시작일"
+                   class="w-32 px-2 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <span class="text-gray-400 text-sm">~</span>
+            <input type="date" name="date_to" value="{{ request('date_to') }}" title="종료일"
+                   class="w-32 px-2 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        {{-- 담당자 (멀티) — 관리자·SR 담당자·매니저만 노출 --}}
+        @if($canFilterByAssignee)
+        @php $assigneeLabelMap = $devUsers->pluck('name','id')->toArray(); @endphp
+        <div class="maint-multi" data-maint-multi>
+            <button type="button" class="maint-multi-btn {{ $selAssignee ? 'is-active' : '' }}">
+                <span>{{ $labelFor('담당자', $selAssignee, $assigneeLabelMap) }}</span>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="maint-multi-pop">
+                <div class="maint-multi-actions">
+                    <button type="button" data-multi-all>전체 선택</button>
+                    <button type="button" data-multi-none>해제</button>
+                </div>
+                <div class="maint-multi-list">
+                    @foreach($devUsers as $u)
+                        <label><input type="checkbox" name="assignee_id[]" value="{{ $u->id }}" {{ in_array((int)$u->id, $selAssignee, true) ? 'checked' : '' }}><span>{{ $u->name }}</span></label>
+                    @endforeach
+                </div>
+                <button type="submit" class="maint-multi-apply">적용</button>
+            </div>
+        </div>
+        @endif
+
+        {{-- 상태 (멀티) --}}
+        <div class="maint-multi" data-maint-multi>
+            <button type="button" class="maint-multi-btn {{ $selStatus ? 'is-active' : '' }}">
+                <span>{{ $labelFor('상태', $selStatus, $statusLabels) }}</span>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="maint-multi-pop">
+                <div class="maint-multi-actions">
+                    <button type="button" data-multi-all>전체 선택</button>
+                    <button type="button" data-multi-none>해제</button>
+                </div>
+                <div class="maint-multi-list">
+                    @foreach($statusLabels as $k => $v)
+                        <label><input type="checkbox" name="status[]" value="{{ $k }}" {{ in_array($k, $selStatus, true) ? 'checked' : '' }}><span>{{ $v }}</span></label>
+                    @endforeach
+                </div>
+                <button type="submit" class="maint-multi-apply">적용</button>
+            </div>
+        </div>
 
         <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors">조회</button>
     </form>
@@ -165,10 +244,6 @@
     </div>
     @endif
 
-    @if(request()->hasAny(['q','status','priority','assignee_id','colo_user_id','company_group_id','bucket']))
-        <a href="{{ route('maint-requests.index') }}" class="px-3 py-2 text-gray-500 rounded-lg text-sm hover:bg-gray-100 transition-colors">초기화</a>
-    @endif
-
     <button type="button" onclick="maintOpenCreateModal()"
             class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -177,30 +252,94 @@
 
     {{-- 엑셀 다운로드 — 현재 필터 그대로 반영, 화면 전환 없이 바로 다운로드 --}}
     <a href="{{ route('maint-requests.export-excel', request()->query()) }}"
-       class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-300 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 transition-colors"
+       class="ml-auto inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-300 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 transition-colors"
        title="현재 조회 조건의 SR을 엑셀 파일로 다운로드">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
         엑셀 다운로드
     </a>
 
-    <div class="ml-auto text-sm text-gray-500">검색 결과 <span class="font-semibold text-gray-900">{{ number_format($requests->total()) }}</span>건</div>
+    {{-- 페이지 크기 — 다른 필터는 hidden 으로 보존 --}}
+    <form method="GET" class="inline-flex">
+        @foreach(request()->except(['per_page', 'page']) as $__k => $__v)
+            @if(is_array($__v))
+                @foreach($__v as $__item)
+                    <input type="hidden" name="{{ $__k }}[]" value="{{ $__item }}">
+                @endforeach
+            @else
+                <input type="hidden" name="{{ $__k }}" value="{{ $__v }}">
+            @endif
+        @endforeach
+        <select name="per_page" onchange="this.form.submit()" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+            @foreach([30, 50, 100] as $n)
+                <option value="{{ $n }}" {{ $perPage===$n ? 'selected' : '' }}>{{ $n }}개씩</option>
+            @endforeach
+        </select>
+    </form>
+
+    <div class="text-sm text-gray-500">검색 결과 <span class="font-semibold text-gray-900">{{ number_format($requests->total()) }}</span>건</div>
     </div>
 
     {{-- 테이블 (thead 고정 + 본문만 스크롤) --}}
     <div id="maint-table-box" class="bg-white rounded-xl border border-gray-100 shadow-sm">
         <table class="w-full text-sm">
             <thead>
+                @php
+                    $curSort = request('sort');
+                    $curDir  = strtolower(request('dir', '')) === 'asc' ? 'asc' : 'desc';
+                    // 3단 토글: 원상태(미정렬) → asc → desc → 원상태 ...
+                    $sortUrl = function ($field) use ($curSort, $curDir) {
+                        // 다른 필터·페이지·정렬 인자 모두 제거 (배열 값 포함)
+                        $base = collect(request()->except(['page', 'sort', 'dir']))
+                            ->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])
+                            ->all();
+                        $qs = http_build_query($base);
+                        $path = route('maint-requests.index');
+
+                        if ($curSort === $field && $curDir === 'desc') {
+                            // 3번째 클릭 → 기본 정렬 복귀 (sort/dir 완전 제거)
+                            return $qs ? ($path . '?' . $qs) : $path;
+                        }
+                        $nextDir = ($curSort === $field && $curDir === 'asc') ? 'desc' : 'asc';
+                        $base['sort'] = $field;
+                        $base['dir']  = $nextDir;
+                        return $path . '?' . http_build_query($base);
+                    };
+                    $sortIcon = function ($field) use ($curSort, $curDir) {
+                        // 비활성: 짙은 회색 (gray-600) — 클릭 가능함이 명확히 보이도록
+                        if ($curSort !== $field) {
+                            return '<svg class="w-3.5 h-3.5 text-gray-600 group-hover:text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 10l5-5 5 5M7 14l5 5 5-5"/></svg>';
+                        }
+                        // 활성: 진한 인디고
+                        if ($curDir === 'asc') {
+                            return '<svg class="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>';
+                        }
+                        return '<svg class="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>';
+                    };
+                    $isActiveSort = fn($field) => $curSort === $field;
+                @endphp
                 <tr>
-                    <th class="px-4 py-3 text-left w-16">#</th>
+                    <th class="px-4 py-3 text-left w-16">
+                        <a href="{{ $sortUrl('id') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('id') ? 'text-indigo-700' : '' }}">#{!! $sortIcon('id') !!}</a>
+                    </th>
                     <th class="px-4 py-3 text-left">메뉴</th>
-                    <th class="px-4 py-3 text-left w-24">우선순위</th>
+                    <th class="px-4 py-3 text-left w-24">
+                        <a href="{{ $sortUrl('priority') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('priority') ? 'text-indigo-700' : '' }}">우선순위 {!! $sortIcon('priority') !!}</a>
+                    </th>
                     <th class="px-4 py-3 text-left">요약</th>
-                    <th class="px-4 py-3 text-left w-28">상태</th>
-                    <th class="px-4 py-3 text-left w-24">콜로</th>
+                    <th class="px-4 py-3 text-left w-32">
+                        <a href="{{ $sortUrl('colo_user') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('colo_user') ? 'text-indigo-700' : '' }}">요청자 {!! $sortIcon('colo_user') !!}</a>
+                    </th>
+                    <th class="px-4 py-3 text-left w-28">
+                        <a href="{{ $sortUrl('status') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('status') ? 'text-indigo-700' : '' }}">상태 {!! $sortIcon('status') !!}</a>
+                    </th>
                     <th class="px-4 py-3 text-left w-24">링크더랩</th>
-                    <th class="px-4 py-3 text-left w-28">요청일</th>
-                    <th class="px-4 py-3 text-left w-28">완료예정</th>
-                    @if(auth()->user()->isAdmin())
+                    <th class="px-4 py-3 text-left w-28">
+                        <a href="{{ $sortUrl('request_date') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('request_date') ? 'text-indigo-700' : '' }}">요청일 {!! $sortIcon('request_date') !!}</a>
+                    </th>
+                    <th class="px-4 py-3 text-left w-28">
+                        <a href="{{ $sortUrl('eta') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('eta') ? 'text-indigo-700' : '' }}">완료예정 {!! $sortIcon('eta') !!}</a>
+                    </th>
+                    @if((bool) (auth()->user()->is_sr_agent ?? false))
                         <th class="px-4 py-3 text-center w-16">삭제</th>
                     @endif
                 </tr>
@@ -221,25 +360,14 @@
                         </select>
                     </td>
                     <td class="px-4 py-3 text-gray-900 max-w-md truncate" title="{{ $r->summary }}">{{ $r->summary }}</td>
-                    <td class="px-4 py-3" onclick="event.stopPropagation()">
-                        @if($canChangeStatus)
-                            <select class="maint-quick-status maint-pill-select"
-                                    data-id="{{ $r->id }}"
-                                    data-original="{{ $r->status }}"
-                                    style="{{ $statusStyles[$r->status] ?? '' }}">
-                                @foreach($statusLabels as $k => $v)
-                                    <option value="{{ $k }}" data-style="{{ $statusStyles[$k] ?? '' }}" style="{{ $statusStyles[$k] ?? '' }}" {{ $r->status===$k ? 'selected' : '' }}>{{ $v }}</option>
-                                @endforeach
-                            </select>
-                        @else
-                            <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
-                        @endif
-                    </td>
                     <td class="px-4 py-3 text-gray-600">{{ $r->coloUser?->name ?? '-' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
+                    </td>
                     <td class="px-4 py-3 text-gray-600">{{ $r->assignee?->name ?? ($r->assignee_raw ?? '-') }}</td>
                     <td class="px-4 py-3 text-gray-400 text-xs">{{ optional($r->request_date)->format('Y.m.d') ?: '-' }}</td>
                     <td class="px-4 py-3 text-gray-400 text-xs">{{ optional($r->eta)->format('Y.m.d') ?: '-' }}</td>
-                    @if(auth()->user()->isAdmin())
+                    @if((bool) (auth()->user()->is_sr_agent ?? false))
                         <td class="px-2 py-3 text-center" onclick="event.stopPropagation()">
                             <form method="POST" action="{{ route('maint-requests.destroy', $r) }}" class="inline"
                                   onsubmit="return confirm('요청 #{{ $r->id }} 을(를) 삭제하시겠습니까?');">
@@ -252,7 +380,7 @@
                     @endif
                 </tr>
                 @empty
-                <tr><td colspan="{{ auth()->user()->isAdmin() ? 10 : 9 }}" class="px-4 py-20 text-center text-gray-400">
+                <tr><td colspan="{{ ((bool) (auth()->user()->is_sr_agent ?? false)) ? 10 : 9 }}" class="px-4 py-20 text-center text-gray-400">
                     <svg class="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <p class="text-sm">등록된 요청이 없습니다</p>
                 </td></tr>
@@ -516,6 +644,37 @@
         if (e.target.matches('.maint-quick-priority')) maintQuickPatch(e.target, 'priority');
         else if (e.target.matches('.maint-quick-status')) maintQuickPatch(e.target, 'status');
     });
+
+    // ── 멀티 체크 필터 (우선순위·담당자·상태) ──────────
+    document.querySelectorAll('[data-maint-multi]').forEach(function(wrap){
+        var btn  = wrap.querySelector('.maint-multi-btn');
+        var pop  = wrap.querySelector('.maint-multi-pop');
+        var all  = wrap.querySelector('[data-multi-all]');
+        var none = wrap.querySelector('[data-multi-none]');
+        if (!btn || !pop) return;
+        btn.addEventListener('click', function(e){
+            e.preventDefault(); e.stopPropagation();
+            // 다른 멀티 닫기
+            document.querySelectorAll('[data-maint-multi].open').forEach(function(w){ if (w !== wrap) w.classList.remove('open'); });
+            wrap.classList.toggle('open');
+        });
+        if (all) all.addEventListener('click', function(){
+            wrap.querySelectorAll('input[type=checkbox]').forEach(function(cb){ cb.checked = true; });
+        });
+        if (none) none.addEventListener('click', function(){
+            wrap.querySelectorAll('input[type=checkbox]').forEach(function(cb){ cb.checked = false; });
+        });
+        // 팝업 내부 클릭은 바깥 클릭으로 인식 안되게
+        pop.addEventListener('click', function(e){ e.stopPropagation(); });
+    });
+    document.addEventListener('click', function(){
+        document.querySelectorAll('[data-maint-multi].open').forEach(function(w){ w.classList.remove('open'); });
+    });
+    document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape') {
+            document.querySelectorAll('[data-maint-multi].open').forEach(function(w){ w.classList.remove('open'); });
+        }
+    });
 })();
 </script>
 
@@ -533,11 +692,10 @@
         z-index: 5;
         background: #fafafa;
         border-bottom: 1px solid #f0f0f0;
-        color: #6b7280;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: .04em;
-        text-transform: uppercase;
+        color: #4b5563;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .02em;
     }
     /* tbody 행 구분선 (얇게) */
     #maint-table-box tbody tr + tr td { border-top: 1px solid #f5f5f5; }
@@ -577,6 +735,47 @@
         font-weight:500;
         line-height:1.4;
     }
+    /* 멀티 체크 필터 (우선순위·담당자·상태) */
+    .maint-multi { position:relative; }
+    .maint-multi-btn {
+        display:inline-flex; align-items:center; gap:6px;
+        padding:8px 10px 8px 12px; border:1px solid #e5e7eb; border-radius:8px;
+        background:#fff; font-size:14px; color:#374151; cursor:pointer;
+        line-height:1.2;
+    }
+    .maint-multi-btn:hover { background:#f9fafb; }
+    .maint-multi-btn.is-active { border-color:#a5b4fc; color:#4338ca; background:#eef2ff; }
+    .maint-multi-btn svg { color:#9ca3af; flex-shrink:0; }
+    .maint-multi-pop {
+        display:none; position:absolute; top:calc(100% + 4px); left:0; z-index:30;
+        background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+        box-shadow:0 8px 24px rgba(0,0,0,.08);
+        min-width:220px; max-width:300px; padding:8px;
+    }
+    .maint-multi.open .maint-multi-pop { display:block; }
+    .maint-multi-actions {
+        display:flex; gap:6px; padding-bottom:6px; margin-bottom:6px;
+        border-bottom:1px solid #f3f4f6;
+    }
+    .maint-multi-actions button {
+        flex:1; padding:5px 8px; background:#f9fafb; border:1px solid #e5e7eb;
+        border-radius:6px; font-size:11.5px; color:#6b7280; cursor:pointer;
+    }
+    .maint-multi-actions button:hover { background:#f3f4f6; color:#374151; }
+    .maint-multi-list { max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:1px; }
+    .maint-multi-list label {
+        display:flex; align-items:center; gap:7px;
+        padding:6px 8px; border-radius:6px; font-size:12.5px; color:#374151;
+        cursor:pointer; user-select:none;
+    }
+    .maint-multi-list label:hover { background:#f5f3ff; }
+    .maint-multi-list input[type=checkbox] { margin:0; cursor:pointer; }
+    .maint-multi-apply {
+        display:block; width:100%; margin-top:7px;
+        padding:7px 10px; background:var(--t600, #6366f1); color:#fff;
+        border:none; border-radius:7px; font-size:12.5px; font-weight:600; cursor:pointer;
+    }
+    .maint-multi-apply:hover { filter:brightness(.95); }
     @keyframes maintPillFlash {
         0%   { box-shadow: 0 0 0 0 rgba(16,185,129,.0); }
         20%  { box-shadow: 0 0 0 3px rgba(16,185,129,.45); }
