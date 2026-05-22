@@ -188,7 +188,7 @@ return [
     'invite_select_at_least'    => 'Select at least one member to invite.',
     'inviting'                  => 'Inviting...',
     'invite_fail'               => 'Failed to invite.',
-    'mention_prefix'            => 'To :name: ',
+    'mention_prefix'            => '@:name ',
 
     // ── File email sending
     'file_email_send'           => 'Send File by Email',

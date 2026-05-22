@@ -188,7 +188,7 @@ return [
     'invite_select_at_least'    => '초대할 멤버를 1명 이상 선택하세요.',
     'inviting'                  => '초대 중...',
     'invite_fail'               => '초대에 실패했습니다.',
-    'mention_prefix'            => ':name 님에게: ',
+    'mention_prefix'            => '@:name ',
 
     // ── 파일 메일 발송
     'file_email_send'           => '파일 메일 발송',
