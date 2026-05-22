@@ -200,7 +200,7 @@
                 </template>
             </div>
             <template x-if="batchResult">
-                <div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;font-size:13px;align-items:center;">
+                <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;font-size:13px;align-items:center;">
                     <span>✅ 완료 <strong x-text="batchResult.done - batchResult.failed"></strong>개</span>
                     <span x-show="batchResult.failed > 0" style="color:#b91c1c;">❌ 실패 <strong x-text="batchResult.failed"></strong>개</span>
                     <span style="color:#64748b;">⏱ <span x-text="batchResult.elapsed"></span>초</span>

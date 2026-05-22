@@ -7,7 +7,7 @@
 <form method="POST" action="{{ route('admin.reset.login-logs') }}"
       onsubmit="return confirm('{{ __('admin.loginlog_reset_all_confirm') }}')">
     @csrf @method('DELETE')
-    <button type="submit" class="btn-danger" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"
+    <button type="submit" class="btn-danger" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;"
             onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         {{ __('admin.loginlog_reset_all') }}

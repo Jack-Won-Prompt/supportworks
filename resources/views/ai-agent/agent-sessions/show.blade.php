@@ -12,10 +12,10 @@
 <div style="display:flex;gap:20px;align-items:flex-start;">
     @include('ai-agent.agent-sessions.partials.session-nav', ['active' => 'overview'])
 
-    <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
         <div class="ags-card">
             <div class="ags-section-title">메타 정보</div>
-            <dl style="display:grid;grid-template-columns:140px 1fr;gap:6px 18px;font-size:12.5px;color:#475569;margin:0;">
+            <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 20px;font-size:12.5px;color:#475569;margin:0;">
                 <dt>세션 ID</dt><dd style="margin:0;color:#1e1b2e;">#{{ $session->id }}</dd>
                 <dt>생성자</dt><dd style="margin:0;color:#1e1b2e;">{{ $session->user?->name ?? '—' }}</dd>
                 <dt>AI Provider</dt><dd style="margin:0;color:#1e1b2e;">{{ $session->ai_provider }}</dd>

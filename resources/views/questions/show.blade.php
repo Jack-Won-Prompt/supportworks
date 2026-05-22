@@ -126,7 +126,7 @@
         <button onclick="closeEditModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:20px;padding:0;line-height:1;">&times;</button>
     </div>
 
-    <form id="eq-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:14px;">
+    <form id="eq-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;">
         @csrf
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.question_title_label') }} <span style="color:#ef4444;">*</span></label>
@@ -181,7 +181,7 @@
         <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 6px;">이슈로 전환</h3>
         <p style="font-size:12px;color:#9ca3af;margin:0 0 20px;">이 Q&A를 이슈로 등록합니다.</p>
         <form id="convert-form" onsubmit="submitConvert(event)">
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 <div>
                     <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">제목 *</label>
                     <input id="cv-title" name="title" value="{{ $question->title }}" required

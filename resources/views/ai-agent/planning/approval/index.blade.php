@@ -247,7 +247,7 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
                 디자인 단계가 활성화되었습니다. Figma 연동으로 Design Token, 컴포넌트 명세서, 디자인 시스템 문서를 자동 생성할 수 있습니다.
             </p>
             <a href="{{ route('ai-agent.projects.design.index', $project) }}"
-               style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#16a34a;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
+               style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;background:#16a34a;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
                 디자인 단계로 이동 →
             </a>
         </div>

@@ -179,7 +179,7 @@ $_ataStages = [
                         </div>
                         @forelse($aiSwitchProjects ?? [] as $sp)
                             <a href="{{ route('ai-agent.projects.home', $sp) }}"
-                               style="display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#374151;text-decoration:none;transition:background .1s;"
+                               style="display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:#374151;text-decoration:none;transition:background .1s;"
                                onmouseover="this.style.background='#faf5ff'" onmouseout="this.style.background=''">
                                 <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:{{ $sp->status === 'active' ? '#16a34a' : ($sp->status === 'on_hold' ? '#ca8a04' : '#94a3b8') }};"></span>
                                 <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">{{ $sp->name }}</span>
@@ -189,7 +189,7 @@ $_ataStages = [
                         @endforelse
                         <div style="border-top:1px solid #f1f5f9;padding:4px;">
                             <a href="{{ route('ai-agent.dashboard', ['force_home' => 1]) }}"
-                               style="display:flex;align-items:center;gap:7px;padding:7px 10px;font-size:12px;color:#94a3b8;text-decoration:none;border-radius:8px;transition:all .1s;"
+                               style="display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:12px;color:#94a3b8;text-decoration:none;border-radius:8px;transition:all .1s;"
                                onmouseover="this.style.background='#f8f4ff';this.style.color='var(--t600)'" onmouseout="this.style.background='';this.style.color='#94a3b8'">
                                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
                                 전체 프로젝트 목록

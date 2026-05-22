@@ -172,7 +172,7 @@ $sidebarStages = [
         <div style="font-size:10px;font-weight:700;color:#b0b8c9;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">설정</div>
         <button @click="$dispatch('figma-settings-open')"
                 class="aia-sidebar-item{{ request()->routeIs('ai-agent.settings.figma*') ? ' is-current' : '' }}"
-                style="padding-left:14px;display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;width:100%;text-align:left;">
+                style="padding-left:14px;display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;width:100%;text-align:left;">
             <svg width="11" height="11" viewBox="0 0 38 57" fill="none" style="flex-shrink:0;">
                 <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE"/>
                 <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 0 1-19 0z" fill="#0ACF83"/>

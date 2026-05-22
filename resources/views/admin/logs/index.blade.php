@@ -7,7 +7,7 @@
 <form method="POST" action="{{ route('admin.reset.activity-logs') }}"
       onsubmit="return confirm('{{ __('admin.actlog_reset_all_confirm') }}')">
     @csrf @method('DELETE')
-    <button type="submit" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"
+    <button type="submit" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;"
             onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         {{ __('admin.actlog_reset_all') }}
@@ -17,7 +17,7 @@
 <form method="POST" action="{{ route('admin.reset.login-logs') }}"
       onsubmit="return confirm('{{ __('admin.loginlog_reset_all_confirm') }}')">
     @csrf @method('DELETE')
-    <button type="submit" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"
+    <button type="submit" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;"
             onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         {{ __('admin.loginlog_reset_all') }}
@@ -27,7 +27,7 @@
 <form method="POST" action="{{ route('admin.reset.user-login-logs') }}"
       onsubmit="return confirm('{{ __('admin.uloginlog_reset_all_confirm') }}')">
     @csrf @method('DELETE')
-    <button type="submit" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"
+    <button type="submit" style="font-size:12px;padding:6px 14px;background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;"
             onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         {{ __('admin.uloginlog_reset_all') }}
@@ -37,7 +37,7 @@
 <form method="POST" action="{{ route('admin.reset.user-page-logs') }}"
       onsubmit="return confirm('{{ __('admin.pglog_reset_all_confirm') }}')">
     @csrf @method('DELETE')
-    <button type="submit" style="font-size:12px;padding:6px 14px;background:#fff;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"
+    <button type="submit" style="font-size:12px;padding:6px 14px;background:#fff;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;"
             onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         {{ __('admin.pglog_reset_all') }}
@@ -61,7 +61,7 @@
         @endphp
         @foreach($tabs as [$key, $label, $icon])
         <a href="{{ route('admin.logs.index', ['tab' => $key]) }}"
-           style="display:inline-flex;align-items:center;gap:7px;padding:10px 20px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;
+           style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;
                   {{ $tab === $key ? 'color:#6366f1;border-bottom-color:#6366f1;' : 'color:#94a3b8;' }}"
            onmouseover="{{ $tab !== $key ? 'this.style.color=\'#374151\'' : '' }}"
            onmouseout="{{ $tab !== $key ? 'this.style.color=\'#94a3b8\'' : '' }}">

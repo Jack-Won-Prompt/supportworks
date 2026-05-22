@@ -19,10 +19,10 @@
                 <small>Phase 4 이후 Figma URL 입력 폼이 활성화됩니다 (FigmaSourceService).</small>
             </div>
         @else
-            <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 @foreach($sources as $src)
                     <div class="ags-card">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
                             <div>
                                 <strong style="font-size:13.5px;">{{ $src->figma_file_key ?? '(file_key 미설정)' }}</strong>
                                 @if($src->figma_node_id)

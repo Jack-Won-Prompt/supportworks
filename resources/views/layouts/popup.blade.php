@@ -80,31 +80,23 @@
     @yield('scripts')
     @stack('scripts')
     <script>
+    // Phase 1 — data-accent 기반 액센트 적용 (--t* 변수는 app.css 가 디자인 토큰으로 브릿지)
     (function() {
-        const THEMES = {
-            violet:{ t50:'#f5f3ff',t100:'#ede9fe',t200:'#ddd6fe',t300:'#c4b5fd',t400:'#a78bfa',t500:'#8b5cf6',t600:'#7c3aed',t700:'#6d28d9',tText:'#6d5ce7',tBg:'#f5f3ff' },
-            blue:  { t50:'#eff6ff',t100:'#dbeafe',t200:'#bfdbfe',t300:'#93c5fd',t400:'#60a5fa',t500:'#3b82f6',t600:'#2563eb',t700:'#1d4ed8',tText:'#2563eb',tBg:'#eff6ff' },
-            teal:  { t50:'#f0fdfa',t100:'#ccfbf1',t200:'#99f6e4',t300:'#5eead4',t400:'#2dd4bf',t500:'#14b8a6',t600:'#0d9488',t700:'#0f766e',tText:'#0d9488',tBg:'#f0fdfa' },
-            green: { t50:'#f0fdf4',t100:'#dcfce7',t200:'#bbf7d0',t300:'#86efac',t400:'#4ade80',t500:'#22c55e',t600:'#16a34a',t700:'#15803d',tText:'#16a34a',tBg:'#f0fdf4' },
-            amber: { t50:'#fffbeb',t100:'#fef3c7',t200:'#fde68a',t300:'#fcd34d',t400:'#fbbf24',t500:'#f59e0b',t600:'#d97706',t700:'#b45309',tText:'#d97706',tBg:'#fffbeb' },
-        };
-        function applyTheme(name) {
-            const t = THEMES[name] || THEMES.violet;
-            const r = document.documentElement;
-            r.style.setProperty('--t50',  t.t50);
-            r.style.setProperty('--t100', t.t100);
-            r.style.setProperty('--t200', t.t200);
-            r.style.setProperty('--t300', t.t300);
-            r.style.setProperty('--t400', t.t400);
-            r.style.setProperty('--t500', t.t500);
-            r.style.setProperty('--t600', t.t600);
-            r.style.setProperty('--t700', t.t700);
-            r.style.setProperty('--tText', t.tText);
-            r.style.setProperty('--tBg',  t.tBg);
+        function apply(name) {
+            const valid = ['coral','blue','green','yellow','purple'];
+            if (!valid.includes(name)) name = 'blue';
+            document.documentElement.setAttribute('data-accent', name);
         }
-        applyTheme(localStorage.getItem('app-theme') || 'violet');
+        // 새 키 → 옛 키 마이그레이션 지원
+        let accent = localStorage.getItem('wsAccent');
+        if (!accent) {
+            const old = localStorage.getItem('app-theme');
+            const map = { violet:'purple', blue:'blue', teal:'blue', green:'green', amber:'yellow', gray:'blue', white:'blue' };
+            accent = old ? (map[old] || 'blue') : 'blue';
+        }
+        apply(accent);
         window.addEventListener('storage', function(e) {
-            if (e.key === 'app-theme') applyTheme(e.newValue || 'violet');
+            if (e.key === 'wsAccent') apply(e.newValue || 'blue');
         });
     })();
     </script>

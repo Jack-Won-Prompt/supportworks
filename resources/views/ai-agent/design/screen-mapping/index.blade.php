@@ -139,7 +139,7 @@ $_smData = [
         @endif
 
         {{-- 매핑 진척도 --}}
-        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div style="margin-left:auto;display:flex;align-items:center;gap:12px;flex-shrink:0;">
             <div style="font-size:12px;color:#64748b;">
                 매핑: <strong x-text="status.mapped"></strong>/<strong x-text="status.total"></strong>
                 (<span x-text="status.percent"></span>%)
@@ -313,7 +313,7 @@ $_smData = [
                         <div style="font-size:12px;color:#64748b;margin-bottom:12px;">
                             <strong x-text="suggestions.length"></strong>개의 화면이 Figma 프레임과 이름이 유사합니다. 체크박스로 선택 후 일괄 적용하세요.
                         </div>
-                        <div style="display:grid;gap:6px;">
+                        <div style="display:grid;gap:8px;">
                             <template x-for="(sug, idx) in suggestions" :key="idx">
                                 <label class="sm-suggest-chip" style="cursor:pointer;">
                                     <input type="checkbox" :value="idx" x-model="selectedSugs" style="width:14px;height:14px;accent-color:#7c3aed;">

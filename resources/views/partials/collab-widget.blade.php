@@ -76,7 +76,7 @@
                     {{-- idle: 요청 버튼 --}}
                     <div id="collab-screen-idle">
                         <button onclick="collabRequestScreenShare()"
-                            style="width:100%;padding:7px;border-radius:8px;border:1px solid #ddd6fe;background:#faf5ff;color:#7c3aed;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            style="width:100%;padding:7px;border-radius:8px;border:1px solid #ddd6fe;background:#faf5ff;color:#7c3aed;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
                             {{ __('collab.screen_share_btn') }}
                         </button>
@@ -91,7 +91,7 @@
                     </div>
                     {{-- sharing: 공유 진행 중 (B 측) --}}
                     <div id="collab-screen-sharing" style="display:none;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
                             <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:collab-pulse 1.5s infinite;display:inline-block;"></span>
                             <span style="font-size:12px;font-weight:600;color:#18181b;">{{ __('collab.screen_sharing_active') }}</span>
                         </div>
@@ -110,7 +110,7 @@
 
 {{-- 화면 공유 수신 알림 토스트 (body로 이동됨) --}}
 <div id="collab-screen-notify" style="display:none;position:fixed;bottom:28px;right:28px;width:284px;background:#fff;border:1px solid #ede8ff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:10001;padding:14px 14px 12px;">
-    <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <div style="width:32px;height:32px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         </div>
@@ -119,7 +119,7 @@
             <div style="font-size:11px;color:#71717a;margin-top:1px;">{{ __('collab.screen_share_incoming') }}</div>
         </div>
     </div>
-    <div style="display:flex;gap:7px;">
+    <div style="display:flex;gap:8px;">
         <button onclick="collabAcceptScreenShare()" style="flex:1;padding:7px;border-radius:8px;border:none;background:#8b5cf6;color:#fff;font-size:12px;cursor:pointer;font-weight:600;">{{ __('collab.accept') }}</button>
         <button onclick="collabDeclineScreenShare()" style="flex:1;padding:7px;border-radius:8px;border:1px solid #ede8ff;background:#fff;font-size:12px;cursor:pointer;color:#71717a;">{{ __('collab.decline') }}</button>
     </div>

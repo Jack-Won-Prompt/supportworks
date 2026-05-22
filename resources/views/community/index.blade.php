@@ -337,7 +337,7 @@
             <div class="empty-state">
                 <div style="font-size:2.5rem;margin-bottom:.6rem;opacity:.6">📭</div>
                 <div style="font-size:.88rem;font-weight:700;color:#4c1d95;">{{ __('messages.no_posts_yet') }}</div>
-                <div style="font-size:.76rem;color:#9ca3af;margin-top:.3rem;">{{ __('messages.write_first_post') }}</div>
+                <div style="font-size:.76rem;color:var(--color-text-tertiary);margin-top:.3rem;">{{ __('messages.write_first_post') }}</div>
             </div>
             @endforelse
         </div>

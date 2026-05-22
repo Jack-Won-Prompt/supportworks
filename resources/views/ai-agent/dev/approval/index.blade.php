@@ -268,7 +268,7 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
         {{-- Phase 4 tasks summary --}}
         <div class="apv-section" style="margin-top:0;">
             <div class="apv-section-title">Phase 4 구성 작업</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
                 @foreach([
                     ['T40', 'Frontend 코드 생성', route('ai-agent.projects.dev.frontend-code', $project)],
                     ['T41', 'Output 검증', route('ai-agent.projects.dev.code-validation', $project)],
@@ -277,7 +277,7 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
                     ['T45', '웍스 코드 리뷰', route('ai-agent.projects.dev.code-review', $project)],
                     ['T46', '웍스 추가 수정', route('ai-agent.projects.dev.additional-fix', $project)],
                 ] as [$task, $label, $link])
-                <a href="{{ $link }}" style="display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:8px;background:#f8fafc;text-decoration:none;font-size:12.5px;color:#1e1b2e;transition:background .1s;" onmouseover="this.style.background='#ede8ff'" onmouseout="this.style.background='#f8fafc'">
+                <a href="{{ $link }}" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:#f8fafc;text-decoration:none;font-size:12.5px;color:#1e1b2e;transition:background .1s;" onmouseover="this.style.background='#ede8ff'" onmouseout="this.style.background='#f8fafc'">
                     <span style="font-size:10px;font-weight:700;background:#ede8ff;color:#7c3aed;padding:1px 7px;border-radius:99px;">{{ $task }}</span>
                     {{ $label }}
                     <svg style="margin-left:auto;" width="11" height="11" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -299,7 +299,7 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
                 Phase 4(개발)가 완료되었습니다. 릴리즈 패키지 생성, 추적성 매트릭스, 최종 문서화를 시작할 수 있습니다.
             </p>
             <a href="{{ route('ai-agent.projects.release', $project) }}"
-               style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#16a34a;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
+               style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;background:#16a34a;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
                 릴리즈 단계로 이동 →
             </a>
         </div>

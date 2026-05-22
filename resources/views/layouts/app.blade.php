@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" data-accent="blue">
     <head>
+        {{-- Phase 1 — FOUC 방지: 사용자 지정 hex 우선, 없으면 프리셋 액센트 복원 --}}
+        <script>(function(){try{var h=localStorage.getItem('wsAccentHex');if(h&&/^#[0-9a-f]{6}$/i.test(h)){document.documentElement.setAttribute('data-accent','custom');document.documentElement.style.setProperty('--color-theme-active',h);return;}var a=localStorage.getItem('wsAccent');if(a&&/^[a-z]+$/.test(a))document.documentElement.setAttribute('data-accent',a);}catch(e){}})();</script>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -24,22 +26,19 @@
         @endphp
         <script>window.KOREAN_HOLIDAYS = @json($__holidays);</script>
         <style>
-            :root {
-                --t50:#f5f3ff; --t100:#ede9fe; --t200:#ddd6fe; --t300:#c4b5fd;
-                --t400:#a78bfa; --t500:#8b5cf6; --t600:#7c3aed; --t700:#6d28d9;
-                --tText:#6d5ce7; --tBg:#f5f3ff;
-            }
+            /* Phase 1 — --t* 변수는 resources/css/app.css 에서 디자인 시스템 토큰으로 매핑됨.
+               <html data-accent="..."> 값에 따라 자동으로 톤 변경. 기본값은 tokens.css 의 blue. */
             .sidebar-item {
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                padding: 7px 10px;
-                border-radius: 9px;
-                font-size: 13.5px;
-                font-weight: 500;
-                color: #5b5677;
+                gap: var(--space-3, 12px);
+                padding: var(--space-2, 8px) var(--space-3, 12px);
+                border-radius: var(--radius-md, 8px);
+                font-size: var(--font-size-body-13, 13px);
+                font-weight: var(--font-weight-medium, 500);
+                color: var(--color-text-secondary);
                 cursor: pointer;
-                transition: background 0.13s, color 0.13s;
+                transition: background-color var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
                 text-decoration: none;
                 width: 100%;
             }
@@ -50,13 +49,13 @@
             .sidebar-item.active {
                 background: linear-gradient(135deg, var(--t100), var(--t200));
                 color: var(--tText);
-                font-weight: 600;
+                font-weight: var(--font-weight-bold, 700);
             }
             .sidebar-item.active svg { color: var(--tText); }
             .sidebar-item svg {
                 flex-shrink: 0;
-                color: #9e97c0;
-                transition: color 0.13s;
+                color: var(--color-text-tertiary);
+                transition: color var(--transition-fast, 150ms ease);
             }
             .sidebar-item:hover svg { color: var(--t700); }
 
@@ -64,49 +63,49 @@
 
             .section-label {
                 font-size: 10.5px;
-                font-weight: 700;
-                color: #b8b0d8;
+                font-weight: var(--font-weight-bold, 700);
+                color: var(--color-text-tertiary);
                 letter-spacing: 0.07em;
                 text-transform: uppercase;
-                padding: 0 10px;
-                margin-bottom: 2px;
+                padding: 0 var(--space-3, 12px);
+                margin-bottom: var(--space-0_5, 2px);
             }
             .sidebar-divider {
                 height: 1px;
                 background: linear-gradient(to right, transparent, var(--t200), transparent);
-                margin: 8px 0;
+                margin: var(--space-2, 8px) 0;
             }
             #sidebar-search {
                 background: var(--t50);
                 border: 1px solid var(--t200);
-                border-radius: 9px;
-                padding: 7px 10px 7px 34px;
-                font-size: 13px;
-                color: #3f3f46;
+                border-radius: var(--radius-md, 8px);
+                padding: var(--space-2, 8px) var(--space-3, 12px) var(--space-2, 8px) 34px;
+                font-size: var(--font-size-body-13, 13px);
+                color: var(--color-text-primary);
                 width: 100%;
                 outline: none;
-                transition: all 0.15s;
+                transition: background-color var(--transition-fast, 150ms ease), border-color var(--transition-fast, 150ms ease);
             }
             #sidebar-search:focus {
                 background: var(--t100);
                 border-color: var(--t300);
             }
-            #sidebar-search::placeholder { color: #b8b0d8; }
+            #sidebar-search::placeholder { color: var(--color-text-placeholder); }
 
             .project-item {
                 display: flex;
                 align-items: center;
                 gap: 9px;
-                padding: 6px 10px;
-                border-radius: 8px;
-                font-size: 13px;
-                color: #5b5677;
+                padding: var(--space-2, 8px) var(--space-3, 12px);
+                border-radius: var(--radius-md, 8px);
+                font-size: var(--font-size-body-13, 13px);
+                color: var(--color-text-secondary);
                 text-decoration: none;
-                transition: background 0.12s, color 0.12s;
+                transition: background-color var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
                 width: 100%;
             }
             .project-item:hover { background: var(--t50); color: var(--t700); }
-            .project-item.active { background: var(--t100); color: var(--tText); font-weight:600; }
+            .project-item.active { background: var(--t100); color: var(--tText); font-weight: var(--font-weight-bold, 700); }
 
             /* ── 사이드바 접힘 ── */
             #global-sidebar { transition: width .22s ease, min-width .22s ease; }
@@ -134,14 +133,14 @@
             }
             .sw-dlp-track {
                 height: 4px;
-                background: #ddd6fe;
+                background: var(--t100);
                 border-radius: 2px;
                 overflow: hidden;
             }
             .sw-dlp-fill {
                 height: 100%;
                 width: 0%;
-                background: linear-gradient(90deg, #7c3aed, #a78bfa);
+                background: linear-gradient(90deg, var(--t600), var(--t400));
                 border-radius: 2px;
                 transition: width .25s ease;
             }
@@ -157,8 +156,8 @@
             .sw-dlp-pct {
                 display: block;
                 font-size: 10px;
-                color: #7c3aed;
-                font-weight: 700;
+                color: var(--t600);
+                font-weight: var(--font-weight-bold, 700);
                 text-align: right;
                 margin-top: 2px;
                 line-height: 1;
@@ -167,10 +166,10 @@
             }
         </style>
     </head>
-    <body class="font-sans antialiased" style="background:#f5f3ff;">
+    <body class="font-sans antialiased" style="background:var(--tBg);">
 
-        @if(session('impersonating'))
-        <div id="impersonate-bar" style="position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#b45309,#92400e);color:#fff;padding:8px 18px;font-size:12.5px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.25);">
+        @if(session('impersonating') && !request()->boolean('embed'))
+        <div id="impersonate-bar" style="position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#b45309,#92400e);color:#fff;padding:8px 18px;font-size:12.5px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.25);">
             <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
             <span style="opacity:.8;">{{ __('app.admin_mode') }}</span>
             <span style="background:rgba(255,255,255,.2);border-radius:5px;padding:2px 9px;font-size:12px;">
@@ -181,12 +180,12 @@
             <span style="opacity:.75;font-size:11px;font-weight:400;">{{ __('app.admin_mode_notice') }}</span>
             <form method="POST" action="{{ route('logout') }}" style="display:inline;">
                 @csrf
-                <button type="submit" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-right:6px;">
+                <button type="submit" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-right:6px;">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     {{ __('app.nav_logout') }}
                 </button>
             </form>
-            <button onclick="window.close()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+            <button onclick="window.close()" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:4px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 {{ __('app.admin_mode_close') }}
             </button>
@@ -243,34 +242,36 @@
             }
         @endphp
 
+        @php $embedMode = request()->boolean('embed'); @endphp
         <div class="min-h-screen flex">
 
-            {{-- ===== 사이드바 ===== --}}
-            <aside id="global-sidebar" style="width:240px;min-width:240px;background:#fff;border-right:1px solid #ede8ff;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;box-shadow:2px 0 12px rgba(139,122,240,.06);transition:width .22s ease,min-width .22s ease;">
+            {{-- ===== 사이드바 (embed=1 일 때 숨김) ===== --}}
+            @unless($embedMode)
+            <aside id="global-sidebar" style="width:var(--layout-sidebar-width-open,240px);min-width:var(--layout-sidebar-width-open,240px);background:var(--color-bg-base);border-right:1px solid var(--color-border-default);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;box-shadow:var(--shadow-sm);transition:width .22s ease,min-width .22s ease;">
 
                 {{-- 워크스페이스 헤더 --}}
-                <div style="padding:12px 10px 12px;border-bottom:1px solid #f0eeff;flex-shrink:0;display:flex;align-items:center;gap:8px;">
-                    <a href="{{ route('dashboard') }}" id="gsb-logo-wrap" style="display:flex;align-items:center;gap:10px;text-decoration:none;overflow:hidden;flex:1;min-width:0;">
-                        <img id="sw-logo" src="{{ asset('support_works_logo.png') }}" alt="SupportWorks" style="width:34px;height:34px;border-radius:10px;flex-shrink:0;object-fit:contain;">
+                <div style="padding:var(--space-3,12px) var(--space-3,12px);border-bottom:1px solid var(--color-border-default);flex-shrink:0;display:flex;align-items:center;gap:var(--space-2,8px);">
+                    <a href="{{ route('dashboard') }}" id="gsb-logo-wrap" style="display:flex;align-items:center;gap:var(--space-3,12px);text-decoration:none;overflow:hidden;flex:1;min-width:0;">
+                        <img id="sw-logo" src="{{ asset('support_works_logo.png') }}" alt="SupportWorks" style="width:34px;height:34px;border-radius:var(--radius-md,8px);flex-shrink:0;object-fit:contain;">
                         <div style="overflow:hidden;">
-                            <div style="font-size:14px;font-weight:700;color:#1e1b2e;line-height:1.2;letter-spacing:-.01em;white-space:nowrap;">SupportWorks</div>
-                            <div style="font-size:11px;color:#b8b0d8;line-height:1.2;white-space:nowrap;">{{ auth()->user()->company ?? __('app.nav_workspace') }}</div>
+                            <div style="font-size:14px;font-weight:var(--font-weight-bold,700);color:var(--color-text-primary);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;">SupportWorks</div>
+                            <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.2;white-space:nowrap;">{{ auth()->user()->company ?? __('app.nav_workspace') }}</div>
                         </div>
                     </a>
-                    <button onclick="toggleGlobalSidebar()" title="{{ __('app.toggle_sidebar') }}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;min-width:30px;border-radius:8px;border:1.5px solid #ddd6fe;background:#f5f3ff;cursor:pointer;color:#7c3aed;padding:0;flex-shrink:0;transition:background .12s;">
+                    <button onclick="toggleGlobalSidebar()" title="{{ __('app.toggle_sidebar') }}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;min-width:30px;border-radius:var(--radius-md,8px);border:1.5px solid var(--t200);background:var(--t50);cursor:pointer;color:var(--t600);padding:0;flex-shrink:0;transition:background-color var(--transition-fast,150ms ease);">
                         <svg id="gsb-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="transition:transform .22s;"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     </button>
                 </div>
 
                 {{-- 검색 --}}
-                <div id="gsb-search-area" style="padding:10px 12px;flex-shrink:0;position:relative;">
+                <div id="gsb-search-area" style="padding:var(--space-3,12px);flex-shrink:0;position:relative;">
                     <div style="position:relative;">
-                        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:#a1a1aa;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--color-text-tertiary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                         </svg>
                         <input id="sidebar-search" type="text" placeholder="{{ __('app.nav_search') }}" autocomplete="off">
                     </div>
-                    <div id="sidebar-search-drop" style="display:none;position:absolute;top:100%;left:8px;right:8px;background:#fff;border:1px solid #ede8ff;border-radius:10px;box-shadow:0 8px 24px rgba(109,92,231,.13);z-index:9999;max-height:320px;overflow-y:auto;margin-top:2px;"></div>
+                    <div id="sidebar-search-drop" style="display:none;position:absolute;top:100%;left:8px;right:8px;background:var(--color-bg-base);border:1px solid var(--color-border-default);border-radius:var(--radius-lg,12px);box-shadow:var(--shadow-lg);z-index:9999;max-height:320px;overflow-y:auto;margin-top:2px;"></div>
                 </div>
 
                 {{-- 스크롤 영역 --}}
@@ -381,7 +382,7 @@
                     @if(auth()->user()->hasFeature('my_projects'))
                     <div style="margin-bottom:4px;">
                         <div class="gsb-hide" style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px 4px;">
-                            <button onclick="toggleSection('proj-list')" style="display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:0;flex:1;text-align:left;">
+                            <button onclick="toggleSection('proj-list')" style="display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:0;flex:1;text-align:left;">
                                 <span class="section-label" style="pointer-events:none;">{{ __('app.nav_my_projects') }}</span>
                                 <svg id="chevron-proj-list" width="10" height="10" fill="none" stroke="#b8b0d8" viewBox="0 0 24 24" style="flex-shrink:0;transition:transform .2s;pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                             </button>
@@ -450,7 +451,7 @@
                             @foreach($__srCompanies as $__cg)
                                 <a href="{{ route('maint-requests.index', ['company_group_id' => $__cg->id, 'bucket' => 'all']) }}"
                                    class="project-item {{ $__currentCgId === (int)$__cg->id ? 'active' : '' }}"
-                                   style="padding: 4px 10px; font-size: 12px; gap: 6px;">
+                                   style="padding: 4px 10px; font-size: 12px; gap:8px;">
                                     <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;opacity:.6;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
@@ -585,22 +586,22 @@
                 </div>
 
                 {{-- 하단 프로필 영역 --}}
-                <div style="padding:10px 12px;border-top:1px solid #f0eeff;flex-shrink:0;background:linear-gradient(to bottom,#fff,#faf8ff);">
-                    <div id="gsb-profile-area" style="display:flex;align-items:center;gap:10px;">
-                        <div id="sw-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ddd6fe,#c4b5fd);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#6d5ce7;flex-shrink:0;box-shadow:0 2px 8px rgba(196,181,253,.4);">
+                <div style="padding:var(--space-2,8px) var(--space-3,12px);border-top:1px solid var(--color-border-default);flex-shrink:0;background:var(--color-bg-base);">
+                    <div id="gsb-profile-area" style="display:flex;align-items:center;gap:var(--space-3,12px);">
+                        <div id="sw-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--t300),var(--t500));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:var(--font-weight-bold,700);color:var(--color-text-inverse);flex-shrink:0;box-shadow:var(--shadow-sm);">
                             {{ mb_substr(auth()->user()->name, 0, 1) }}
                         </div>
                         <div id="gsb-profile-text" style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:600;color:#18181b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}</div>
-                            <div style="font-size:11px;color:#a1a1aa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->email }}</div>
+                            <div style="font-size:var(--font-size-body-13,13px);font-weight:var(--font-weight-bold,700);color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}</div>
+                            <div style="font-size:11px;color:var(--color-text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->email }}</div>
                         </div>
-                        <div id="gsb-profile-actions" style="display:flex;gap:4px;flex-shrink:0;">
-                            <a href="{{ route('profile.edit') }}" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;color:#a1a1aa;text-decoration:none;transition:background 0.12s,color 0.12s;" title="{{ __('app.nav_profile') }}" onmouseover="this.style.background='#f4f4f5';this.style.color='#3f3f46'" onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
+                        <div id="gsb-profile-actions" style="display:flex;gap:var(--space-1,4px);flex-shrink:0;">
+                            <a href="{{ route('profile.edit') }}" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--radius-md,8px);color:var(--color-text-tertiary);text-decoration:none;transition:background-color var(--transition-fast,150ms ease),color var(--transition-fast,150ms ease);" title="{{ __('app.nav_profile') }}" onmouseover="this.style.background='var(--color-bg-hover)';this.style.color='var(--color-text-primary)'" onmouseout="this.style.background='transparent';this.style.color='var(--color-text-tertiary)'">
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;color:#a1a1aa;background:transparent;border:none;cursor:pointer;transition:background 0.12s,color 0.12s;" title="{{ __('app.nav_logout') }}" onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444'" onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
+                                <button type="submit" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--radius-md,8px);color:var(--color-text-tertiary);background:transparent;border:none;cursor:pointer;transition:background-color var(--transition-fast,150ms ease),color var(--transition-fast,150ms ease);" title="{{ __('app.nav_logout') }}" onmouseover="this.style.background='var(--color-bg-danger-subtle)';this.style.color='var(--color-text-danger)'" onmouseout="this.style.background='transparent';this.style.color='var(--color-text-tertiary)'">
                                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                 </button>
                             </form>
@@ -608,14 +609,16 @@
                     </div>
                 </div>
             </aside>
+            @endunless
 
             {{-- ===== 메인 영역 ===== --}}
             <div class="flex-1 flex flex-col overflow-hidden">
 
-                {{-- 상단 헤더 --}}
-                <header style="background:#fff;border-bottom:1px solid #ede8ff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 1px 8px rgba(139,122,240,.06);">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <h1 style="font-size:15px;font-weight:600;color:#18181b;">@yield('title', __('app.nav_home'))</h1>
+                {{-- 상단 헤더 (embed=1 일 때 숨김) --}}
+                @unless($embedMode)
+                <header style="background:var(--color-bg-base);border-bottom:1px solid var(--color-border-default);padding:0 var(--space-6,24px);height:var(--layout-header-height,52px);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow-sm);">
+                    <div style="display:flex;align-items:center;gap:var(--space-2,8px);">
+                        <h1 style="font-size:15px;font-weight:var(--font-weight-bold,700);color:var(--color-text-primary);">@yield('title', __('app.nav_home'))</h1>
                         @yield('header-breadcrumb')
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
@@ -635,7 +638,7 @@
                             </a>
                             <div id="phone-notice-popover" style="display:none;position:absolute;top:42px;right:0;background:#fff;border:1px solid #fde68a;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;width:280px;overflow:hidden;">
                                 <div style="padding:12px 14px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border-bottom:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                                    <div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#9a3412;">
+                                    <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#9a3412;">
                                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                         {{ __('app.phone_not_registered') }}
                                     </div>
@@ -648,7 +651,7 @@
                                 </div>
                                 <div style="padding:0 14px 12px;">
                                     <a href="{{ route('profile.edit') }}#phone"
-                                       style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:linear-gradient(135deg,#ea580c,#c2410c);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:opacity .12s;"
+                                       style="display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;background:linear-gradient(135deg,#ea580c,#c2410c);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:opacity .12s;"
                                        onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
                                         {{ __('app.phone_register_now') }}
                                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
@@ -691,7 +694,7 @@
                             </button>
                             <div id="ann-dropdown" style="display:none;position:absolute;top:42px;right:0;background:#fff;border:1px solid #ede8ff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;width:340px;max-height:440px;flex-direction:column;overflow:hidden;">
                                 <div style="padding:12px 16px 10px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-                                    <span style="display:flex;align-items:center;gap:6px;">
+                                    <span style="display:flex;align-items:center;gap:8px;">
                                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                                         {{ __('app.announcements') }}
                                     </span>
@@ -709,9 +712,9 @@
                                     [$__ab,$__abo,$__at]=$__ac[$__ann2->type]??['#f8fafc','#e2e8f0','#334155'];
                                     $__al2=['info'=>__('app.ann_type_info'),'warning'=>__('app.ann_type_warning'),'maintenance'=>__('app.ann_type_maintenance'),'update'=>__('app.ann_type_update')][$__ann2->type]??$__ann2->type;
                                 @endphp
-                                <div data-ann-drop="{{ $__ann2->id }}" style="padding:12px 16px;border-bottom:1px solid #f4f4f5;display:flex;align-items:flex-start;gap:10px;transition:background .1s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
+                                <div data-ann-drop="{{ $__ann2->id }}" style="padding:12px 16px;border-bottom:1px solid #f4f4f5;display:flex;align-items:flex-start;gap:12px;transition:background .1s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
                                     <div style="flex:1;min-width:0;">
-                                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                                             <span style="flex-shrink:0;background:{{ $__abo }};color:{{ $__at }};font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;">{{ $__al2 }}</span>
                                             @if($__ann2->ends_at)<span style="font-size:11px;color:#94a3b8;">~ {{ $__ann2->ends_at->format('Y.m.d') }}</span>@endif
                                         </div>
@@ -738,13 +741,13 @@
                             </button>
                             <div id="mail-compose-pop" style="display:none;position:absolute;top:42px;right:0;background:#fff;border:1px solid var(--t200,#ddd6fe);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:9999;width:440px;flex-direction:column;overflow:visible;">
                                 <div style="padding:13px 16px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-                                    <span style="display:flex;align-items:center;gap:6px;">
+                                    <span style="display:flex;align-items:center;gap:8px;">
                                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                         {{ __('app.mail_send') }}
                                     </span>
                                     <button type="button" onclick="mailComposeClose()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;padding:2px 4px;">&times;</button>
                                 </div>
-                                <form id="mail-compose-form" onsubmit="return mailComposeSend(event)" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:visible;">
+                                <form id="mail-compose-form" onsubmit="return mailComposeSend(event)" style="padding:14px 16px;display:flex;flex-direction:column;gap:12px;overflow:visible;">
                                     <div>
                                         <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('app.mail_from') }}</label>
                                         <div style="padding:8px 10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;">
@@ -763,7 +766,7 @@
                                         <input id="mail-compose-direct" type="text" placeholder="{{ __('app.mail_direct_placeholder') }}"
                                             onkeydown="mailComposeOnDirectKey(event)"
                                             style="width:100%;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;box-sizing:border-box;">
-                                        <div id="mail-compose-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:4px;"></div>
+                                        <div id="mail-compose-chips" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;min-height:4px;"></div>
                                     </div>
                                     <div>
                                         <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('common.title') }}</label>
@@ -777,7 +780,7 @@
                                     </div>
                                     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:4px;">
                                         <span id="mail-compose-status" style="font-size:11.5px;color:#94a3b8;"></span>
-                                        <div style="display:flex;gap:6px;">
+                                        <div style="display:flex;gap:8px;">
                                             <button type="button" onclick="mailComposeClose()" style="padding:7px 14px;background:#fff;border:1px solid var(--t200,#e5e7eb);color:var(--tText,#6b7280);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
                                             <button type="submit" id="mail-compose-send" style="padding:7px 18px;background:linear-gradient(135deg,var(--t500,#8b5cf6),var(--t700,#6d28d9));color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(124,58,237,.3);transition:filter .12s,transform .08s;" onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">{{ __('app.mail_dispatch') }}</button>
                                         </div>
@@ -850,7 +853,7 @@
                                             const label = `${u.name||''} <${u.email||''}>`.trim();
                                             const checked = _mcRecipients.some(r => r.value === val) ? 'checked' : '';
                                             const co = (u.company && u.company !== '-') ? ` · ${mcEsc(u.company)}` : '';
-                                            return `<label style="display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;font-size:12px;color:#374151;"
+                                            return `<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;font-size:12px;color:#374151;"
                                                 onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
                                                 <input type="checkbox" ${checked} data-val="${mcEsc(val)}" data-label="${mcEsc(label)}"
                                                        onchange="mailComposeToggleUser(this)" style="accent-color:#7c3aed;flex-shrink:0;">
@@ -906,7 +909,7 @@
                                     const box = document.getElementById('mail-compose-chips');
                                     if (!box) return;
                                     box.innerHTML = _mcRecipients.map((r, i) =>
-                                        `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 4px 3px 9px;background:var(--t100,#ede9fe);color:var(--t700,#4c1d95);border:1px solid var(--t200,#ddd6fe);border-radius:999px;font-size:11.5px;font-weight:600;">${
+                                        `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 9px;background:var(--t100,#ede9fe);color:var(--t700,#4c1d95);border:1px solid var(--t200,#ddd6fe);border-radius:999px;font-size:11.5px;font-weight:600;">${
                                             r.label.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))
                                         }<button type="button" onclick="mailComposeRemoveChip(${i})" style="background:none;border:none;cursor:pointer;color:var(--t700,#7c3aed);font-size:14px;line-height:1;padding:0 2px;">&times;</button></span>`
                                     ).join('');
@@ -979,7 +982,7 @@
                         <div style="position:relative;">
                             <button id="lang-btn"
                                 onclick="(function(){var d=document.getElementById('lang-dropdown');d.style.display=d.style.display==='block'?'none':'block';})()"
-                                style="display:flex;align-items:center;gap:5px;padding:0 10px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
+                                style="display:flex;align-items:center;gap:4px;padding:0 10px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
                                 onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
                                 onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1013,23 +1016,30 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
                                 </svg>
                             </button>
-                            <div id="theme-dropdown" style="display:none;position:absolute;top:40px;right:0;background:#fff;border:1px solid #ede8ff;border-radius:12px;padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,.1);z-index:9999;min-width:170px;">
+                            <div id="theme-dropdown" style="display:none;position:absolute;top:40px;right:0;background:#fff;border:1px solid #ede8ff;border-radius:12px;padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,.1);z-index:9999;min-width:236px;">
                                 <div style="font-size:11px;font-weight:600;color:#a1a1aa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">{{ __('app.theme_colors') }}</div>
-                                <div style="display:flex;gap:8px;align-items:center;">
-                                    <button class="theme-swatch" data-theme="violet" title="{{ __('app.theme_violet') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#c4b5fd,#8b5cf6);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
-                                    <button class="theme-swatch" data-theme="blue"   title="{{ __('app.theme_blue') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#93c5fd,#3b82f6);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
-                                    <button class="theme-swatch" data-theme="teal"   title="{{ __('app.theme_teal') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#5eead4,#14b8a6);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
-                                    <button class="theme-swatch" data-theme="green"  title="{{ __('app.theme_green') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#86efac,#22c55e);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
-                                    <button class="theme-swatch" data-theme="amber"  title="{{ __('app.theme_amber') }}" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
-                                    <button class="theme-swatch" data-theme="gray"   title="{{ __('app.theme_gray') }}"  style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#d1d5db,#4b5563);border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
-                                    <button class="theme-swatch" data-theme="white"  title="{{ __('app.theme_white') }}" style="width:26px;height:26px;border-radius:50%;background:#ffffff;border:1.5px solid #d4d4d8;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                <div style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
+                                    {{-- Phase 1: 디자인 시스템 액센트 5종 --}}
+                                    <button class="theme-swatch" data-theme="blue"   title="{{ __('app.theme_blue') }}"   style="width:26px;height:26px;border-radius:50%;background:#0f86ef;border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                    <button class="theme-swatch" data-theme="coral"  title="{{ __('app.theme_coral') ?? 'Coral' }}"  style="width:26px;height:26px;border-radius:50%;background:#f25a3d;border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                    <button class="theme-swatch" data-theme="green"  title="{{ __('app.theme_green') }}"  style="width:26px;height:26px;border-radius:50%;background:#2cc66c;border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                    <button class="theme-swatch" data-theme="yellow" title="{{ __('app.theme_yellow') ?? 'Yellow' }}" style="width:26px;height:26px;border-radius:50%;background:#fbaf2b;border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                    <button class="theme-swatch" data-theme="purple" title="{{ __('app.theme_violet') ?? 'Purple' }}" style="width:26px;height:26px;border-radius:50%;background:#950fef;border:2px solid #fff;cursor:pointer;outline:none;transition:transform .15s,box-shadow .15s;"></button>
+                                    {{-- 사용자 지정 색상 (HTML5 native color picker) --}}
+                                    <label id="theme-custom-wrap" title="{{ __('app.theme_custom') ?? '사용자 지정' }}"
+                                           style="position:relative;width:26px;height:26px;border-radius:50%;border:2px solid #fff;cursor:pointer;background:conic-gradient(from 0deg,#ef4444,#f59e0b,#22c55e,#06b6d4,#3b82f6,#8b5cf6,#ec4899,#ef4444);box-shadow:0 0 0 1px #e5e7eb;display:inline-block;transition:transform .15s,box-shadow .15s;overflow:hidden;">
+                                        <input type="color" id="theme-custom-input" value="#0f86ef"
+                                               style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0;"
+                                               oninput="setAccentHex(this.value)" onchange="setAccentHex(this.value)">
+                                    </label>
                                 </div>
+                                <div id="theme-custom-hex" style="margin-top:8px;font-size:11px;color:#6b7280;display:none;"></div>
                             </div>
                         </div>
                         {{-- 메모 버튼 --}}
                         @if(auth()->user()->hasFeature('memos'))
                         <button id="memo-btn" onclick="memoPopupToggle()" title="{{ __('app.nav_memos') }}"
-                            style="display:flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
+                            style="display:flex;align-items:center;gap:4px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
                             onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
                             onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1041,7 +1051,7 @@
 
                         {{-- 프롬프트 변환 버튼 --}}
                         <button id="quick-prompt-btn" onclick="qpPopupToggle()" title="{{ __('app.prompt_convert') }}"
-                            style="display:flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
+                            style="display:flex;align-items:center;gap:4px;height:32px;padding:0 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;font-size:12px;font-weight:600;transition:background .12s,color .12s;"
                             onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
                             onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1054,21 +1064,24 @@
                         @yield('header-actions')
                     </div>
                 </header>
+                @endunless
 
-                {{-- 공지사항 배너 ($__announcements는 헤더 아이콘 섹션에서 이미 로드됨) --}}
+                {{-- 공지사항 배너 ($__announcements는 헤더 아이콘 섹션에서 이미 로드됨) — embed=1 일 때 숨김 --}}
+                @unless($embedMode)
                 @foreach($__announcements as $__ann)
                 @php
                     $__annColors = ['info'=>['#eff6ff','#bfdbfe','#1d4ed8'],'warning'=>['#fffbeb','#fde68a','#b45309'],'maintenance'=>['#fef2f2','#fecaca','#dc2626'],'update'=>['#f5f3ff','#ddd6fe','#6d28d9']];
                     [$__bg,$__border,$__text] = $__annColors[$__ann->type] ?? ['#f8fafc','#e2e8f0','#334155'];
                     $__annLabel = ['info'=>__('app.ann_type_info'),'warning'=>__('app.ann_type_warning'),'maintenance'=>__('app.ann_type_maintenance'),'update'=>__('app.ann_type_update')][$__ann->type] ?? $__ann->type;
                 @endphp
-                <div style="background:{{ $__bg }};border-bottom:1px solid {{ $__border }};padding:9px 24px;display:flex;align-items:center;gap:10px;" data-announcement-id="{{ $__ann->id }}">
+                <div style="background:{{ $__bg }};border-bottom:1px solid {{ $__border }};padding:9px 24px;display:flex;align-items:center;gap:12px;" data-announcement-id="{{ $__ann->id }}">
                     <span style="flex-shrink:0;background:{{ $__border }};color:{{ $__text }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;">{{ $__annLabel }}</span>
                     <span style="font-size:13px;font-weight:500;color:{{ $__text }};flex:1;">{{ $__ann->title }}</span>
                     <span style="font-size:12px;color:{{ $__text }};opacity:.7;flex-shrink:0;">{{ $__ann->body }}</span>
                     <button onclick="dismissAnn({{ $__ann->id }})" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:{{ $__text }};opacity:.5;font-size:16px;line-height:1;padding:0 2px;">&times;</button>
                 </div>
                 @endforeach
+                @endunless
 
                 {{-- 알림 메시지 --}}
                 @if(session('success') || session('error') || $errors->any())
@@ -1097,8 +1110,8 @@
                 </div>
                 @endif
 
-                {{-- 페이지 콘텐츠 --}}
-                <main style="flex:1;overflow-y:auto;padding:20px 24px 24px;background:#f5f3ff;">
+                {{-- 페이지 콘텐츠 (embed=1 일 때 패딩 축소) --}}
+                <main style="flex:1;overflow-y:auto;padding:{{ $embedMode ? '12px 14px' : '20px 24px 24px' }};background:#f5f3ff;">
                     @hasSection('breadcrumb')
                     <nav style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:12px;color:#9ca3af;margin-bottom:14px;">
                         @yield('breadcrumb')
@@ -1110,7 +1123,7 @@
         </div>
 
         {{-- 인앱 토스트 컨테이너 --}}
-        <div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
+        <div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:12px;pointer-events:none;"></div>
 
         {{-- ===== 메모 팝업 ===== --}}
         <div id="memo-popup" style="display:none;position:fixed;top:60px;right:20px;z-index:9995;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:360px;max-height:calc(100vh - 80px);flex-direction:column;overflow:hidden;border:1px solid #ede8ff;">
@@ -1122,9 +1135,9 @@
                     </svg>
                     <span style="font-size:14px;font-weight:700;color:#18181b;">{{ __('app.nav_memos') }}</span>
                 </div>
-                <div style="display:flex;align-items:center;gap:6px;">
+                <div style="display:flex;align-items:center;gap:8px;">
                     <button onclick="memoShowAddForm()" id="memo-add-btn"
-                        style="display:flex;align-items:center;gap:5px;height:28px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;transition:background .12s;"
+                        style="display:flex;align-items:center;gap:4px;height:28px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;transition:background .12s;"
                         onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -1148,7 +1161,7 @@
                     style="width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12.5px;outline:none;background:#fff;color:#18181b;resize:vertical;margin-bottom:8px;box-sizing:border-box;line-height:1.55;"
                     onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
                 <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <div style="display:flex;gap:7px;align-items:center;" id="memo-color-picker">
+                    <div style="display:flex;gap:8px;align-items:center;" id="memo-color-picker">
                         <button class="memo-color-dot" data-color="yellow" onclick="memoSelectColor(this)"
                             style="width:20px;height:20px;border-radius:50%;background:#fde047;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="{{ __('app.color_yellow') }}"></button>
                         <button class="memo-color-dot" data-color="green" onclick="memoSelectColor(this)"
@@ -1160,7 +1173,7 @@
                         <button class="memo-color-dot" data-color="purple" onclick="memoSelectColor(this)"
                             style="width:20px;height:20px;border-radius:50%;background:#c4b5fd;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s;" title="{{ __('app.color_purple') }}"></button>
                     </div>
-                    <div style="display:flex;gap:6px;">
+                    <div style="display:flex;gap:8px;">
                         <button onclick="memoHideAddForm()"
                             style="height:28px;padding:0 12px;border:1.5px solid #e5e7eb;background:#fff;border-radius:7px;font-size:12px;color:#6b7280;cursor:pointer;"
                             onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
@@ -1208,7 +1221,7 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                     <span id="qp-status" style="font-size:11.5px;color:#94a3b8;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
                     <button id="qp-submit-btn" onclick="qpSubmit()"
-                        style="height:30px;padding:0 14px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .12s;"
+                        style="height:30px;padding:0 14px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background .12s;"
                         onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         {{ __('app.prompt_convert') }}
@@ -1223,11 +1236,11 @@
         {{-- ===== 추가 문구 관리 팝오버 ===== --}}
         <div id="qp-suffix-manage-popup" style="display:none;position:fixed;top:60px;right:450px;z-index:9996;background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.18);width:340px;max-height:calc(100vh - 80px);flex-direction:column;overflow:hidden;border:1px solid #ede8ff;">
             <div style="padding:13px 14px 11px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-                <span style="font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;gap:7px;">
+                <span style="font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;gap:8px;">
                     <svg width="13" height="13" fill="none" stroke="var(--tText)" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     {{ __('app.suffix_manage') }}
                 </span>
-                <div style="display:flex;align-items:center;gap:5px;">
+                <div style="display:flex;align-items:center;gap:4px;">
                     <button onclick="qpSuffixManageNew()" id="qp-suffix-new-btn" type="button"
                         style="display:flex;align-items:center;gap:4px;height:26px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .12s;"
                         onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
@@ -1251,7 +1264,7 @@
                 <textarea id="qp-suffix-form-body" rows="4" maxlength="2000" placeholder="{{ __('app.suffix_body_placeholder') }}"
                     style="width:100%;padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:12px;outline:none;background:#fff;color:#18181b;resize:vertical;box-sizing:border-box;line-height:1.55;font-family:inherit;margin-bottom:8px;"
                     onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
-                <div style="display:flex;justify-content:flex-end;gap:5px;">
+                <div style="display:flex;justify-content:flex-end;gap:4px;">
                     <button onclick="qpSuffixHideForm()" type="button"
                         style="height:26px;padding:0 11px;border:1.5px solid #e5e7eb;background:#fff;border-radius:6px;font-size:11.5px;color:#6b7280;cursor:pointer;">{{ __('common.cancel') }}</button>
                     <button onclick="qpSuffixSave()" id="qp-suffix-save-btn" type="button"
@@ -1265,7 +1278,7 @@
 
         {{-- ===== 메모 드래그 드롭 힌트 ===== --}}
         <div id="memo-drop-hint" style="display:none;position:fixed;inset:0;z-index:9980;pointer-events:none;align-items:center;justify-content:center;">
-            <div style="background:rgba(124,58,237,.13);border:2.5px dashed var(--t400);border-radius:16px;padding:18px 32px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(2px);">
+            <div style="background:rgba(124,58,237,.13);border:2.5px dashed var(--t400);border-radius:16px;padding:18px 32px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(2px);">
                 <svg width="22" height="22" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 <span style="font-size:14px;font-weight:600;color:var(--t700);">{{ __('app.memo_drop_hint') }}</span>
             </div>
@@ -1317,7 +1330,7 @@
                 style="position:fixed;right:24px;bottom:{{ 80 + $loop->index * 230 }}px;z-index:9988;background:{{ $pc['bg'] }};border:1.5px solid {{ $pc['border'] }};border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;">
                 <div class="pinned-memo-header" style="padding:6px 8px;background:{{ $pc['header'] }};border-bottom:1px solid {{ $pc['border'] }};border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">
                     <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $pm->title ?: __('app.nav_memos') }}</span>
-                    <div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">
+                    <div style="display:flex;gap:4px;flex-shrink:0;" onclick="event.stopPropagation()">
                         <button onclick="memoTogglePin({{ $pm->id }})" title="{{ __('app.memo_unpin') }}"
                             style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
                             onmouseover="this.style.background='#fde047';this.style.color='#92400e'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
@@ -1350,7 +1363,7 @@
                 style="position:fixed;right:24px;bottom:{{ 80 + $psIdx * 230 }}px;z-index:9988;background:{{ $pc2['bg'] }};border:1.5px solid {{ $pc2['border'] }};border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);width:230px;display:flex;flex-direction:column;overflow:hidden;">
                 <div class="pinned-memo-header" style="padding:6px 8px;background:{{ $pc2['header'] }};border-bottom:1px solid {{ $pc2['border'] }};border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">
                     <span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ $psm->title ?: __('app.nav_memos') }}</span>
-                    <div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">
+                    <div style="display:flex;gap:4px;flex-shrink:0;" onclick="event.stopPropagation()">
                         <button onclick="memoToggleSharedPin({{ $ps->id }})" title="{{ __('app.memo_unpin') }}"
                             style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;"
                             onmouseover="this.style.background='#fde047';this.style.color='#92400e'" onmouseout="this.style.background='rgba(0,0,0,.06)';this.style.color='#6b7280'">
@@ -1551,7 +1564,7 @@
                     drop.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:#a1a1aa;">{{ __("app.search_no_results") }}</div>';
                 } else {
                     drop.innerHTML = matched.map(m =>
-                        `<a href="${m.url}" style="display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;color:#1e1b2e;text-decoration:none;border-radius:0;transition:background .12s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">`+
+                        `<a href="${m.url}" style="display:flex;align-items:center;gap:12px;padding:9px 14px;font-size:13px;color:#1e1b2e;text-decoration:none;border-radius:0;transition:background .12s;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">`+
                         `<span style="font-size:14px;width:20px;text-align:center;">${m.icon}</span>`+
                         `<span>${m.label}</span></a>`
                     ).join('');
@@ -1574,34 +1587,84 @@
             });
         })();
 
-        // ── 컬러 테마 시스템 ──────────────────────────────────
-        const THEMES = {
-            violet:{ t50:'#f5f3ff',t100:'#ede9fe',t200:'#ddd6fe',t300:'#c4b5fd',t400:'#a78bfa',t500:'#8b5cf6',t600:'#7c3aed',t700:'#6d28d9',tText:'#6d5ce7',tBg:'#f5f3ff' },
-            blue:  { t50:'#eff6ff',t100:'#dbeafe',t200:'#bfdbfe',t300:'#93c5fd',t400:'#60a5fa',t500:'#3b82f6',t600:'#2563eb',t700:'#1d4ed8',tText:'#2563eb',tBg:'#eff6ff' },
-            teal:  { t50:'#f0fdfa',t100:'#ccfbf1',t200:'#99f6e4',t300:'#5eead4',t400:'#2dd4bf',t500:'#14b8a6',t600:'#0d9488',t700:'#0f766e',tText:'#0d9488',tBg:'#f0fdfa' },
-            green: { t50:'#f0fdf4',t100:'#dcfce7',t200:'#bbf7d0',t300:'#86efac',t400:'#4ade80',t500:'#22c55e',t600:'#16a34a',t700:'#15803d',tText:'#16a34a',tBg:'#f0fdf4' },
-            amber: { t50:'#fffbeb',t100:'#fef3c7',t200:'#fde68a',t300:'#fcd34d',t400:'#fbbf24',t500:'#f59e0b',t600:'#d97706',t700:'#b45309',tText:'#d97706',tBg:'#fffbeb' },
-            gray:  { t50:'#f9fafb',t100:'#f3f4f6',t200:'#e5e7eb',t300:'#d1d5db',t400:'#9ca3af',t500:'#6b7280',t600:'#4b5563',t700:'#374151',tText:'#4b5563',tBg:'#f9fafb' },
-            white: { t50:'#ffffff',t100:'#fafafa',t200:'#f4f4f5',t300:'#e4e4e7',t400:'#a1a1aa',t500:'#71717a',t600:'#52525b',t700:'#3f3f46',tText:'#27272a',tBg:'#ffffff' },
-        };
-        window.applyTheme = async function(name) {
-            const t = THEMES[name]; if (!t) return;
-            const r = document.documentElement;
-            const vars = {'--t50':t.t50,'--t100':t.t100,'--t200':t.t200,'--t300':t.t300,'--t400':t.t400,'--t500':t.t500,'--t600':t.t600,'--t700':t.t700,'--tText':t.tText,'--tBg':t.tBg};
-            for (const [k,v] of Object.entries(vars)) r.style.setProperty(k,v);
-            document.body.style.background = t.tBg;
-            const main = document.querySelector('main'); if (main) main.style.background = t.tBg;
-            const avatar = document.getElementById('sw-avatar'); if (avatar) avatar.style.background = 'linear-gradient(135deg,'+t.t200+','+t.t300+')';
-            localStorage.setItem('app-theme', name);
-            document.querySelectorAll('.theme-swatch').forEach(async function(s) {
-                const active = s.dataset.theme === name;
-                s.style.boxShadow = active ? '0 0 0 3px #fff,0 0 0 5px '+t.t500 : 'none';
+        // ── 컬러 테마 (Phase 1) — 디자인 시스템 액센트 기반 ───────────
+        // resources/assets/css/tokens.css 의 data-accent="coral|blue|green|yellow|purple" 활용
+        // resources/css/app.css 가 --t* 변수를 --color-theme-active 로 브릿지함.
+        function syncSwatchUI(presetName, isCustom) {
+            document.querySelectorAll('.theme-swatch').forEach(function(s) {
+                const active = !isCustom && s.dataset.theme === presetName;
+                s.style.boxShadow = active ? '0 0 0 3px #fff, 0 0 0 5px var(--color-theme-active)' : 'none';
                 s.style.transform = active ? 'scale(1.15)' : 'scale(1)';
             });
+            const customWrap = document.getElementById('theme-custom-wrap');
+            if (customWrap) {
+                customWrap.style.boxShadow = isCustom ? '0 0 0 3px #fff, 0 0 0 5px var(--color-theme-active)' : '0 0 0 1px #e5e7eb';
+                customWrap.style.transform  = isCustom ? 'scale(1.15)' : 'scale(1)';
+            }
+            const hexLabel = document.getElementById('theme-custom-hex');
+            if (hexLabel) {
+                if (isCustom) {
+                    const hex = (localStorage.getItem('wsAccentHex') || '').toUpperCase();
+                    if (hex) {
+                        const labelText = @json(__('app.theme_custom') ?? '사용자 지정') + ': ';
+                        hexLabel.innerHTML = '';
+                        hexLabel.appendChild(document.createTextNode(labelText));
+                        const code = document.createElement('code');
+                        code.style.cssText = "font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: inherit; color: inherit;";
+                        code.textContent = hex;
+                        hexLabel.appendChild(code);
+                        hexLabel.style.display = 'block';
+                    } else {
+                        hexLabel.style.display = 'none';
+                    }
+                } else {
+                    hexLabel.style.display = 'none';
+                }
+            }
+        }
+        window.setAccent = function(name) {
+            const valid = ['coral','blue','green','yellow','purple'];
+            if (!valid.includes(name)) name = 'blue';
+            // 사용자 지정 색 해제
+            document.documentElement.style.removeProperty('--color-theme-active');
+            document.documentElement.setAttribute('data-accent', name);
+            try {
+                localStorage.setItem('wsAccent', name);
+                localStorage.removeItem('wsAccentHex');
+            } catch {}
+            syncSwatchUI(name, false);
+            const dd = document.getElementById('theme-dropdown'); if (dd) dd.style.display = 'none';
         };
-        document.addEventListener('click', async function(e) {
+        window.setAccentHex = function(hex) {
+            if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+            document.documentElement.setAttribute('data-accent', 'custom');
+            document.documentElement.style.setProperty('--color-theme-active', hex);
+            try {
+                localStorage.setItem('wsAccentHex', hex);
+                localStorage.removeItem('wsAccent');
+            } catch {}
+            const input = document.getElementById('theme-custom-input');
+            if (input) input.value = hex;
+            syncSwatchUI(null, true);
+        };
+        // 마이그레이션: 옛 'app-theme' (violet/blue/teal/...) → 새 'wsAccent' (coral/blue/green/yellow/purple)
+        (function migrateOldTheme() {
+            try {
+                if (localStorage.getItem('wsAccent')) return;
+                const old = localStorage.getItem('app-theme');
+                if (!old) return;
+                const map = { violet:'purple', blue:'blue', teal:'blue', green:'green', amber:'yellow', gray:'blue', white:'blue' };
+                const next = map[old] || 'blue';
+                localStorage.setItem('wsAccent', next);
+                localStorage.removeItem('app-theme');
+            } catch {}
+        })();
+        // 기존 theme-swatch / accent-picker 버튼이 setAccent 를 호출하도록 위임
+        document.addEventListener('click', function(e) {
             const sw = e.target.closest('.theme-swatch');
-            if (sw) { applyTheme(sw.dataset.theme); return; }
+            if (sw) { setAccent(sw.dataset.theme); return; }
+            const ap = e.target.closest('#accent-picker-pop button[data-accent]');
+            if (ap) { setAccent(ap.dataset.accent); return; }
             const dd = document.getElementById('theme-dropdown');
             const btn = document.getElementById('theme-btn');
             if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
@@ -1612,8 +1675,27 @@
             if (ld && lb && !lb.contains(e.target) && !ld.contains(e.target)) {
                 ld.style.display = 'none';
             }
+            const pop = document.getElementById('accent-picker-pop');
+            const apb = document.getElementById('accent-picker-btn');
+            if (pop && pop.style.display === 'block' && !apb?.contains(e.target) && !pop.contains(e.target)) {
+                pop.style.display = 'none';
+            }
         });
-        applyTheme(localStorage.getItem('app-theme') || 'violet');
+        window.toggleAccentPicker = function(ev) {
+            ev?.stopPropagation();
+            const pop = document.getElementById('accent-picker-pop');
+            if (!pop) return;
+            pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
+        };
+        // 페이지 로드 시 액센트 적용 — 사용자 지정 hex 우선, 없으면 프리셋
+        (function initAccent() {
+            const customHex = localStorage.getItem('wsAccentHex');
+            if (customHex && /^#[0-9a-fA-F]{6}$/.test(customHex)) {
+                setAccentHex(customHex);
+            } else {
+                setAccent(localStorage.getItem('wsAccent') || 'blue');
+            }
+        })();
 
         // ── 글로벌 사이드바 접기/펼치기 ──────────────────────
         window.toggleGlobalSidebar = async function() {
@@ -1769,7 +1851,7 @@
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
-                <form id="form-new-project" onsubmit="submitNewProject(event)" style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px;">
+                <form id="form-new-project" onsubmit="submitNewProject(event)" style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:12px;">
                     @csrf
                     <div id="np-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:13px;color:#dc2626;"></div>
 
@@ -1836,7 +1918,7 @@
                         </div>
                     </div>
 
-                    <div style="display:flex;gap:10px;padding-top:4px;">
+                    <div style="display:flex;gap:12px;padding-top:4px;">
                         <button type="submit" id="np-submit-btn"
                                 style="flex:1;padding:10px;background:var(--t600);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;"
                                 onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
@@ -2122,7 +2204,7 @@
                 // 공유 받은 메모 뱃지
                 var receivedBadge = '';
                 if (m.is_received) {
-                    receivedBadge = '<div style="display:flex;align-items:center;gap:5px;margin-bottom:7px;">'
+                    receivedBadge = '<div style="display:flex;align-items:center;gap:4px;margin-bottom:7px;">'
                         + '<span style="display:inline-flex;align-items:center;gap:4px;background:#ede9fe;color:#7c3aed;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:600;">'
                         + '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>'
                         + esc(m.shared_by_name) + ' · ' + esc(m.shared_at)
@@ -2133,7 +2215,7 @@
                 // 공유된 멤버 아바타 (내 메모)
                 var sharedAvatars = '';
                 if (!m.is_received && m.shared_with && m.shared_with.length) {
-                    sharedAvatars = '<div style="display:flex;align-items:center;gap:2px;margin-right:4px;" title="' + esc(MT.shared_members) + '">';
+                    sharedAvatars = '<div style="display:flex;align-items:center;gap:4px;margin-right:4px;" title="' + esc(MT.shared_members) + '">';
                     m.shared_with.slice(0, 3).forEach(async function(u) {
                         var letter = (u.name || '?').charAt(0).toUpperCase();
                         sharedAvatars += '<span style="width:20px;height:20px;border-radius:50%;background:var(--t500);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;">' + esc(letter) + '</span>';
@@ -2168,7 +2250,7 @@
                     + '<div style="font-size:12.5px;color:#374151;line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + preview + '</div>'
                     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">'
                     +   '<span style="font-size:11px;color:#9ca3af;">' + esc(m.updated_at) + '</span>'
-                    +   '<div style="display:flex;align-items:center;gap:2px;">'
+                    +   '<div style="display:flex;align-items:center;gap:4px;">'
                     +   sharedAvatars
                     +   shareBtnHtml
                     +   (m.is_received
@@ -2317,7 +2399,7 @@
                 div.innerHTML =
                     '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
                     + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || MT.memo) + '</span>'
-                    + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
+                    + '<div style="display:flex;gap:4px;flex-shrink:0;" onclick="event.stopPropagation()">'
                     +   '<button onclick="memoTogglePin(' + memo.id + ')" title="' + esc(MT.unpin) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                     +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
                     +   '</button>'
@@ -2527,7 +2609,7 @@
                     div.innerHTML =
                         '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
                         + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || MT.memo) + '</span>'
-                        + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
+                        + '<div style="display:flex;gap:4px;flex-shrink:0;" onclick="event.stopPropagation()">'
                         +   '<button onclick="memoTogglePin(' + memo.id + ')" title="' + esc(MT.unpin) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                         +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
                         +   '</button>'
@@ -2567,7 +2649,7 @@
                     div.innerHTML =
                         '<div class="pinned-memo-header" style="padding:6px 8px;background:' + c.header + ';border-bottom:1px solid ' + c.border + ';border-radius:10px 10px 0 0;display:flex;align-items:center;gap:4px;cursor:grab;user-select:none;flex-shrink:0;">'
                         + '<span style="font-size:11.5px;font-weight:600;color:#374151;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">' + esc(memo.title || MT.memo) + '</span>'
-                        + '<div style="display:flex;gap:2px;flex-shrink:0;" onclick="event.stopPropagation()">'
+                        + '<div style="display:flex;gap:4px;flex-shrink:0;" onclick="event.stopPropagation()">'
                         +   '<button onclick="memoToggleSharedPin(' + memo.share_id + ',' + memo.id + ')" title="' + esc(MT.unpin) + '" style="width:22px;height:22px;border:none;background:rgba(0,0,0,.06);cursor:pointer;color:#6b7280;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s;" onmouseover="this.style.background=\'#fde047\';this.style.color=\'#92400e\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\'">'
                         +     '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>'
                         +   '</button>'
@@ -3016,9 +3098,9 @@
                 if (preview.length > 90) preview = preview.slice(0, 90) + '…';
                 return ''
                     + '<div data-id="' + s.id + '" style="padding:9px 10px;border:1px solid #f0eeff;border-radius:8px;background:#fff;margin-bottom:6px;">'
-                    +   '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">'
+                    +   '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">'
                     +     '<div style="font-size:12.5px;font-weight:700;color:#18181b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + qpEsc(s.label) + '</div>'
-                    +     '<div style="display:flex;gap:3px;flex-shrink:0;">'
+                    +     '<div style="display:flex;gap:4px;flex-shrink:0;">'
                     +       '<button type="button" onclick="qpSuffixEdit(' + s.id + ')" title="' + qpEsc(QT.edit) + '" '
                     +         'style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;color:#9ca3af;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:all .12s;" '
                     +         'onmouseover="this.style.background=\'var(--t50)\';this.style.color=\'var(--t700)\';this.style.borderColor=\'var(--t300)\'" '
@@ -3157,7 +3239,7 @@
                             return '<button type="button" onclick="event.stopPropagation();qpToggleCardSuffix(' + it.id + ',' + s.id + ', this)" '
                                 + 'data-card-id="' + it.id + '" data-suffix-id="' + s.id + '" '
                                 + 'title="' + qpEsc(s.body) + '" '
-                                + 'style="display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 8px;background:' + bg + ';color:' + fg + ';border:1.5px solid ' + bd + ';border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;max-width:200px;">'
+                                + 'style="display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;background:' + bg + ';color:' + fg + ';border:1.5px solid ' + bd + ';border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;max-width:200px;">'
                                 +    icon
                                 +    '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + qpEsc(s.label) + '</span>'
                                 + '</button>';
@@ -3167,7 +3249,7 @@
 
                 return ''
                     + '<div class="qp-item" data-id="' + it.id + '" style="background:#fff;border:1.5px solid #ede8ff;border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
-                    +   '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;font-size:11px;color:#9ca3af;">'
+                    +   '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px;color:#9ca3af;">'
                     +     providerBadge + fbBadge
                     +     '<span style="flex:1;text-align:right;">' + qpEsc(it.created_at || '') + '</span>'
                     +   '</div>'
@@ -3180,7 +3262,7 @@
                     +   '</details>'
                     +   '<div id="qp-refined-' + it.id + '" style="padding:9px 10px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:7px;font-size:12.5px;color:#1f2937;line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow-y:auto;">' + qpEsc(it.refined_prompt || '') + '</div>'
                     +   chipsHtml
-                    +   '<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px;">'
+                    +   '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">'
                     +     '<button onclick="qpCopy(' + it.id + ', this)" '
                     +       'style="display:flex;align-items:center;gap:4px;height:26px;padding:0 10px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .12s;" '
                     +       'onmouseover="this.style.background=\'var(--t700)\'" onmouseout="this.style.background=\'var(--t600)\'">'

@@ -19,10 +19,10 @@
                 <small>Phase 9 이후 ConflictDetectionService가 Output 생성 시 자동 감지합니다.</small>
             </div>
         @else
-            <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 @foreach($conflicts as $c)
                     <div class="ags-card">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
                             <div>
                                 <strong style="font-size:13.5px;">{{ $c->conflict_type->label() }}</strong>
                                 @if($c->output)

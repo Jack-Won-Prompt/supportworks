@@ -162,7 +162,7 @@
         </div>
         <form method="POST" action="{{ route('admin.users.store') }}" id="create-form">
             @csrf
-            <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+            <div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px;">
 
                 @if($errors->createUser->any())
                 <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#dc2626;">
@@ -263,7 +263,7 @@
                 </div>
 
             </div>
-            <div style="padding:14px 24px 20px;display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid #f1f5f9;">
+            <div style="padding:14px 24px 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid #f1f5f9;">
                 <button type="button" onclick="closeCreateModal()"
                         style="padding:9px 20px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#64748b;background:#fff;cursor:pointer;">{{ __('admin.usr_cancel') }}</button>
                 <button type="submit"
@@ -283,7 +283,7 @@
             <button onclick="closeEditModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;line-height:1;">✕</button>
         </div>
         <form id="edit-form" onsubmit="submitEditModal(event)">
-            <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+            <div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px;">
 
                 <div id="edit-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#dc2626;white-space:pre-line;"></div>
 
@@ -378,7 +378,7 @@
                         <label style="font-size:12px;font-weight:600;color:#475569;">{{ __('admin.mgmt_project_assign') }}</label>
                         <span id="edit-proj-count" style="font-size:11px;font-weight:500;color:#6366f1;"></span>
                     </div>
-                    <div style="border:1px solid #e2e8f0;border-radius:8px;max-height:180px;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="border:1px solid #e2e8f0;border-radius:8px;max-height:180px;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:4px;">
                         @foreach($projects as $project)
                         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#374151;">
                             <input type="checkbox" class="edit-proj-check" value="{{ $project->id }}"
@@ -391,7 +391,7 @@
                 @endif
 
             </div>
-            <div style="padding:14px 24px 20px;display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid #f1f5f9;">
+            <div style="padding:14px 24px 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid #f1f5f9;">
                 <button type="button" onclick="closeEditModal()"
                         style="padding:9px 20px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#64748b;background:#fff;cursor:pointer;">{{ __('admin.usr_cancel') }}</button>
                 <button type="submit" id="edit-submit-btn"
@@ -452,7 +452,7 @@
                 @if($projects->isNotEmpty())
                 <div>
                     <label style="display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:5px;">{{ __('admin.usr_join_project') }} <span style="font-weight:400;color:#94a3b8;">{{ __('admin.usr_optional') }}</span></label>
-                    <div style="border:1px solid #e2e8f0;border-radius:8px;max-height:140px;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="border:1px solid #e2e8f0;border-radius:8px;max-height:140px;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:4px;">
                         @foreach($projects as $project)
                         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#374151;">
                             <input type="checkbox" name="project_ids[]" value="{{ $project->id }}"
@@ -474,7 +474,7 @@
                 </div>
 
             </div>
-            <div style="padding:14px 24px 20px;display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid #f1f5f9;">
+            <div style="padding:14px 24px 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid #f1f5f9;">
                 <button type="button" onclick="closeInviteModal()"
                         style="padding:9px 20px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#64748b;background:#fff;cursor:pointer;">{{ __('admin.usr_cancel') }}</button>
                 <button type="submit"

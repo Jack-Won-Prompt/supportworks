@@ -289,7 +289,7 @@
                     <span class="v-severity-icon">{{ $icon }}</span>
                     <div style="flex:1;">
                         <div class="v-card-title">{{ $viol['title'] ?? '' }}</div>
-                        <div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">
+                        <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
                             <span class="v-badge {{ $catClass }}">{{ $catLabel }}</span>
                             <span class="v-badge {{ $srcClass }}">{{ $srcLabel }}</span>
                             @if($autoFixed)

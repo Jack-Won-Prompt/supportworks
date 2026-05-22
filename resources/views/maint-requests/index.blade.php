@@ -563,7 +563,7 @@
 
 <div id="maint-detail-modal"
      style="display:none;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10901;
-            background:#f5f3ff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);
+            background:var(--t50);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);
             width:1100px;max-width:calc(100vw - 32px);height:calc(100vh - 60px);overflow:hidden;">
     <div class="flex items-center justify-between px-5 py-3 bg-white border-b border-gray-100" style="flex:0 0 auto;">
         <h3 class="text-base font-semibold text-gray-900">SR 요청 상세 <span id="maint-detail-id" class="text-gray-400 font-mono text-sm ml-1"></span></h3>
@@ -571,7 +571,7 @@
             <button type="button" onclick="maintCloseDetailModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
     </div>
-    <iframe id="maint-detail-iframe" src="about:blank" style="flex:1 1 0;width:100%;border:0;background:#f5f3ff;"></iframe>
+    <iframe id="maint-detail-iframe" src="about:blank" style="flex:1 1 0;width:100%;border:0;background:var(--t50);"></iframe>
 </div>
 
 <script>

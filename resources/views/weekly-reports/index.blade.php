@@ -7,7 +7,7 @@
 @section('page-actions')
 <button type="button"
     onclick="openWeeklyReportPopup('{{ route('projects.weekly-reports.create', $project) }}')"
-    style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--t500);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s;"
+    style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--t500);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s;"
     onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     {{ __('weekly.new_report') }}
@@ -40,8 +40,8 @@
 
     {{-- 매니저 툴바 --}}
     @if($isManager && !$reports->isEmpty())
-    <div id="manager-toolbar" style="background:#fff;border:1px solid #e9e7fb;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#6b7280;cursor:pointer;user-select:none;">
+    <div id="manager-toolbar" style="background:#fff;border:1px solid #e9e7fb;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <label style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#6b7280;cursor:pointer;user-select:none;">
             <input type="checkbox" id="select-all-reports" style="width:15px;height:15px;accent-color:#6d28d9;cursor:pointer;">
             {{ __('common.select_all') }}
         </label>
@@ -51,7 +51,7 @@
 
         {{-- 주차 보고 분석 (전체 팀원) --}}
         <button type="button" onclick="openAnalysis('all')"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:12.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;transition:all .15s;"
+            style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:12.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
             {{ __('weekly.analysis_week') }}
@@ -59,7 +59,7 @@
 
         {{-- 팀원 주간 보고 분석 (선택 팀원) --}}
         <button type="button" id="member-analysis-btn" onclick="openMemberAnalysisPicker()" disabled
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:12.5px;font-weight:600;color:#6b7280;background:#fff;cursor:not-allowed;opacity:.5;transition:all .15s;">
+            style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:12.5px;font-weight:600;color:#6b7280;background:#fff;cursor:not-allowed;opacity:.5;transition:all .15s;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             {{ __('weekly.analysis_member') }}
         </button>
@@ -76,7 +76,7 @@
         <p style="font-size:12.5px;color:#9ca3af;margin-bottom:18px;">{{ __('weekly.empty_hint') }}</p>
         <button type="button"
             onclick="openWeeklyReportPopup('{{ route('projects.weekly-reports.create', $project) }}')"
-            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#4f46e5;color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;">
+            style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:#4f46e5;color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;">
             {{ __('weekly.write_report') }}
         </button>
     </div>
@@ -102,7 +102,7 @@
 
     <div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;overflow:hidden;">
         {{-- 주차 헤더 --}}
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;">
             <span style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:7px;padding:3px 11px;font-size:12.5px;font-weight:700;">{{ $weekLabel }}</span>
             <span style="font-size:12px;color:#7c3aed;font-weight:500;">{{ $weekStartFmt }} ~ {{ $weekEnd }}</span>
             <span style="margin-left:auto;font-size:11.5px;color:#9ca3af;">{{ __('weekly.week_authored_count', ['count' => $weekReports->count()]) }}</span>
@@ -111,7 +111,7 @@
         {{-- 보고서 행 --}}
         @foreach($weekReports as $report)
         @php $isOwner = $report->user_id === $user->id; @endphp
-        <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid #f3f4f6;transition:background .12s;"
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #f3f4f6;transition:background .12s;"
             onmouseover="this.style.background='#fafaf9'" onmouseout="this.style.background=''">
 
             {{-- 체크박스 (매니저만) --}}
@@ -140,13 +140,13 @@
                     <span style="background:#f3f4f6;color:#6b7280;border-radius:4px;font-size:11px;padding:1px 7px;">{{ $report->team_name }}</span>
                     @endif
                     @if($report->manager_name)
-                    <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#6b7280;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#6b7280;">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         {{ __('weekly.manager_received', ['name' => $report->manager_name]) }}
                     </span>
                     @endif
                 </div>
-                <div style="display:flex;align-items:center;gap:10px;margin-top:3px;">
+                <div style="display:flex;align-items:center;gap:12px;margin-top:3px;">
                     <span style="font-size:11.5px;color:#9ca3af;">
                         {{ __('weekly.created_on', ['date' => $report->report_date->format('Y.m.d')]) }}
                     </span>
@@ -172,7 +172,7 @@
             </div>
 
             {{-- 액션 버튼 --}}
-            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
                 @if($isOwner || $user->isAdmin())
                 {{-- 수정 (팝업) --}}
                 <button type="button"
@@ -318,7 +318,7 @@
             </button>
         </div>
         <div id="ai-modal-body">
-            <div id="ai-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;">
+            <div id="ai-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;">
                 <div style="width:36px;height:36px;border:3px solid #e9e7fb;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;"></div>
                 <p style="font-size:13px;color:#6b7280;">{{ __('weekly.analyzing') }}</p>
             </div>

@@ -206,14 +206,14 @@ $isEmbed        = $isEmbed        ?? false;
     @if(!$isEmbed && count($versions) >= 2)
     <button id="cmp-open-btn" type="button" onclick="openVersionCompareMenu(event)"
             title="{{ __('files.compare_versions_title') }}"
-            style="display:inline-flex;align-items:center;gap:5px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
+            style="display:inline-flex;align-items:center;gap:4px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
             onmouseover="this.style.background='rgba(125,211,252,.1)'" onmouseout="this.style.background='none'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
         {{ __('files.compare_versions') }}
     </button>
     @endif
     @if($hasAnnotation)
-    <button id="ann-dl-btn" onclick="downloadAnnotatedPdf()" style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
+    <button id="ann-dl-btn" onclick="downloadAnnotatedPdf()" style="display:inline-flex;align-items:center;gap:4px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
         {{ __('team.download_with_review') }}
     </button>
@@ -226,7 +226,7 @@ $isEmbed        = $isEmbed        ?? false;
     @if(!$isEmbed)
     {{-- 공유 링크 복사 --}}
     <button id="share-copy-btn" onclick="copyShareLink()" type="button"
-            style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
+            style="display:inline-flex;align-items:center;gap:4px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
             onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         <span id="share-copy-label">{{ __('files.copy_share_link') }}</span>
@@ -234,7 +234,7 @@ $isEmbed        = $isEmbed        ?? false;
 
     {{-- 전체창 토글 --}}
     <button id="fs-toggle-btn" type="button" onclick="toggleFullscreen()" title="{{ __('files.fullscreen_title') }}"
-            style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
+            style="display:inline-flex;align-items:center;gap:4px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;background:none;cursor:pointer;flex-shrink:0;"
             onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
         <svg id="fs-icon-on"  width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5H5m14 4V5h-4M9 15v4H5m14-4v4h-4"/></svg>
         <svg id="fs-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4m12-4v4h-4"/></svg>
@@ -244,7 +244,7 @@ $isEmbed        = $isEmbed        ?? false;
     {{-- SupportWorks 가입하기 (비로그인 시) --}}
     @guest
     <a href="{{ route('files.public-share.signup', $token) }}"
-       style="display:inline-flex;align-items:center;gap:5px;color:#fff;font-size:12px;font-weight:700;padding:6px 12px;background:linear-gradient(135deg,#7c3aed,#6366f1);border-radius:7px;text-decoration:none;flex-shrink:0;transition:opacity .15s;"
+       style="display:inline-flex;align-items:center;gap:4px;color:#fff;font-size:12px;font-weight:700;padding:6px 12px;background:linear-gradient(135deg,#7c3aed,#6366f1);border-radius:7px;text-decoration:none;flex-shrink:0;transition:opacity .15s;"
        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
         {{ __('files.signup') }}
@@ -366,9 +366,9 @@ $isEmbed        = $isEmbed        ?? false;
                         <div id="vid-markers" style="position:absolute;inset:0;pointer-events:none;"></div>
                     </div>
                     {{-- 컨트롤 버튼 --}}
-                    <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
                         <button type="button" onclick="vidSeekRelative(-10)" title="10초 뒤로"
-                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 17l-5-5 5-5"/></svg>
                             10초 뒤로
@@ -379,7 +379,7 @@ $isEmbed        = $isEmbed        ?? false;
                             <svg id="vid-play-icon" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </button>
                         <button type="button" onclick="vidSeekRelative(10)" title="10초 앞으로"
-                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
                             10초 앞으로
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17l5-5-5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 17l5-5-5-5"/></svg>
@@ -388,7 +388,7 @@ $isEmbed        = $isEmbed        ?? false;
                         <span id="vid-time-label" style="font-size:12px;color:#9ca3af;font-variant-numeric:tabular-nums;min-width:90px;text-align:center;">0:00 / 0:00</span>
                         <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
                         <button type="button" onclick="vidPauseAndAddComment()" title="현재 시점에 의견 추가"
-                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(196,181,253,.15);border:1px solid rgba(196,181,253,.3);color:#c4b5fd;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(196,181,253,.15);border:1px solid rgba(196,181,253,.3);color:#c4b5fd;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(196,181,253,.25)'" onmouseout="this.style.background='rgba(196,181,253,.15)'">
                             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                             이 시점 의견
@@ -421,7 +421,7 @@ $isEmbed        = $isEmbed        ?? false;
                 </button>
             </div>
             @if($previewType === 'pdf')
-            <div id="cmt-filter-bar" style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+            <div id="cmt-filter-bar" style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;">
                 <span id="cmt-filter-label" style="font-size:11px;color:#6b7280;"></span>
                 <button onclick="togglePageFilter()" id="cmt-filter-btn" style="font-size:11px;color:#7c3aed;background:none;border:1px solid #ede9fe;border-radius:5px;cursor:pointer;padding:2px 8px;font-weight:600;"></button>
             </div>
@@ -431,7 +431,7 @@ $isEmbed        = $isEmbed        ?? false;
             <div id="comment-empty" style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">{{ __('team.comment_empty') }}</div>
         </div>
         <div class="cp-form">
-            <div style="display:flex;gap:6px;margin-bottom:6px;">
+            <div style="display:flex;gap:8px;margin-bottom:6px;">
                 <input id="guest-name" type="text" placeholder="{{ __('team.name_placeholder') }}" maxlength="100" class="cp-input" style="flex:1;">
                 <button onclick="submitComment()" id="submit-btn-name" class="cp-submit" style="flex-shrink:0;white-space:nowrap;">{{ __('team.submit_btn') }}</button>
             </div>
@@ -473,7 +473,7 @@ $isEmbed        = $isEmbed        ?? false;
         <span id="ann-info-type" style="font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;padding:2px 7px;border-radius:4px;"></span>
         <button onclick="hideAnnInfoPopup()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;padding:0 2px;">&times;</button>
     </div>
-    <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+    <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
         <svg width="11" height="11" fill="none" stroke="#9ca3af" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
         <span id="ann-info-name" style="font-size:12px;font-weight:700;color:#374151;"></span>
     </div>
@@ -866,7 +866,7 @@ function renderCommentList() {
         }
         list.insertAdjacentHTML('beforeend',
             `<div class="comment-card">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                     <span style="font-size:12px;font-weight:700;color:#374151;">${esc(c.user_name)}</span>
                     ${badge}
                     <span style="font-size:10px;color:#9ca3af;margin-left:auto;">${esc(c.created_at)}</span>
@@ -1604,18 +1604,18 @@ function copyShareLink() {
 {{-- ════════ 버전 비교 모달 ════════ --}}
 <div id="compare-modal">
     <div class="cmp-topbar">
-        <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;">
+        <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
             <svg width="15" height="15" fill="none" stroke="#7dd3fc" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
             {{ __('files.compare_versions') }}
         </span>
         <span id="cmp-title" style="flex:1;overflow:hidden;font-size:12px;color:#9ca3af;white-space:nowrap;text-overflow:ellipsis;">{{ $file->original_name }}</span>
-        <label id="cmp-sync-wrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
+        <label id="cmp-sync-wrap" style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
             <input type="checkbox" id="cmp-sync-pages" onchange="onCmpSyncToggle()" disabled style="width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;">
             <span id="cmp-sync-label">{{ __('files.cmp_sync_pages') }}</span>
         </label>
         <span id="cmp-sync-note" style="display:none;font-size:11px;color:#6b7280;flex-shrink:0;"></span>
         <button onclick="closeCompare()" type="button"
-                style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;">
+                style="display:inline-flex;align-items:center;gap:8px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             {{ __('files.cmp_close') }}
         </button>
@@ -1895,7 +1895,7 @@ function openVersionCompareMenu(ev){
     pop.id = 'version-compare-pop';
     pop.style.cssText = 'position:fixed;z-index:10011;background:#241f3d;border:1px solid rgba(196,181,253,.25);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.55);padding:10px;width:288px;';
     pop.innerHTML = `<div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">${_cmpEsc(STR.cmp_pick_versions)} <span style="font-weight:500;color:#8b85a8;">${_cmpEsc(STR.cmp_pick_hint)}</span></div>
-        <div style="display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;">${rows}</div>
+        <div style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;">${rows}</div>
         <button id="vcmp-go" type="button" onclick="confirmVersionCompare()" style="margin-top:9px;width:100%;padding:8px;border:none;border-radius:7px;font-size:12px;font-weight:700;"></button>`;
     document.body.appendChild(pop);
     const r = btn.getBoundingClientRect();

@@ -17,7 +17,7 @@
         #cat-list .cat-item[draggable="true"] { cursor:grab; }
         #cat-list .cat-item.cat-dragging { opacity:.4; }
     </style>
-    <div id="cat-sidebar" style="width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
+    <div id="cat-sidebar" style="width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;">
 
         {{-- 전체 --}}
         <a href="{{ route('projects.files.index', $project) }}"
@@ -40,7 +40,7 @@
             @foreach($categories as $cat)
             <div class="cat-item" data-id="{{ $cat->id }}">
                 {{-- 일반 표시 --}}
-                <div class="cat-item-view" style="display:flex;align-items:center;width:100%;gap:2px;">
+                <div class="cat-item-view" style="display:flex;align-items:center;width:100%;gap:4px;">
                     <a href="{{ route('projects.files.index', $project) }}?category={{ $cat->id }}"
                        class="cat-filter-btn {{ $categoryId == $cat->id ? 'active' : '' }}"
                        style="flex:1;min-width:0;">
@@ -55,7 +55,7 @@
                 </div>
                 {{-- 편집 폼 --}}
                 <div class="cat-item-edit" style="display:none;padding:6px 4px 4px;width:100%;">
-                    <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+                    <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px;">
                         <input type="color" class="cat-edit-color" value="{{ $cat->color }}"
                                style="width:26px;height:26px;padding:0;border:1.5px solid #e5e7eb;border-radius:5px;cursor:pointer;background:none;flex-shrink:0;">
                         <input type="text" class="cat-edit-name" value="{{ $cat->name }}"
@@ -79,7 +79,7 @@
                 {{ __('team.category_add') }}
             </button>
             <div id="cat-form" style="display:none;margin-top:6px;padding:10px;background:#f8f7ff;border:1px solid #e0e7ff;border-radius:10px;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <input type="color" id="cat-color-input" value="#6366f1"
                            style="width:28px;height:28px;padding:0;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;background:none;">
                     <input id="cat-name-input" type="text" placeholder="{{ __('team.cat_name_placeholder') }}"
@@ -87,7 +87,7 @@
                            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"
                            onkeydown="if(event.key==='Enter')addCategory()">
                 </div>
-                <div style="display:flex;gap:5px;">
+                <div style="display:flex;gap:4px;">
                     <button onclick="addCategory()" class="cat-save-btn">{{ __('team.add_btn') }}</button>
                     <button onclick="toggleCatForm()" class="cat-cancel-btn">{{ __('team.cancel_btn') }}</button>
                 </div>
@@ -103,7 +103,7 @@
 
             {{-- 카드 헤더 --}}
             <div class="upload-card-header">
-                <div style="display:flex;align-items:center;gap:10px;">
+                <div style="display:flex;align-items:center;gap:12px;">
                     <div class="upload-icon-box">
                         <svg width="17" height="17" fill="none" stroke="#fff" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                     </div>
@@ -171,7 +171,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div id="queue-list" style="padding:8px 14px;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+                    <div id="queue-list" style="padding:8px 14px;display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;"></div>
                     <div class="queue-footer">
                         <span id="upload-status" style="font-size:12px;color:#9ca3af;flex:1;"></span>
                         <label class="notify-label">
@@ -238,7 +238,7 @@
                         <span class="url-badge youtube">YouTube</span>
                         <span class="url-badge all">{{ __('common.all') }} URLs</span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
                         <span id="url-status" style="font-size:12px;"></span>
                         <button id="url-submit-btn" onclick="submitUrlDirect()" class="btn-url-submit">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
@@ -257,7 +257,7 @@
                     @if($categoryId && $categoryId !== 'none')
                     @php $activeCat = $categories->firstWhere('id', $categoryId); @endphp
                     @if($activeCat)
-                    <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;background:{{ $activeCat->color }};">
+                    <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;background:{{ $activeCat->color }};">
                         {{ $activeCat->name }}
                     </span>
                     @endif
@@ -265,14 +265,14 @@
                     <span style="padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#6b7280;background:#f3f4f6;">{{ __('team.uncategorized') }}</span>
                     @endif
                     @if($activeSchedule)
-                    <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;">
                         <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         {{ $activeSchedule->title }}
                         <a href="{{ route('projects.files.index', $project) }}{{ $categoryId ? '?category='.$categoryId : '' }}" style="color:#6b7280;text-decoration:none;line-height:1;" title="{{ __('common.reset') }}">×</a>
                     </span>
                     @endif
                 </div>
-                <div style="display:flex;align-items:center;gap:10px;">
+                <div style="display:flex;align-items:center;gap:12px;">
                     {{-- 파일 검색 --}}
                     <form method="GET" action="{{ route('projects.files.index', $project) }}" style="display:flex;align-items:center;">
                         @if($categoryId)<input type="hidden" name="category" value="{{ $categoryId }}">@endif
@@ -316,11 +316,11 @@
                                             onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                     </button>
-                                    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                                    <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                                         <span style="font-size:10px;padding:1px 7px;background:#e0e7ff;color:#4338ca;border-radius:10px;font-weight:600;">URL</span>
                                         <button id="file-comment-badge-{{ $file->id }}"
                                                 onclick="openUrlViewer({{ $file->id }}, {{ $project->id }}, '{{ addslashes($file->original_name) }}', '{{ addslashes($file->getEmbedUrl()) }}', '{{ addslashes($file->source_url) }}')"
-                                                style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
+                                                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
                                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                             {{ __('team.opinion_count') }} {{ $file->comments_count > 0 ? $file->comments_count : '' }}
                                         </button>
@@ -334,7 +334,7 @@
                                             <svg width="10" height="10" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                             @foreach($file->reviewRequests as $req)
                                             @if($req->reviewed_at)
-                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="{{ __('files.review_complete') }}">
+                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;" title="{{ __('files.review_complete') }}">
                                                 <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                                 {{ $req->reviewer->name }}
                                             </span>
@@ -345,7 +345,7 @@
                                         </div>
                                         @if($myReview && !$myReview->reviewed_at)
                                         <button id="review-complete-btn-{{ $file->id }}" onclick="completeReview({{ $file->id }})"
-                                                style="display:none;align-items:center;gap:3px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
+                                                style="display:none;align-items:center;gap:4px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
                                                 onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
                                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                             {{ __('files.review_complete') }}
@@ -359,7 +359,7 @@
                                             onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                         @if(($file->versions_count ?? 0) >= 2)
-                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="{{ __('files.versions_tooltip', ['count' => $file->versions_count - 1, 'current' => $file->versions_count]) }}">
+                                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="{{ __('files.versions_tooltip', ['count' => $file->versions_count - 1, 'current' => $file->versions_count]) }}">
                                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                                 v{{ $file->versions_count }}
                                             </span>
@@ -369,7 +369,7 @@
                                         <span style="font-size:11px;color:#a5b4fc;">{{ __('team.click_to_review') }}</span>
                                         <button id="file-comment-badge-{{ $file->id }}"
                                                 onclick="openComments({{ $file->id }}, '{{ addslashes($file->original_name) }}', {{ $project->id }}, true)"
-                                                style="display:{{ $file->comments_count > 0 ? 'inline-flex' : 'none' }};align-items:center;gap:3px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
+                                                style="display:{{ $file->comments_count > 0 ? 'inline-flex' : 'none' }};align-items:center;gap:4px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
                                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                             {{ __('team.opinion_count') }} {{ $file->comments_count }}
                                         </button>
@@ -383,7 +383,7 @@
                                             <svg width="10" height="10" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                             @foreach($file->reviewRequests as $req)
                                             @if($req->reviewed_at)
-                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="{{ __('files.review_complete') }}">
+                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;" title="{{ __('files.review_complete') }}">
                                                 <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                                 {{ $req->reviewer->name }}
                                             </span>
@@ -394,7 +394,7 @@
                                         </div>
                                         @if($myReview && !$myReview->reviewed_at)
                                         <button id="review-complete-btn-{{ $file->id }}" onclick="completeReview({{ $file->id }})"
-                                                style="display:none;align-items:center;gap:3px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
+                                                style="display:none;align-items:center;gap:4px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
                                                 onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
                                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                             {{ __('files.review_complete') }}
@@ -408,7 +408,7 @@
                                        onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                         @if(($file->versions_count ?? 0) >= 2)
-                                            <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="{{ __('files.versions_tooltip', ['count' => $file->versions_count - 1, 'current' => $file->versions_count]) }}">
+                                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;margin-left:6px;vertical-align:middle;" title="{{ __('files.versions_tooltip', ['count' => $file->versions_count - 1, 'current' => $file->versions_count]) }}">
                                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                                 v{{ $file->versions_count }}
                                             </span>
@@ -417,7 +417,7 @@
                                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                                         <button id="file-comment-badge-{{ $file->id }}"
                                                 onclick="openComments({{ $file->id }}, '{{ addslashes($file->original_name) }}', {{ $project->id }}, false)"
-                                                style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
+                                                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
                                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                             {{ __('team.opinion_count') }} {{ $file->comments_count > 0 ? $file->comments_count : '' }}
                                         </button>
@@ -431,7 +431,7 @@
                                             <svg width="10" height="10" fill="none" stroke="#6b7280" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                             @foreach($file->reviewRequests as $req)
                                             @if($req->reviewed_at)
-                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;" title="{{ __('files.review_complete') }}">
+                                            <span style="font-size:10px;padding:1px 6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;" title="{{ __('files.review_complete') }}">
                                                 <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                                 {{ $req->reviewer->name }}
                                             </span>
@@ -442,7 +442,7 @@
                                         </div>
                                         @if($myReview && !$myReview->reviewed_at)
                                         <button id="review-complete-btn-{{ $file->id }}" onclick="completeReview({{ $file->id }})"
-                                                style="display:none;align-items:center;gap:3px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
+                                                style="display:none;align-items:center;gap:4px;margin-top:4px;font-size:10px;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:2px 8px;cursor:pointer;transition:background .12s;"
                                                 onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
                                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                             {{ __('files.review_complete') }}
@@ -472,7 +472,7 @@
                         <td style="padding:12px;color:#6b7280;font-size:12px;">{{ $file->uploader->name }}</td>
                         <td style="padding:12px;color:#6b7280;font-size:12px;white-space:nowrap;">{{ $file->created_at->format('Y.m.d') }}</td>
                         <td style="padding:12px;">
-                            <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="display:flex;align-items:center;gap:12px;">
                                 @if($file->isUrlType())
                                 <button onclick="logFileAction({{ $file->id }},'view');openUrlViewer({{ $file->id }}, {{ $project->id }}, '{{ addslashes($file->original_name) }}', '{{ addslashes($file->getEmbedUrl()) }}', '{{ addslashes($file->source_url) }}')"
                                         style="font-size:12px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
@@ -564,7 +564,7 @@
                       onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
         </div>
 
-        <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <div style="display:flex;justify-content:flex-end;gap:12px;">
             <button onclick="closeReviewModal()"
                     style="padding:8px 18px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;font-size:13px;color:#6b7280;cursor:pointer;transition:background .12s;"
                     onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
@@ -586,7 +586,7 @@
         </div>
         <p id="custom-confirm-msg" style="font-size:14px;font-weight:600;color:#1f2937;margin:0 0 6px;"></p>
         <p id="custom-confirm-sub" style="font-size:12.5px;color:#6b7280;margin:0 0 22px;"></p>
-        <div style="display:flex;gap:10px;justify-content:center;">
+        <div style="display:flex;gap:12px;justify-content:center;">
             <button id="custom-confirm-cancel"
                 style="flex:1;padding:9px 0;border:1.5px solid #e5e7eb;border-radius:9px;background:#fff;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;transition:background .12s;"
                 onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('files.confirm_cancel') }}</button>
@@ -649,7 +649,7 @@
 
         {{-- 헤더 --}}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
-            <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;">
                 <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="16" height="16" fill="none" stroke="#fff" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </div>
@@ -719,7 +719,7 @@
         </div>
 
         {{-- 푸터 --}}
-        <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;">
+        <div style="display:flex;justify-content:flex-end;align-items:center;gap:12px;">
             <span id="edit-status" style="font-size:12px;flex:1;"></span>
             <button onclick="closeEditModal()"
                     style="padding:9px 20px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;font-size:13px;color:#6b7280;cursor:pointer;transition:background .12s;"
@@ -1164,7 +1164,7 @@ async function addCategory() {
     li.className = 'cat-item';
     li.dataset.id = cat.id;
     li.innerHTML = `
-        <div class="cat-item-view" style="display:flex;align-items:center;width:100%;gap:2px;">
+        <div class="cat-item-view" style="display:flex;align-items:center;width:100%;gap:4px;">
             <a href="?category=${cat.id}" class="cat-filter-btn" style="flex:1;min-width:0;">
                 <span class="cat-dot" style="background:${cat.color};"></span>
                 <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(cat.name)}</span>
@@ -1176,7 +1176,7 @@ async function addCategory() {
             <button class="cat-delete-btn" onclick="deleteCategory(${cat.id},this)" title="${STR.delete}">×</button>
         </div>
         <div class="cat-item-edit" style="display:none;padding:6px 4px 4px;width:100%;">
-            <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px;">
                 <input type="color" class="cat-edit-color" value="${cat.color}" style="width:26px;height:26px;padding:0;border:1.5px solid #e5e7eb;border-radius:5px;cursor:pointer;background:none;flex-shrink:0;">
                 <input type="text" class="cat-edit-name" value="${escHtml(cat.name)}" style="flex:1;padding:5px 8px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:12px;outline:none;background:#fff;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'" onkeydown="if(event.key==='Enter')saveEditCategory(${cat.id},this)">
             </div>
@@ -1894,7 +1894,7 @@ document.getElementById('share-modal').addEventListener('click', async function(
             <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('team.copy_modal_title') }}</h3>
             <button onclick="closeCopyModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;">×</button>
         </div>
-        <div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:12px;">
             <div>
                 <p id="copy-filename" style="font-size:13px;color:#374151;font-weight:500;margin:0 0 14px;word-break:break-all;"></p>
                 <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">{{ __('team.copy_project_label') }} <span style="color:#ef4444;">*</span></label>

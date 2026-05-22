@@ -257,12 +257,12 @@
     </div>
 
     <div class="ai-left-body">
-    <div style="padding:10px 10px 0;flex-shrink:0;display:flex;flex-direction:column;gap:5px;">
-        <button style="width:100%;padding:7px 0;background:linear-gradient(135deg,var(--t600),var(--t500));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;" onclick="goToLanding()">
+    <div style="padding:10px 10px 0;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">
+        <button style="width:100%;padding:7px 0;background:linear-gradient(135deg,var(--t600),var(--t500));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;" onclick="goToLanding()">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             {{ __('ai.new_chat') }}
         </button>
-        <div style="display:flex;gap:5px;">
+        <div style="display:flex;gap:4px;">
             <a href="{{ route('ai.prompts.index') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 0;background:var(--tBg);color:var(--t600);border:1px solid var(--t200);border-radius:7px;font-size:11px;font-weight:600;text-decoration:none;">
                 <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 {{ __('ai.library') }}
@@ -276,7 +276,7 @@
 
     <div class="ai-left-scroll">
         <div id="left-proj-badge" style="display:none;padding:8px 4px 4px;">
-            <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#dbeafe;border-radius:8px;">
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#dbeafe;border-radius:8px;">
                 <svg width="10" height="10" fill="none" stroke="#1d4ed8" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
                 <span id="left-proj-name" style="font-size:11px;font-weight:600;color:#1d4ed8;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
             </div>
@@ -381,7 +381,7 @@
                 <p>{!! __('ai.landing_desc') !!}</p>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;width:100%;max-width:1320px;">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;width:100%;max-width:1320px;">
                 {{-- GENERAL --}}
                 <div class="lnd-card" onclick="startAgent('general')">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
@@ -476,9 +476,9 @@
             @if($sessions->count())
             <div style="width:100%;max-width:660px;">
                 <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;">{{ __('ai.recent_chats') }}</div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
                     @foreach($sessions->take(3) as $s)
-                    <div onclick="loadSession({{ $s->id }})" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1.5px solid #e8e3ff;border-radius:10px;cursor:pointer;transition:border-color .15s;" onmouseenter="this.style.borderColor='var(--t300)'" onmouseleave="this.style.borderColor='#e8e3ff'">
+                    <div onclick="loadSession({{ $s->id }})" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1.5px solid #e8e3ff;border-radius:10px;cursor:pointer;transition:border-color .15s;" onmouseenter="this.style.borderColor='var(--t300)'" onmouseleave="this.style.borderColor='#e8e3ff'">
                         <svg width="13" height="13" fill="none" stroke="var(--t400)" viewBox="0 0 24 24" stroke-width="2" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         <span style="flex:1;font-size:13px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $s->title }}</span>
                         <span style="font-size:11px;color:#94a3b8;flex-shrink:0;">{{ $s->created_at->diffForHumans() }}</span>
@@ -494,7 +494,7 @@
     <div class="ai-state" id="state-project-select">
         <div class="pj-wrap">
             <div class="pj-hdr">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
                     <button class="ai-back-btn" onclick="goToLanding()">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         {{ __('ai.back') }}
@@ -636,8 +636,8 @@
         {{-- 인라인 Agent 설정 패널 --}}
         <div id="agent-config-panel" style="display:none;background:#fff;border-bottom:2px solid var(--t100);flex-shrink:0;">
             <div style="padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--t50);">
-                <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                    <div id="acp-heading" style="font-size:13px;font-weight:700;color:#1e1b2e;display:flex;align-items:center;gap:7px;flex-shrink:0;"></div>
+                <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                    <div id="acp-heading" style="font-size:13px;font-weight:700;color:#1e1b2e;display:flex;align-items:center;gap:8px;flex-shrink:0;"></div>
                     <div id="acp-sub" style="font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
                 </div>
                 <button id="acp-toggle-btn" onclick="toggleConfigPanel()" style="display:flex;align-items:center;gap:4px;padding:4px 10px;border:1.5px solid var(--t200);border-radius:7px;background:transparent;font-size:11.5px;color:#64748b;cursor:pointer;font-family:inherit;flex-shrink:0;margin-left:10px;">
@@ -776,7 +776,7 @@
                         </div>
                     </div>
                     <div style="height:1px;background:#f1f5f9;margin-bottom:12px;"></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
                         <div class="ai-field" style="margin:0;">
                             <label>{{ __('ai.output_filename') }} <span style="font-weight:400;color:#94a3b8;">{{ __('ai.output_filename_hint') }}</span></label>
                             <input type="text" id="doc-output-filename" placeholder="{{ __('ai.ph_doc_filename') }}">
@@ -805,16 +805,16 @@
 
                 {{-- FIGMA 설정 --}}
                 <div id="acp-figma" style="display:none;">
-                    <div style="font-size:10.5px;font-weight:700;color:#be185d;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
+                    <div style="font-size:10.5px;font-weight:700;color:#be185d;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:4px;">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 2v20M5 9h14M5 15h14"/></svg>{{ __('ai.figma_source') }}
                     </div>
-                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+                    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px;">
                         <div class="ai-field" style="margin:0;">
                             <label>{{ __('ai.figma_url_label') }} <span style="color:#be185d;">*</span></label>
                             <input type="url" id="figma-url" placeholder="https://www.figma.com/file/XXXXX/..." style="border-color:#e5e7eb;" onfocus="this.style.borderColor='#be185d'" onblur="this.style.borderColor='#e5e7eb'">
                             <div style="font-size:11px;color:#94a3b8;margin-top:3px;">{{ __('ai.figma_url_hint') }}</div>
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                             <div class="ai-field" style="margin:0;">
                                 <label>{{ __('ai.figma_node_id') }} <span style="font-weight:400;color:#94a3b8;">{{ __('ai.output_filename_hint') }}</span></label>
                                 <input type="text" id="figma-node-id" placeholder="{{ __('ai.ph_figma_node_id') }}">
@@ -827,10 +827,10 @@
                         </div>
                     </div>
                     <div style="height:1px;background:#f1f5f9;margin-bottom:12px;"></div>
-                    <div style="font-size:10.5px;font-weight:700;color:#be185d;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
+                    <div style="font-size:10.5px;font-weight:700;color:#be185d;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:4px;">
                         <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>{{ __('ai.code_gen_options') }}
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;">
                         <div class="ai-field" style="margin:0;">
                             <label>{{ __('ai.css_framework') }}</label>
                             <select id="figma-css-framework">
@@ -848,7 +848,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
                         <div class="ai-field" style="margin:0;">
                             <label>Mobile BP <span style="font-weight:400;color:#94a3b8;">(px)</span></label>
                             <input type="number" id="figma-mobile-bp" value="375" min="320" max="600">
@@ -894,7 +894,7 @@
 
                 {{-- BUILDER 설정 --}}
                 <div id="acp-builder" style="display:none;">
-                    <div style="font-size:10.5px;font-weight:700;color:#92400e;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:5px;">
+                    <div style="font-size:10.5px;font-weight:700;color:#92400e;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:4px;">
                         <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                         {{ __('ai.builder_step_select') }}
                     </div>
@@ -949,7 +949,7 @@
                     <span style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0;"></span>
                     <span style="font-size:12.5px;color:#166534;" id="shared-owner-label">{{ __('ai.shared_view_label') }}</span>
                 </div>
-                <button onclick="forkSession()" id="fork-btn" style="display:flex;align-items:center;gap:5px;padding:6px 13px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;transition:opacity .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+                <button onclick="forkSession()" id="fork-btn" style="display:flex;align-items:center;gap:4px;padding:6px 13px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;transition:opacity .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     {{ __('ai.fork_session') }}
                 </button>
@@ -1015,7 +1015,7 @@
             </div>
             <div style="font-size:11px;color:var(--t300);margin-top:4px;padding:0 2px;display:flex;align-items:center;justify-content:space-between;">
                 <span>{{ __('ai.input_hint') }}</span>
-                <label id="email-toggle-label" style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 8px;border-radius:6px;transition:background .12s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='transparent'">
+                <label id="email-toggle-label" style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:3px 8px;border-radius:6px;transition:background .12s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='transparent'">
                     <input type="checkbox" id="email-toggle" style="width:13px;height:13px;accent-color:var(--t600);cursor:pointer;flex-shrink:0;">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="color:var(--t400);flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     <span style="color:var(--t500);white-space:nowrap;">{{ __('ai.email_result') }}</span>
@@ -1042,15 +1042,15 @@
             {!! __('ai.api_priority_note') !!}
         </div>
         <div class="ai-field">
-            <label style="display:flex;align-items:center;gap:5px;">
-                <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:#ede9fe;color:#7c3aed;border-radius:4px;font-size:10px;font-weight:700;">{{ __('ai.priority_1') }}</span>
+            <label style="display:flex;align-items:center;gap:4px;">
+                <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;background:#ede9fe;color:#7c3aed;border-radius:4px;font-size:10px;font-weight:700;">{{ __('ai.priority_1') }}</span>
                 Anthropic API Key (Claude)
             </label>
             <input type="password" id="s-anthropic-key" placeholder="{{ $settings->anthropicKey() ? '••••••••••' : 'sk-ant-...' }}" value="{{ $settings->anthropicKey() ? '••••••••••' : '' }}">
         </div>
         <div class="ai-field">
-            <label style="display:flex;align-items:center;gap:5px;">
-                <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:#dcfce7;color:#16a34a;border-radius:4px;font-size:10px;font-weight:700;">{{ __('ai.priority_2') }}</span>
+            <label style="display:flex;align-items:center;gap:4px;">
+                <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;background:#dcfce7;color:#16a34a;border-radius:4px;font-size:10px;font-weight:700;">{{ __('ai.priority_2') }}</span>
                 OpenAI API Key (GPT-4.1) — {{ __('ai.openai_fallback') }}
             </label>
             <input type="password" id="s-openai-key" placeholder="{{ $settings->openaiKey() ? '••••••••••' : 'sk-...' }}" value="{{ $settings->openaiKey() ? '••••••••••' : '' }}">
@@ -1093,7 +1093,7 @@
 <div class="ai-modal-backdrop" id="figma-picker-modal">
     <div class="ai-modal" style="width:340px;">
         <h3>{{ __('ai.figma_connect_modal') }}</h3>
-        <div id="figma-picker-list" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+        <div id="figma-picker-list" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
         <div class="ai-modal-actions"><button class="ai-btn-cancel" onclick="closeModal('figma-picker-modal')">{{ __('ai.close') }}</button></div>
     </div>
 </div>
@@ -1157,7 +1157,7 @@
             </div>
             <button onclick="closeModal('modal-proj-files')" style="border:none;background:transparent;cursor:pointer;color:#94a3b8;padding:4px;"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
-        <div id="proj-files-modal-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+        <div id="proj-files-modal-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
             <div style="text-align:center;color:#94a3b8;font-size:13px;padding:24px;">{{ __('ai.no_saved_files') }}</div>
         </div>
         <div style="margin-top:12px;flex-shrink:0;border-top:1px solid var(--t100);padding-top:12px;">
@@ -2381,8 +2381,8 @@ function appendErrorMessage(text) {
 
 // ── Message Builder ────────────────────────────────────────────
 function providerBadgeHtml(provider) {
-    if (provider === 'claude') return `<span style="font-size:10.5px;font-weight:700;color:#7c3aed;display:flex;align-items:center;gap:3px;">⚡ Claude</span>`;
-    if (provider === 'openai') return `<span style="font-size:10.5px;font-weight:700;color:#16a34a;display:flex;align-items:center;gap:3px;">✦ GPT-4.1</span>`;
+    if (provider === 'claude') return `<span style="font-size:10.5px;font-weight:700;color:#7c3aed;display:flex;align-items:center;gap:4px;">⚡ Claude</span>`;
+    if (provider === 'openai') return `<span style="font-size:10.5px;font-weight:700;color:#16a34a;display:flex;align-items:center;gap:4px;">✦ GPT-4.1</span>`;
     return '';
 }
 
@@ -2499,7 +2499,7 @@ function buildDocCard(msg) {
         ? `<button id="atp-btn-${msg.id}" class="ai-doc-add-proj-btn" onclick="showAddToProjectPicker(${msg.id}, ${JSON.stringify(msg.doc_file_name)}, ${JSON.stringify(msg.doc_file_type)})"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>${AI_STR.addToProject}</button>`
         : '';
     const btnWrap = (dlBtn || addBtn)
-        ? `<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">${dlBtn}${addBtn}</div>`
+        ? `<div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">${dlBtn}${addBtn}</div>`
         : '';
     return `<div class="ai-doc-card">
         <div class="ai-doc-card-icon">${icon}</div>
@@ -2788,7 +2788,7 @@ function openProjectFilesModal() {
     } else {
         list.innerHTML = projectFiles.map(f => {
             const date = f.updated_at ? f.updated_at.substring(0, 10) : '';
-            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;">
+            return `<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;">
                 <svg width="14" height="14" fill="none" stroke="var(--t400)" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span style="flex:1;font-size:13px;font-weight:600;color:#1e1b2e;">${escHtml(f.file_name)}</span>
                 <span style="font-size:11px;color:#94a3b8;">${escHtml(f.lang)}</span>

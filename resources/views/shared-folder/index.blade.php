@@ -7,25 +7,25 @@
 
     {{-- 헤더 --}}
     <div>
-        <h1 style="font-size:19px;font-weight:800;color:#1e1b2e;display:flex;align-items:center;gap:8px;">
+        <h1 style="font-size:19px;font-weight:800;color:var(--color-text-primary);display:flex;align-items:center;gap:8px;">
             <svg width="20" height="20" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z"/></svg>
             {{ __('shared-folder.title') }}
         </h1>
-        <div style="font-size:13px;color:#94a3b8;margin-top:3px;">{{ __('shared-folder.subtitle') }}</div>
+        <div style="font-size:13px;color:var(--color-text-tertiary);margin-top:3px;">{{ __('shared-folder.subtitle') }}</div>
     </div>
 
     @if(session('success'))
     <div style="background:#dcfce7;border:1px solid #bbf7d0;color:#166534;border-radius:9px;padding:9px 14px;font-size:13px;">{{ session('success') }}</div>
     @endif
     @if($errors->any())
-    <div style="background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:9px;padding:9px 14px;font-size:13px;">{{ $errors->first() }}</div>
+    <div style="background:var(--color-bg-danger-subtle);border:1px solid #fecaca;color:#b91c1c;border-radius:9px;padding:9px 14px;font-size:13px;">{{ $errors->first() }}</div>
     @endif
 
     <div style="display:flex;gap:16px;align-items:flex-start;">
 
         {{-- ── 폴더(카테고리) 사이드바 ── --}}
-        <div style="width:210px;flex-shrink:0;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;">
-            <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;padding:0 4px;">{{ __('shared-folder.folders') }}</div>
+        <div style="width:210px;flex-shrink:0;background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:12px;">
+            <div style="font-size:11px;font-weight:700;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;padding:0 4px;">{{ __('shared-folder.folders') }}</div>
             @php $catBase = route('shared-folder.index'); @endphp
             <a href="{{ $catBase }}" class="sf-cat {{ !$categoryId && !($scope ?? null) ? 'active' : '' }}">
                 <span>📁 {{ __('shared-folder.category_all') }}</span><span class="sf-cat-n">{{ $totalCount }}</span>
@@ -39,7 +39,7 @@
             @foreach($categories as $cat)
             <div style="display:flex;align-items:center;">
                 <a href="{{ $catBase }}?category={{ $cat->id }}" class="sf-cat {{ (string)$categoryId === (string)$cat->id ? 'active' : '' }}" style="flex:1;min-width:0;">
-                    <span style="display:flex;align-items:center;gap:6px;min-width:0;">
+                    <span style="display:flex;align-items:center;gap:8px;min-width:0;">
                         <span style="width:9px;height:9px;border-radius:3px;background:{{ $cat->color }};flex-shrink:0;"></span>
                         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $cat->name }}</span>
                     </span>
@@ -53,11 +53,11 @@
             </div>
             @endforeach
             {{-- 폴더 추가 --}}
-            <form method="POST" action="{{ route('shared-folder.categories.store') }}" style="display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">
+            <form method="POST" action="{{ route('shared-folder.categories.store') }}" style="display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--color-bg-muted);">
                 @csrf
                 <input type="text" name="name" maxlength="80" required placeholder="{{ __('shared-folder.category_name_ph') }}"
-                       style="flex:1;min-width:0;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;outline:none;">
-                <button type="submit" style="flex-shrink:0;padding:5px 9px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">+</button>
+                       style="flex:1;min-width:0;padding:5px 8px;border:1px solid var(--color-border-default);border-radius:6px;font-size:12px;outline:none;">
+                <button type="submit" style="flex-shrink:0;padding:5px 9px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">+</button>
             </form>
         </div>
 
@@ -65,10 +65,10 @@
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;">
 
             {{-- 업로드 --}}
-            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px 18px;">
-                <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px;">{{ __('shared-folder.upload') }}</div>
+            <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:16px 18px;">
+                <div style="font-size:13px;font-weight:700;color:var(--color-text-primary);margin-bottom:10px;">{{ __('shared-folder.upload') }}</div>
                 <form method="POST" action="{{ route('shared-folder.store') }}" enctype="multipart/form-data"
-                      style="display:flex;flex-direction:column;gap:10px;">
+                      style="display:flex;flex-direction:column;gap:12px;">
                     @csrf
                     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                         {{-- 파일 선택 (네이티브 input 숨김 + 누적 큐) --}}
@@ -77,7 +77,7 @@
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             {{ __('shared-folder.choose_files') }}
                         </label>
-                        <span id="sf-file-empty" style="font-size:12px;color:#9ca3af;">{{ __('shared-folder.no_file_selected') }}</span>
+                        <span id="sf-file-empty" style="font-size:12px;color:var(--color-text-tertiary);">{{ __('shared-folder.no_file_selected') }}</span>
                         <select name="category_id" class="sf-input" style="flex-shrink:0;">
                             <option value="">{{ __('shared-folder.category_select') }}</option>
                             @foreach($categories as $cat)
@@ -97,35 +97,35 @@
                         </button>
                     </div>
                     {{-- 선택 파일 큐 (멀티 업로드 — 여러 번 선택해 누적) --}}
-                    <div id="sf-file-queue" style="display:none;flex-wrap:wrap;gap:6px;"></div>
+                    <div id="sf-file-queue" style="display:none;flex-wrap:wrap;gap:8px;"></div>
                 </form>
             </div>
 
             {{-- 파일 목록 --}}
-            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
-                <div style="padding:14px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                    <span style="font-size:13px;font-weight:700;color:#111827;">{{ __('shared-folder.file_list') }}</span>
-                    <div style="display:flex;align-items:center;gap:10px;">
+            <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;overflow:hidden;">
+                <div style="padding:14px 20px;border-bottom:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                    <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('shared-folder.file_list') }}</span>
+                    <div style="display:flex;align-items:center;gap:12px;">
                         <form method="GET" action="{{ route('shared-folder.index') }}" style="display:flex;">
                             @if($categoryId)<input type="hidden" name="category" value="{{ $categoryId }}">@endif
                             <div style="position:relative;">
                                 <svg width="13" height="13" fill="none" stroke="#9ca3af" viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="{{ __('common.search') }}"
-                                       style="padding:5px 10px 5px 27px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;width:180px;outline:none;box-sizing:border-box;">
+                                       style="padding:5px 10px 5px 27px;border:1px solid var(--color-border-default);border-radius:7px;font-size:12px;width:180px;outline:none;box-sizing:border-box;">
                             </div>
                         </form>
-                        <span style="font-size:12px;color:#9ca3af;">{{ $files->total() }}</span>
+                        <span style="font-size:12px;color:var(--color-text-tertiary);">{{ $files->total() }}</span>
                     </div>
                 </div>
 
                 <table style="width:100%;border-collapse:collapse;font-size:13px;">
                     <thead>
-                        <tr style="background:#f9fafb;border-bottom:1px solid #f3f4f6;">
-                            <th style="text-align:left;padding:10px 20px;font-size:11px;font-weight:600;color:#6b7280;">{{ __('shared-folder.col_name') }}</th>
-                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:#6b7280;">{{ __('shared-folder.col_category') }}</th>
-                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:#6b7280;">{{ __('shared-folder.col_size') }}</th>
-                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:#6b7280;">{{ __('shared-folder.col_uploader') }}</th>
-                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:#6b7280;">{{ __('shared-folder.col_date') }}</th>
+                        <tr style="background:#f9fafb;border-bottom:1px solid var(--color-bg-muted);">
+                            <th style="text-align:left;padding:10px 20px;font-size:11px;font-weight:600;color:var(--color-text-secondary);">{{ __('shared-folder.col_name') }}</th>
+                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--color-text-secondary);">{{ __('shared-folder.col_category') }}</th>
+                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--color-text-secondary);">{{ __('shared-folder.col_size') }}</th>
+                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--color-text-secondary);">{{ __('shared-folder.col_uploader') }}</th>
+                            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--color-text-secondary);">{{ __('shared-folder.col_date') }}</th>
                             <th style="padding:10px 20px;"></th>
                         </tr>
                     </thead>
@@ -136,30 +136,30 @@
                                 <div style="display:flex;align-items:center;gap:8px;">
                                     <span style="font-size:18px;flex-shrink:0;">{{ $file->icon }}</span>
                                     <div style="min-width:0;">
-                                        <a href="{{ route('shared-folder.download', $file) }}" style="font-size:13px;font-weight:600;color:#111827;text-decoration:none;word-break:break-all;" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color='#111827'">{{ $file->original_name }}</a>
+                                        <a href="{{ route('shared-folder.download', $file) }}" style="font-size:13px;font-weight:600;color:var(--color-text-primary);text-decoration:none;word-break:break-all;" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color='#111827'">{{ $file->original_name }}</a>
                                         @if($file->is_personal)
-                                        <span style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;vertical-align:middle;" title="{{ __('shared-folder.personal_hint') }}">
+                                        <span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;vertical-align:middle;" title="{{ __('shared-folder.personal_hint') }}">
                                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                             {{ __('shared-folder.personal') }}
                                         </span>
                                         @endif
-                                        @if($file->description)<div style="font-size:11px;color:#9ca3af;margin-top:1px;">{{ $file->description }}</div>@endif
+                                        @if($file->description)<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:1px;">{{ $file->description }}</div>@endif
                                     </div>
                                 </div>
                             </td>
                             <td style="padding:11px 12px;">
                                 @if($file->category)
-                                <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;background:{{ $file->category->color }};">{{ $file->category->name }}</span>
+                                <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;background:{{ $file->category->color }};">{{ $file->category->name }}</span>
                                 @else
                                 <span style="font-size:11px;color:#cbd5e1;">—</span>
                                 @endif
                             </td>
-                            <td style="padding:11px 12px;font-size:12px;color:#6b7280;">{{ $file->formatted_size }}</td>
-                            <td style="padding:11px 12px;font-size:12px;color:#6b7280;">{{ $file->uploader?->name ?? '—' }}</td>
-                            <td style="padding:11px 12px;font-size:12px;color:#9ca3af;">{{ $file->created_at?->format('Y-m-d') }}</td>
+                            <td style="padding:11px 12px;font-size:12px;color:var(--color-text-secondary);">{{ $file->formatted_size }}</td>
+                            <td style="padding:11px 12px;font-size:12px;color:var(--color-text-secondary);">{{ $file->uploader?->name ?? '—' }}</td>
+                            <td style="padding:11px 12px;font-size:12px;color:var(--color-text-tertiary);">{{ $file->created_at?->format('Y-m-d') }}</td>
                             <td style="padding:11px 20px;text-align:right;white-space:nowrap;">
                                 <a href="{{ route('shared-folder.download', $file) }}" title="{{ __('shared-folder.download') }}"
-                                   style="display:inline-flex;color:#7c3aed;padding:4px;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
+                                   style="display:inline-flex;color:var(--t600);padding:4px;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
                                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 </a>
 
@@ -168,13 +168,13 @@
                                 <span class="sf-actions" style="position:relative;display:inline-block;margin-left:4px;">
                                     <button type="button" title="{{ __('shared-folder.more_actions') }}"
                                             onclick="event.stopPropagation(); document.querySelectorAll('.sf-dd.open').forEach(function(d){if(d!==this.nextElementSibling)d.classList.remove('open');}.bind(this)); this.nextElementSibling.classList.toggle('open');"
-                                            style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:4px;line-height:0;" onmouseover="this.style.color='#374151'" onmouseout="this.style.color='#9ca3af'">
+                                            style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:4px;line-height:0;" onmouseover="this.style.color='#374151'" onmouseout="this.style.color='#9ca3af'">
                                         <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
                                     </button>
-                                    <div class="sf-dd" style="display:none;position:absolute;right:0;top:100%;margin-top:2px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.08);min-width:150px;z-index:10;padding:4px;">
+                                    <div class="sf-dd" style="display:none;position:absolute;right:0;top:100%;margin-top:2px;background:#fff;border:1px solid var(--color-border-default);border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.08);min-width:150px;z-index:10;padding:4px;">
                                         <button type="button" data-file-id="{{ $file->id }}" data-file-name="{{ e($file->original_name) }}" data-current-category="{{ $file->category_id ?? '' }}"
                                                 onclick="openMoveCategoryModal(this)"
-                                                style="display:flex;align-items:center;gap:7px;width:100%;text-align:left;padding:7px 9px;background:none;border:none;border-radius:6px;font-size:12.5px;color:#374151;cursor:pointer;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background=''">
+                                                style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:7px 9px;background:none;border:none;border-radius:6px;font-size:12.5px;color:var(--color-text-secondary);cursor:pointer;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background=''">
                                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z"/></svg>
                                             {{ __('shared-folder.move_category') }}
                                         </button>
@@ -182,7 +182,7 @@
                                               onsubmit="return confirm('{{ __('shared-folder.delete_confirm') }}')">
                                             @csrf @method('DELETE')
                                             <button type="submit"
-                                                    style="display:flex;align-items:center;gap:7px;width:100%;text-align:left;padding:7px 9px;background:none;border:none;border-radius:6px;font-size:12.5px;color:#ef4444;cursor:pointer;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
+                                                    style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:7px 9px;background:none;border:none;border-radius:6px;font-size:12.5px;color:var(--color-alert-warning-500);cursor:pointer;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
                                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                 {{ __('shared-folder.delete') }}
                                             </button>
@@ -193,7 +193,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="6" style="padding:42px 20px;text-align:center;color:#9ca3af;">
+                        <tr><td colspan="6" style="padding:42px 20px;text-align:center;color:var(--color-text-tertiary);">
                             <div style="font-size:26px;margin-bottom:6px;">📂</div>
                             <div style="font-size:13px;">{{ __('shared-folder.empty') }}</div>
                             <div style="font-size:12px;margin-top:3px;">{{ __('shared-folder.empty_hint') }}</div>
@@ -203,7 +203,7 @@
                 </table>
 
                 @if($files->hasPages())
-                <div style="padding:14px 20px;border-top:1px solid #f3f4f6;">{{ $files->links() }}</div>
+                <div style="padding:14px 20px;border-top:1px solid var(--color-bg-muted);">{{ $files->links() }}</div>
                 @endif
             </div>
 
@@ -309,14 +309,14 @@ function closeMoveCategoryModal(){
 <div id="sf-move-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this) closeMoveCategoryModal()">
     <div style="background:#fff;border-radius:14px;padding:22px;width:380px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.25);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <h2 style="font-size:15px;font-weight:800;color:#111827;margin:0;">{{ __('shared-folder.move_category_title') }}</h2>
-            <button type="button" onclick="closeMoveCategoryModal()" style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;padding:0 4px;">&times;</button>
+            <h2 style="font-size:15px;font-weight:800;color:var(--color-text-primary);margin:0;">{{ __('shared-folder.move_category_title') }}</h2>
+            <button type="button" onclick="closeMoveCategoryModal()" style="background:none;border:none;font-size:20px;color:var(--color-text-tertiary);cursor:pointer;line-height:1;padding:0 4px;">&times;</button>
         </div>
-        <div id="sf-move-target-name" style="font-size:12px;color:#6b7280;margin-bottom:14px;word-break:break-all;"></div>
+        <div id="sf-move-target-name" style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px;word-break:break-all;"></div>
 
         <form id="sf-move-form" method="POST" action="">
             @csrf @method('PATCH')
-            <label style="display:block;font-size:11px;font-weight:700;color:#374151;margin-bottom:6px;">{{ __('shared-folder.move_target') }}</label>
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--color-text-secondary);margin-bottom:6px;">{{ __('shared-folder.move_target') }}</label>
             <select name="category_id" class="sf-input" style="width:100%;margin-bottom:14px;">
                 <option value="">{{ __('shared-folder.move_to_none') }}</option>
                 @foreach($categories as $cat)
@@ -325,9 +325,9 @@ function closeMoveCategoryModal(){
             </select>
             <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button type="button" onclick="closeMoveCategoryModal()"
-                        style="padding:8px 16px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
+                        style="padding:8px 16px;background:var(--color-bg-muted);color:var(--color-text-secondary);border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button type="submit"
-                        style="padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('shared-folder.move_submit') }}</button>
+                        style="padding:8px 16px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('shared-folder.move_submit') }}</button>
             </div>
         </form>
     </div>

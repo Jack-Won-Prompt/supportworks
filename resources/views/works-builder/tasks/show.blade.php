@@ -39,7 +39,7 @@
 @section('breadcrumb')
     <a href="{{ route('wb.tasks.index') }}" class="hover:text-indigo-500 transition-colors">진행 중 Task</a>
     <span>›</span>
-    <span style="color:#374151;font-weight:500;">Task #{{ $task->id }}</span>
+    <span style="color:var(--color-text-secondary);font-weight:500;">Task #{{ $task->id }}</span>
 @endsection
 
 @section('header-actions')

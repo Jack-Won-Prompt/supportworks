@@ -216,14 +216,14 @@
             </h2>
             <p style="margin:0;font-size:12px;color:#6b7280;">{{ __('discussions.heading_desc') }}</p>
         </div>
-        <button onclick="dscOpenCreate()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,.3);">
+        <button onclick="dscOpenCreate()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,.3);">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             {{ __('discussions.register_discussion') }}
         </button>
     </div>
 
     {{-- 상태 필터 --}}
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="dsc-status-filter-btn active" data-filter="all"         onclick="dscFilter('all', this)">{{ __('discussions.filter_all', ['count' => $totalDiscussions]) }}</button>
         <button class="dsc-status-filter-btn"        data-filter="open"        onclick="dscFilter('open', this)">{{ __('discussions.filter_open', ['count' => $statusCounts['open'] ?? 0]) }}</button>
         <button class="dsc-status-filter-btn"        data-filter="in_progress" onclick="dscFilter('in_progress', this)">{{ __('discussions.filter_in_progress', ['count' => $statusCounts['in_progress'] ?? 0]) }}</button>
@@ -231,7 +231,7 @@
     </div>
 
     {{-- 일자 필터 --}}
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <span style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;text-transform:uppercase;display:inline-flex;align-items:center;gap:4px;margin-right:4px;">
             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             {{ __('discussions.date_label') }}
@@ -260,7 +260,7 @@
     </div>
 
     {{-- 목록 - 카드뷰 --}}
-    <div id="dsc-list" style="display:flex;flex-direction:column;gap:10px;">
+    <div id="dsc-list" style="display:flex;flex-direction:column;gap:12px;">
         @if($discussions->isEmpty())
         <div style="padding:48px 0;text-align:center;color:#9ca3af;font-size:13px;background:#fff;border-radius:12px;border:1px dashed #e5e7eb;">
             {{ __('discussions.empty_list') }}
@@ -289,13 +289,13 @@
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
                 <span class="dsc-badge dsc-status-pill-{{ $d->status }}">{{ $d->status_label }}</span>
                 @if($d->reflection_status === 'reflected')
-                    <span class="dsc-badge" style="background:#dcfce7;color:#15803d;display:inline-flex;align-items:center;gap:3px;"
+                    <span class="dsc-badge" style="background:#dcfce7;color:#15803d;display:inline-flex;align-items:center;gap:4px;"
                           title="{{ optional($d->reflectedPlanningDoc)->title ? __('discussions.reflected_doc_title', ['title' => $d->reflectedPlanningDoc->title]) : __('discussions.reflected_default') }}">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
                         {{ __('discussions.reflected_badge') }}
                     </span>
                 @elseif($d->reflection_status === 'rejected')
-                    <span class="dsc-badge" style="background:#fee2e2;color:#b91c1c;display:inline-flex;align-items:center;gap:3px;"
+                    <span class="dsc-badge" style="background:#fee2e2;color:#b91c1c;display:inline-flex;align-items:center;gap:4px;"
                           title="{{ $d->reflection_note ?: __('discussions.rejected_default') }}">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         {{ __('discussions.rejected_badge') }}
@@ -305,14 +305,14 @@
             </div>
             <div style="font-size:15px;font-weight:600;color:#18181b;margin-bottom:6px;">{{ $d->title }}</div>
             <div style="font-size:13px;color:#6b7280;line-height:1.5;max-height:42px;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit(strip_tags($d->content), 200) }}</div>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap;">
                 <span style="font-size:11px;color:#9ca3af;">{{ __('discussions.card_author') }}: <b style="color:#374151;">{{ $d->author->name }}</b></span>
-                <span style="font-size:11px;color:#9ca3af;display:inline-flex;align-items:center;gap:3px;">
+                <span style="font-size:11px;color:#9ca3af;display:inline-flex;align-items:center;gap:4px;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     {{ $d->comments_count }}
                 </span>
                 @if($d->attachments_count > 0)
-                <span style="font-size:11px;color:#9ca3af;display:inline-flex;align-items:center;gap:3px;">
+                <span style="font-size:11px;color:#9ca3af;display:inline-flex;align-items:center;gap:4px;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                     {{ $d->attachments_count }}
                 </span>
@@ -358,13 +358,13 @@
                     <td><span class="dsc-badge dsc-status-pill-{{ $d->status }}">{{ $d->status_label }}</span></td>
                     <td>
                         @if($d->reflection_status === 'reflected')
-                            <span class="dsc-badge" style="background:#dcfce7;color:#15803d;display:inline-flex;align-items:center;gap:3px;"
+                            <span class="dsc-badge" style="background:#dcfce7;color:#15803d;display:inline-flex;align-items:center;gap:4px;"
                                   title="{{ optional($d->reflectedPlanningDoc)->title ? __('discussions.reflected_doc_title', ['title' => $d->reflectedPlanningDoc->title]) : __('discussions.reflected_default') }}">
                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
                                 {{ __('discussions.reflected_short') }}
                             </span>
                         @elseif($d->reflection_status === 'rejected')
-                            <span class="dsc-badge" style="background:#fee2e2;color:#b91c1c;display:inline-flex;align-items:center;gap:3px;"
+                            <span class="dsc-badge" style="background:#fee2e2;color:#b91c1c;display:inline-flex;align-items:center;gap:4px;"
                                   title="{{ $d->reflection_note ?: __('discussions.rejected_default') }}">
                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                 {{ __('discussions.rejected_short') }}
@@ -405,10 +405,10 @@
 {{-- ════ 등록/수정 모달 ════ --}}
 <div id="dsc-create-modal" class="dsc-modal-bg" onclick="if(event.target===this)dscCloseCreate()">
     <div class="dsc-modal">
-        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
                 <h3 style="margin:0;font-size:15px;font-weight:700;color:#18181b;white-space:nowrap;">{{ __('discussions.modal_create_title') }}</h3>
-                <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:#eef2ff;color:#4f46e5;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;">
+                <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#eef2ff;color:#4f46e5;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
                     {{ $project->name }}
                 </span>
@@ -416,8 +416,8 @@
             <button onclick="dscCloseCreate()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:22px;line-height:1;padding:2px 4px;flex-shrink:0;">×</button>
         </div>
         <div style="padding:20px 22px;overflow-y:auto;flex:1;">
-            <div style="display:flex;flex-direction:column;gap:14px;">
-                <div style="display:grid;grid-template-columns:1fr 180px;gap:10px;align-items:end;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:grid;grid-template-columns:1fr 180px;gap:12px;align-items:end;">
                     <div>
                         <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">{{ __('discussions.field_title') }} <span style="color:#ef4444;">*</span></label>
                         <input id="dsc-title" type="text" class="dsc-form-input" placeholder="{{ __('discussions.field_title_ph') }}" maxlength="255">
@@ -431,7 +431,7 @@
                 <div>
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                         <label style="font-size:12px;font-weight:700;color:#374151;">{{ __('discussions.field_content') }} <span style="font-weight:500;color:#9ca3af;font-size:11px;">{{ __('discussions.field_content_hint') }}</span></label>
-                        <button id="dsc-ai-refine-btn" type="button" onclick="dscAiRefine()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">
+                        <button id="dsc-ai-refine-btn" type="button" onclick="dscAiRefine()" style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">
                             <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.91 8.91L3 11l6.91 2.09L12 20l2.09-6.91L21 11l-6.91-2.09L12 2z"/></svg>
                             {{ __('discussions.works_refine') }}
                         </button>
@@ -483,7 +483,7 @@
 
                 <div>
                     <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">{{ __('discussions.field_share') }} <span style="font-weight:500;color:#9ca3af;font-size:11px;">{{ __('discussions.field_share_hint') }}</span></label>
-                    <div style="max-height:180px;overflow-y:auto;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="max-height:180px;overflow-y:auto;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;">
                         @forelse($shareableUsers as $u)
                         <label style="display:flex;align-items:center;gap:8px;padding:5px;cursor:pointer;border-radius:6px;transition:background .1s;" onmouseover="this.style.background='#faf5ff'" onmouseout="this.style.background=''">
                             <input type="checkbox" name="dsc-participants" value="{{ $u->id }}" style="accent-color:#7c3aed;">
@@ -507,7 +507,7 @@
 {{-- ════ 기획서 선택 다이얼로그 ════ --}}
 <div id="dsc-reflect-picker" onclick="if(event.target===this)dscCloseReflectPicker()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(15,12,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:520px;max-width:calc(100vw - 48px);max-height:80vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
-        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 {{ __('discussions.reflect_picker_title') }}
@@ -528,7 +528,7 @@
 {{-- ════ 반영하지 않음 사유 입력 다이얼로그 ════ --}}
 <div id="dsc-reject-modal" onclick="if(event.target===this)dscCloseRejectModal()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(15,12,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:480px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
-        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 {{ __('discussions.reject_modal_title') }}
@@ -560,20 +560,20 @@
 {{-- ════ 웍스 정제 미리보기 모달 (별도 오버레이) ════ --}}
 <div id="dsc-refine-modal" style="display:none;position:fixed;inset:0;z-index:10010;background:rgba(15,12,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)dscCloseRefinePreview()">
     <div style="width:100%;max-width:720px;max-height:84vh;background:#fff;border-radius:14px;border:1.5px solid #ddd6fe;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;">
-        <div style="padding:14px 18px;background:linear-gradient(135deg,#faf5ff,#ede9fe);border-bottom:1px solid #ddd6fe;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-shrink:0;">
-            <span style="font-size:13px;font-weight:700;color:#5b21b6;display:flex;align-items:center;gap:6px;">
+        <div style="padding:14px 18px;background:linear-gradient(135deg,#faf5ff,#ede9fe);border-bottom:1px solid #ddd6fe;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
+            <span style="font-size:13px;font-weight:700;color:#5b21b6;display:flex;align-items:center;gap:8px;">
                 <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.91 8.91L3 11l6.91 2.09L12 20l2.09-6.91L21 11l-6.91-2.09L12 2z"/></svg>
                 {{ __('discussions.refine_preview_title') }}
             </span>
             <button onclick="dscCloseRefinePreview()" type="button" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:20px;line-height:1;padding:2px 4px;">×</button>
         </div>
-        <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;">
+        <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px;">
             <div>
                 <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;text-transform:uppercase;">{{ __('discussions.refine_original') }}</p>
                 <div id="dsc-refine-orig" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:9px;padding:12px 14px;font-size:13px;color:#374151;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow-y:auto;"></div>
             </div>
             <div>
-                <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#5b21b6;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:5px;">
+                <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#5b21b6;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:4px;">
                     <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.91 8.91L3 11l6.91 2.09L12 20l2.09-6.91L21 11l-6.91-2.09L12 2z"/></svg>
                     {{ __('discussions.refine_result') }}
                 </p>
@@ -1156,7 +1156,7 @@ function dscRenderDetail(d) {
     body.innerHTML = `
         <!-- ═══ 컴팩트 헤더 ═══ -->
         <div style="padding:14px 22px 0;border-bottom:1px solid #f3f4f6;flex-shrink:0;background:#fff;">
-            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;">
                 <div style="flex:1;min-width:0;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
                         <span class="dsc-badge dsc-status-pill-${d.status}">${dscEsc(d.status_label)}</span>
@@ -1167,15 +1167,15 @@ function dscRenderDetail(d) {
                                     ${!d.discussion_date ? `<span class="dsc-date-edit-hint">${DSC_T.datePickHint}</span>` : ''}
                                </label>`
                             : (d.discussion_date
-                                ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#4f46e5;background:#eef2ff;padding:2px 8px;border-radius:10px;"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>${dscEsc(d.discussion_date)}</span>`
+                                ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#4f46e5;background:#eef2ff;padding:2px 8px;border-radius:10px;"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>${dscEsc(d.discussion_date)}</span>`
                                 : '')}
                         <span style="font-size:11px;color:#9ca3af;">${dscEsc(d.author.name)} · ${dscEsc(d.created_at)}</span>
                     </div>
                     <h3 style="margin:0;font-size:17px;font-weight:700;color:#18181b;word-break:break-word;">${dscEsc(d.title)}</h3>
                 </div>
-                <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+                <div style="display:flex;gap:8px;flex-shrink:0;align-items:center;">
                     <button type="button" onclick="dscDownloadWord(${d.id}, this)" title="${DSC_T.wordDownload}"
-                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#fff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">
+                            style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:#fff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         ${DSC_T.wordDownload}
                     </button>
@@ -1191,7 +1191,7 @@ function dscRenderDetail(d) {
                     <button class="dsc-status-btn-seg ${d.status==='in_progress'?'active':''}" onclick="dscChangeStatus(${d.id},'in_progress')">${DSC_T.statusInProgress}</button>
                     <button class="dsc-status-btn-seg ${d.status==='resolved'?'active':''}"    onclick="dscChangeStatus(${d.id},'resolved')">${DSC_T.statusResolved}</button>
                 </div>
-                <div style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#6b7280;">
+                <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;color:#6b7280;">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     ${DSC_T.shareCount.replace(':count', (d.participants || []).length)}
                     <button onclick="dscToggleShareEdit()" style="font-size:10px;font-weight:600;color:#7c3aed;background:#faf5ff;border:1px solid #ddd6fe;border-radius:5px;cursor:pointer;padding:2px 7px;margin-left:2px;">${DSC_T.shareManage}</button>
@@ -1210,14 +1210,14 @@ function dscRenderDetail(d) {
                         ${partOptions || `<div style="text-align:center;font-size:12px;color:#9ca3af;padding:10px 0;">${DSC_T.shareNoColleagues}</div>`}
                     </div>
                 </div>
-                <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px;">
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
                     <button onclick="dscToggleShareEdit()" type="button" style="padding:5px 12px;background:#f3f4f6;color:#374151;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">${DSC_T.cancel}</button>
                     <button onclick="dscSaveShare(${d.id})" type="button" style="padding:5px 12px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">${DSC_T.shareSaveNotify}</button>
                 </div>
             </div>
 
             <!-- 메인 탭 -->
-            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1.5px solid #e5e7eb;margin:0 -22px;padding:0 22px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1.5px solid #e5e7eb;margin:0 -22px;padding:0 22px;">
                 <div style="display:flex;gap:0;">
                     <button type="button" id="dsc-tab-main-content"    class="dsc-main-tab active"  onclick="dscSwitchMainTab('content')">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -1238,7 +1238,7 @@ function dscRenderDetail(d) {
         <!-- ═══ 탭 영역: 내용 ═══ -->
         <div id="dsc-pane-content" class="dsc-main-pane" style="flex:1;overflow-y:auto;padding:14px 22px 18px;background:#fff;">
             ${d.can_edit ? `
-            <div class="dsc-md-tabs" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+            <div class="dsc-md-tabs" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
                 <div style="display:flex;">
                     <button type="button" id="dsc-detail-tab-view" class="dsc-md-tab active" onclick="dscSwitchDetailBodyTab('view',${d.id})">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -1249,7 +1249,7 @@ function dscRenderDetail(d) {
                         ${DSC_T.tabEdit}
                     </button>
                 </div>
-                <div id="dsc-detail-edit-actions" style="display:none;align-items:center;gap:5px;padding-bottom:3px;">
+                <div id="dsc-detail-edit-actions" style="display:none;align-items:center;gap:4px;padding-bottom:3px;">
                     <button type="button" onclick="dscAiRefineDetailBody(${d.id})" id="dsc-detail-refine-btn" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">
                         <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.91 8.91L3 11l6.91 2.09L12 20l2.09-6.91L21 11l-6.91-2.09L12 2z"/></svg>
                         ${DSC_T.worksRefine}
@@ -1267,17 +1267,17 @@ function dscRenderDetail(d) {
             </div>` : ''}
             ${atts ? `
             <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f3f4f6;">
-                <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:5px;">
+                <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:4px;">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                     ${DSC_T.attachmentsTitle.replace(':count', attCount)}
                 </div>
-                <div id="dsc-attachments-row" style="display:flex;flex-wrap:wrap;gap:6px;">${atts}</div>
+                <div id="dsc-attachments-row" style="display:flex;flex-wrap:wrap;gap:8px;">${atts}</div>
             </div>` : ''}
         </div>
 
         <!-- ═══ 탭 영역: 결론 ═══ -->
         <div id="dsc-pane-conclusion" class="dsc-main-pane" style="display:none;flex:1;overflow-y:auto;padding:14px 22px 18px;background:#fffefb;">
-            <div class="dsc-md-tabs" style="margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+            <div class="dsc-md-tabs" style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
                 ${d.can_edit ? `
                 <button type="button" id="dsc-concldet-tab-view" class="dsc-md-tab active" onclick="dscSwitchDetailConclTab('view',${d.id})">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -1287,7 +1287,7 @@ function dscRenderDetail(d) {
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     ${DSC_T.tabEdit}
                 </button>` : ''}
-                <div id="dsc-reflect-actions" style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+                <div id="dsc-reflect-actions" style="margin-left:auto;display:flex;gap:8px;align-items:center;">
                     ${dscReflectActionsHtml(d)}
                 </div>
             </div>
@@ -1297,7 +1297,7 @@ function dscRenderDetail(d) {
                 <div class="dsc-md-wrap">
                     <textarea id="dsc-detail-concl-editor" placeholder="${DSC_T.detailConclPh}"></textarea>
                 </div>
-                <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px;">
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
                     <button type="button" onclick="dscCancelConclEdit()" style="padding:6px 14px;background:#f3f4f6;color:#374151;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">${DSC_T.cancel}</button>
                     <button type="button" onclick="dscSaveConclEdit(${d.id})" id="dsc-concl-save-btn" style="padding:6px 16px;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">${DSC_T.save}</button>
                 </div>
@@ -1308,7 +1308,7 @@ function dscRenderDetail(d) {
         <div id="dsc-pane-comments" class="dsc-main-pane" style="display:none;flex:1;min-height:0;flex-direction:column;background:#fff;">
             <!-- 의견 sub-tabs (리스트/작성) + 요약 버튼 -->
             <div style="padding:8px 22px 0;border-bottom:1px solid #f3f4f6;flex-shrink:0;background:#fafafa;">
-                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
                     <div style="display:flex;gap:0;">
                         <button type="button" id="dsc-cmtarea-tab-list" class="dsc-md-tab active" onclick="dscSwitchCommentArea('list')">
                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
@@ -1320,7 +1320,7 @@ function dscRenderDetail(d) {
                         </button>
                     </div>
                     <button type="button" id="dsc-summarize-btn" onclick="dscSummarizeComments(${d.id})" title="${DSC_T.summarizeTitle}"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:3px;">
+                        style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:3px;">
                         <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.91 8.91L3 11l6.91 2.09L12 20l2.09-6.91L21 11l-6.91-2.09L12 2z"/></svg>
                         ${DSC_T.summarizeBtn}
                     </button>
@@ -1328,21 +1328,21 @@ function dscRenderDetail(d) {
             </div>
 
             <!-- 의견 리스트 -->
-            <div id="dsc-cmtarea-list" style="flex:1;min-height:140px;overflow-y:auto;padding:14px 22px;display:flex;flex-direction:column;gap:10px;">
+            <div id="dsc-cmtarea-list" style="flex:1;min-height:140px;overflow-y:auto;padding:14px 22px;display:flex;flex-direction:column;gap:12px;">
                 <div id="dsc-summary-box" style="${d.comments_summary ? '' : 'display:none;'}background:linear-gradient(135deg,#faf5ff,#ede9fe);border:1.5px solid #c4b5fd;border-radius:10px;padding:12px 14px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
                         <span style="font-size:11px;font-weight:700;color:#5b21b6;letter-spacing:.04em;text-transform:uppercase;display:inline-flex;align-items:center;gap:4px;">
                             <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.91 8.91L3 11l6.91 2.09L12 20l2.09-6.91L21 11l-6.91-2.09L12 2z"/></svg>
                             ${DSC_T.aiSummaryLabel}
                         </span>
-                        <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
                             <span id="dsc-summary-meta" style="font-size:10px;color:#7c3aed;font-weight:600;">${d.comments_summary_at ? DSC_T.summaryMeta.replace(':time', dscEsc(d.comments_summary_at)).replace(':count', d.comments_summary_count || 0) : ''}</span>
                             <button onclick="dscHideSummary()" type="button" title="${DSC_T.summaryCollapse}" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:14px;line-height:1;padding:0 4px;">×</button>
                         </div>
                     </div>
                     <div id="dsc-summary-content" class="dsc-md-rendered" style="font-size:12.5px;line-height:1.6;">${d.comments_summary ? dscRenderMarkdown(d.comments_summary) : ''}</div>
                 </div>
-                <div id="dsc-comments-list" style="display:flex;flex-direction:column;gap:10px;">
+                <div id="dsc-comments-list" style="display:flex;flex-direction:column;gap:12px;">
                     ${comments || `<div style="font-size:13px;color:#9ca3af;text-align:center;padding:18px 0;">${DSC_T.commentsEmpty}</div>`}
                 </div>
             </div>
@@ -1362,7 +1362,7 @@ function dscRenderDetail(d) {
                 <div class="dsc-md-wrap">
                     <textarea id="dsc-comment-input" placeholder="${DSC_T.commentInputPh}"></textarea>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;gap:6px;flex-wrap:wrap;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;gap:8px;flex-wrap:wrap;">
                     <div>
                         <input id="dsc-comment-files" type="file" multiple class="dsc-file-input" onchange="dscUpdateFileLabel(this,'dsc-comment-files-label')">
                         <label for="dsc-comment-files" class="dsc-file-pick">
@@ -1371,8 +1371,8 @@ function dscRenderDetail(d) {
                             <span id="dsc-comment-files-label" class="dsc-file-count"></span>
                         </label>
                     </div>
-                    <div style="display:flex;gap:6px;">
-                        <button id="dsc-comment-refine" onclick="dscRefineComment(${d.id})" type="button" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;color:#7c3aed;border:1.5px solid #ddd6fe;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">
+                    <div style="display:flex;gap:8px;">
+                        <button id="dsc-comment-refine" onclick="dscRefineComment(${d.id})" type="button" style="display:inline-flex;align-items:center;gap:4px;padding:7px 12px;background:#fff;color:#7c3aed;border:1.5px solid #ddd6fe;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">
                             <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.91 8.91L3 11l6.91 2.09L12 20l2.09-6.91L21 11l-6.91-2.09L12 2z"/></svg>
                             ${DSC_T.commentRefine}
                         </button>
@@ -1702,7 +1702,7 @@ function dscReflectActionsHtml(d) {
             .replace(':at', r.decided_at || '');
         const href = r.planning_doc?.url || '#';
         return `<a href="${href}" target="_blank" title="${dscEscHtml(tooltip)}"
-                   style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#dcfce7;border:1px solid #bbf7d0;color:#15803d;border-radius:7px;font-size:11.5px;font-weight:700;text-decoration:none;cursor:pointer;">
+                   style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:#dcfce7;border:1px solid #bbf7d0;color:#15803d;border-radius:7px;font-size:11.5px;font-weight:700;text-decoration:none;cursor:pointer;">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
                     ${DSC_T.reflectedLink}
                 </a>`;
@@ -1713,7 +1713,7 @@ function dscReflectActionsHtml(d) {
             .replace(':by', r.decided_by?.name || '')
             .replace(':at', r.decided_at || '');
         return `<span title="${dscEscHtml(tooltip)}"
-                   style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:7px;font-size:11.5px;font-weight:700;cursor:help;">
+                   style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:7px;font-size:11.5px;font-weight:700;cursor:help;">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     ${DSC_T.rejectedBadge}
                 </span>`;
@@ -1722,12 +1722,12 @@ function dscReflectActionsHtml(d) {
     const titleHint = hasConclusion ? '' : DSC_T.reflectHint;
     return `
         <button type="button" onclick="dscTryReflect(${d.id})" title="${titleHint || DSC_T.reflectAction}"
-                style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;${hasConclusion ? '' : 'opacity:.55;'}">
+                style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;${hasConclusion ? '' : 'opacity:.55;'}">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
             ${DSC_T.reflectAction}
         </button>
         <button type="button" onclick="dscTryReject(${d.id})" title="${titleHint || DSC_T.rejectAction}"
-                style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#fff;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;${hasConclusion ? '' : 'opacity:.55;'}">
+                style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:#fff;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;${hasConclusion ? '' : 'opacity:.55;'}">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             ${DSC_T.rejectAction}
         </button>
@@ -1777,7 +1777,7 @@ async function dscOpenReflectPicker(discussionId) {
         }
         const list = document.getElementById('dsc-reflect-doc-list');
         list.innerHTML = data.docs.map(doc => `
-            <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;margin-bottom:6px;transition:border-color .12s;"
+            <label style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;margin-bottom:6px;transition:border-color .12s;"
                    onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='#e5e7eb'">
                 <input type="radio" name="reflect-doc" value="${doc.id}" style="margin:0;">
                 <div style="flex:1;min-width:0;">
@@ -2021,7 +2021,7 @@ function dscCommentHtml(c) {
             <span class="dsc-comment-time">${dscEsc(c.created_at)}</span>
             <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
                 <button onclick="dscToggleCommentShare(event, ${c.id}, this)" class="dsc-cmt-share-btn ${shareActive ? 'is-active' : ''}" title="${shareActive ? DSC_T.shareActiveTitle : DSC_T.shareCreateTitle}"
-                        style="background:${shareActive ? '#ede9fe' : 'none'};border:none;cursor:pointer;color:${shareActive ? '#7c3aed' : '#9ca3af'};font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;display:inline-flex;align-items:center;gap:3px;">
+                        style="background:${shareActive ? '#ede9fe' : 'none'};border:none;cursor:pointer;color:${shareActive ? '#7c3aed' : '#9ca3af'};font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;display:inline-flex;align-items:center;gap:4px;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                     ${shareActive ? DSC_T.shareActiveLabel : DSC_T.shareLabel}
                 </button>
@@ -2029,7 +2029,7 @@ function dscCommentHtml(c) {
             </div>
         </div>
         <div class="dsc-md-rendered">${dscRenderMarkdown(c.content || '')}</div>
-        ${atts ? `<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:5px;">${atts}</div>` : ''}
+        ${atts ? `<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px;">${atts}</div>` : ''}
     </div>`;
 }
 
@@ -2300,18 +2300,18 @@ function dscShowSharePopover(anchor, url, commentId) {
     pop.className = 'dsc-share-pop';
     pop.style.cssText = 'position:fixed;z-index:10100;background:#fff;border:1.5px solid #ddd6fe;border-radius:10px;padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,.18);min-width:300px;max-width:380px;font-family:inherit;';
     pop.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
             <span style="font-size:11px;font-weight:700;color:#5b21b6;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:4px;">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 ${DSC_T.shareLink}
             </span>
             <button onclick="this.closest('.dsc-share-pop').remove()" type="button" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;line-height:1;padding:0 4px;">×</button>
         </div>
-        <div style="display:flex;gap:5px;margin-bottom:7px;">
+        <div style="display:flex;gap:4px;margin-bottom:7px;">
             <input id="dsc-share-url" type="text" readonly value="${url}" style="flex:1;min-width:0;padding:6px 9px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:11px;color:#374151;background:#fafafa;outline:none;">
             <button onclick="dscCopyShareUrl(this)" type="button" style="padding:6px 10px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">${@json(__('common.copy'))}</button>
         </div>
-        <div style="display:flex;gap:5px;">
+        <div style="display:flex;gap:4px;">
             <a href="${url}" target="_blank" style="flex:1;text-align:center;padding:6px 10px;background:#fff;border:1.5px solid #ddd6fe;color:#7c3aed;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;">${DSC_T.shareOpenNewTab}</a>
             <button onclick="dscRevokeShare(${commentId}, this)" type="button" style="flex:1;padding:6px 10px;background:#fff;border:1.5px solid #fecaca;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">${DSC_T.shareRevoke}</button>
         </div>`;

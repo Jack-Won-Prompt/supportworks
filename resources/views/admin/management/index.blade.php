@@ -4,7 +4,7 @@
 @section('header-actions')
 @if(auth('admin')->user()->isSuperAdmin())
 <button onclick="openInviteModal()"
-    style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+    style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
     {{ __('admin.admin_invite') }}
 </button>
@@ -203,7 +203,7 @@
             $statusColor = match($proj->status) { 'active'=>'#22c55e','completed'=>'#94a3b8',default=>'#f59e0b' };
             $statusLbl   = match($proj->status) { 'active'=>__('admin.maint_status_in_progress'),'completed'=>__('admin.maint_status_completed'),default=>__('admin.status_pending') };
         @endphp
-        <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .1s;"
+        <label style="display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .1s;"
                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
             <input type="checkbox" class="proj-check" value="{{ $proj->id }}"
                 style="accent-color:#6366f1;width:15px;height:15px;flex-shrink:0;cursor:pointer;">

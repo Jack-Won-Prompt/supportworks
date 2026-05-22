@@ -258,7 +258,7 @@
         @endif
     </div>
 
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
         <button @click="triggerAnalyze()" class="asis-btn primary"
                 :disabled="analyzing">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -306,7 +306,7 @@
                 편집
             </button>
             <template x-if="editMode">
-                <div style="display:flex;gap:6px;">
+                <div style="display:flex;gap:8px;">
                     <button @click="saveEdit()" :disabled="saving" class="asis-btn primary" style="padding:5px 12px;font-size:12px;">
                         <span x-text="saving ? '저장 중...' : '저장'"></span>
                     </button>

@@ -107,7 +107,7 @@
 {{-- ── 전체 발송 모달 ─────────────────────────────────────── --}}
 <div id="modal-broadcast" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;padding:28px;width:480px;max-width:96vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
             <div style="width:38px;height:38px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
             </div>
@@ -137,7 +137,7 @@
 {{-- ── 사용자 검색 발송 모달 ──────────────────────────────── --}}
 <div id="modal-send" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;padding:28px;width:560px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
             <div style="width:38px;height:38px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
@@ -162,7 +162,7 @@
         {{-- 선택된 사용자 --}}
         <div id="selected-users-wrap" style="display:none;margin-bottom:14px;">
             <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;">{{ __('admin.inq_selected_users') }} <span id="selected-count" style="color:#6366f1;">0</span>{{ app()->getLocale() === 'ko' ? '명' : '' }}</div>
-            <div id="selected-users-tags" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+            <div id="selected-users-tags" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
         </div>
 
         {{-- 메시지 --}}
@@ -335,7 +335,7 @@ function renderSearchResults(list) {
     el.innerHTML = list.map(u => `
         <div onclick="toggleUser(${u.id},'${escHtml(u.name)}','${escHtml(u.email)}')"
              id="search-row-${u.id}"
-             style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s;"
+             style="display:flex;align-items:center;gap:12px;padding:9px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s;"
              onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=selectedUsers[${u.id}]?'#eef2ff':''">
             <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">
                 ${escHtml(u.name.charAt(0))}
@@ -390,7 +390,7 @@ function renderSelectedTags() {
     wrap.style.display = ids.length ? 'block' : 'none';
     tags.innerHTML = ids.map(id => {
         const u = selectedUsers[id];
-        return `<span style="display:inline-flex;align-items:center;gap:5px;background:#eef2ff;color:#4f46e5;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500;">
+        return `<span style="display:inline-flex;align-items:center;gap:4px;background:#eef2ff;color:#4f46e5;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500;">
             ${escHtml(u.name)}
             <button onclick="removeUser(${u.id})" style="background:none;border:none;color:#818cf8;cursor:pointer;font-size:14px;line-height:1;padding:0;">&times;</button>
         </span>`;

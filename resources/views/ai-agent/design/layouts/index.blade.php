@@ -128,7 +128,7 @@
         <h3>레이아웃 분석이 없습니다</h3>
         <p>Figma 파일의 모든 프레임을 분석하여 표준 레이아웃 패턴을 자동으로 식별합니다.</p>
 
-        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
             <input type="url" x-model="figmaUrl" class="ls-url-input"
                    placeholder="https://www.figma.com/file/ABC123/My-Design-System">
 
@@ -256,7 +256,7 @@
             </div>
             <div x-show="editing" style="margin-top:8px;">
                 <input type="text" x-model="desc" class="ls-std-desc-input" placeholder="이 레이아웃 표준에 대한 설명...">
-                <div style="display:flex;gap:6px;margin-top:6px;">
+                <div style="display:flex;gap:8px;margin-top:6px;">
                     <button @click="saving=true; saveMsg=''; axios.patch(updateUrl, {description: desc, _token: document.querySelector('meta[name=csrf-token]').content}).then(() => { saveMsg='저장됨 ✓'; editing=false; }).catch(() => { saveMsg='저장 실패'; }).finally(() => { saving=false; setTimeout(() => saveMsg='', 2000); })" :disabled="saving" class="ls-btn primary sm">
                         <span x-text="saving ? '저장 중...' : '저장'"></span>
                     </button>

@@ -235,7 +235,7 @@
             <div class="psc-empty-icon">🖥️</div>
             <h3>등록된 화면이 없습니다</h3>
             <p>간트에서 동기화하거나 직접 화면을 추가해주세요.</p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
                 <a href="{{ route('ai-agent.projects.planning.sync-gantt.preview', $project) }}" class="psc-btn psc-btn-outline">
                     ↻ 간트에서 동기화
                 </a>
@@ -317,7 +317,7 @@
 
             <form method="POST" action="{{ route('ai-agent.projects.planning.screens.store', $project) }}">
                 @csrf
-                <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+                <div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px;">
                     <div class="psc-form-group" style="grid-column:1/-1;">
                         <label>화면명 <span style="color:#dc2626;">*</span></label>
                         <input class="psc-form-input" type="text" name="title" required placeholder="예: 로그인 화면" value="{{ old('title') }}">

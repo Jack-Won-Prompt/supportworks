@@ -4,7 +4,7 @@
 
 @section('header-actions')
     @if(!auth()->user()->isAdmin())
-    <div style="display:flex;background:#f4f4f5;border-radius:9px;padding:3px;gap:2px;">
+    <div style="display:flex;background:var(--color-bg-muted);border-radius:9px;padding:3px;gap:4px;">
         <a href="{{ route('projects.index') }}"
            style="padding:5px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;transition:all .12s;
                   {{ !$viewAll ? 'background:#fff;color:#4f46e5;box-shadow:0 1px 3px rgba(0,0,0,.1);' : 'color:#71717a;' }}">
@@ -133,7 +133,7 @@
                             data-viewall="{{ $viewAll ? '1' : '0' }}"
                             style="padding:4px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid;
                                    {{ $isMember
-                                       ? ($viewAll ? 'background:#f0fdf4;color:#16a34a;border-color:#bbf7d0;' : 'background:#fff5f5;color:#dc2626;border-color:#fca5a5;')
+                                       ? ($viewAll ? 'background:var(--color-bg-success-subtle);color:var(--color-alert-success-500);border-color:#bbf7d0;' : 'background:#fff5f5;color:var(--color-alert-warning-500);border-color:#fca5a5;')
                                        : 'background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;' }}"
                             onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
                         {{ $isMember ? ($viewAll ? __('projects.joined') : __('projects.leave')) : __('projects.join') }}
@@ -229,7 +229,7 @@ async function _sidebarAddProject(proj) {
     if (projList && projList.querySelector(`[data-proj-id="${proj.id}"]`)) return;
 
     const statusBadge = proj.status === 'active'
-        ? '<span class="gsb-hide" style="font-size:10px;padding:1px 5px;border-radius:3px;background:#dcfce7;color:#16a34a;flex-shrink:0;">{{ __("projects.badge_active") }}</span>'
+        ? '<span class="gsb-hide" style="font-size:10px;padding:1px 5px;border-radius:3px;background:#dcfce7;color:var(--color-alert-success-500);flex-shrink:0;">{{ __("projects.badge_active") }}</span>'
         : proj.status === 'on_hold'
         ? '<span class="gsb-hide" style="font-size:10px;padding:1px 5px;border-radius:3px;background:#fef9c3;color:#ca8a04;flex-shrink:0;">{{ __("projects.badge_on_hold") }}</span>'
         : '';

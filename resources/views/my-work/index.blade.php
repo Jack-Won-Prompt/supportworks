@@ -3,7 +3,7 @@
 @section('title', __('mywork.page_title'))
 
 @section('breadcrumb')
-<span style="color:#374151;font-weight:500;">{{ __('mywork.page_title') }}</span>
+<span style="color:var(--color-text-secondary);font-weight:500;">{{ __('mywork.page_title') }}</span>
 @endsection
 
 @push('styles')
@@ -55,20 +55,20 @@
 <div class="space-y-5">
 
 {{-- ── Header ── --}}
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div>
-        <h1 style="font-size:20px;font-weight:800;color:#18181b;margin:0 0 2px;">{{ __('mywork.page_title') }}</h1>
-        <p style="font-size:13px;color:#9ca3af;margin:0;">{{ today()->locale(app()->getLocale())->isoFormat(__('mywork.date_format')) }} · {{ __('mywork.date_subtitle') }}</p>
+        <h1 style="font-size:20px;font-weight:800;color:var(--color-text-primary);margin:0 0 2px;">{{ __('mywork.page_title') }}</h1>
+        <p style="font-size:13px;color:var(--color-text-tertiary);margin:0;">{{ today()->locale(app()->getLocale())->isoFormat(__('mywork.date_format')) }} · {{ __('mywork.date_subtitle') }}</p>
     </div>
     <div style="display:flex;gap:8px;">
         <button onclick="document.getElementById('task-modal').style.display='flex'"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;"
+            style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;"
             onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             {{ __('mywork.add_task') }}
         </button>
         <button onclick="document.getElementById('action-modal').style.display='flex'"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#fff;color:#374151;font-size:13px;font-weight:600;border-radius:8px;border:1.5px solid #e5e7eb;cursor:pointer;"
+            style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;background:#fff;color:var(--color-text-secondary);font-size:13px;font-weight:600;border-radius:8px;border:1.5px solid var(--color-border-default);cursor:pointer;"
             onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--tText)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#374151'">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             {{ __('mywork.add_action') }}
@@ -79,20 +79,20 @@
 {{-- ── Stat Cards (5개) ── --}}
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
     <div class="mw-stat" style="{{ $stats['overdue']>0?'border-color:#fca5a5;background:#fff5f5;':'' }}">
-        <div class="mw-stat-icon" style="background:{{ $stats['overdue']>0?'#fee2e2':'#f3f4f6' }};">
+        <div class="mw-stat-icon" style="background:{{ $stats['overdue']>0?'var(--color-bg-danger-subtle)':'var(--color-bg-muted)' }};">
             <svg width="20" height="20" fill="none" stroke="{{ $stats['overdue']>0?'#dc2626':'#9ca3af' }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
         </div>
         <div>
-            <div class="mw-stat-num" style="color:{{ $stats['overdue']>0?'#dc2626':'#9ca3af' }};">{{ $stats['overdue'] }}</div>
-            <div class="mw-stat-lbl" style="{{ $stats['overdue']>0?'color:#dc2626;font-weight:600;':'' }}">{{ __('mywork.stat_overdue') }}</div>
+            <div class="mw-stat-num" style="color:{{ $stats['overdue']>0?'var(--color-alert-warning-500)':'var(--color-text-tertiary)' }};">{{ $stats['overdue'] }}</div>
+            <div class="mw-stat-lbl" style="{{ $stats['overdue']>0?'color:var(--color-alert-warning-500);font-weight:600;':'' }}">{{ __('mywork.stat_overdue') }}</div>
         </div>
     </div>
     <div class="mw-stat" style="{{ $stats['due_today']>0?'border-color:#fcd34d;background:#fffbeb;':'' }}">
-        <div class="mw-stat-icon" style="background:{{ $stats['due_today']>0?'#fef3c7':'#f3f4f6' }};">
+        <div class="mw-stat-icon" style="background:{{ $stats['due_today']>0?'#fef3c7':'var(--color-bg-muted)' }};">
             <svg width="20" height="20" fill="none" stroke="{{ $stats['due_today']>0?'#d97706':'#9ca3af' }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div>
-            <div class="mw-stat-num" style="color:{{ $stats['due_today']>0?'#d97706':'#9ca3af' }};">{{ $stats['due_today'] }}</div>
+            <div class="mw-stat-num" style="color:{{ $stats['due_today']>0?'#d97706':'var(--color-text-tertiary)' }};">{{ $stats['due_today'] }}</div>
             <div class="mw-stat-lbl">{{ __('mywork.stat_due_today') }}</div>
         </div>
     </div>
@@ -106,20 +106,20 @@
         </div>
     </div>
     <div class="mw-stat" style="{{ $issueCount>0?'border-color:#fed7aa;background:#fff7ed;':'' }}">
-        <div class="mw-stat-icon" style="background:{{ $issueCount>0?'#ffedd5':'#f3f4f6' }};">
+        <div class="mw-stat-icon" style="background:{{ $issueCount>0?'#ffedd5':'var(--color-bg-muted)' }};">
             <svg width="20" height="20" fill="none" stroke="{{ $issueCount>0?'#ea580c':'#9ca3af' }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div>
-            <div class="mw-stat-num" style="color:{{ $issueCount>0?'#ea580c':'#9ca3af' }};">{{ $issueCount }}</div>
+            <div class="mw-stat-num" style="color:{{ $issueCount>0?'#ea580c':'var(--color-text-tertiary)' }};">{{ $issueCount }}</div>
             <div class="mw-stat-lbl">{{ __('mywork.stat_my_issues') }}</div>
         </div>
     </div>
     <div class="mw-stat">
-        <div class="mw-stat-icon" style="background:#ede9fe;">
+        <div class="mw-stat-icon" style="background:var(--t100);">
             <svg width="20" height="20" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         </div>
         <div>
-            <div class="mw-stat-num" style="color:#7c3aed;">{{ $stats['total_open'] }}</div>
+            <div class="mw-stat-num" style="color:var(--t600);">{{ $stats['total_open'] }}</div>
             <div class="mw-stat-lbl">{{ __('mywork.stat_total_open') }}</div>
         </div>
     </div>
@@ -143,9 +143,9 @@
         <span class="mw-widget-title">Tasks</span>
         <div style="display:flex;gap:4px;flex-shrink:0;">
             @if($urgentCnt > 0)
-            <button class="mw-tab {{ $firstTab==='urgent'?'on':'' }}" onclick="mwTab('task','urgent',this)">{{ __('mywork.tab_urgent') }} <b style="background:#fee2e2;color:#dc2626;border-radius:10px;padding:0 5px;font-size:10px;font-weight:700;margin-left:2px;">{{ $urgentCnt }}</b></button>
+            <button class="mw-tab {{ $firstTab==='urgent'?'on':'' }}" onclick="mwTab('task','urgent',this)">{{ __('mywork.tab_urgent') }} <b style="background:var(--color-bg-danger-subtle);color:var(--color-alert-warning-500);border-radius:10px;padding:0 5px;font-size:10px;font-weight:700;margin-left:2px;">{{ $urgentCnt }}</b></button>
             @endif
-            <button class="mw-tab {{ $firstTab==='todo'?'on':'' }}" onclick="mwTab('task','todo',this)">{{ __('mywork.tab_todo') }} <b style="background:#f0f0f8;color:#6b7280;border-radius:10px;padding:0 5px;font-size:10px;font-weight:700;margin-left:2px;">{{ $todoTasks->count() }}</b></button>
+            <button class="mw-tab {{ $firstTab==='todo'?'on':'' }}" onclick="mwTab('task','todo',this)">{{ __('mywork.tab_todo') }} <b style="background:#f0f0f8;color:var(--color-text-secondary);border-radius:10px;padding:0 5px;font-size:10px;font-weight:700;margin-left:2px;">{{ $todoTasks->count() }}</b></button>
             <button class="mw-tab" onclick="mwTab('task','prog',this)">{{ __('mywork.tab_in_progress') }} <b style="background:#dbeafe;color:#2563eb;border-radius:10px;padding:0 5px;font-size:10px;font-weight:700;margin-left:2px;">{{ $inProgressTasks->count() }}</b></button>
         </div>
         <a href="{{ route('tasks.index') }}" style="font-size:11px;color:var(--tText);text-decoration:none;font-weight:600;flex-shrink:0;">{{ __('mywork.view_all') }}</a>
@@ -161,15 +161,15 @@
             <div style="flex:1;min-width:0;">
                 <div class="mw-title">{{ $t->title }}</div>
                 <div class="mw-meta">
-                    @if($t->project)<span style="font-size:11px;color:#7c3aed;font-weight:500;">{{ $t->project->name }}</span>@endif
-                    <span style="font-size:11px;color:{{ $isOvd?'#dc2626':'#d97706' }};font-weight:700;">{{ $isOvd?__('mywork.badge_overdue'):__('mywork.badge_due_today') }} · {{ $t->due_date->format('m/d') }}</span>
+                    @if($t->project)<span style="font-size:11px;color:var(--t600);font-weight:500;">{{ $t->project->name }}</span>@endif
+                    <span style="font-size:11px;color:{{ $isOvd?'var(--color-alert-warning-500)':'#d97706' }};font-weight:700;">{{ $isOvd?__('mywork.badge_overdue'):__('mywork.badge_due_today') }} · {{ $t->due_date->format('m/d') }}</span>
                 </div>
             </div>
             <div onclick="event.stopPropagation()" style="flex-shrink:0;">
                 @php $ns=$t->status==='todo'?'in_progress':'done'; $nl=$t->status==='todo'?__('mywork.action_start'):__('mywork.action_done'); @endphp
                 <form method="POST" action="{{ route('tasks.status',$t) }}">@csrf @method('PATCH')
                     <input type="hidden" name="status" value="{{ $ns }}">
-                    <button type="submit" style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:5px;border:1.5px solid #fca5a5;background:#fff5f5;color:#dc2626;cursor:pointer;">{{ $nl }}</button>
+                    <button type="submit" style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:5px;border:1.5px solid #fca5a5;background:#fff5f5;color:var(--color-alert-warning-500);cursor:pointer;">{{ $nl }}</button>
                 </form>
             </div>
         </div>
@@ -186,15 +186,15 @@
             <div style="flex:1;min-width:0;">
                 <div class="mw-title">{{ $t->title }}</div>
                 <div class="mw-meta">
-                    @if($t->project)<span style="font-size:11px;color:#7c3aed;font-weight:500;">{{ $t->project->name }}</span>@endif
-                    @if($t->due_date)<span style="font-size:11px;color:{{ $t->due_date->lt(today())?'#dc2626':'#6b7280' }};">{{ $t->due_date->format('m/d') }}</span>@endif
-                    @if($t->priority==='high')<span class="mw-badge" style="background:#fee2e2;color:#dc2626;">{{ __('mywork.badge_high') }}</span>@elseif($t->priority==='medium')<span class="mw-badge" style="background:#fef3c7;color:#92400e;">{{ __('mywork.badge_medium') }}</span>@endif
+                    @if($t->project)<span style="font-size:11px;color:var(--t600);font-weight:500;">{{ $t->project->name }}</span>@endif
+                    @if($t->due_date)<span style="font-size:11px;color:{{ $t->due_date->lt(today())?'var(--color-alert-warning-500)':'var(--color-text-secondary)' }};">{{ $t->due_date->format('m/d') }}</span>@endif
+                    @if($t->priority==='high')<span class="mw-badge" style="background:var(--color-bg-danger-subtle);color:var(--color-alert-warning-500);">{{ __('mywork.badge_high') }}</span>@elseif($t->priority==='medium')<span class="mw-badge" style="background:#fef3c7;color:#92400e;">{{ __('mywork.badge_medium') }}</span>@endif
                 </div>
             </div>
             <div onclick="event.stopPropagation()" style="flex-shrink:0;">
                 <form method="POST" action="{{ route('tasks.status',$t) }}">@csrf @method('PATCH')
                     <input type="hidden" name="status" value="in_progress">
-                    <button type="submit" style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:5px;border:1.5px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;" onmouseover="this.style.borderColor='var(--t400)'" onmouseout="this.style.borderColor='#d1d5db'">{{ __('mywork.action_start') }}</button>
+                    <button type="submit" style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:5px;border:1.5px solid #d1d5db;background:#fff;color:var(--color-text-secondary);cursor:pointer;" onmouseover="this.style.borderColor='var(--t400)'" onmouseout="this.style.borderColor='#d1d5db'">{{ __('mywork.action_start') }}</button>
                 </form>
             </div>
         </div>
@@ -213,15 +213,15 @@
             <div style="flex:1;min-width:0;">
                 <div class="mw-title">{{ $t->title }}</div>
                 <div class="mw-meta">
-                    @if($t->project)<span style="font-size:11px;color:#7c3aed;font-weight:500;">{{ $t->project->name }}</span>@endif
-                    @if($t->due_date)<span style="font-size:11px;color:#6b7280;">{{ __('mywork.due_suffix', ['date' => $t->due_date->format('m/d')]) }}</span>@endif
+                    @if($t->project)<span style="font-size:11px;color:var(--t600);font-weight:500;">{{ $t->project->name }}</span>@endif
+                    @if($t->due_date)<span style="font-size:11px;color:var(--color-text-secondary);">{{ __('mywork.due_suffix', ['date' => $t->due_date->format('m/d')]) }}</span>@endif
                     <span class="mw-badge" style="background:#dbeafe;color:#1d4ed8;">{{ __('mywork.badge_in_progress') }}</span>
                 </div>
             </div>
             <div onclick="event.stopPropagation()" style="flex-shrink:0;">
                 <form method="POST" action="{{ route('tasks.status',$t) }}">@csrf @method('PATCH')
                     <input type="hidden" name="status" value="done">
-                    <button type="submit" style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:5px;border:1.5px solid #d1fae5;background:#f0fdf4;color:#065f46;cursor:pointer;">{{ __('mywork.action_done') }}</button>
+                    <button type="submit" style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:5px;border:1.5px solid #d1fae5;background:var(--color-bg-success-subtle);color:#065f46;cursor:pointer;">{{ __('mywork.action_done') }}</button>
                 </form>
             </div>
         </div>
@@ -236,7 +236,7 @@
     <div class="mw-widget-hd">
         <svg width="15" height="15" fill="none" stroke="#8b5cf6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         <span class="mw-widget-title">Action Items</span>
-        <span class="mw-cnt" style="background:#ede9fe;color:#6d28d9;">{{ $myActionItems->count() }}</span>
+        <span class="mw-cnt" style="background:var(--t100);color:var(--t700);">{{ $myActionItems->count() }}</span>
         <a href="{{ route('action-items.index') }}" style="font-size:11px;color:var(--tText);text-decoration:none;font-weight:600;">{{ __('mywork.view_all') }}</a>
     </div>
     @forelse($myActionItems->take(8) as $a)
@@ -244,16 +244,16 @@
     <div class="mw-row" onclick="mwOpenAction({{ $a->id }})">
         <div onclick="event.stopPropagation()" style="flex-shrink:0;margin-top:1px;">
             <form method="POST" action="{{ route('action-items.toggle',$a) }}">@csrf @method('PATCH')
-                <button type="submit" style="width:18px;height:18px;border-radius:50%;border:2px solid #a78bfa;background:#fff;cursor:pointer;display:block;transition:all .15s;" onmouseover="this.style.background='#a78bfa'" onmouseout="this.style.background='#fff'"></button>
+                <button type="submit" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--t400);background:#fff;cursor:pointer;display:block;transition:all .15s;" onmouseover="this.style.background='#a78bfa'" onmouseout="this.style.background='#fff'"></button>
             </form>
         </div>
         <div style="flex:1;min-width:0;">
             <div class="mw-title">{{ $a->title }}</div>
             <div class="mw-meta">
-                @if($a->project)<span style="font-size:11px;color:#7c3aed;font-weight:500;">{{ $a->project->name }}</span>@endif
-                @if($a->user_id!==$user->id&&$a->creator)<span style="font-size:11px;color:#9ca3af;">{{ __('mywork.action_requested_by', ['name' => $a->creator->name]) }}</span>@endif
-                @if($a->assigned_to&&$a->assigned_to!==$user->id&&$a->assignedUser)<span style="font-size:11px;color:#6b7280;">→ {{ $a->assignedUser->name }}</span>@endif
-                @if($a->due_date)<span style="font-size:11px;color:{{ $aOvd?'#dc2626':($a->isDueSoon()?'#d97706':'#6b7280') }};{{ $aOvd?'font-weight:700;':'' }}">{{ $aOvd?'⚠ ':'' }}{{ $a->due_date->format('m/d') }}</span>@endif
+                @if($a->project)<span style="font-size:11px;color:var(--t600);font-weight:500;">{{ $a->project->name }}</span>@endif
+                @if($a->user_id!==$user->id&&$a->creator)<span style="font-size:11px;color:var(--color-text-tertiary);">{{ __('mywork.action_requested_by', ['name' => $a->creator->name]) }}</span>@endif
+                @if($a->assigned_to&&$a->assigned_to!==$user->id&&$a->assignedUser)<span style="font-size:11px;color:var(--color-text-secondary);">→ {{ $a->assignedUser->name }}</span>@endif
+                @if($a->due_date)<span style="font-size:11px;color:{{ $aOvd?'var(--color-alert-warning-500)':($a->isDueSoon()?'#d97706':'var(--color-text-secondary)') }};{{ $aOvd?'font-weight:700;':'' }}">{{ $aOvd?'⚠ ':'' }}{{ $a->due_date->format('m/d') }}</span>@endif
             </div>
         </div>
         <svg width="13" height="13" fill="none" stroke="#d1d5db" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -276,7 +276,7 @@
     @foreach($subsByProj->take(3) as $pid => $subs)
     @php $projName=$subs->first()->project?->name??__('mywork.subtask_etc'); @endphp
     <div style="padding:7px 18px 2px;background:#f8f8fc;border-bottom:1px solid #f0f0f8;">
-        <span style="font-size:11px;font-weight:700;color:#7c3aed;">{{ $projName }}</span>
+        <span style="font-size:11px;font-weight:700;color:var(--t600);">{{ $projName }}</span>
     </div>
     @foreach($subs->take(5) as $s)
     @php
@@ -287,8 +287,8 @@
         <div style="flex:1;min-width:0;">
             <div class="mw-title">{{ $s->title }}</div>
             <div class="mw-meta">
-                @if($s->taskGroup)<span style="font-size:11px;color:#9ca3af;">{{ $s->taskGroup->title }}</span>@endif
-                @if($s->start_date&&$s->end_date)<span style="font-size:11px;color:{{ $sOvd?'#dc2626':'#6b7280' }};{{ $sOvd?'font-weight:700;':'' }}">{{ $sOvd?'⚠ ':'' }}{{ $s->start_date->format('m/d') }}~{{ $s->end_date->format('m/d') }}</span>@endif
+                @if($s->taskGroup)<span style="font-size:11px;color:var(--color-text-tertiary);">{{ $s->taskGroup->title }}</span>@endif
+                @if($s->start_date&&$s->end_date)<span style="font-size:11px;color:{{ $sOvd?'var(--color-alert-warning-500)':'var(--color-text-secondary)' }};{{ $sOvd?'font-weight:700;':'' }}">{{ $sOvd?'⚠ ':'' }}{{ $s->start_date->format('m/d') }}~{{ $s->end_date->format('m/d') }}</span>@endif
                 <span class="mw-badge" style="background:{{ $sStat['bg'] }};color:{{ $sStat['c'] }};">{{ $sStat['txt'] }}</span>
             </div>
             @if($s->progress > 0)
@@ -325,10 +325,10 @@
         <div style="flex:1;min-width:0;">
             <div class="mw-title">{{ $iss->title }}</div>
             <div class="mw-meta">
-                @if($iss->project)<span style="font-size:11px;color:#7c3aed;font-weight:500;">{{ $iss->project->name }}</span>@endif
+                @if($iss->project)<span style="font-size:11px;color:var(--t600);font-weight:500;">{{ $iss->project->name }}</span>@endif
                 <span class="mw-badge" style="background:{{ $iC['bg'] }};color:{{ $iC['c'] }};">{{ $iC['t'] }}</span>
                 <span class="mw-badge" style="background:{{ $sC['bg'] }};color:{{ $sC['c'] }};">{{ $iss->status }}</span>
-                @if($iss->category)<span style="font-size:11px;color:#9ca3af;">{{ $iss->category }}</span>@endif
+                @if($iss->category)<span style="font-size:11px;color:var(--color-text-tertiary);">{{ $iss->category }}</span>@endif
             </div>
         </div>
         <svg width="13" height="13" fill="none" stroke="#d1d5db" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -351,9 +351,9 @@
         <div style="flex:1;min-width:0;">
             <div class="mw-title">{{ $mi->title }}</div>
             <div class="mw-meta">
-                @if($mi->minute)<span style="font-size:11px;color:#7c3aed;font-weight:500;">{{ Str::limit($mi->minute->title,22) }}</span>@endif
+                @if($mi->minute)<span style="font-size:11px;color:var(--t600);font-weight:500;">{{ Str::limit($mi->minute->title,22) }}</span>@endif
                 <span class="mw-badge" style="background:{{ $miS['bg'] }};color:{{ $miS['c'] }};">{{ $mi->status }}</span>
-                @if($mi->due_date)<span style="font-size:11px;color:{{ $miOvd?'#dc2626':'#6b7280' }};{{ $miOvd?'font-weight:700;':'' }}">{{ $miOvd?'⚠ ':'' }}{{ $mi->due_date->format('m/d') }}</span>@endif
+                @if($mi->due_date)<span style="font-size:11px;color:{{ $miOvd?'var(--color-alert-warning-500)':'var(--color-text-secondary)' }};{{ $miOvd?'font-weight:700;':'' }}">{{ $miOvd?'⚠ ':'' }}{{ $mi->due_date->format('m/d') }}</span>@endif
             </div>
         </div>
         <svg width="13" height="13" fill="none" stroke="#d1d5db" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -368,19 +368,19 @@
     <div class="mw-widget-hd">
         <svg width="15" height="15" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         <span class="mw-widget-title">{{ __('mywork.this_week_weekly') }}</span>
-        <span style="font-size:11px;color:#9ca3af;">{{ $weekStart->format('m/d') }}~{{ $weekStart->copy()->addDays(6)->format('m/d') }}</span>
+        <span style="font-size:11px;color:var(--color-text-tertiary);">{{ $weekStart->format('m/d') }}~{{ $weekStart->copy()->addDays(6)->format('m/d') }}</span>
     </div>
     <div style="padding:16px 18px;">
         @if($thisWeekReport)
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f3ff;border-radius:10px;cursor:pointer;transition:background .12s;"
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--t50);border-radius:10px;cursor:pointer;transition:background .12s;"
             onclick="mwOpenPopup('{{ route('projects.weekly-reports.edit',[$thisWeekReport->project_id,$thisWeekReport]) }}')"
             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
-            <div style="width:38px;height:38px;background:linear-gradient(135deg,#6d28d9,#4f46e5);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--t700),#4f46e5);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div style="flex:1;min-width:0;">
-                <div style="font-size:13px;font-weight:700;color:#18181b;">{{ $thisWeekReport->week_label }}</div>
-                @if($thisWeekReport->project)<div style="font-size:11.5px;color:#7c3aed;margin-top:1px;">{{ $thisWeekReport->project->name }}</div>@endif
+                <div style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ $thisWeekReport->week_label }}</div>
+                @if($thisWeekReport->project)<div style="font-size:11.5px;color:var(--t600);margin-top:1px;">{{ $thisWeekReport->project->name }}</div>@endif
             </div>
             @if($thisWeekReport->status==='submitted')
             <span class="mw-badge" style="background:#d1fae5;color:#065f46;font-size:12px;padding:3px 9px;">{{ __('mywork.weekly_submitted') }}</span>
@@ -390,10 +390,10 @@
         </div>
         @else
         <div style="text-align:center;padding:4px 0 8px;">
-            <div style="font-size:12px;color:#9ca3af;margin-bottom:12px;">{{ __('mywork.weekly_empty') }}</div>
+            <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:12px;">{{ __('mywork.weekly_empty') }}</div>
         </div>
         @endif
-        <a href="{{ route('my-weekly.index') }}" style="display:block;margin-top:10px;text-align:center;padding:7px;background:#f5f3ff;color:var(--tText);border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;"
+        <a href="{{ route('my-weekly.index') }}" style="display:block;margin-top:10px;text-align:center;padding:7px;background:var(--t50);color:var(--tText);border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;"
             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">{{ __('mywork.weekly_list_view') }}</a>
     </div>
 </div>
@@ -412,13 +412,13 @@
         <span class="mw-widget-title">{{ __('mywork.recent_done') }}</span>
     </div>
     @foreach($allDone as $d)
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid #f5f5fb;">
+    <div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid #f5f5fb;">
         <svg width="14" height="14" fill="none" stroke="#10b981" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         <div style="flex:1;min-width:0;">
-            <div style="font-size:12.5px;color:#374151;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $d['title'] }}</div>
-            <div style="display:flex;gap:6px;align-items:center;margin-top:1px;">
-                @if($d['proj'])<span style="font-size:11px;color:#7c3aed;">{{ $d['proj'] }}</span>@endif
-                <span style="font-size:11px;color:#9ca3af;">{{ $d['at']?->diffForHumans() }}</span>
+            <div style="font-size:12.5px;color:var(--color-text-secondary);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $d['title'] }}</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:1px;">
+                @if($d['proj'])<span style="font-size:11px;color:var(--t600);">{{ $d['proj'] }}</span>@endif
+                <span style="font-size:11px;color:var(--color-text-tertiary);">{{ $d['at']?->diffForHumans() }}</span>
             </div>
         </div>
         <span style="font-size:10px;color:{{ $d['c'] }};background:{{ $d['bg'] }};border-radius:4px;padding:1px 6px;flex-shrink:0;font-weight:600;">{{ $d['tp'] }}</span>
@@ -435,25 +435,25 @@
     </div>
     <div style="padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
         @if(auth()->user()->hasFeature('tasks'))
-        <a href="{{ route('tasks.index') }}" style="display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:8px;text-decoration:none;color:#374151;font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
+        <a href="{{ route('tasks.index') }}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--color-text-secondary);font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             {{ __('mywork.shortcut_kanban') }}
         </a>
         @endif
         @if(auth()->user()->hasFeature('action_items'))
-        <a href="{{ route('action-items.index') }}" style="display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:8px;text-decoration:none;color:#374151;font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
+        <a href="{{ route('action-items.index') }}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--color-text-secondary);font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             Action Items
         </a>
         @endif
         @if(auth()->user()->hasFeature('weekly_reports'))
-        <a href="{{ route('my-weekly.index') }}" style="display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:8px;text-decoration:none;color:#374151;font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
+        <a href="{{ route('my-weekly.index') }}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--color-text-secondary);font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             {{ __('mywork.shortcut_weekly') }}
         </a>
         @endif
         @if(auth()->user()->hasFeature('meeting_minutes'))
-        <a href="{{ route('meeting-minutes.index') }}" style="display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:8px;text-decoration:none;color:#374151;font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
+        <a href="{{ route('meeting-minutes.index') }}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--color-text-secondary);font-size:12.5px;transition:background .1s;" onmouseover="this.style.background='#f5f3ff';this.style.color='var(--tText)'" onmouseout="this.style.background='';this.style.color='#374151'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             {{ __('mywork.shortcut_minutes') }}
         </a>
@@ -466,9 +466,9 @@
 
 @if(!$todoTasks->count()&&!$inProgressTasks->count()&&!$myActionItems->count()&&!$mySubTasks->count()&&!$myIssues->count()&&!$myMeetingItems->count())
 <div class="mw-widget"><div style="padding:60px 24px;text-align:center;">
-    <div style="width:56px;height:56px;background:#f5f3ff;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><svg width="26" height="26" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-    <p style="font-size:16px;font-weight:700;color:#374151;margin:0 0 6px;">{{ __('mywork.all_done_title') }}</p>
-    <p style="font-size:13px;color:#9ca3af;margin:0;">{{ __('mywork.all_done_desc') }}</p>
+    <div style="width:56px;height:56px;background:var(--t50);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><svg width="26" height="26" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+    <p style="font-size:16px;font-weight:700;color:var(--color-text-secondary);margin:0 0 6px;">{{ __('mywork.all_done_title') }}</p>
+    <p style="font-size:13px;color:var(--color-text-tertiary);margin:0;">{{ __('mywork.all_done_desc') }}</p>
 </div></div>
 @endif
 
@@ -478,8 +478,8 @@
 <div id="mw-pop-bd" onclick="if(event.target===this)mwClosePopup()">
     <div id="mw-pop-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid #e9e7fb;flex-shrink:0;">
-            <span id="mw-pop-title" style="font-size:13px;font-weight:700;color:#374151;">{{ __('mywork.detail_view') }}</span>
-            <button onclick="mwClosePopup()" style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:4px;display:flex;align-items:center;">
+            <span id="mw-pop-title" style="font-size:13px;font-weight:700;color:var(--color-text-secondary);">{{ __('mywork.detail_view') }}</span>
+            <button onclick="mwClosePopup()" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:4px;display:flex;align-items:center;">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -494,9 +494,9 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f8;flex-shrink:0;">
         <div style="display:flex;align-items:center;gap:8px;">
             <span id="mw-so-type-badge" style="font-size:10px;font-weight:700;border-radius:4px;padding:2px 8px;"></span>
-            <span style="font-size:14px;font-weight:700;color:#18181b;">{{ __('mywork.detail_info') }}</span>
+            <span style="font-size:14px;font-weight:700;color:var(--color-text-primary);">{{ __('mywork.detail_info') }}</span>
         </div>
-        <button onclick="mwCloseSo()" style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:4px;display:flex;">
+        <button onclick="mwCloseSo()" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:4px;display:flex;">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
     </div>
@@ -508,24 +508,24 @@
     <div onclick="document.getElementById('task-modal').style.display='none'" style="position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);"></div>
     <div style="position:relative;background:#fff;border-radius:16px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);margin:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-            <h3 style="font-size:15px;font-weight:700;color:#111827;margin:0;">{{ __('mywork.task_modal_heading') }}</h3>
-            <button onclick="document.getElementById('task-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:#9ca3af;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <h3 style="font-size:15px;font-weight:700;color:var(--color-text-primary);margin:0;">{{ __('mywork.task_modal_heading') }}</h3>
+            <button onclick="document.getElementById('task-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
         <form action="{{ route('tasks.store') }}" method="POST" style="display:flex;flex-direction:column;gap:12px;">
             @csrf
-            <input type="text" name="title" placeholder="{{ __('mywork.task_title_placeholder') }}" required autofocus style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
-            <textarea name="description" placeholder="{{ __('mywork.desc_placeholder') }}" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <div><label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{ __('mywork.priority_label') }}</label>
-                    <select name="priority" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;background:#fff;">
+            <input type="text" name="title" placeholder="{{ __('mywork.task_title_placeholder') }}" required autofocus style="width:100%;padding:9px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
+            <textarea name="description" placeholder="{{ __('mywork.desc_placeholder') }}" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);resize:vertical;box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div><label style="font-size:11.5px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:4px;">{{ __('mywork.priority_label') }}</label>
+                    <select name="priority" style="width:100%;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);outline:none;background:#fff;">
                         <option value="high">{{ __('mywork.badge_high') }}</option><option value="medium" selected>{{ __('mywork.badge_medium') }}</option><option value="low">{{ __('mywork.badge_low') }}</option>
                     </select></div>
-                <div><label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{ __('mywork.due_date_label') }}</label>
-                    <input type="date" name="due_date" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;box-sizing:border-box;outline:none;"></div>
+                <div><label style="font-size:11.5px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:4px;">{{ __('mywork.due_date_label') }}</label>
+                    <input type="date" name="due_date" style="width:100%;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);box-sizing:border-box;outline:none;"></div>
             </div>
             @if($projects->count())
-            <div><label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{ __('mywork.project_label') }}</label>
-                <select name="project_id" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;background:#fff;">
+            <div><label style="font-size:11.5px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:4px;">{{ __('mywork.project_label') }}</label>
+                <select name="project_id" style="width:100%;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);outline:none;background:#fff;">
                     <option value="">{{ __('mywork.project_none') }}</option>
                     @foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
                 </select></div>
@@ -540,25 +540,25 @@
     <div onclick="document.getElementById('action-modal').style.display='none'" style="position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);"></div>
     <div style="position:relative;background:#fff;border-radius:16px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);margin:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-            <h3 style="font-size:15px;font-weight:700;color:#111827;margin:0;">{{ __('mywork.action_modal_heading') }}</h3>
-            <button onclick="document.getElementById('action-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:#9ca3af;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <h3 style="font-size:15px;font-weight:700;color:var(--color-text-primary);margin:0;">{{ __('mywork.action_modal_heading') }}</h3>
+            <button onclick="document.getElementById('action-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
         <form action="{{ route('action-items.store') }}" method="POST" style="display:flex;flex-direction:column;gap:12px;">
             @csrf
-            <input type="text" name="title" placeholder="{{ __('mywork.action_title_placeholder') }}" required style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
-            <textarea name="description" placeholder="{{ __('mywork.desc_placeholder') }}" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <div><label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{ __('mywork.assignee_label') }}</label>
-                    <select name="assigned_to" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;background:#fff;">
+            <input type="text" name="title" placeholder="{{ __('mywork.action_title_placeholder') }}" required style="width:100%;padding:9px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
+            <textarea name="description" placeholder="{{ __('mywork.desc_placeholder') }}" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);resize:vertical;box-sizing:border-box;outline:none;" onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div><label style="font-size:11.5px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:4px;">{{ __('mywork.assignee_label') }}</label>
+                    <select name="assigned_to" style="width:100%;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);outline:none;background:#fff;">
                         <option value="">{{ __('mywork.assignee_self') }}</option>
                         @foreach($teammates as $m)<option value="{{ $m->id }}">{{ $m->name }}</option>@endforeach
                     </select></div>
-                <div><label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{ __('mywork.due_date_label') }}</label>
-                    <input type="date" name="due_date" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;box-sizing:border-box;outline:none;"></div>
+                <div><label style="font-size:11.5px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:4px;">{{ __('mywork.due_date_label') }}</label>
+                    <input type="date" name="due_date" style="width:100%;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);box-sizing:border-box;outline:none;"></div>
             </div>
             @if($projects->count())
-            <div><label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{ __('mywork.project_label') }}</label>
-                <select name="project_id" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;background:#fff;">
+            <div><label style="font-size:11.5px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:4px;">{{ __('mywork.project_label') }}</label>
+                <select name="project_id" style="width:100%;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);outline:none;background:#fff;">
                     <option value="">{{ __('mywork.project_none') }}</option>
                     @foreach($projects as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
                 </select></div>
@@ -729,11 +729,11 @@ function mwOpenTask(id) {
 
     document.getElementById('mw-so-body').innerHTML = `
 <div style="padding:24px;">
-  <div style="font-size:18px;font-weight:800;color:#18181b;line-height:1.4;margin-bottom:16px;">${escHtml(t.title)}</div>
+  <div style="font-size:18px;font-weight:800;color:var(--color-text-primary);line-height:1.4;margin-bottom:16px;">${escHtml(t.title)}</div>
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
     <span style="background:${pr[0]};color:${pr[1]};border-radius:5px;padding:3px 10px;font-size:12px;font-weight:700;">${escHtml(t.prLabel)}</span>
     <span style="background:${st[0]};color:${st[1]};border-radius:5px;padding:3px 10px;font-size:12px;font-weight:700;">${escHtml(t.stLabel)}</span>
-    ${t.project ? `<span style="background:#ede9fe;color:#6d28d9;border-radius:5px;padding:3px 10px;font-size:12px;font-weight:600;">${escHtml(t.project)}</span>` : ''}
+    ${t.project ? `<span style="background:var(--t100);color:var(--t700);border-radius:5px;padding:3px 10px;font-size:12px;font-weight:600;">${escHtml(t.project)}</span>` : ''}
   </div>
   ${t.due ? `
   <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:${isOverdue?'#fff5f5':'#f8f8fc'};border-radius:10px;margin-bottom:16px;">
@@ -742,9 +742,9 @@ function mwOpenTask(id) {
   </div>` : ''}
   ${t.desc ? `
   <div style="margin-bottom:20px;">
-    <div style="font-size:11.5px;font-weight:700;color:#9ca3af;margin-bottom:8px;">${mwT.soDesc}</div>
-    <div style="font-size:13.5px;color:#374151;line-height:1.7;white-space:pre-wrap;background:#f8f8fc;border-radius:8px;padding:12px 14px;">${escHtml(t.desc)}</div>
-  </div>` : `<div style="font-size:13px;color:#9ca3af;margin-bottom:20px;padding:12px 14px;background:#f8f8fc;border-radius:8px;">${mwT.soNoDesc}</div>`}
+    <div style="font-size:11.5px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:8px;">${mwT.soDesc}</div>
+    <div style="font-size:13.5px;color:var(--color-text-secondary);line-height:1.7;white-space:pre-wrap;background:#f8f8fc;border-radius:8px;padding:12px 14px;">${escHtml(t.desc)}</div>
+  </div>` : `<div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:20px;padding:12px 14px;background:#f8f8fc;border-radius:8px;">${mwT.soNoDesc}</div>`}
   ${nextStatus ? `
   <form method="POST" action="${statusUrl}" style="margin-bottom:12px;">
     <input type="hidden" name="_token" value="${mwCsrf}">
@@ -771,11 +771,11 @@ function mwOpenAction(id) {
 
     document.getElementById('mw-so-body').innerHTML = `
 <div style="padding:24px;">
-  <div style="font-size:18px;font-weight:800;color:#18181b;line-height:1.4;margin-bottom:16px;">${escHtml(a.title)}</div>
+  <div style="font-size:18px;font-weight:800;color:var(--color-text-primary);line-height:1.4;margin-bottom:16px;">${escHtml(a.title)}</div>
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-    ${a.project ? `<span style="background:#ede9fe;color:#6d28d9;border-radius:5px;padding:3px 10px;font-size:12px;font-weight:600;">${escHtml(a.project)}</span>` : ''}
-    ${a.creator ? `<span style="background:#f3f4f6;color:#6b7280;border-radius:5px;padding:3px 10px;font-size:12px;">${mwRequested(escHtml(a.creator))}</span>` : ''}
-    ${a.assignee ? `<span style="background:#f3f4f6;color:#374151;border-radius:5px;padding:3px 10px;font-size:12px;">${mwAssignee(escHtml(a.assignee))}</span>` : ''}
+    ${a.project ? `<span style="background:var(--t100);color:var(--t700);border-radius:5px;padding:3px 10px;font-size:12px;font-weight:600;">${escHtml(a.project)}</span>` : ''}
+    ${a.creator ? `<span style="background:var(--color-bg-muted);color:var(--color-text-secondary);border-radius:5px;padding:3px 10px;font-size:12px;">${mwRequested(escHtml(a.creator))}</span>` : ''}
+    ${a.assignee ? `<span style="background:var(--color-bg-muted);color:var(--color-text-secondary);border-radius:5px;padding:3px 10px;font-size:12px;">${mwAssignee(escHtml(a.assignee))}</span>` : ''}
   </div>
   ${a.due ? `
   <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:${isOverdue?'#fff5f5':'#f8f8fc'};border-radius:10px;margin-bottom:16px;">
@@ -784,13 +784,13 @@ function mwOpenAction(id) {
   </div>` : ''}
   ${a.desc ? `
   <div style="margin-bottom:20px;">
-    <div style="font-size:11.5px;font-weight:700;color:#9ca3af;margin-bottom:8px;">${mwT.soDesc}</div>
-    <div style="font-size:13.5px;color:#374151;line-height:1.7;white-space:pre-wrap;background:#f8f8fc;border-radius:8px;padding:12px 14px;">${escHtml(a.desc)}</div>
-  </div>` : `<div style="font-size:13px;color:#9ca3af;margin-bottom:20px;padding:12px 14px;background:#f8f8fc;border-radius:8px;">${mwT.soNoDesc}</div>`}
+    <div style="font-size:11.5px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:8px;">${mwT.soDesc}</div>
+    <div style="font-size:13.5px;color:var(--color-text-secondary);line-height:1.7;white-space:pre-wrap;background:#f8f8fc;border-radius:8px;padding:12px 14px;">${escHtml(a.desc)}</div>
+  </div>` : `<div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:20px;padding:12px 14px;background:#f8f8fc;border-radius:8px;">${mwT.soNoDesc}</div>`}
   <form method="POST" action="${toggleUrl}" style="margin-bottom:12px;">
     <input type="hidden" name="_token" value="${mwCsrf}">
     <input type="hidden" name="_method" value="PATCH">
-    <button type="submit" style="width:100%;padding:11px;background:#f0fdf4;color:#065f46;border:1.5px solid #d1fae5;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">${mwT.soActionDone}</button>
+    <button type="submit" style="width:100%;padding:11px;background:var(--color-bg-success-subtle);color:#065f46;border:1.5px solid #d1fae5;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">${mwT.soActionDone}</button>
   </form>
 </div>`;
     mwOpenSo();
@@ -812,33 +812,33 @@ function mwOpenSubTask(id) {
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
     <span style="background:#cffafe;color:#0e7490;font-size:11px;font-weight:700;border-radius:4px;padding:2px 9px;">${mwT.soSubBadge}</span>
   </div>
-  <div style="font-size:20px;font-weight:800;color:#18181b;line-height:1.4;margin-bottom:18px;">${escHtml(s.title)}</div>
+  <div style="font-size:20px;font-weight:800;color:var(--color-text-primary);line-height:1.4;margin-bottom:18px;">${escHtml(s.title)}</div>
   <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
     <span style="background:${st[0]};color:${st[1]};border-radius:5px;padding:4px 12px;font-size:13px;font-weight:700;">${escHtml(s.stLabel)}</span>
-    ${s.project ? `<span style="background:#ede9fe;color:#6d28d9;border-radius:5px;padding:4px 12px;font-size:13px;font-weight:600;">${escHtml(s.project)}</span>` : ''}
-    ${s.group   ? `<span style="background:#f3f4f6;color:#6b7280;border-radius:5px;padding:4px 12px;font-size:13px;">${escHtml(s.group)}</span>` : ''}
-    ${s.assignee? `<span style="background:#f0fdf4;color:#065f46;border-radius:5px;padding:4px 12px;font-size:13px;">${mwAssignee(escHtml(s.assignee))}</span>` : ''}
+    ${s.project ? `<span style="background:var(--t100);color:var(--t700);border-radius:5px;padding:4px 12px;font-size:13px;font-weight:600;">${escHtml(s.project)}</span>` : ''}
+    ${s.group   ? `<span style="background:var(--color-bg-muted);color:var(--color-text-secondary);border-radius:5px;padding:4px 12px;font-size:13px;">${escHtml(s.group)}</span>` : ''}
+    ${s.assignee? `<span style="background:var(--color-bg-success-subtle);color:#065f46;border-radius:5px;padding:4px 12px;font-size:13px;">${mwAssignee(escHtml(s.assignee))}</span>` : ''}
   </div>
   ${(s.start || s.end) ? `
-  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:${isOverdue?'#fff5f5':'#f8f8fc'};border-radius:10px;margin-bottom:20px;border:1px solid ${isOverdue?'#fca5a5':'#e9e7fb'};">
+  <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:${isOverdue?'#fff5f5':'#f8f8fc'};border-radius:10px;margin-bottom:20px;border:1px solid ${isOverdue?'#fca5a5':'#e9e7fb'};">
     <svg width="18" height="18" fill="none" stroke="${isOverdue?'#dc2626':'#6b7280'}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-    <span style="font-size:14px;color:${isOverdue?'#dc2626':'#374151'};font-weight:${isOverdue?'700':'500'};">${isOverdue?mwT.soDueOverdue:''}${escHtml(s.start)} ~ ${escHtml(s.end)}</span>
+    <span style="font-size:14px;color:${isOverdue?'var(--color-alert-warning-500)':'var(--color-text-secondary)'};font-weight:${isOverdue?'700':'500'};">${isOverdue?mwT.soDueOverdue:''}${escHtml(s.start)} ~ ${escHtml(s.end)}</span>
   </div>` : ''}
   ${s.progress > 0 ? `
   <div style="margin-bottom:24px;">
     <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-      <span style="font-size:12px;font-weight:700;color:#9ca3af;">${mwT.soProgress}</span>
-      <span style="font-size:14px;font-weight:800;color:#6d28d9;">${s.progress}%</span>
+      <span style="font-size:12px;font-weight:700;color:var(--color-text-tertiary);">${mwT.soProgress}</span>
+      <span style="font-size:14px;font-weight:800;color:var(--t700);">${s.progress}%</span>
     </div>
     <div style="height:10px;background:#e9e7fb;border-radius:5px;overflow:hidden;">
-      <div style="height:100%;width:${s.progress}%;background:linear-gradient(90deg,#7c3aed,#4f46e5);border-radius:5px;"></div>
+      <div style="height:100%;width:${s.progress}%;background:linear-gradient(90deg,var(--t600),#4f46e5);border-radius:5px;"></div>
     </div>
   </div>` : ''}
   ${s.desc ? `
   <div>
-    <div style="font-size:12px;font-weight:700;color:#9ca3af;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;">${mwT.soDesc}</div>
-    <div style="font-size:14px;color:#374151;line-height:1.8;white-space:pre-wrap;background:#f8f8fc;border-radius:10px;padding:16px 18px;border:1px solid #e9e7fb;">${escHtml(s.desc)}</div>
-  </div>` : `<div style="font-size:14px;color:#9ca3af;padding:16px 18px;background:#f8f8fc;border-radius:10px;text-align:center;">${mwT.soNoDesc}</div>`}
+    <div style="font-size:12px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;">${mwT.soDesc}</div>
+    <div style="font-size:14px;color:var(--color-text-secondary);line-height:1.8;white-space:pre-wrap;background:#f8f8fc;border-radius:10px;padding:16px 18px;border:1px solid #e9e7fb;">${escHtml(s.desc)}</div>
+  </div>` : `<div style="font-size:14px;color:var(--color-text-tertiary);padding:16px 18px;background:#f8f8fc;border-radius:10px;text-align:center;">${mwT.soNoDesc}</div>`}
 </div>`;
     mwOpenContentPopup(mwT.soSubDetail, html);
 }

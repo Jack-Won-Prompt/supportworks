@@ -14,7 +14,7 @@
 @section('breadcrumb')
     <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
     <span>›</span>
-    <span style="color:#374151;font-weight:500;">표준 체크리스트</span>
+    <span style="color:var(--color-text-secondary);font-weight:500;">표준 체크리스트</span>
 @endsection
 
 @section('content')

@@ -22,7 +22,7 @@
             <ol style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;">
                 @foreach($steps as $step)
                     <li class="ags-card">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
                             <div>
                                 <strong style="font-size:13.5px;">{{ $loop->iteration }}. {{ $step->title }}</strong>
                                 @if($step->description)

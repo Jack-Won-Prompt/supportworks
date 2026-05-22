@@ -4,7 +4,7 @@
 
 @section('header-actions')
 <button onclick="taskModal(true)"
-    style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;">
+    style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;">
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     {{ __('work.task_new') }}
 </button>
@@ -25,10 +25,10 @@ $filters = [
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
 
     {{-- 기간 필터 탭 --}}
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         @foreach($filters as $key => $f)
         <a href="{{ route('tasks.index', ['filter' => $key, 'project_id' => $projectId]) }}"
-            style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;text-decoration:none;transition:all .15s;
+            style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;text-decoration:none;transition:all .15s;
                    {{ $filter === $key
                        ? 'background:var(--t600);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);'
                        : 'background:#fff;color:#6b7280;border:1px solid #e5e7eb;' }}">
@@ -43,7 +43,7 @@ $filters = [
     {{-- 프로젝트 필터 드롭다운 --}}
     <div x-data="{ open: false }" style="position:relative;">
         <button @click="open=!open"
-            style="display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid {{ $projectId ? 'var(--t400)' : '#e5e7eb' }};background:{{ $projectId ? 'var(--t50)' : '#fff' }};color:{{ $projectId ? 'var(--tText)' : '#6b7280' }};cursor:pointer;transition:all .15s;">
+            style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid {{ $projectId ? 'var(--t400)' : '#e5e7eb' }};background:{{ $projectId ? 'var(--t50)' : '#fff' }};color:{{ $projectId ? 'var(--tText)' : '#6b7280' }};cursor:pointer;transition:all .15s;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
             {{ $selectedProject ? $selectedProject->name : __('work.task_project_label') }}
             @if($projectId)
@@ -64,7 +64,7 @@ $filters = [
             <div style="height:1px;background:#f3f4f6;margin:4px 0;"></div>
             <div style="padding:3px 10px 2px;font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.04em;">{{ __('work.task_project_joined') }}</div>
             @foreach($projects as $proj)
-            <div style="display:flex;align-items:center;gap:6px;padding:4px 6px 4px 12px;border-radius:7px;background:{{ $projectId == $proj->id ? 'var(--t50)' : 'transparent' }};">
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 6px 4px 12px;border-radius:7px;background:{{ $projectId == $proj->id ? 'var(--t50)' : 'transparent' }};">
                 <a href="{{ route('tasks.index', ['filter' => $filter, 'project_id' => $proj->id]) }}"
                     @click="open=false"
                     style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:3px 0;font-size:12px;text-decoration:none;color:{{ $projectId == $proj->id ? 'var(--tText)' : '#374151' }};">
@@ -131,12 +131,12 @@ $filters = [
         </div>
         <form action="{{ route('tasks.store') }}" method="POST">
             @csrf
-            <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 <input type="text" name="title" placeholder="{{ __('work.task_title_placeholder') }}" required
                     style="padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;">
                 <textarea name="description" placeholder="{{ __('work.task_desc_placeholder') }}" rows="2"
                     style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;resize:vertical;"></textarea>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
                         <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:4px;">{{ __('common.priority') }}</label>
                         <select name="priority" style="width:100%;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;">
@@ -217,7 +217,7 @@ $filters = [
                         @if($task->description)
                         <p style="font-size:11px;color:#9ca3af;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $task->description }}</p>
                         @endif
-                        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
                             @if($task->due_date)
                             <span style="font-size:11px;padding:1px 7px;border-radius:8px;
                                 {{ $task->due_date->lt(now()->startOfDay()) && $task->status!=='done' ? 'background:#fee2e2;color:#dc2626;' : 'background:#f3f4f6;color:#6b7280;' }}">
@@ -232,7 +232,7 @@ $filters = [
                 </div>
 
                 {{-- 액션 버튼 --}}
-                <div style="display:flex;gap:5px;margin-top:10px;padding-top:8px;border-top:1px solid #f3f4f6;">
+                <div style="display:flex;gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #f3f4f6;">
                     @if($col['next'])
                     <form action="{{ route('tasks.status', $task) }}" method="POST" style="flex:1;">
                         @csrf @method('PATCH')

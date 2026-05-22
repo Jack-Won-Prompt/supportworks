@@ -81,7 +81,7 @@ $statusDot = match($user->agent_status ?? 'offline') {
             <div style="{{ $card }}">
                 <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px;">{{ __('team.activity_stats') }}</div>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div style="background:#f5f3ff;border-radius:10px;padding:12px;text-align:center;">
                         <div style="font-size:20px;font-weight:800;color:var(--t600);">{{ $stats['projects'] }}</div>
                         <div style="font-size:10px;color:#94a3b8;margin-top:2px;font-weight:600;">{{ __('team.stat_projects') }}</div>
@@ -121,7 +121,7 @@ $statusDot = match($user->agent_status ?? 'offline') {
                 <form method="POST" action="{{ route('profile.update') }}">
                     @csrf @method('PATCH')
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
                         <div>
                             <label style="{{ $lbl }}">{{ __('team.name_label') }} <span style="color:#ef4444;">*</span></label>
                             <input type="text" name="name" value="{{ old('name', $user->name) }}" required
@@ -136,7 +136,7 @@ $statusDot = match($user->agent_status ?? 'offline') {
                         </div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
                         <div>
                             <label style="{{ $lbl }}">{{ __('team.company_label') }}</label>
                             <input type="text" name="company" value="{{ old('company', $user->company) }}"
@@ -203,7 +203,7 @@ $statusDot = match($user->agent_status ?? 'offline') {
                                style="{{ $inp }}" placeholder="{{ __('team.current_password_ph') }}"
                                onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e8e3ff'">
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
                         <div>
                             <label style="{{ $lbl }}">{{ __('team.new_password') }}</label>
                             <input type="password" name="password" autocomplete="new-password"

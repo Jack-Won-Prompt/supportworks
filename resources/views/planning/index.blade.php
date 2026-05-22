@@ -56,7 +56,7 @@
                 <p style="margin-top:4px;font-size:11px;color:#9ca3af;">{{ __('work.planning_form_md_hint') }}</p>
             </div>
 
-            <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
                 <a href="{{ route('projects.show', $project) }}"
                     style="padding:9px 18px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;text-decoration:none;">{{ __('common.cancel') }}</a>
                 <button type="submit"

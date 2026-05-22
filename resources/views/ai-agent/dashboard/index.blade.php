@@ -112,7 +112,7 @@
                     <div class="aad-proj-desc" style="margin-top:3px;">{{ Str::limit($p->description, 55) }}</div>
                     @endif
                 </div>
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                     @if($cfg->frontend_stack)
                     <span class="aad-stack-badge">{{ $cfg->frontend_stack->label() }}</span>
                     @endif
@@ -176,7 +176,7 @@
         </svg>
         <h3>참여 중인 프로젝트가 없습니다</h3>
         <p>프로젝트에 참여하거나 새 프로젝트를 생성해주세요.</p>
-        <a href="{{ route('dashboard') }}" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--t600);">
+        <a href="{{ route('dashboard') }}" style="display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--t600);">
             대시보드로 이동 →
         </a>
     </div>

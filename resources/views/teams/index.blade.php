@@ -26,12 +26,12 @@
         {{-- 인증 상태 배지 --}}
         <div id="auth-badge">
             @if($setting->is_verified)
-            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;background:#dcfce7;color:#15803d;border-radius:20px;">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:5px 12px;background:#dcfce7;color:#15803d;border-radius:20px;">
                 <span style="width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulse 1.8s infinite;display:inline-block;"></span>
                 {{ __('team.verified_badge') }}
             </span>
             @else
-            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;background:#f3f4f6;color:#9ca3af;border-radius:20px;">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:5px 12px;background:#f3f4f6;color:#9ca3af;border-radius:20px;">
                 <span style="width:7px;height:7px;border-radius:50%;background:#d1d5db;display:inline-block;"></span>
                 {{ __('team.unverified_badge') }}
             </span>
@@ -72,9 +72,9 @@
             </div>
             <p style="font-size:11px;color:#9ca3af;margin:5px 0 0;">{{ __('team.azure_hint') }}</p>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
             <button onclick="verifyAuth()" id="verify-btn"
-                style="display:inline-flex;align-items:center;gap:7px;padding:9px 20px;background:linear-gradient(135deg,#5558af,#7b83eb);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;"
+                style="display:inline-flex;align-items:center;gap:8px;padding:9px 20px;background:linear-gradient(135deg,#5558af,#7b83eb);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;"
                 onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -93,13 +93,13 @@
 
         {{-- ① 채널 메시지 전송 --}}
         <div class="feature-card" style="background:#fff;border-radius:14px;border:1px solid var(--t100);box-shadow:0 2px 12px rgba(0,0,0,.05);overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:10px;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:12px;">
                 <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#5558af22,#7b83eb22);display:flex;align-items:center;justify-content:center;">
                     <svg width="16" height="16" fill="none" stroke="#5558af" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                 </div>
                 <h3 style="font-size:13px;font-weight:700;color:#1e1b2e;margin:0;">{{ __('team.feature_channel_msg') }}</h3>
             </div>
-            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
                 <select id="msg-team" onchange="loadChannels('msg')"
                     style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;background:#fff;cursor:pointer;"
                     onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
@@ -120,13 +120,13 @@
 
         {{-- ② 채팅 생성 --}}
         <div class="feature-card" style="background:#fff;border-radius:14px;border:1px solid var(--t100);box-shadow:0 2px 12px rgba(0,0,0,.05);overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:10px;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:12px;">
                 <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#6ee7b722,#10b98122);display:flex;align-items:center;justify-content:center;">
                     <svg width="16" height="16" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
                 </div>
                 <h3 style="font-size:13px;font-weight:700;color:#1e1b2e;margin:0;">{{ __('team.feature_create_chat') }}</h3>
             </div>
-            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
                 <p style="font-size:11px;color:#9ca3af;margin:0;">{{ __('team.chat_member_hint') }}</p>
                 <textarea id="chat-members" rows="3" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx&#10;yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
                     style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;color:#374151;outline:none;resize:none;box-sizing:border-box;font-family:monospace;"
@@ -141,13 +141,13 @@
 
         {{-- ③ 사용자/조직 조회 --}}
         <div class="feature-card" style="background:#fff;border-radius:14px;border:1px solid var(--t100);box-shadow:0 2px 12px rgba(0,0,0,.05);overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:10px;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:12px;">
                 <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#fcd34d22,#f59e0b22);display:flex;align-items:center;justify-content:center;">
                     <svg width="16" height="16" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
                 <h3 style="font-size:13px;font-weight:700;color:#1e1b2e;margin:0;">{{ __('team.feature_user_search') }}</h3>
             </div>
-            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
                 <div style="display:flex;gap:8px;">
                     <input id="user-search" type="text" placeholder="{{ __('team.user_search_placeholder') }}"
                         style="flex:1;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;"
@@ -155,19 +155,19 @@
                         onkeydown="if(event.key==='Enter') searchUsers()">
                     <button onclick="searchUsers()" style="padding:8px 14px;background:#d97706;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s;" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">{{ __('team.search_btn') }}</button>
                 </div>
-                <div id="user-results" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+                <div id="user-results" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;"></div>
             </div>
         </div>
 
         {{-- ④ 파일 업로드 (SharePoint) --}}
         <div class="feature-card" style="background:#fff;border-radius:14px;border:1px solid var(--t100);box-shadow:0 2px 12px rgba(0,0,0,.05);overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:10px;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;gap:12px;">
                 <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f9a8d422,#ec489922);display:flex;align-items:center;justify-content:center;">
                     <svg width="16" height="16" fill="none" stroke="#db2777" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                 </div>
                 <h3 style="font-size:13px;font-weight:700;color:#1e1b2e;margin:0;">{{ __('team.feature_file_upload') }} <span style="font-size:11px;color:#9ca3af;font-weight:400;">— SharePoint</span></h3>
             </div>
-            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
                 <select id="site-select" onchange="loadDrives()"
                     style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;background:#fff;cursor:pointer;"
                     onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
@@ -282,8 +282,8 @@ async function verifyAuth() {
 
 function setBadge(ok) {
     document.getElementById('auth-badge').innerHTML = ok
-        ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;background:#dcfce7;color:#15803d;border-radius:20px;"><span style="width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulse 1.8s infinite;display:inline-block;"></span>${STR.verified_badge}</span>`
-        : `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;background:#fef2f2;color:#dc2626;border-radius:20px;"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;"></span>${STR.unverified_badge}</span>`;
+        ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:5px 12px;background:#dcfce7;color:#15803d;border-radius:20px;"><span style="width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulse 1.8s infinite;display:inline-block;"></span>${STR.verified_badge}</span>`
+        : `<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:5px 12px;background:#fef2f2;color:#dc2626;border-radius:20px;"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;"></span>${STR.unverified_badge}</span>`;
 }
 
 function enableFeatures() {
@@ -363,7 +363,7 @@ async function searchUsers() {
     if (!data.ok) { box.innerHTML = `<div style="font-size:12px;color:#dc2626;">${data.error}</div>`; return; }
     if (!data.data.length) { box.innerHTML = `<div style="font-size:12px;color:#9ca3af;">${STR.no_results}</div>`; return; }
     box.innerHTML = data.data.map(u => `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--tBg);border-radius:8px;border:1px solid var(--t100);">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;background:var(--tBg);border-radius:8px;border:1px solid var(--t100);">
             <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--t300),var(--t500));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">${(u.displayName||'?').charAt(0)}</div>
             <div style="min-width:0;">
                 <div style="font-size:13px;font-weight:600;color:#1e1b2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.displayName||''}</div>

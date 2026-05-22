@@ -8,7 +8,7 @@
 @section('breadcrumb')
 <a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">{{ $project->name }}</span>
+<span style="color:var(--color-text-secondary);font-weight:500;">{{ $project->name }}</span>
 @endsection
 
 @section('content')
@@ -297,29 +297,29 @@
     <div id="modal-shared-file-link" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this) closeSharedFileLinkModal()">
         <div style="background:#fff;border-radius:14px;padding:22px;width:520px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                <h2 style="font-size:15px;font-weight:800;color:#111827;margin:0;">{{ __('shared-folder.link_modal_title') }}</h2>
-                <button type="button" onclick="closeSharedFileLinkModal()" style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1;padding:0 4px;">&times;</button>
+                <h2 style="font-size:15px;font-weight:800;color:var(--color-text-primary);margin:0;">{{ __('shared-folder.link_modal_title') }}</h2>
+                <button type="button" onclick="closeSharedFileLinkModal()" style="background:none;border:none;font-size:20px;color:var(--color-text-tertiary);cursor:pointer;line-height:1;padding:0 4px;">&times;</button>
             </div>
             <input type="text" id="sf-link-search" placeholder="{{ __('shared-folder.link_search_ph') }}"
                    oninput="filterSharedFiles(this.value)"
-                   style="padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;margin-bottom:10px;">
-            <div id="sf-link-list" style="flex:1;overflow-y:auto;border:1px solid #f3f4f6;border-radius:8px;">
+                   style="padding:8px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;outline:none;margin-bottom:10px;">
+            <div id="sf-link-list" style="flex:1;overflow-y:auto;border:1px solid var(--color-bg-muted);border-radius:8px;">
                 @forelse($shareable as $f)
                 <form method="POST" action="{{ route('projects.shared-files.store', $project) }}" class="sf-link-row" data-name="{{ strtolower($f->original_name) }}" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #f9fafb;margin:0;">
                     @csrf
                     <input type="hidden" name="shared_file_id" value="{{ $f->id }}">
                     <span style="font-size:16px;flex-shrink:0;">{{ $f->icon }}</span>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;color:#111827;font-weight:600;word-break:break-all;">{{ $f->original_name }}</div>
-                        <div style="font-size:11px;color:#9ca3af;margin-top:1px;">
+                        <div style="font-size:13px;color:var(--color-text-primary);font-weight:600;word-break:break-all;">{{ $f->original_name }}</div>
+                        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:1px;">
                             @if($f->category)<span style="color:{{ $f->category->color }};font-weight:600;">{{ $f->category->name }}</span> · @endif
                             {{ $f->formatted_size }}
                         </div>
                     </div>
-                    <button type="submit" style="padding:5px 12px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;flex-shrink:0;">{{ __('shared-folder.link_submit') }}</button>
+                    <button type="submit" style="padding:5px 12px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;flex-shrink:0;">{{ __('shared-folder.link_submit') }}</button>
                 </form>
                 @empty
-                <p style="text-align:center;color:#9ca3af;font-size:12px;padding:24px;">{{ __('shared-folder.link_no_files') }}</p>
+                <p style="text-align:center;color:var(--color-text-tertiary);font-size:12px;padding:24px;">{{ __('shared-folder.link_no_files') }}</p>
                 @endforelse
             </div>
         </div>
@@ -366,28 +366,28 @@
 <div id="modal-schedule" onclick="if(event.target===this)this.style.display='none'"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f4f4f5;">
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;">{{ __('projects.modal_add_schedule') }}</h3>
-            <button onclick="document.getElementById('modal-schedule').style.display='none'" style="background:none;border:none;cursor:pointer;color:#9ca3af;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--color-bg-muted);">
+            <h3 style="font-size:15px;font-weight:700;color:var(--color-text-primary);">{{ __('projects.modal_add_schedule') }}</h3>
+            <button onclick="document.getElementById('modal-schedule').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
-        <div style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:13px;">
+        <div style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:12px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.schedule_title_required') }} <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.schedule_title_required') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
                 <input id="sch-title" type="text" placeholder="{{ __('projects.schedule_title') }}" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.start_date') }} <span style="color:#ef4444;">*</span></label>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.start_date') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
                     <input id="sch-start" type="date" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                 </div>
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.end_date') }}</label>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.end_date') }}</label>
                     <input id="sch-end" type="date" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                 </div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.status') }}</label>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.status') }}</label>
                     <select id="sch-status" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                         <option value="pending">{{ __('projects.sched_status_pending') }}</option>
                         <option value="in_progress">{{ __('projects.sched_status_in_progress') }}</option>
@@ -398,7 +398,7 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.priority') }}</label>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.priority') }}</label>
                     <select id="sch-priority" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                         <option value="medium">{{ __('projects.priority_normal') }}</option>
                         <option value="high">{{ __('projects.priority_high') }}</option>
@@ -407,7 +407,7 @@
                 </div>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.assignee') }}</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.assignee') }}</label>
                 <select id="sch-assignee" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                     <option value="">{{ __('projects.no_assignee') }}</option>
                     @foreach($project->projectMembers as $m)
@@ -416,7 +416,7 @@
                 </select>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
-                <button onclick="document.getElementById('modal-schedule').style.display='none'" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
+                <button onclick="document.getElementById('modal-schedule').style.display='none'" style="padding:8px 16px;font-size:13px;color:var(--color-text-secondary);background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button onclick="submitSchedule()" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;">{{ __('common.register') }}</button>
             </div>
         </div>
@@ -427,21 +427,21 @@
 <div id="modal-question" onclick="if(event.target===this)this.style.display='none'"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f4f4f5;">
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;">{{ __('projects.modal_add_question') }}</h3>
-            <button onclick="document.getElementById('modal-question').style.display='none'" style="background:none;border:none;cursor:pointer;color:#9ca3af;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--color-bg-muted);">
+            <h3 style="font-size:15px;font-weight:700;color:var(--color-text-primary);">{{ __('projects.modal_add_question') }}</h3>
+            <button onclick="document.getElementById('modal-question').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
-        <div style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:13px;">
+        <div style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:12px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.question_title') }} <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.question_title') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
                 <input id="q-title" type="text" placeholder="{{ __('projects.question_title_placeholder') }}" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.question_content') }} <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.question_content') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
                 <textarea id="q-content" rows="4" placeholder="{{ __('projects.question_content_placeholder2') }}" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
-                <button onclick="document.getElementById('modal-question').style.display='none'" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
+                <button onclick="document.getElementById('modal-question').style.display='none'" style="padding:8px 16px;font-size:13px;color:var(--color-text-secondary);background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button onclick="submitQuestion()" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;">{{ __('common.register') }}</button>
             </div>
         </div>
@@ -452,57 +452,57 @@
 <div id="modal-file" onclick="if(event.target===this)this.style.display='none'"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f4f4f5;">
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;">{{ __('projects.modal_file_url') }}</h3>
-            <button onclick="document.getElementById('modal-file').style.display='none'" style="background:none;border:none;cursor:pointer;color:#9ca3af;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--color-bg-muted);">
+            <h3 style="font-size:15px;font-weight:700;color:var(--color-text-primary);">{{ __('projects.modal_file_url') }}</h3>
+            <button onclick="document.getElementById('modal-file').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
         {{-- 탭 --}}
-        <div style="display:flex;gap:0;border-bottom:1px solid #f4f4f5;">
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--color-bg-muted);">
             <button id="tab-file-btn" onclick="switchFileTab('file')"
                 style="flex:1;padding:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:#f0f0ff;color:#4f46e5;border-bottom:2px solid #4f46e5;transition:all .15s;">
                 {{ __('projects.tab_file_upload') }}
             </button>
             <button id="tab-url-btn" onclick="switchFileTab('url')"
-                style="flex:1;padding:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:#fff;color:#9ca3af;border-bottom:2px solid transparent;transition:all .15s;">
+                style="flex:1;padding:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:#fff;color:var(--color-text-tertiary);border-bottom:2px solid transparent;transition:all .15s;">
                 {{ __('projects.tab_url') }}
             </button>
         </div>
         {{-- 파일 업로드 탭 --}}
-        <div id="tab-file-panel" style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:13px;">
+        <div id="tab-file-panel" style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:12px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">{{ __('common.file') }} <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px;">{{ __('common.file') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
                 <label style="display:flex;align-items:center;gap:8px;padding:2px 12px;border:1.5px dashed #d1d5db;border-radius:8px;cursor:pointer;background:#fafafa;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#d1d5db'">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#9ca3af;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                    <span id="file-modal-label" style="font-size:13px;color:#6b7280;">{{ __('projects.file_select_placeholder') }}</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--color-text-tertiary);flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    <span id="file-modal-label" style="font-size:13px;color:var(--color-text-secondary);">{{ __('projects.file_select_placeholder') }}</span>
                     <input id="f-file" type="file" style="display:none;" onchange="document.getElementById('file-modal-label').textContent=this.files[0]?this.files[0].name:'{{ __('projects.file_select_placeholder') }}'">
                 </label>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.description') }}</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('common.description') }}</label>
                 <input id="f-desc" type="text" placeholder="{{ __('projects.description_placeholder') }}" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
-                <button onclick="document.getElementById('modal-file').style.display='none'" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
+                <button onclick="document.getElementById('modal-file').style.display='none'" style="padding:8px 16px;font-size:13px;color:var(--color-text-secondary);background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button onclick="submitFile()" id="btn-file-submit" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;">{{ __('common.upload') }}</button>
             </div>
         </div>
         {{-- URL 등록 탭 --}}
-        <div id="tab-url-panel" style="display:none;padding:18px 22px 22px;display:none;flex-direction:column;gap:13px;">
+        <div id="tab-url-panel" style="display:none;padding:18px 22px 22px;display:none;flex-direction:column;gap:12px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">URL <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">URL <span style="color:var(--color-alert-warning-500);">*</span></label>
                 <input id="f-url" type="url" placeholder="https://..." style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
-                <p style="margin:4px 0 0;font-size:11px;color:#9ca3af;">{{ __('projects.url_support_hint') }}</p>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--color-text-tertiary);">{{ __('projects.url_support_hint') }}</p>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.title') }} <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('common.title') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
                 <input id="f-url-title" type="text" placeholder="{{ __('projects.display_name_placeholder') }}" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.description') }}</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('common.description') }}</label>
                 <input id="f-url-desc" type="text" placeholder="{{ __('projects.description_placeholder') }}" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
-                <button onclick="document.getElementById('modal-file').style.display='none'" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
+                <button onclick="document.getElementById('modal-file').style.display='none'" style="padding:8px 16px;font-size:13px;color:var(--color-text-secondary);background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button onclick="submitUrl()" id="btn-url-submit" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;">{{ __('common.register') }}</button>
             </div>
         </div>
@@ -668,19 +668,19 @@ $_mmData = $project->projectMembers->map(function($m) {
         <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f1f5f9;flex-shrink:0;">
             <div>
                 <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 2px;">{{ __('projects.project_members') }}</h3>
-                <p id="mm-subtitle" style="font-size:12px;color:#94a3b8;margin:0;"></p>
+                <p id="mm-subtitle" style="font-size:12px;color:var(--color-text-tertiary);margin:0;"></p>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
                 @if($isManager)
                 <button onclick="toggleMemberAddForm()" id="mm-add-btn"
-                        style="display:flex;align-items:center;gap:5px;padding:6px 13px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;"
+                        style="display:flex;align-items:center;gap:4px;padding:6px 13px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;"
                         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                     {{ __('projects.member_add') }}
                 </button>
                 @endif
                 <button onclick="closeMembersModal()"
-                        style="background:transparent;border:none;cursor:pointer;font-size:20px;color:#94a3b8;line-height:1;padding:2px 4px;"
+                        style="background:transparent;border:none;cursor:pointer;font-size:20px;color:var(--color-text-tertiary);line-height:1;padding:2px 4px;"
                         onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#94a3b8'">✕</button>
             </div>
         </div>
@@ -716,7 +716,7 @@ $_mmData = $project->projectMembers->map(function($m) {
         <div id="mm-list" style="flex:1;overflow-y:auto;padding:8px 0;"></div>
 
         {{-- 로딩 --}}
-        <div id="mm-loading" style="flex:1;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;padding:40px;">
+        <div id="mm-loading" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--color-text-tertiary);font-size:13px;padding:40px;">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;margin-right:8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             {{ __('projects.loading_members') }}
         </div>
@@ -814,7 +814,7 @@ $_mmData = $project->projectMembers->map(function($m) {
     async function _mmRenderList(members) {
         const list = document.getElementById('mm-list');
         if (!members.length) {
-            list.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:13px;padding:32px;">' + STR_MM.memberNone + '</div>';
+            list.innerHTML = '<div style="text-align:center;color:var(--color-text-tertiary);font-size:13px;padding:32px;">' + STR_MM.memberNone + '</div>';
             return;
         }
         list.innerHTML = members.map(m => {
@@ -830,7 +830,7 @@ $_mmData = $project->projectMembers->map(function($m) {
 
             const deleteBtn = IS_MANAGER && !m.is_self
                 ? `<button onclick="removeMember(${m.id})"
-                           style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:transparent;border:1px solid #fecaca;color:#ef4444;cursor:pointer;flex-shrink:0;transition:background .12s;"
+                           style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:transparent;border:1px solid #fecaca;color:var(--color-alert-warning-500);cursor:pointer;flex-shrink:0;transition:background .12s;"
                            onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'"
                            title="{{ __('projects.member_remove_confirm') }}">
                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -842,17 +842,17 @@ $_mmData = $project->projectMembers->map(function($m) {
                 : '';
 
             return `<div style="display:flex;align-items:center;gap:12px;padding:11px 22px;border-bottom:1px solid #f8fafc;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
-                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c4b5fd,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--t300),var(--t400));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">
                     ${m.name.charAt(0)}
                 </div>
                 <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
                         <span style="font-size:13px;font-weight:600;color:#0f172a;">${m.name}</span>
                         ${selfBadge}
                     </div>
-                    <div style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.email}</div>
+                    <div style="font-size:11px;color:var(--color-text-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.email}</div>
                 </div>
-                <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
                     ${roleSelect}
                     ${deleteBtn}
                 </div>
@@ -934,30 +934,30 @@ $_mmData = $project->projectMembers->map(function($m) {
 <div id="modal-project-delete" onclick="if(event.target===this)closeProjectDeleteModal()"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9300;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f4f4f5;">
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;">{{ __('projects.delete_modal_title') }}</h3>
-            <button onclick="closeProjectDeleteModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--color-bg-muted);">
+            <h3 style="font-size:15px;font-weight:700;color:var(--color-text-primary);">{{ __('projects.delete_modal_title') }}</h3>
+            <button onclick="closeProjectDeleteModal()" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <div style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;">
             <div style="display:flex;align-items:flex-start;gap:12px;">
-                <div style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;">
+                <div style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:var(--color-bg-danger-subtle);display:flex;align-items:center;justify-content:center;">
                     <svg width="18" height="18" fill="none" stroke="#dc2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                 </div>
                 <div>
-                    <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 4px;">{{ __('projects.delete_confirm_heading') }}</p>
-                    <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.5;">
-                        {!! __('projects.delete_modal_warning', ['name' => '<strong style="color:#374151;">' . e($project->name) . '</strong>']) !!}<br>{{ __('projects.delete_modal_irreversible') }}
+                    <p style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin:0 0 4px;">{{ __('projects.delete_confirm_heading') }}</p>
+                    <p style="font-size:13px;color:var(--color-text-secondary);margin:0;line-height:1.5;">
+                        {!! __('projects.delete_modal_warning', ['name' => '<strong style="color:var(--color-text-secondary);">' . e($project->name) . '</strong>']) !!}<br>{{ __('projects.delete_modal_irreversible') }}
                     </p>
                 </div>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
-                <button onclick="closeProjectDeleteModal()" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
+                <button onclick="closeProjectDeleteModal()" style="padding:8px 16px;font-size:13px;color:var(--color-text-secondary);background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <form method="POST" action="{{ route('projects.destroy', $project) }}" style="margin:0;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#dc2626;border:none;border-radius:8px;cursor:pointer;"
+                    <button type="submit" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--color-alert-warning-500);border:none;border-radius:8px;cursor:pointer;"
                             onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">{{ __('projects.delete_confirm_btn') }}</button>
                 </form>
             </div>
@@ -986,25 +986,25 @@ document.addEventListener('keydown', function(e) {
 <div id="modal-project-edit" onclick="if(event.target===this)closeProjectEditModal()"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9200;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;width:520px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f4f4f5;position:sticky;top:0;background:#fff;z-index:1;">
-            <h3 style="font-size:15px;font-weight:700;color:#18181b;">{{ __('common.edit') }}</h3>
-            <button onclick="closeProjectEditModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--color-bg-muted);position:sticky;top:0;background:#fff;z-index:1;">
+            <h3 style="font-size:15px;font-weight:700;color:var(--color-text-primary);">{{ __('common.edit') }}</h3>
+            <button onclick="closeProjectEditModal()" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <div style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:12px;">
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.project_name') }} <span style="color:#ef4444;">*</span></label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.project_name') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
                 <input id="pe-name" type="text" value="{{ $project->name }}"
                        style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.description') }}</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('common.description') }}</label>
                 <textarea id="pe-description" rows="3"
                           style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;">{{ $project->description }}</textarea>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.status') }}</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.status') }}</label>
                 <select id="pe-status" style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                     <option value="active"    {{ $project->status === 'active'    ? 'selected' : '' }}>{{ __('projects.status_active') }}</option>
                     <option value="on_hold"   {{ $project->status === 'on_hold'   ? 'selected' : '' }}>{{ __('projects.status_on_hold') }}</option>
@@ -1012,25 +1012,25 @@ document.addEventListener('keydown', function(e) {
                     <option value="cancelled" {{ $project->status === 'cancelled' ? 'selected' : '' }}>{{ __('projects.status_cancelled') }}</option>
                 </select>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.start_date') }}</label>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.start_date') }}</label>
                     <input id="pe-start-date" type="date" value="{{ $project->start_date?->format('Y-m-d') }}"
                            style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                 </div>
                 <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.end_date') }}</label>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.end_date') }}</label>
                     <input id="pe-end-date" type="date" value="{{ $project->end_date?->format('Y-m-d') }}"
                            style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
                 </div>
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.client_company') }}</label>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:5px;">{{ __('projects.client_company') }}</label>
                 <input id="pe-client-name" type="text" value="{{ $project->client_name }}"
                        style="width:100%;padding:8px 11px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
-                <button onclick="closeProjectEditModal()" style="padding:8px 16px;font-size:13px;color:#6b7280;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
+                <button onclick="closeProjectEditModal()" style="padding:8px 16px;font-size:13px;color:var(--color-text-secondary);background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 <button id="pe-submit-btn" onclick="submitProjectEdit()" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;">{{ __('common.save') }}</button>
             </div>
         </div>

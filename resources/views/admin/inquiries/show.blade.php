@@ -93,7 +93,7 @@
         </div>
 
         {{-- 메시지 목록 --}}
-        <div id="chat-messages" style="height:460px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f8fafc;">
+        <div id="chat-messages" style="height:460px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#f8fafc;">
             @foreach($conversation->messages as $msg)
             @php
                 $isAdmin = str_starts_with($msg->body, '[관리자');
@@ -171,7 +171,7 @@
                     <button type="button" onclick="clearAdmFile()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;line-height:1;padding:0 2px;">&times;</button>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-                    <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
                         <label for="adm-file-input" class="adm-attach-label" title="{{ __('admin.inq_paste_available') }}">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         </label>
@@ -572,10 +572,10 @@ function analyzeMsg(msgId, btn) {
         }
         const r = data.result;
         const kw  = Array.isArray(r.keywords) ? r.keywords.map(k => `<span style="background:#ddd6fe;color:#6d28d9;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:600;">${escHtml(k)}</span>`).join('') : '';
-        const ctx = r.context_note ? `<div style="display:flex;gap:6px;margin-bottom:5px;font-size:12px;"><span style="font-weight:700;color:#7c3aed;flex-shrink:0;min-width:38px;">${ADMIN_B_STR.context}</span><span style="color:#312e81;">${escHtml(r.context_note)}</span></div>` : '';
-        const row = (l, v) => `<div style="display:flex;gap:6px;margin-bottom:5px;font-size:12px;"><span style="font-weight:700;color:#7c3aed;flex-shrink:0;min-width:38px;">${l}</span><span style="color:#312e81;line-height:1.5;">${v}</span></div>`;
+        const ctx = r.context_note ? `<div style="display:flex;gap:8px;margin-bottom:5px;font-size:12px;"><span style="font-weight:700;color:#7c3aed;flex-shrink:0;min-width:38px;">${ADMIN_B_STR.context}</span><span style="color:#312e81;">${escHtml(r.context_note)}</span></div>` : '';
+        const row = (l, v) => `<div style="display:flex;gap:8px;margin-bottom:5px;font-size:12px;"><span style="font-weight:700;color:#7c3aed;flex-shrink:0;min-width:38px;">${l}</span><span style="color:#312e81;line-height:1.5;">${v}</span></div>`;
         body.innerHTML = row(ADMIN_B_STR.summary, escHtml(r.summary||'-')) + row(ADMIN_B_STR.intent, escHtml(r.intent||'-')) + row(ADMIN_B_STR.tone, escHtml(r.tone||'-'))
-            + `<div style="display:flex;gap:6px;margin-bottom:5px;font-size:12px;"><span style="font-weight:700;color:#7c3aed;flex-shrink:0;min-width:38px;">${ADMIN_B_STR.keyword}</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${kw}</div></div>` + ctx;
+            + `<div style="display:flex;gap:8px;margin-bottom:5px;font-size:12px;"><span style="font-weight:700;color:#7c3aed;flex-shrink:0;min-width:38px;">${ADMIN_B_STR.keyword}</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${kw}</div></div>` + ctx;
     })
     .catch(() => { body.innerHTML = `<span style="color:#dc2626;font-size:12px;">${ADMIN_B_STR.network_err}</span>`; })
     .finally(() => { btn.disabled = false; });

@@ -1,7 +1,7 @@
 {{-- ── 커스텀 다이얼로그 (브라우저 alert/confirm/prompt 대체) ─────── --}}
 <div id="__dlg" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(17,12,40,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
     <div id="__dlg-box" style="background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.28);min-width:320px;max-width:460px;width:90%;">
-        <div style="padding:22px 22px 0;display:flex;gap:14px;align-items:flex-start;">
+        <div style="padding:22px 22px 0;display:flex;gap:12px;align-items:flex-start;">
             <div id="__dlg-icon" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></div>
             <div style="flex:1;min-width:0;">
                 <div id="__dlg-title" style="font-size:15px;font-weight:700;color:#111827;margin-bottom:5px;line-height:1.4;"></div>

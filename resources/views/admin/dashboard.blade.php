@@ -20,7 +20,7 @@
 @if($latestApp && $latestApp->download_url)
 <div class="admin-card" style="margin-bottom:20px;background:linear-gradient(135deg,#1e3a5f 0%,#1e6fd9 100%);border:none;">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:center;gap:12px;">
             <div style="width:44px;height:44px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg width="22" height="22" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
             </div>
@@ -76,7 +76,7 @@
             $user = $conv->participants->first();
             $lastMsg = $conv->messages->first();
         @endphp
-        <a href="{{ route('admin.inquiries.show', $conv) }}" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9;text-decoration:none;" class="last:border-0">
+        <a href="{{ route('admin.inquiries.show', $conv) }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f1f5f9;text-decoration:none;" class="last:border-0">
             <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">
                 {{ $user ? mb_substr($user->name,0,1) : '?' }}
             </div>
@@ -105,7 +105,7 @@
             <a href="{{ route('admin.login-logs.index') }}" class="btn-secondary" style="padding:4px 10px;font-size:11px;">{{ __('admin.view_all') }}</a>
         </div>
         @foreach($recentLogs as $log)
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
             @php
                 $lbadge = match($log->result) {
                     'success' => ['badge-green',  __('admin.login_success')],

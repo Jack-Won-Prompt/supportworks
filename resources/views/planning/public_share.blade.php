@@ -98,7 +98,7 @@
         @endphp
         <span class="status-badge" style="background:{{ $sbg }};color:{{ $stc }};">{{ $doc->status_label }}</span>
         <button id="pdf-dl-btn" onclick="downloadPlanningPdf()"
-           style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;font-size:12px;font-weight:600;color:#dc2626;border:1.5px solid #fca5a5;border-radius:8px;background:#fff;cursor:pointer;flex-shrink:0;font-family:inherit;"
+           style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;font-size:12px;font-weight:600;color:#dc2626;border:1.5px solid #fca5a5;border-radius:8px;background:#fff;cursor:pointer;flex-shrink:0;font-family:inherit;"
            onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             {{ __('planning.pdf_download') }}

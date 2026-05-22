@@ -117,7 +117,7 @@ $_gc = [
                     @if($task->files->count() > 0)
                     <span onclick="event.stopPropagation();openListFileChip({{ $task->id }}, event)"
                           title="{{ __('projects.view_attachments') }}"
-                          style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
+                          style="display:inline-flex;align-items:center;gap:4px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         {{ $task->files->count() }}
                     </span>
@@ -204,7 +204,7 @@ $_gc = [
                     @if($task->files->count() > 0)
                     <span onclick="event.stopPropagation();openListFileChip({{ $task->id }}, event)"
                           title="{{ __('projects.view_attachments') }}"
-                          style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
+                          style="display:inline-flex;align-items:center;gap:4px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         {{ $task->files->count() }}
                     </span>
@@ -244,7 +244,7 @@ $_gc = [
             @if($task->files->count() > 0)
             <span onclick="openListFileChip({{ $task->id }}, event)"
                   title="{{ __('projects.view_attachments') }}"
-                  style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
+                  style="display:inline-flex;align-items:center;gap:4px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;">
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                 {{ $task->files->count() }}
             </span>

@@ -162,7 +162,7 @@
             @else
 
             {{-- Tabs --}}
-            <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
                 <button class="mg-btn secondary" :class="tab==='preview'?'primary':'secondary'"
                         @click="tab='preview'" style="padding:7px 16px;">미리보기</button>
                 <button class="mg-btn secondary" :class="tab==='edit'?'primary':'secondary'"
@@ -240,7 +240,7 @@
             @if($artifact)
             <div class="mg-stat-card">
                 <div class="mg-stat-card-title">내보내기</div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
                     <a href="{{ route('ai-agent.projects.release.migration-guide.export', $aiProject) }}?format=md"
                        class="mg-btn secondary" style="text-decoration:none;font-size:12px;padding:7px 14px;">
                         📄 Markdown (.md)

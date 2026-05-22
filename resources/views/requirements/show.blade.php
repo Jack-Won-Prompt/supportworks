@@ -208,13 +208,13 @@
             <div style="border-top:1px solid #f3f4f6;margin-top:12px;padding-top:12px;">
                 @if($inGantt)
                     {{-- 3단계: Task 완료 --}}
-                    <div style="width:100%;padding:7px;font-size:12px;font-weight:700;border-radius:8px;border:1.5px solid #bbf7d0;background:#f0fdf4;color:#16a34a;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;">
+                    <div style="width:100%;padding:7px;font-size:12px;font-weight:700;border-radius:8px;border:1.5px solid #bbf7d0;background:#f0fdf4;color:#16a34a;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>{{ __('requirements.task_add_done') }}
                     </div>
                 @elseif($requirement->applied_to_plan)
                     {{-- 2단계: Task 추가 가능 --}}
                     <button onclick="openSchModal()"
-                            style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:8px;border:1.5px solid #bae6fd;background:#f0f9ff;color:#0369a1;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;"
+                            style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:8px;border:1.5px solid #bae6fd;background:#f0f9ff;color:#0369a1;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;"
                             onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f0f9ff'">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>{{ __('requirements.task_add') }}
                     </button>
@@ -317,11 +317,11 @@
             @if($linkedIssues->isEmpty())
                 <p style="font-size:12px;color:#9ca3af;margin:0;">{{ __('requirements.no_linked_issues') }}</p>
             @else
-                <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
                     @foreach($linkedIssues as $li)
                     @php $lsc = \App\Models\Issue::STATUS_COLORS[$li->status] ?? ['bg'=>'#f3f4f6','text'=>'#6b7280']; @endphp
                     <div style="background:#f9fafb;border-radius:7px;padding:8px 10px;">
-                        <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
                             <span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:{{ $lsc['bg'] }};color:{{ $lsc['text'] }};">{{ $li->status }}</span>
                             <a href="{{ route('projects.issues.show', [$project, $li]) }}"
                                style="font-size:12px;font-weight:500;color:#111827;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
@@ -580,7 +580,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSchModa
         <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.gantt_modal_title') }}</h3>
         <button onclick="closeSchModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:2px;line-height:1;">&times;</button>
     </div>
-    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px;">
         <div id="sch-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:13px;color:#dc2626;"></div>
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.gantt_work_group') }} <span style="color:#ef4444;">*</span></label>
@@ -617,7 +617,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSchModa
                       onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
         </div>
     </div>
-    <div style="padding:0 22px 20px;display:flex;gap:10px;justify-content:flex-end;">
+    <div style="padding:0 22px 20px;display:flex;gap:12px;justify-content:flex-end;">
         <button onclick="closeSchModal()" style="padding:8px 18px;font-size:13px;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
                 onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         <button onclick="submitSchModal()" id="sch-submit-btn" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;"

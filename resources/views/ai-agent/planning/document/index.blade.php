@@ -396,7 +396,7 @@
         </div>
 
         {{-- 하단 액션 --}}
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
             <a :href="_d.exportUrl" class="doc-btn secondary">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 마크다운 다운로드
@@ -414,7 +414,7 @@
 </template>
 
 {{-- 오류 표시 --}}
-<div x-show="error" x-transition style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:12px 16px; margin-top:16px; display:flex; align-items:center; gap:10px; font-size:13px; color:#991b1b;">
+<div x-show="error" x-transition style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:12px 16px; margin-top:16px; display:flex; align-items:center; gap:12px; font-size:13px; color:#991b1b;">
     <span>❌</span>
     <span x-text="error"></span>
     <button @click="error = null" style="margin-left:auto; background:none; border:none; cursor:pointer; font-size:16px; color:#991b1b;">✕</button>

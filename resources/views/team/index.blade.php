@@ -12,15 +12,15 @@
         <div id="invite-accordion-header" onclick="toggleInviteAccordion()"
             style="padding:20px 24px 16px;border-bottom:1px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:border-color .15s;"
             onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
                 <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--t300),var(--t500));display:flex;align-items:center;justify-content:center;">
                     <svg width="17" height="17" fill="none" stroke="#fff" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                 </div>
                 <div>
-                    <h2 style="font-size:15px;font-weight:700;color:#1e1b2e;margin:0;line-height:1.2;">{{ __('team.invite_title') }}</h2>
-                    <p style="font-size:12px;color:#9ca3af;margin:0;">{{ __('team.invite_desc') }}</p>
+                    <h2 style="font-size:15px;font-weight:700;color:var(--color-text-primary);margin:0;line-height:1.2;">{{ __('team.invite_title') }}</h2>
+                    <p style="font-size:12px;color:var(--color-text-tertiary);margin:0;">{{ __('team.invite_desc') }}</p>
                 </div>
             </div>
             <svg id="invite-chevron" width="16" height="16" fill="none" stroke="#9ca3af" viewBox="0 0 24 24"
@@ -34,33 +34,33 @@
             <form method="POST" action="{{ route('team.invite') }}">
                 @csrf
                 <input type="hidden" name="invite_lang" id="invite-lang-field" value="">
-                <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="display:flex;gap:12px;align-items:flex-start;">
                     <div style="flex:1.4;">
-                        <label style="display:block;font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px;">{{ __('team.email_label') }}</label>
+                        <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;">{{ __('team.email_label') }}</label>
                         <input type="email" name="email" value="{{ old('email') }}"
                             placeholder="teammate@example.com"
-                            style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:14px;color:#1e1b2e;outline:none;transition:border-color .15s;box-sizing:border-box;"
+                            style="width:100%;padding:9px 13px;border:1.5px solid var(--color-border-default);border-radius:9px;font-size:14px;color:var(--color-text-primary);outline:none;transition:border-color .15s;box-sizing:border-box;"
                             onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
                         @error('email')
-                            <p style="font-size:12px;color:#ef4444;margin:5px 0 0;">{{ $message }}</p>
+                            <p style="font-size:12px;color:var(--color-alert-warning-500);margin:5px 0 0;">{{ $message }}</p>
                         @enderror
                     </div>
                     <div style="flex:1;">
-                        <label style="display:block;font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px;">
-                            {{ __('team.phone_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('team.phone_hint') }}</span>
+                        <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;">
+                            {{ __('team.phone_label') }} <span style="font-weight:400;color:var(--color-text-tertiary);">{{ __('team.phone_hint') }}</span>
                         </label>
                         <input type="tel" name="phone" value="{{ old('phone') }}"
                             placeholder="010-0000-0000"
                             maxlength="20"
-                            style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:14px;color:#1e1b2e;outline:none;transition:border-color .15s;box-sizing:border-box;"
+                            style="width:100%;padding:9px 13px;border:1.5px solid var(--color-border-default);border-radius:9px;font-size:14px;color:var(--color-text-primary);outline:none;transition:border-color .15s;box-sizing:border-box;"
                             onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
                         @error('phone')
-                            <p style="font-size:12px;color:#ef4444;margin:5px 0 0;">{{ $message }}</p>
+                            <p style="font-size:12px;color:var(--color-alert-warning-500);margin:5px 0 0;">{{ $message }}</p>
                         @enderror
                     </div>
                     <div style="padding-top:22px;">
                         <button type="submit" id="invite-btn"
-                            style="display:flex;align-items:center;gap:7px;padding:9px 20px;background:linear-gradient(135deg,var(--t500),var(--t600));color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s;"
+                            style="display:flex;align-items:center;gap:8px;padding:9px 20px;background:linear-gradient(135deg,var(--t500),var(--t600));color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s;"
                             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                             <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -73,12 +73,12 @@
                 {{-- 프로젝트 선택 --}}
                 @if($projects->isNotEmpty())
                 <div style="margin-top:14px;">
-                    <label style="display:block;font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px;">
-                        {{ __('team.project_select_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('team.project_select_hint') }}</span>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;">
+                        {{ __('team.project_select_label') }} <span style="font-weight:400;color:var(--color-text-tertiary);">{{ __('team.project_select_hint') }}</span>
                     </label>
                     <div style="display:flex;flex-wrap:wrap;gap:8px;" id="project-checkboxes">
                         @foreach($projects as $proj)
-                        <label style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:13px;color:#374151;transition:all .15s;user-select:none;"
+                        <label style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;cursor:pointer;font-size:13px;color:var(--color-text-secondary);transition:all .15s;user-select:none;"
                                class="proj-chip"
                                onmouseover="this.style.borderColor='var(--t300)'"
                                onmouseout="if(!this.querySelector('input').checked) this.style.borderColor='#e5e7eb'">
@@ -87,7 +87,7 @@
                                    onchange="updateChip(this)">
                             {{ $proj->name }}
                             <span style="font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;
-                                {{ $proj->status === 'active' ? 'background:#dcfce7;color:#16a34a' : 'background:#f1f5f9;color:#64748b' }}">
+                                {{ $proj->status === 'active' ? 'background:#dcfce7;color:var(--color-alert-success-500)' : 'background:#f1f5f9;color:#64748b' }}">
                                 {{ $proj->status === 'active' ? __('team.project_active') : $proj->status_label ?? $proj->status }}
                             </span>
                         </label>
@@ -99,28 +99,28 @@
                 {{-- 초대 메시지 --}}
                 <div style="margin-top:14px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                        <label style="font-size:12px;font-weight:600;color:#6b7280;">
-                            {{ __('team.invite_message_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('team.invite_message_hint') }}</span>
+                        <label style="font-size:12px;font-weight:600;color:var(--color-text-secondary);">
+                            {{ __('team.invite_message_label') }} <span style="font-weight:400;color:var(--color-text-tertiary);">{{ __('team.invite_message_hint') }}</span>
                         </label>
                         {{-- 번역 언어 선택기 --}}
                         <div style="position:relative;">
                             <button type="button" id="inv-translate-btn" onclick="toggleInvTranslate(event)"
-                                style="display:flex;align-items:center;gap:4px;padding:3px 9px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:11px;font-weight:700;color:#9ca3af;background:#fff;cursor:pointer;font-family:inherit;transition:all .15s;">
+                                style="display:flex;align-items:center;gap:4px;padding:3px 9px;border:1.5px solid var(--color-border-default);border-radius:7px;font-size:11px;font-weight:700;color:var(--color-text-tertiary);background:#fff;cursor:pointer;font-family:inherit;transition:all .15s;">
                                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
                                 <span id="inv-translate-label">{{ __('team.invite_translate_label') }}</span>
                             </button>
-                            <div id="inv-translate-picker" style="display:none;position:absolute;right:0;top:calc(100%+4px);background:#fff;border:1px solid #e5e7eb;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.1);padding:5px;min-width:120px;z-index:200;">
-                                <button type="button" class="inv-tlp-item" data-lang="" data-label="{{ __('team.invite_translate_label') }}" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:#374151;background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">✕ {{ __('team.translate_none') }}</button>
-                                <button type="button" class="inv-tlp-item" data-lang="en" data-label="English" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:#374151;background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇺🇸 English</button>
-                                <button type="button" class="inv-tlp-item" data-lang="ko" data-label="한국어" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:#374151;background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇰🇷 한국어</button>
-                                <button type="button" class="inv-tlp-item" data-lang="ja" data-label="日本語" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:#374151;background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇯🇵 日本語</button>
-                                <button type="button" class="inv-tlp-item" data-lang="zh" data-label="中文" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:#374151;background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇨🇳 中文</button>
+                            <div id="inv-translate-picker" style="display:none;position:absolute;right:0;top:calc(100%+4px);background:#fff;border:1px solid var(--color-border-default);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.1);padding:5px;min-width:120px;z-index:200;">
+                                <button type="button" class="inv-tlp-item" data-lang="" data-label="{{ __('team.invite_translate_label') }}" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:var(--color-text-secondary);background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">✕ {{ __('team.translate_none') }}</button>
+                                <button type="button" class="inv-tlp-item" data-lang="en" data-label="English" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:var(--color-text-secondary);background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇺🇸 English</button>
+                                <button type="button" class="inv-tlp-item" data-lang="ko" data-label="한국어" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:var(--color-text-secondary);background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇰🇷 한국어</button>
+                                <button type="button" class="inv-tlp-item" data-lang="ja" data-label="日本語" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:var(--color-text-secondary);background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇯🇵 日本語</button>
+                                <button type="button" class="inv-tlp-item" data-lang="zh" data-label="中文" onclick="setInvTranslateLang(this)" style="display:block;width:100%;padding:6px 10px;font-size:12px;font-weight:500;color:var(--color-text-secondary);background:none;border:none;border-radius:7px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s;">🇨🇳 中文</button>
                             </div>
                         </div>
                     </div>
                     <textarea id="invite-message-textarea" name="message" rows="3" maxlength="500"
                         placeholder="{{ __('team.invite_message_placeholder') }}"
-                        style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:13px;color:#1e1b2e;outline:none;resize:vertical;transition:border-color .15s;box-sizing:border-box;font-family:inherit;line-height:1.6;"
+                        style="width:100%;padding:9px 13px;border:1.5px solid var(--color-border-default);border-radius:9px;font-size:13px;color:var(--color-text-primary);outline:none;resize:vertical;transition:border-color .15s;box-sizing:border-box;font-family:inherit;line-height:1.6;"
                         onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'"
                     >{{ old('message') }}</textarea>
                     <div id="inv-translate-status" style="display:none;font-size:11px;color:var(--t500);margin-top:4px;display:flex;align-items:center;gap:4px;">
@@ -128,7 +128,7 @@
                         <span id="inv-translate-status-text"></span>
                     </div>
                     @error('message')
-                        <p style="font-size:12px;color:#ef4444;margin:5px 0 0;">{{ $message }}</p>
+                        <p style="font-size:12px;color:var(--color-alert-warning-500);margin:5px 0 0;">{{ $message }}</p>
                     @enderror
                 </div>
             </form>
@@ -157,38 +157,38 @@
     @if($invitations->count() > 0)
     <div style="background:#fff;border-radius:14px;border:1px solid var(--t100);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05);">
         <div style="padding:16px 24px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;justify-content:space-between;">
-            <h3 style="font-size:14px;font-weight:700;color:#1e1b2e;margin:0;">{{ __('team.pending_invites_title') }}</h3>
-            <span style="font-size:12px;color:#9ca3af;">{{ __('team.invite_count', ['count' => $invitations->count()]) }}</span>
+            <h3 style="font-size:14px;font-weight:700;color:var(--color-text-primary);margin:0;">{{ __('team.pending_invites_title') }}</h3>
+            <span style="font-size:12px;color:var(--color-text-tertiary);">{{ __('team.invite_count', ['count' => $invitations->count()]) }}</span>
         </div>
         <div style="padding:8px 0;">
             @foreach($invitations as $inv)
             @php $invProjectNames = $projects->whereIn('id', $inv->project_ids ?? [])->pluck('name'); @endphp
             <div style="padding:12px 24px;transition:background .12s;border-bottom:1px solid #f9f9f9;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:36px;height:36px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:36px;height:36px;border-radius:50%;background:var(--color-bg-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <svg width="16" height="16" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
                         </svg>
                     </div>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;font-weight:600;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $inv->email }}</div>
-                        <div style="font-size:11px;color:#9ca3af;margin-top:1px;">{{ $inv->inviter?->name ?? __('team.unknown_inviter') }} {{ __('team.invited_by') }} · {{ $inv->created_at->diffForHumans() }}</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $inv->email }}</div>
+                        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:1px;">{{ $inv->inviter?->name ?? __('team.unknown_inviter') }} {{ __('team.invited_by') }} · {{ $inv->created_at->diffForHumans() }}</div>
                     </div>
                     <span style="font-size:11px;padding:2px 8px;background:#fef3c7;color:#92400e;border-radius:5px;font-weight:600;flex-shrink:0;">{{ __('team.pending_badge') }}</span>
                     @if($inv->invited_by === auth()->id() || auth()->user()->isAdmin())
                     <form method="POST" action="{{ route('team.invite.cancel', $inv) }}" onsubmit="return confirm('{{ __('team.cancel_invite_confirm') }}')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" style="padding:4px 10px;background:transparent;border:1px solid #fecaca;border-radius:6px;font-size:11px;color:#ef4444;cursor:pointer;transition:background .12s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">{{ __('team.cancel_invite') }}</button>
+                        <button type="submit" style="padding:4px 10px;background:transparent;border:1px solid #fecaca;border-radius:6px;font-size:11px;color:var(--color-alert-warning-500);cursor:pointer;transition:background .12s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">{{ __('team.cancel_invite') }}</button>
                     </form>
                     @endif
                 </div>
                 {{-- 초대된 프로젝트 --}}
                 @if($invProjectNames->isNotEmpty())
-                <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;padding-left:48px;">
-                    <span style="font-size:10.5px;color:#9ca3af;font-weight:600;margin-right:2px;">{{ __('team.invite_projects_label') }}:</span>
+                <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;padding-left:48px;">
+                    <span style="font-size:10.5px;color:var(--color-text-tertiary);font-weight:600;margin-right:2px;">{{ __('team.invite_projects_label') }}:</span>
                     @foreach($invProjectNames as $pName)
-                    <span style="font-size:10.5px;padding:1px 7px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:4px;font-weight:600;">{{ $pName }}</span>
+                    <span style="font-size:10.5px;padding:1px 7px;background:var(--color-bg-success-subtle);color:var(--color-alert-success-500);border:1px solid #bbf7d0;border-radius:4px;font-weight:600;">{{ $pName }}</span>
                     @endforeach
                 </div>
                 @endif
@@ -207,14 +207,14 @@
     {{-- ───── 구성원 리스트 ───── --}}
     <div style="background:#fff;border-radius:14px;border:1px solid var(--t100);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05);">
         <div style="padding:16px 24px;border-bottom:1px solid var(--tBg);display:flex;align-items:center;justify-content:space-between;">
-            <h3 style="font-size:14px;font-weight:700;color:#1e1b2e;margin:0;">{{ __('team.member_list_title') }}</h3>
-            <span style="font-size:12px;color:#9ca3af;">{{ __('team.member_total') }} {{ $members->count() }}{{ __('team.member_count_unit') }}</span>
+            <h3 style="font-size:14px;font-weight:700;color:var(--color-text-primary);margin:0;">{{ __('team.member_list_title') }}</h3>
+            <span style="font-size:12px;color:var(--color-text-tertiary);">{{ __('team.member_total') }} {{ $members->count() }}{{ __('team.member_count_unit') }}</span>
         </div>
 
         {{-- 검색 --}}
         <div style="padding:12px 24px;border-bottom:1px solid #f9f9f9;">
             <input id="member-search" type="text" placeholder="{{ __('team.search_placeholder') }}"
-                style="width:100%;padding:8px 13px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:13px;color:#374151;outline:none;transition:border-color .15s;box-sizing:border-box;"
+                style="width:100%;padding:8px 13px;border:1.5px solid var(--color-border-default);border-radius:9px;font-size:13px;color:var(--color-text-secondary);outline:none;transition:border-color .15s;box-sizing:border-box;"
                 onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
         </div>
 
@@ -233,7 +233,7 @@
                 data-member-id="{{ $member->id }}"
                 data-member-name="{{ $member->name }}"
                 data-project-ids="{{ json_encode($memberProjIds->values()) }}"
-                style="display:flex;align-items:center;gap:14px;padding:12px 24px;transition:background .12s;"
+                style="display:flex;align-items:center;gap:12px;padding:12px 24px;transition:background .12s;"
                 onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'">
 
                 {{-- 아바타 --}}
@@ -243,25 +243,25 @@
 
                 {{-- 정보 --}}
                 <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:6px;">
-                        <span style="font-size:14px;font-weight:600;color:#1e1b2e;">{{ $member->name }}</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:14px;font-weight:600;color:var(--color-text-primary);">{{ $member->name }}</span>
                         @if($isMe)
                             <span style="font-size:10px;padding:1px 6px;background:var(--t100);color:var(--tText);border-radius:4px;font-weight:600;">{{ __('team.me_badge') }}</span>
                         @endif
                     </div>
-                    <div style="font-size:12px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $member->email }}</div>
+                    <div style="font-size:12px;color:var(--color-text-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $member->email }}</div>
                     @if($canManage)
                         @php
                             $curCo = $companies->firstWhere('id', $member->company_group_id);
                             $curCoName = $curCo?->name ?? $member->company;
                         @endphp
-                        <div style="margin-top:3px;display:flex;align-items:center;gap:6px;">
+                        <div style="margin-top:3px;display:flex;align-items:center;gap:8px;">
                             <button type="button" class="member-company-btn" data-member-id="{{ $member->id }}"
                                 data-company-id="{{ $member->company_group_id }}"
                                 data-company-name="{{ $curCoName }}"
                                 data-member-name="{{ $member->name }}"
                                 onclick="openCompanyPicker(this)"
-                                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border:1px solid var(--t100);border-radius:999px;background:#fff;color:{{ $curCoName ? 'var(--t700)' : '#9ca3af' }};max-width:200px;cursor:pointer;outline:none;transition:background .12s,border-color .12s;"
+                                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border:1px solid var(--t100);border-radius:999px;background:#fff;color:{{ $curCoName ? 'var(--t700)' : 'var(--color-text-tertiary)' }};max-width:200px;cursor:pointer;outline:none;transition:background .12s,border-color .12s;"
                                 onmouseover="this.style.background='var(--t50)';this.style.borderColor='var(--t300)'"
                                 onmouseout="this.style.background='#fff';this.style.borderColor='var(--t100)'">
                                 <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2m-2 0v-4m-9 0h4v4m-4 0v-4m0-4h.01M11 13h.01M15 13h.01M11 9h.01M15 9h.01M7 9h.01M7 13h.01"/></svg>
@@ -275,7 +275,7 @@
                     @if($member->role !== 'admin')
                     <div class="member-project-badges" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">
                         @foreach($memberProjects as $pName)
-                        <span style="font-size:10px;padding:1px 7px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:4px;font-weight:600;">{{ $pName }}</span>
+                        <span style="font-size:10px;padding:1px 7px;background:var(--color-bg-success-subtle);color:#15803d;border:1px solid #bbf7d0;border-radius:4px;font-weight:600;">{{ $pName }}</span>
                         @endforeach
                     </div>
                     @endif
@@ -288,7 +288,7 @@
                     @elseif($member->role === 'member')
                         <span style="font-size:11px;padding:3px 9px;background:#dbeafe;color:#1d4ed8;border-radius:6px;font-weight:700;">{{ __('team.role_member') }}</span>
                     @else
-                        <span style="font-size:11px;padding:3px 9px;background:#f3f4f6;color:#6b7280;border-radius:6px;font-weight:700;">{{ __('team.role_external') }}</span>
+                        <span style="font-size:11px;padding:3px 9px;background:var(--color-bg-muted);color:var(--color-text-secondary);border-radius:6px;font-weight:700;">{{ __('team.role_external') }}</span>
                     @endif
                     <div style="font-size:11px;color:#d1d5db;margin-top:3px;">{{ $member->created_at->format('Y.m.d') }} {{ __('team.joined_date_suffix') }}</div>
                 </div>
@@ -319,7 +319,7 @@
                 @endif
             </div>
             @empty
-            <div style="padding:40px 24px;text-align:center;color:#9ca3af;font-size:14px;">{{ __('team.no_members') }}</div>
+            <div style="padding:40px 24px;text-align:center;color:var(--color-text-tertiary);font-size:14px;">{{ __('team.no_members') }}</div>
             @endforelse
         </div>
     </div>
@@ -333,13 +333,13 @@
     <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:440px;max-width:calc(100vw - 32px);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
 
         {{-- 헤더 --}}
-        <div style="padding:18px 20px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="padding:18px 20px 14px;border-bottom:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <div>
-                <div style="font-size:14px;font-weight:700;color:#1e1b2e;">{{ __('team.assign_projects') }}</div>
-                <div id="proj-modal-subtitle" style="font-size:12px;color:#9ca3af;margin-top:1px;"></div>
+                <div style="font-size:14px;font-weight:700;color:var(--color-text-primary);">{{ __('team.assign_projects') }}</div>
+                <div id="proj-modal-subtitle" style="font-size:12px;color:var(--color-text-tertiary);margin-top:1px;"></div>
             </div>
             <button type="button" onclick="closeProjectModal()"
-                style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#9ca3af;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .12s;"
+                style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:var(--color-text-tertiary);display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .12s;"
                 onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -349,7 +349,7 @@
         <div style="padding:12px 20px 8px;flex-shrink:0;">
             <input id="proj-modal-search" type="text" placeholder="{{ __('team.proj_search_placeholder') }}"
                 oninput="filterModalProjects(this.value)"
-                style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;box-sizing:border-box;transition:border-color .15s;"
+                style="width:100%;padding:8px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);outline:none;box-sizing:border-box;transition:border-color .15s;"
                 onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
         </div>
 
@@ -359,11 +359,11 @@
         </div>
 
         {{-- 푸터 --}}
-        <div style="padding:12px 20px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fafafa;">
-            <span id="proj-modal-count" style="font-size:12px;color:#9ca3af;"></span>
+        <div style="padding:12px 20px;border-top:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fafafa;">
+            <span id="proj-modal-count" style="font-size:12px;color:var(--color-text-tertiary);"></span>
             <div style="display:flex;gap:8px;">
                 <button type="button" onclick="closeProjectModal()"
-                    style="padding:8px 16px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;font-size:13px;color:#6b7280;cursor:pointer;font-weight:600;transition:background .12s;"
+                    style="padding:8px 16px;border:1.5px solid var(--color-border-default);border-radius:8px;background:#fff;font-size:13px;color:var(--color-text-secondary);cursor:pointer;font-weight:600;transition:background .12s;"
                     onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('team.cancel_invite') }}</button>
                 <button type="button" id="proj-modal-save" onclick="saveProjectAssignment()"
                     style="padding:8px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--t500),var(--t600));color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;"
@@ -377,13 +377,13 @@
 <div id="company-modal-backdrop"
     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9995;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:460px;height:560px;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;">
-        <div style="padding:18px 20px 12px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="padding:18px 20px 12px;border-bottom:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <div>
-                <div style="font-size:14px;font-weight:700;color:#1e1b2e;">{{ __('team.company_picker_title') }}</div>
-                <div id="company-modal-subtitle" style="font-size:12px;color:#9ca3af;margin-top:1px;"></div>
+                <div style="font-size:14px;font-weight:700;color:var(--color-text-primary);">{{ __('team.company_picker_title') }}</div>
+                <div id="company-modal-subtitle" style="font-size:12px;color:var(--color-text-tertiary);margin-top:1px;"></div>
             </div>
             <button type="button" onclick="closeCompanyPicker()"
-                style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:#9ca3af;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .12s;"
+                style="width:28px;height:28px;border:none;background:none;cursor:pointer;color:var(--color-text-tertiary);display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .12s;"
                 onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -393,7 +393,7 @@
             <input id="company-modal-search" type="text" placeholder="{{ __('team.company_search_placeholder') }}"
                 oninput="onCompanySearchInput()" onkeydown="onCompanySearchKey(event)"
                 autocomplete="off"
-                style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;outline:none;box-sizing:border-box;transition:border-color .15s;"
+                style="width:100%;padding:9px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:var(--color-text-secondary);outline:none;box-sizing:border-box;transition:border-color .15s;"
                 onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'">
         </div>
 
@@ -401,24 +401,24 @@
             {{-- JS 로 렌더링 --}}
         </div>
 
-        <div id="company-modal-empty" style="display:none;padding:14px 20px;border-top:1px solid #f3f4f6;background:#fefce8;flex-shrink:0;">
+        <div id="company-modal-empty" style="display:none;padding:14px 20px;border-top:1px solid var(--color-bg-muted);background:#fefce8;flex-shrink:0;">
             <div style="font-size:12px;color:#92400e;margin-bottom:8px;">
                 "<span id="company-modal-newname" style="font-weight:700;"></span>" {{ __('team.company_not_registered_suffix') }}
             </div>
             <button type="button" onclick="addNewCompany()"
-                style="width:100%;padding:9px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--t500),var(--t600));color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .12s;"
+                style="width:100%;padding:9px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--t500),var(--t600));color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .12s;"
                 onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>{{ __('team.company_add_select') }}</span>
             </button>
         </div>
 
-        <div style="padding:11px 20px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fafafa;gap:8px;">
+        <div style="padding:11px 20px;border-top:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fafafa;gap:8px;">
             <button type="button" onclick="clearCompany()"
-                style="padding:7px 12px;border:1.5px solid #fecaca;border-radius:8px;background:#fff;font-size:12px;color:#dc2626;cursor:pointer;font-weight:600;transition:background .12s;"
+                style="padding:7px 12px;border:1.5px solid #fecaca;border-radius:8px;background:#fff;font-size:12px;color:var(--color-alert-warning-500);cursor:pointer;font-weight:600;transition:background .12s;"
                 onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">{{ __('team.company_clear') }}</button>
             <button type="button" onclick="closeCompanyPicker()"
-                style="padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;font-size:12.5px;color:#6b7280;cursor:pointer;font-weight:600;transition:background .12s;"
+                style="padding:7px 14px;border:1.5px solid var(--color-border-default);border-radius:8px;background:#fff;font-size:12.5px;color:var(--color-text-secondary);cursor:pointer;font-weight:600;transition:background .12s;"
                 onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">{{ __('common.close') }}</button>
         </div>
     </div>
@@ -627,22 +627,22 @@ document.getElementById('proj-modal-backdrop')?.addEventListener('click', async 
 async function renderModalProjects(list) {
     const container = document.getElementById('proj-modal-list');
     if (!list.length) {
-        container.innerHTML = '<div style="padding:24px 0;text-align:center;color:#9ca3af;font-size:13px;">{{ __('team.proj_none_assignable') }}</div>';
+        container.innerHTML = '<div style="padding:24px 0;text-align:center;color:var(--color-text-tertiary);font-size:13px;">{{ __('team.proj_none_assignable') }}</div>';
         return;
     }
     container.innerHTML = list.map(p => {
         const checked  = _checkedIds.has(p.id);
         const isActive = p.status === 'active';
         return `
-        <label style="display:flex;align-items:center;gap:10px;padding:9px 4px;cursor:pointer;border-radius:8px;transition:background .1s;"
+        <label style="display:flex;align-items:center;gap:12px;padding:9px 4px;cursor:pointer;border-radius:8px;transition:background .1s;"
                class="proj-modal-item" data-project-id="${p.id}" data-project-name="${escHtml(p.name)}"
                onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
             <input type="checkbox" data-id="${p.id}" ${checked ? 'checked' : ''}
                 onchange="toggleProjectCheck(${p.id}, this.checked)"
                 style="width:16px;height:16px;accent-color:var(--t500);cursor:pointer;flex-shrink:0;">
-            <span style="flex:1;font-size:13px;font-weight:500;color:#1e1b2e;">${escHtml(p.name)}</span>
+            <span style="flex:1;font-size:13px;font-weight:500;color:var(--color-text-primary);">${escHtml(p.name)}</span>
             <span style="font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600;flex-shrink:0;
-                ${isActive ? 'background:#dcfce7;color:#16a34a;' : 'background:#f1f5f9;color:#64748b;'}">
+                ${isActive ? 'background:#dcfce7;color:var(--color-alert-success-500);' : 'background:#f1f5f9;color:#64748b;'}">
                 ${isActive ? '{{ __('team.proj_in_progress') }}' : p.status}
             </span>
         </label>`;
@@ -696,7 +696,7 @@ async function saveProjectAssignment() {
         const badgeContainer = _modalRow.querySelector('.member-project-badges');
         if (badgeContainer) {
             badgeContainer.innerHTML = data.projects.map(p =>
-                `<span style="font-size:10px;padding:1px 7px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:4px;font-weight:600;">${escHtml(p.name)}</span>`
+                `<span style="font-size:10px;padding:1px 7px;background:var(--color-bg-success-subtle);color:#15803d;border:1px solid #bbf7d0;border-radius:4px;font-weight:600;">${escHtml(p.name)}</span>`
             ).join('');
         }
 
@@ -767,7 +767,7 @@ function onCompanySearchKey(e) {
 async function fetchCompanySuggestions(q) {
     const list = document.getElementById('company-modal-list');
     const empty = document.getElementById('company-modal-empty');
-    list.innerHTML = '<div style="padding:18px;text-align:center;color:#9ca3af;font-size:12px;">{{ __('team.company_searching') }}</div>';
+    list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--color-text-tertiary);font-size:12px;">{{ __('team.company_searching') }}</div>';
     empty.style.display = 'none';
     try {
         const r = await fetch('{{ route('team.companies.search') }}?q=' + encodeURIComponent(q), {
@@ -779,7 +779,7 @@ async function fetchCompanySuggestions(q) {
         _coLastResults = d.companies || [];
         renderCompanyList(_coLastResults, q);
     } catch (e) {
-        list.innerHTML = '<div style="padding:18px;text-align:center;color:#dc2626;font-size:12px;">{{ __('team.company_load_fail') }}</div>';
+        list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--color-alert-warning-500);font-size:12px;">{{ __('team.company_load_fail') }}</div>';
     }
 }
 
@@ -789,7 +789,7 @@ function renderCompanyList(items, q) {
     const trimmed = (q || '').trim();
 
     if (!items.length) {
-        list.innerHTML = '<div style="padding:18px;text-align:center;color:#9ca3af;font-size:12px;">' + (trimmed ? '{{ __('team.company_no_match') }}' : '{{ __('team.company_none_registered') }}') + '</div>';
+        list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--color-text-tertiary);font-size:12px;">' + (trimmed ? '{{ __('team.company_no_match') }}' : '{{ __('team.company_none_registered') }}') + '</div>';
     } else {
         const cur = _coTargetBtn ? (_coTargetBtn.dataset.companyId || '') : '';
         list.innerHTML = items.map(c => {
@@ -797,7 +797,7 @@ function renderCompanyList(items, q) {
             const highlighted = trimmed
                 ? escHtml(c.name).replace(new RegExp(escapeRegex(trimmed), 'gi'), m => `<mark style="background:var(--t100);color:var(--t700);padding:0 1px;border-radius:2px;">${m}</mark>`)
                 : escHtml(c.name);
-            return `<div class="co-suggest-row" onclick='selectCompany(${c.id}, ${JSON.stringify(c.name)})' style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:8px;cursor:pointer;${isCur ? 'background:var(--t50);' : ''}transition:background .1s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='${isCur ? 'var(--t50)' : 'transparent'}'">
+            return `<div class="co-suggest-row" onclick='selectCompany(${c.id}, ${JSON.stringify(c.name)})' style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;cursor:pointer;${isCur ? 'background:var(--t50);' : ''}transition:background .1s;" onmouseover="this.style.background='var(--t50)'" onmouseout="this.style.background='${isCur ? 'var(--t50)' : 'transparent'}'">
                 <span style="flex:1;font-size:13px;color:#1f2937;${isCur ? 'font-weight:700;color:var(--t700);' : ''}">${highlighted}</span>
                 ${isCur ? '<svg width="14" height="14" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' : ''}
             </div>`;

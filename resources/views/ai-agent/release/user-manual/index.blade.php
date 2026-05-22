@@ -147,7 +147,7 @@
             @else
 
             {{-- Tab bar --}}
-            <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
                 <button class="um-btn secondary" :class="tab==='preview'?'primary':'secondary'"
                         @click="tab='preview'" style="padding:7px 16px;">미리보기</button>
                 <button class="um-btn secondary" :class="tab==='edit'?'primary':'secondary'"
@@ -231,7 +231,7 @@
             @if($artifact)
             <div class="um-stat-card">
                 <div class="um-stat-card-title">내보내기</div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
                     <a href="{{ route('ai-agent.projects.release.user-manual.export', $aiProject) }}?format=md"
                        class="um-btn secondary" style="text-decoration:none;font-size:12px;padding:7px 14px;">
                         📄 Markdown (.md)

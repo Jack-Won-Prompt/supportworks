@@ -396,6 +396,13 @@ Route::middleware(['auth'])->group(function () {
     Route::patch ('/messages/{message}/annotations/{annotation}',             [MessageImageAnnotationController::class, 'update'])->name('messages.annotations.update');
     Route::delete('/messages/{message}/annotations/{annotation}',             [MessageImageAnnotationController::class, 'destroy'])->name('messages.annotations.destroy');
 
+    // 메시지 화면 우측 워크스페이스 팝업용 — 내가 멤버인 프로젝트 + 권한 허용 메뉴
+    Route::get('/messages/workspace/projects', [MessageController::class, 'workspaceProjects'])
+        ->name('messages.workspace.projects');
+
+    // 디자인 시스템 컴포넌트 가이드 (Phase 2)
+    Route::view('/dev/ds-components', 'dev.ds-components')->name('dev.ds-components');
+
     // 프로젝트
     Route::resource('projects', ProjectController::class);
     Route::post ('projects/{project}/join',  [ProjectController::class, 'join'])->name('projects.join');

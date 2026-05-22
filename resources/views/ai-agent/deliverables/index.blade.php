@@ -89,7 +89,7 @@
         </h2>
         <p>{{ __('deliverables.subtitle', ['count' => count($types)]) }}</p>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
         <div class="dlv-view-toggle">
             <button class="dlv-view-btn {{ $view==='card' ? 'is-active' : '' }}" onclick="setView('card')" data-view="card">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
@@ -223,7 +223,7 @@
                     </td>
                     <td><span class="dlv-resp {{ $type['responsibility'] === 'A+B' ? 'ab' : 'b' }}">{{ $type['responsibility'] }}</span></td>
                     <td>
-                        <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
                             <div class="dlv-mini-bar">
                                 <div class="dlv-mini-fill {{ $status }}"
                                      style="width:{{ $pct }}%;background:{{ $type['category'] === 'security' ? '#dc2626' : ($type['category'] === 'operations' ? '#0891b2' : ($type['category'] === 'test_deploy' ? '#059669' : ($type['category'] === 'contract' ? '#d97706' : 'var(--t500)'))) }}"></div>
@@ -260,7 +260,7 @@
     </div>
     @if($stats['total'] > 0)
     <div class="dlv-stat-card" style="border-color:#bfdbfe;flex:2;">
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
             <div>
                 <div class="num" style="color:#2563eb;">{{ round(($stats['completed'] / $stats['total']) * 100) }}%</div>
                 <div class="lbl">{{ __('deliverables.stat_overall') }}</div>

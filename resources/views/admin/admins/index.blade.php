@@ -70,7 +70,7 @@
                 </td>
                 <td>
                     @if($adminUser->role !== 'super_admin')
-                    <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
                         <button onclick="openAdminModal({{ json_encode([
                             'id'          => $adminUser->id,
                             'name'        => $adminUser->name,
@@ -117,7 +117,7 @@
             <h3 id="am-title" style="font-size:15px;font-weight:700;color:#1e293b;margin:0;">{{ __('admin.admin_title_add') }}</h3>
             <button onclick="closeAdminModal()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;">×</button>
         </div>
-        <div style="padding:22px 24px 26px;display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:22px 24px 26px;display:flex;flex-direction:column;gap:12px;">
             <div id="am-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;font-size:12px;color:#dc2626;"></div>
 
             {{-- 이름 / 로그인ID --}}

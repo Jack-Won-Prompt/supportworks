@@ -99,7 +99,7 @@
                     <p style="font-size:11px;color:#94a3b8;margin-top:8px;">{{ __('admin.menu_feature_hint') }}</p>
                 </div>
 
-                <div style="display:flex;gap:10px;padding-top:16px;border-top:1px solid #f1f5f9;margin-top:16px;">
+                <div style="display:flex;gap:12px;padding-top:16px;border-top:1px solid #f1f5f9;margin-top:16px;">
                     <button type="submit" class="btn-primary">{{ __('admin.save') }}</button>
                     <a href="{{ route('admin.company-groups.index') }}" class="btn-secondary">{{ __('admin.cancel') }}</a>
                 </div>
@@ -107,7 +107,7 @@
         </div>
 
         {{-- ?듦퀎 移대뱶 --}}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="admin-stat">
                 <div class="admin-stat-val" style="color:#6366f1;">{{ $companyGroup->users_count }}</div>
                 <div class="admin-stat-lbl">{{ __('admin.stat_group_users') }}</div>
@@ -213,7 +213,7 @@
         <form method="POST" action="{{ route('admin.users.invite') }}" id="cg-invite-form">
             @csrf
             <input type="hidden" name="company_group_id" value="{{ $companyGroup->id }}">
-            <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+            <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px;">
 
                 @if(session('mail_error'))
                 <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:12px;color:#dc2626;">

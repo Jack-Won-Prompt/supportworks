@@ -210,7 +210,7 @@
             </div>
             <div class="psc-figma-row">
                 <span class="psc-figma-lbl">링크</span>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
                     <a href="{{ $screen->getFigmaViewUrl() }}" target="_blank" class="psc-figma-link">
                         Figma 보기
                         <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
@@ -265,7 +265,7 @@
     </div>
 
     {{-- 아카이브 / 복원 --}}
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
         @if(!$screen->isArchived())
         <form method="POST" action="{{ route('ai-agent.projects.planning.screens.archive', [$project, $screen]) }}"
               onsubmit="return confirm('이 화면을 아카이브하시겠습니까? 연결된 산출물 참조는 보존됩니다.')">

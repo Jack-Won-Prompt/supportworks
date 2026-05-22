@@ -61,7 +61,7 @@
                 <td style="font-size:12px;color:#64748b;">{{ $ann->creator?->name ?? '—' }}</td>
                 <td style="font-size:12px;color:#94a3b8;white-space:nowrap;">{{ $ann->created_at->format('Y.m.d') }}</td>
                 <td>
-                    <div style="display:flex;gap:6px;">
+                    <div style="display:flex;gap:8px;">
                         <button onclick='openEditModal(@json($ann))' class="btn-secondary" style="padding:4px 10px;font-size:12px;">수정</button>
                         <form method="POST" action="{{ route('admin.announcements.destroy', $ann) }}" onsubmit="return confirm('삭제하시겠습니까?')">
                             @csrf @method('DELETE')
@@ -92,7 +92,7 @@
     <form id="ann-form" method="POST" style="padding:18px 22px 22px;">
         @csrf
         <input type="hidden" id="form-method" name="_method" value="POST">
-        <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
             <div>
                 <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;">구분</label>
                 <select name="type" id="f-type" style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;">

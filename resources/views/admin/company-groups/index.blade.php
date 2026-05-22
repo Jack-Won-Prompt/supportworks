@@ -42,7 +42,7 @@
                     @endif
                 </td>
                 <td>
-                    <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
                         <button type="button" onclick="openInviteFor({{ $group->id }}, '{{ addslashes($group->name) }}')"
                                 style="font-size:12px;color:#7c3aed;background:none;border:none;cursor:pointer;font-weight:600;">{{ __('admin.admin_invite') }}</button>
                         <a href="{{ route('admin.company-groups.edit', $group) }}" style="font-size:12px;color:#6366f1;text-decoration:none;">{{ __('admin.edit') }}</a>
@@ -85,7 +85,7 @@
         <form method="POST" action="{{ route('admin.users.invite') }}" id="idx-invite-form">
             @csrf
             <input type="hidden" name="company_group_id" id="idx-invite-group-id">
-            <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+            <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px;">
                 <div>
                     <label style="display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;">{{ __('admin.col_email') }} <span style="color:#ef4444;">*</span></label>
                     <input type="email" name="email" required placeholder="invite@example.com"

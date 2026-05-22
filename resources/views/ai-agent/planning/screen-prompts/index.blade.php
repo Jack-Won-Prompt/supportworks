@@ -208,7 +208,7 @@
                             @endif
                         </td>
                         <td style="text-align:right;">
-                            <div style="display:inline-flex;gap:6px;align-items:center;">
+                            <div style="display:inline-flex;gap:8px;align-items:center;">
                                 @if($hasPrompt)
                                     <a href="{{ route('ai-agent.projects.planning.prompts.show', [$project, $screen]) }}"
                                        class="sp-btn ghost sm">편집</a>

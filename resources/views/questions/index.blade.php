@@ -74,7 +74,7 @@
         <button onclick="closeQuestionModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:20px;padding:0;line-height:1;">&times;</button>
     </div>
 
-    <form id="q-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:14px;">
+    <form id="q-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;">
         @csrf
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.question_title_label') }} <span style="color:#ef4444;">*</span></label>

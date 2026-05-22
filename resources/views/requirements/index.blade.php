@@ -85,22 +85,22 @@
 </form>
 
 {{-- 일괄 액션 바 (체크 시 등장) --}}
-<div id="bulk-bar" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:10px 16px;margin-bottom:10px;align-items:center;gap:10px;flex-wrap:wrap;">
+<div id="bulk-bar" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:10px 16px;margin-bottom:10px;align-items:center;gap:12px;flex-wrap:wrap;">
     <span id="bulk-count" style="font-size:13px;font-weight:600;color:#1d4ed8;">{{ __('requirements.bulk_selected', ['n' => 0]) }}</span>
     <button id="bulk-apply-btn" onclick="openApplyModal()"
-            style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:7px;cursor:pointer;transition:opacity .15s;"
+            style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;font-size:12px;font-weight:600;color:#fff;background:#7c3aed;border:none;border-radius:7px;cursor:pointer;transition:opacity .15s;"
             onmouseover="if(!this.disabled)this.style.background='#6d28d9'" onmouseout="if(!this.disabled)this.style.background='#7c3aed'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         <span id="bulk-apply-text">{{ __('requirements.bulk_apply_plan') }}</span>
     </button>
     <button id="bulk-gantt-btn" onclick="openGanttModal()"
-            style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#0369a1;border:1.5px solid #bae6fd;border-radius:7px;background:#f0f9ff;cursor:pointer;transition:opacity .15s;"
+            style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;font-size:12px;font-weight:600;color:#0369a1;border:1.5px solid #bae6fd;border-radius:7px;background:#f0f9ff;cursor:pointer;transition:opacity .15s;"
             onmouseover="if(!this.disabled)this.style.background='#e0f2fe'" onmouseout="if(!this.disabled)this.style.background='#f0f9ff'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         <span id="bulk-gantt-text">{{ __('requirements.bulk_add_task') }}</span>
     </button>
     <button id="bulk-delete-btn" onclick="openDeleteConfirm()"
-            style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#dc2626;border:1.5px solid #fecaca;border-radius:7px;background:#fff5f5;cursor:pointer;transition:opacity .15s;"
+            style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;font-size:12px;font-weight:600;color:#dc2626;border:1.5px solid #fecaca;border-radius:7px;background:#fff5f5;cursor:pointer;transition:opacity .15s;"
             onmouseover="if(!this.disabled)this.style.background='#fee2e2'" onmouseout="if(!this.disabled)this.style.background='#fff5f5'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         <span id="bulk-delete-text">{{ __('requirements.bulk_delete') }}</span>
@@ -127,7 +127,7 @@
             @if($project->si_mode_enabled)
                 {{ __('requirements.col_approval') }}
             @else
-                <span style="display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;">
+                <span style="display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;">
                     <span style="color:#7c3aed;">{{ __('requirements.flow_plan') }}</span>
                     <span style="color:#d1d5db;">›</span>
                     <span style="color:#0369a1;">{{ __('requirements.flow_task') }}</span>
@@ -182,7 +182,7 @@
                     @if($_srcId)
                         <button onclick="event.stopPropagation(); openReqDetail({{ $_srcId }}, '{{ route('projects.requirements.show', [$project, $_srcId]) }}')"
                                 title="{{ $req->source_ref }}"
-                                style="display:inline-flex;align-items:center;gap:2px;padding:0 5px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:3px;font-size:10px;font-weight:600;color:#16a34a;cursor:pointer;margin-right:4px;"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:0 5px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:3px;font-size:10px;font-weight:600;color:#16a34a;cursor:pointer;margin-right:4px;"
                                 onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
                             <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                             {{ __('requirements.source_ref_prefix', ['id' => $_srcId]) }}
@@ -201,7 +201,7 @@
                 @endif
                 @if($req->attachments_count > 0)
                     <button onclick="event.stopPropagation(); openSavedAttachmentReviewModal({{ $req->id }}, '{{ route('projects.requirements.show', [$project, $req]) }}')"
-                            style="margin-left:6px;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:5px;color:#7c3aed;font-size:11px;font-weight:600;cursor:pointer;"
+                            style="margin-left:6px;display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:5px;color:#7c3aed;font-size:11px;font-weight:600;cursor:pointer;"
                             onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         {{ $req->attachments_count }}
@@ -237,14 +237,14 @@
             @if($req->applied_to_plan && in_array($req->id, $ganttReqIds))
                 {{-- 3단계: Task 추가 완료 --}}
                 <span title="{{ __('requirements.task_done_title') }}"
-                      style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;font-size:10px;font-weight:700;color:#16a34a;border:1px solid #bbf7d0;border-radius:5px;background:#f0fdf4;white-space:nowrap;">
+                      style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;font-size:10px;font-weight:700;color:#16a34a;border:1px solid #bbf7d0;border-radius:5px;background:#f0fdf4;white-space:nowrap;">
                     <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>{{ __('requirements.task_done') }}
                 </span>
             @elseif($req->applied_to_plan)
                 {{-- 2단계: 일정 Task 추가 --}}
                 <button onclick="openGanttModalForRow(this)"
                         title="{{ __('requirements.add_task_title') }}"
-                        style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;font-size:10px;font-weight:600;color:#0369a1;border:1px solid #bae6fd;border-radius:5px;background:#f0f9ff;cursor:pointer;white-space:nowrap;"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;font-size:10px;font-weight:600;color:#0369a1;border:1px solid #bae6fd;border-radius:5px;background:#f0f9ff;cursor:pointer;white-space:nowrap;"
                         onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f0f9ff'">
                     <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>{{ __('requirements.add_task') }}
                 </button>
@@ -252,7 +252,7 @@
                 {{-- 1단계: 기획서 추가 --}}
                 <button onclick="openApplyModal(['{{ $req->id }}'])"
                         title="{{ __('requirements.add_plan_title') }}"
-                        style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;font-size:10px;font-weight:600;color:#7c3aed;border:1px solid #ddd6fe;border-radius:5px;background:#faf5ff;cursor:pointer;white-space:nowrap;"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;font-size:10px;font-weight:600;color:#7c3aed;border:1px solid #ddd6fe;border-radius:5px;background:#faf5ff;cursor:pointer;white-space:nowrap;"
                         onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
                     <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>{{ __('requirements.add_plan') }}
                 </button>
@@ -316,7 +316,7 @@
         {{-- 삽입 위치 --}}
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">{{ __('requirements.apply_position') }}</label>
-            <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#374151;">
                     <input type="radio" name="apply-position" value="end" checked onchange="onPositionChange()"> {{ __('requirements.apply_position_end') }}
                 </label>
@@ -378,7 +378,7 @@
         <button onclick="closeReqModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
     </div>
 
-    <form id="req-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:13px;">
+    <form id="req-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;">
         @csrf
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.title') }} <span style="color:#ef4444;">*</span></label>
@@ -394,7 +394,7 @@
                       onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
                 <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.priority') }} <span style="color:#ef4444;">*</span></label>
                 <select name="priority" style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;"
@@ -448,7 +448,7 @@
         @if($project->si_mode_enabled)
         <div style="border-top:1px solid #f3f4f6;padding-top:13px;">
             <p style="font-size:11px;font-weight:600;color:#8b5cf6;margin:0 0 10px;">{{ __('requirements.si_mode') }}</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div>
                     <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.requirement_type') }}</label>
                     <select name="requirement_type" style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;background:#fff;box-sizing:border-box;">
@@ -510,7 +510,7 @@
                 <input id="ai-file-input" type="file" name="files[]" multiple
                        accept=".docx,.xlsx,.xls,.pptx,.ppt,.pdf,.txt,.md,.csv,.log"
                        style="display:none;" onchange="aiUpdateFileList(this)">
-                <ul id="ai-file-list" style="margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;"></ul>
+                <ul id="ai-file-list" style="margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;"></ul>
             </div>
             <div>
                 <label for="ai-context" style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">
@@ -557,7 +557,7 @@
             <div id="ai-review-warnings"></div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
                 <p id="ai-review-count" style="font-size:13px;font-weight:600;color:#374151;margin:0;"></p>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7280;cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280;cursor:pointer;">
                     <input type="checkbox" id="ai-select-all" onchange="aiToggleAll(this)"> {{ __('requirements.ai_select_all') }}
                 </label>
             </div>
@@ -627,8 +627,8 @@
     {{-- 헤더 --}}
     <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0;gap:12px;">
         <div style="flex:1;min-width:0;">
-            <div id="rd-badges" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;"></div>
-            <div id="rd-title-wrap" style="display:flex;align-items:center;gap:6px;">
+            <div id="rd-badges" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px;"></div>
+            <div id="rd-title-wrap" style="display:flex;align-items:center;gap:8px;">
                 <h2 id="rd-title" onclick="rdToggleTitle()" title="{{ __('requirements.rd_title_edit_hint') }}"
                     style="font-size:17px;font-weight:700;color:#18181b;margin:0;line-height:1.4;cursor:pointer;flex:1;min-width:0;padding:2px 4px;border-radius:6px;transition:background .12s;"
                     onmouseover="this.style.background='#faf5ff'" onmouseout="this.style.background='transparent'"></h2>
@@ -637,13 +637,13 @@
                 <input type="text" id="rd-title-input" maxlength="255"
                        style="width:100%;padding:6px 10px;border:1.5px solid var(--t500);border-radius:7px;font-size:16px;font-weight:700;color:#18181b;outline:none;box-sizing:border-box;"
                        onkeydown="if(event.key==='Enter'){event.preventDefault();rdSaveTitle();}else if(event.key==='Escape'){rdToggleTitle();}">
-                <div style="display:flex;gap:6px;margin-top:6px;">
+                <div style="display:flex;gap:8px;margin-top:6px;">
                     <button onclick="rdSaveTitle()" style="padding:5px 12px;font-size:11px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:6px;cursor:pointer;">{{ __('common.save') }}</button>
                     <button onclick="rdToggleTitle()" style="padding:5px 12px;font-size:11px;color:#6b7280;border:1.5px solid #e4e4e7;background:#fff;border-radius:6px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 </div>
             </div>
             <p id="rd-meta" style="font-size:11px;color:#9ca3af;margin:4px 0 0;"></p>
-            <div id="rd-source-banner" style="display:none;margin-top:6px;padding:5px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;font-size:11px;color:#15803d;align-items:center;gap:6px;flex-wrap:wrap;"></div>
+            <div id="rd-source-banner" style="display:none;margin-top:6px;padding:5px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;font-size:11px;color:#15803d;align-items:center;gap:8px;flex-wrap:wrap;"></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <button id="rd-delete-btn" onclick="rdDelete()" style="display:none;padding:5px 10px;font-size:11px;color:#dc2626;border:1.5px solid #fecaca;border-radius:7px;background:#fff;cursor:pointer;"
@@ -694,13 +694,13 @@
         </div>
 
         {{-- 우측 사이드바 --}}
-        <div style="overflow-y:auto;padding:16px 16px;display:flex;flex-direction:column;gap:14px;">
+        <div style="overflow-y:auto;padding:16px 16px;display:flex;flex-direction:column;gap:12px;">
 
             {{-- 세부 정보 --}}
             <div>
                 <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px;">{{ __('requirements.rd_details') }}</p>
 
-                <div style="display:flex;flex-direction:column;gap:9px;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
                     <div>
                         <label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:3px;">{{ __('common.status') }}</label>
                         <select id="rd-status" onchange="rdPatch('status', this.value)" style="width:100%;padding:6px 8px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12px;outline:none;background:#fff;">
@@ -746,13 +746,13 @@
             {{-- 첨부 파일 --}}
             <div>
                 <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">{{ __('requirements.rd_attachments') }}</p>
-                <div id="rd-attachments" style="display:flex;flex-direction:column;gap:5px;"></div>
+                <div id="rd-attachments" style="display:flex;flex-direction:column;gap:4px;"></div>
             </div>
 
             {{-- 기획서 적용 이력 --}}
             <div>
                 <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">{{ __('requirements.rd_plan_history') }}</p>
-                <div id="rd-plan-apps" style="display:flex;flex-direction:column;gap:6px;"></div>
+                <div id="rd-plan-apps" style="display:flex;flex-direction:column;gap:8px;"></div>
             </div>
         </div>
     </div>
@@ -761,7 +761,7 @@
 {{-- 요구사항 삭제 확인 모달 --}}
 <div id="del-overlay" onclick="closeDeleteConfirm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10100;"></div>
 <div id="del-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10101;background:#fff;border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.18);width:440px;max-width:calc(100vw - 32px);">
-    <div style="display:flex;align-items:center;gap:10px;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
+    <div style="display:flex;align-items:center;gap:12px;padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;">
         <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:#fee2e2;flex-shrink:0;">
             <svg width="16" height="16" fill="none" stroke="#dc2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </span>
@@ -789,10 +789,10 @@
 <div style="width:100%;max-width:1160px;height:calc(100vh - 56px);background:#1a1730;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6);border:1px solid rgba(196,181,253,.12);">
 
     {{-- 상단바 --}}
-    <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:10px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
+    <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
         <span style="font-size:12px;font-weight:700;color:#c4b5fd;letter-spacing:.03em;">{{ __('requirements.rfm_header') }}</span>
         <div id="rfm-tabs" style="display:flex;gap:4px;margin-left:8px;overflow-x:auto;flex:1;min-width:0;"></div>
-        <button onclick="closeFileReviewModal()" style="display:inline-flex;align-items:center;gap:5px;color:#9ca3af;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='none'">
+        <button onclick="closeFileReviewModal()" style="display:inline-flex;align-items:center;gap:4px;color:#9ca3af;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>{{ __('common.close') }}
         </button>
     </div>
@@ -829,7 +829,7 @@
                     </button>
                 </div>
                 {{-- 우측: 확대/축소 --}}
-                <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:6px;">
+                <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:8px;">
                     <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin-right:2px;"></div>
                     <button onclick="rfmZoom(-0.2)"
                             style="width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:16px;line-height:1;cursor:pointer;transition:background .15s;flex-shrink:0;"
@@ -856,7 +856,7 @@
 
             {{-- 패널 헤더 --}}
             <div style="padding:14px 16px 12px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
-                <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                     <svg width="15" height="15" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     <span style="font-size:13px;font-weight:700;color:#1f2937;">{{ __('requirements.rfm_recommend_title') }}</span>
                     <span id="rfm-result-cnt" style="display:none;font-size:11px;background:#d1fae5;color:#065f46;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
@@ -874,14 +874,14 @@
             </div>
 
             {{-- 결과 목록 --}}
-            <div id="rfm-results" style="flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+            <div id="rfm-results" style="flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px;">
                 <div id="rfm-empty" style="color:#9ca3af;font-size:12px;text-align:center;padding:24px 0;line-height:1.6;">{!! __('requirements.rfm_empty') !!}</div>
             </div>
 
             {{-- 하단 액션 --}}
             <div style="padding:12px 14px;border-top:1px solid #f3f4f6;flex-shrink:0;background:#fafaf9;display:flex;flex-direction:column;gap:8px;">
                 <div id="rfm-select-bar" style="display:none;display:flex;align-items:center;justify-content:space-between;">
-                    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280;cursor:pointer;">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280;cursor:pointer;">
                         <input type="checkbox" id="rfm-select-all" onchange="rfmToggleAll(this.checked)"> {{ __('requirements.rfm_select_all') }}
                     </label>
                     <span id="rfm-sel-cnt" style="font-size:12px;color:#059669;font-weight:600;"></span>
@@ -2011,10 +2011,10 @@ async function aiRenderReview(data) {
         const tags = (c.tags||[]).map(t=>`<span style="padding:1px 6px;background:#f3f4f6;border-radius:4px;font-size:11px;color:#6b7280;">#${aiEsc(t)}</span>`).join('');
         return `<label style="display:block;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .12s;"
                       onmouseover="this.style.borderColor='#a78bfa'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='#e5e7eb'">
-            <div style="display:flex;align-items:flex-start;gap:10px;">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
                 <input type="checkbox" class="ai-cand-chk" data-idx="${idx}" checked style="margin-top:3px;cursor:pointer;flex-shrink:0;" onchange="aiSyncSelectAll()">
                 <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
                         <span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;${ps}">${c.priority||'medium'}</span>
                         <span style="padding:2px 8px;border-radius:4px;font-size:11px;background:#f3f4f6;color:#6b7280;">${catLabels[c.category]||@json(__('requirements.cat_other'))}</span>
                         <span style="font-size:11px;color:#9ca3af;">${@json(__('requirements.analysis_confidence'))} ${conf}%</span>
@@ -2233,7 +2233,7 @@ async function rdRender(data) {
     const hl = document.getElementById('rd-history-list');
     if (data.histories.length) {
         hl.innerHTML = data.histories.map(h =>
-            `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#6b7280;padding:5px 0;border-bottom:1px solid #f3f4f6;flex-wrap:wrap;">
+            `<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#6b7280;padding:5px 0;border-bottom:1px solid #f3f4f6;flex-wrap:wrap;">
                 <span style="font-weight:600;color:#374151;">${rdEsc(h.changed_by)}</span>
                 <span><b>${rdEsc(h.field_name)}</b></span>
                 <span style="background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:3px;">${rdEsc(h.old_value||@json(__('requirements.rd_no_tags')))}</span>
@@ -2275,7 +2275,7 @@ async function rdRender(data) {
             const icon = isImg
                 ? `<svg width="13" height="13" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/><circle cx="8.5" cy="8.5" r="1.5" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15l-5-5L5 21"/></svg>`
                 : `<svg width="13" height="13" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`;
-            return `<a href="${rdEsc(a.download_url)}" target="_blank" style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:#f8fafc;border:1px solid #e4e4e7;border-radius:7px;text-decoration:none;transition:background .1s;"
+            return `<a href="${rdEsc(a.download_url)}" target="_blank" style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f8fafc;border:1px solid #e4e4e7;border-radius:7px;text-decoration:none;transition:background .1s;"
                         onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='#f8fafc'">
                     ${icon}
                     <span style="flex:1;font-size:12px;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${rdEsc(a.filename)}</span>
@@ -2289,7 +2289,7 @@ async function rdRender(data) {
     pa.innerHTML = data.plan_applications.length
         ? data.plan_applications.map(a =>
             `<div style="background:#f9fafb;border-radius:7px;padding:8px 10px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                     <a href="${a.plan_url}" style="font-size:12px;font-weight:600;color:var(--t500);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📄 ${rdEsc(a.plan_title)}</a>
                 </div>
                 <p style="font-size:11px;color:#9ca3af;margin:3px 0 0;">${rdEsc(a.applied_by)} · ${rdEsc(a.applied_at)}</p>
@@ -2553,7 +2553,7 @@ async function submitGanttModal() {
         <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.gantt_modal_title') }}</h3>
         <button onclick="closeGanttModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:2px;line-height:1;">&times;</button>
     </div>
-    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px;">
         <div id="gantt-info" style="padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:13px;color:#0369a1;font-weight:600;"></div>
         <div id="gantt-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:13px;color:#dc2626;"></div>
         <div>
@@ -2582,7 +2582,7 @@ async function submitGanttModal() {
         </div>
         <p style="font-size:12px;color:#9ca3af;margin:0;">{{ __('requirements.gantt_assignee_hint') }}</p>
     </div>
-    <div style="padding:0 22px 20px;display:flex;gap:10px;justify-content:flex-end;">
+    <div style="padding:0 22px 20px;display:flex;gap:12px;justify-content:flex-end;">
         <button onclick="closeGanttModal()" style="padding:8px 18px;font-size:13px;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
                 onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         <button onclick="submitGanttModal()" id="gantt-submit-btn" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:#0284c7;border:none;border-radius:8px;cursor:pointer;"

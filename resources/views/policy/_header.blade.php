@@ -1,7 +1,7 @@
 <header class="ph">
     <div class="ph-inner">
         <a href="{{ url('/') }}" class="ph-logo">⚡ SupportWorks</a>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
             <div style="display:flex;gap:4px;">
                 <form method="POST" action="{{ route('locale.switch') }}" style="display:inline">
                     @csrf

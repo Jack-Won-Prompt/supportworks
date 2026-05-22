@@ -53,7 +53,7 @@
                 </td>
                 <td style="font-size:12px;color:#94a3b8;">{{ $v->created_at->format('Y.m.d') }}</td>
                 <td style="text-align:right;">
-                    <div style="display:flex;gap:6px;justify-content:flex-end;">
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
                         @if(!$v->is_active)
                         <form action="{{ route('admin.app-versions.activate', $v) }}" method="POST" style="display:inline;">
                             @csrf @method('PATCH')

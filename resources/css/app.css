@@ -1,6 +1,44 @@
+/* ──────────────────────────────────────────────────────────
+   Phase 0 — 디자인 시스템 토큰 + Pretendard 폰트 전역 적용
+   - resources/assets/css/tokens.css 의 모든 토큰을 :root 로 노출
+   - Pretendard 웹폰트 로드 + body 폰트 통일
+   - 색·배경·링크 등 다른 스타일은 건드리지 않음 (사이드 이펙트 0)
+   Phase 2 — 디자인 시스템 컴포넌트(.ds-*) 클래스를 cascade layer 로 등록
+   - .ds-* prefix 로 기존 .btn / .input 등과 이름 충돌 0
+   - @layer 우선순위: ds-components(최저) < (unlayered=기존 CSS) < ...
+   NOTE: PostCSS 규칙상 @import 는 다른 모든 문장 앞에 와야 함.
+   ────────────────────────────────────────────────────────── */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+@import "../assets/css/tokens.css";
+@import "../assets/css/components.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+    font-family: var(--font-family-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Phase 1 — 기존 --t* (보라 테마) 변수를 디자인 시스템 토큰으로 브릿지.
+   tokens.css 와 같은 stylesheet 에 두어 var() 해석을 보장.
+   <html data-accent="..."> 값에 따라 자동으로 톤 변경.
+   ────────────────────────────────────────────────────────── */
+:root {
+    --t50:  color-mix(in srgb, var(--color-theme-active)  8%, #ffffff);
+    --t100: color-mix(in srgb, var(--color-theme-active) 18%, #ffffff);
+    --t200: color-mix(in srgb, var(--color-theme-active) 32%, #ffffff);
+    --t300: color-mix(in srgb, var(--color-theme-active) 50%, #ffffff);
+    --t400: color-mix(in srgb, var(--color-theme-active) 75%, #ffffff);
+    --t500: var(--color-theme-active);
+    --t600: color-mix(in srgb, var(--color-theme-active) 88%, #000000);
+    --t700: color-mix(in srgb, var(--color-theme-active) 72%, #000000);
+    --tText: var(--color-text-brand);
+    --tBg:  color-mix(in srgb, var(--color-theme-active)  8%, #ffffff);
+}
 
 /* ── Flatpickr 달력 레이아웃 ─────────────────────────────── */
 

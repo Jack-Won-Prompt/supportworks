@@ -50,7 +50,7 @@
 
     {{-- 로고 --}}
     <div style="text-align:center;margin-bottom:32px;">
-        <a href="{{ url('/') }}" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;">
+        <a href="{{ url('/') }}" style="display:inline-flex;align-items:center;gap:12px;text-decoration:none;">
             <div style="width:40px;height:40px;background:linear-gradient(135deg,#c4b5fd,#9b8afb);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;box-shadow:0 4px 14px rgba(155,138,251,.4);">S</div>
             <span style="font-size:20px;font-weight:800;color:#1e1b4b;letter-spacing:-.5px;">SupportWorks</span>
         </a>
@@ -69,7 +69,7 @@
         </div>
 
         {{-- 초대한 사람 (공유자) --}}
-        <div style="margin:-18px 28px 0;background:#fff;border:1.5px solid #ede9fe;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(139,122,240,.1);position:relative;z-index:1;">
+        <div style="margin:-18px 28px 0;background:#fff;border:1.5px solid #ede9fe;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(139,122,240,.1);position:relative;z-index:1;">
             <div style="width:36px;height:36px;background:linear-gradient(135deg,#c4b5fd,#9b8afb);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">
                 {{ mb_substr($inviterName, 0, 1) }}
             </div>
@@ -81,7 +81,7 @@
 
         {{-- 회사 소속(공유자의 회사) — 자동 설정 안내 --}}
         @if($companyName)
-        <div style="margin:12px 28px 0;padding:11px 16px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;display:flex;align-items:center;gap:10px;">
+        <div style="margin:12px 28px 0;padding:11px 16px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;display:flex;align-items:center;gap:12px;">
             <div style="width:32px;height:32px;background:linear-gradient(135deg,#bbf7d0,#86efac);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg width="15" height="15" fill="none" stroke="#15803d" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
@@ -94,7 +94,7 @@
         @endif
 
         {{-- 공유 파일 정보 --}}
-        <div style="margin:12px 28px 0;padding:11px 16px;background:#faf5ff;border:1.5px solid #ede9fe;border-radius:12px;display:flex;align-items:center;gap:10px;">
+        <div style="margin:12px 28px 0;padding:11px 16px;background:#faf5ff;border:1.5px solid #ede9fe;border-radius:12px;display:flex;align-items:center;gap:12px;">
             <div style="width:32px;height:32px;background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
             </div>
@@ -118,7 +118,7 @@
             <form method="POST" action="{{ route('files.public-share.signup.post', $token) }}">
                 @csrf
 
-                <div style="display:flex;flex-direction:column;gap:18px;">
+                <div style="display:flex;flex-direction:column;gap:20px;">
 
                     {{-- 이메일 --}}
                     <div>
@@ -205,7 +205,7 @@
             </p>
 
             <p style="text-align:center;margin-top:14px;margin-bottom:0;">
-                <a href="{{ route('files.public-share', $token) }}" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#9ca3af;text-decoration:none;">
+                <a href="{{ route('files.public-share', $token) }}" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#9ca3af;text-decoration:none;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     {{ __('files.signup_back_to_file') }}
                 </a>

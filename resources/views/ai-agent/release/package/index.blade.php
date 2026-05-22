@@ -304,7 +304,7 @@
         {{-- 패키지 구성 가이드 --}}
         <div class="pkg-section">
             <div class="pkg-section-title">패키지 구성</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
                 @foreach([
                     ['01-planning/', '기획 문서', '기획서, AS-IS/TO-BE, IA'],
                     ['02-design/', '디자인 산출물', '토큰, 컴포넌트, 시스템 문서'],

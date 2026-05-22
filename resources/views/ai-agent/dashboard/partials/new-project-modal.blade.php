@@ -60,7 +60,7 @@
                         <span style="font-size:10.5px;font-weight:500;color:#f59e0b;margin-left:4px;">⚠️ 변경 불가</span>
                     </label>
                     <input type="hidden" name="frontend_stack" :value="selectedStack">
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
                         @foreach([
                             ['value' => 'html',  'label' => 'HTML', 'desc' => 'Vanilla JS',   'icon' => '📄', 'color' => '#e34c26'],
                             ['value' => 'react', 'label' => 'React','desc' => 'React 18+',    'icon' => '⚛️', 'color' => '#61dafb'],
@@ -85,7 +85,7 @@
                 </div>
 
                 {{-- Warning note --}}
-                <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;display:flex;align-items:flex-start;gap:7px;">
+                <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;display:flex;align-items:flex-start;gap:8px;">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     <span>한 번 선택한 스택은 프로젝트 진행 중 변경할 수 없습니다. 신중하게 선택해주세요.</span>
                 </div>

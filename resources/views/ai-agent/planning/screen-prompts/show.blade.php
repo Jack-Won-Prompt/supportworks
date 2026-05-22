@@ -166,7 +166,7 @@
                 </div>
 
                 <div style="margin-top:12px;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;">
-                    <div style="display:flex;gap:6px;">
+                    <div style="display:flex;gap:8px;">
                         @if($artifact && $historyUrl)
                         <a href="{{ $historyUrl }}" class="sp-btn secondary sm">버전 이력</a>
                         @endif
@@ -174,7 +174,7 @@
                             <span x-text="deleting ? '삭제 중...' : '프롬프트 삭제'"></span>
                         </button>
                     </div>
-                    <div style="display:flex;gap:6px;align-items:center;">
+                    <div style="display:flex;gap:8px;align-items:center;">
                         <button class="sp-btn secondary" @click="generate()" :disabled="generating">
                             <span x-text="generating ? '웍스 재생성 중...' : '웍스 재생성'"></span>
                         </button>
@@ -191,7 +191,7 @@
                     <div style="font-size:14px;font-weight:800;margin-bottom:2px;">이 프롬프트로 웍스 목업 생성</div>
                     <div style="font-size:12.5px;opacity:.85;">작성된 프롬프트를 이용해 HTML/React/Vue 목업을 자동 생성합니다.</div>
                 </div>
-                <a href="{{ $mockupUrl }}" style="background:#fff;color:#6d28d9;border:none;border-radius:9px;padding:8px 18px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                <a href="{{ $mockupUrl }}" style="background:#fff;color:#6d28d9;border:none;border-radius:9px;padding:8px 18px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                     목업 생성 → (T25)
                 </a>
             </div>

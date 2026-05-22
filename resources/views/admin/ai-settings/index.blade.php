@@ -15,7 +15,7 @@
 
         {{-- Anthropic (Claude) --}}
         <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid #f1f5f9;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
                 <div style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                 </div>
@@ -40,7 +40,7 @@
                            onblur="if(this.value==='')this.value='{{ $setting->anthropic_key ? '__MASKED__' : '' }}'">
                 </div>
                 @if($setting->anthropic_key)
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
                     <input type="checkbox" name="clear_anthropic" value="1" style="width:14px;height:14px;">
                     {{ __('admin.aiset_key_delete') }}
                 </label>
@@ -50,7 +50,7 @@
 
         {{-- OpenAI --}}
         <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid #f1f5f9;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
                 <div style="width:36px;height:36px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
@@ -75,7 +75,7 @@
                            onblur="if(this.value==='')this.value='{{ $setting->openai_key ? '__MASKED__' : '' }}'">
                 </div>
                 @if($setting->openai_key)
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
                     <input type="checkbox" name="clear_openai" value="1" style="width:14px;height:14px;">
                     {{ __('admin.aiset_key_delete') }}
                 </label>
@@ -85,7 +85,7 @@
 
         {{-- Figma --}}
         <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid #f1f5f9;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
                 <div style="width:36px;height:36px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
                 </div>
@@ -110,7 +110,7 @@
                            onblur="if(this.value==='')this.value='{{ $setting->figma_token ? '__MASKED__' : '' }}'">
                 </div>
                 @if($setting->figma_token)
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
                     <input type="checkbox" name="clear_figma" value="1" style="width:14px;height:14px;">
                     {{ __('admin.aiset_key_delete') }}
                 </label>
@@ -120,7 +120,7 @@
 
         {{-- Manus --}}
         <div style="margin-bottom:28px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
                 <div style="width:36px;height:36px;background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
@@ -145,7 +145,7 @@
                            onblur="if(this.value==='')this.value='{{ $setting->manus_key ? '__MASKED__' : '' }}'">
                 </div>
                 @if($setting->manus_key)
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#ef4444;cursor:pointer;padding-bottom:10px;white-space:nowrap;">
                     <input type="checkbox" name="clear_manus" value="1" style="width:14px;height:14px;">
                     {{ __('admin.aiset_key_delete') }}
                 </label>

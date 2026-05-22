@@ -375,7 +375,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                 {{-- 등록 파일 의견 팝오버 버튼 — 모든 STEP에 표시 --}}
                 <button type="button" id="dlv-fc-btn" onclick="dlvToggleFileComments(event)"
                         title="{{ __('deliverables.fc_title') }}"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;transition:all .12s;"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:7px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;transition:all .12s;"
                         onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'"
                         onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -584,19 +584,19 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             <button class="dlv-btn dlv-btn-ghost" title="{{ __('deliverables.btn_skip') }}" onclick="skipStep()">{{ __('deliverables.btn_skip') }}</button>
 
             {{-- 버전 이력 --}}
-            <button onclick="dlvOpenVersions(this)" title="{{ __('deliverables.version_history_title') }}" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+            <button onclick="dlvOpenVersions(this)" title="{{ __('deliverables.version_history_title') }}" style="display:inline-flex;align-items:center;gap:4px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 {{ __('deliverables.version_history') }}
             </button>
 
             {{-- Word 다운로드 팝오버 --}}
-            <button id="word-dl-btn2" onclick="dlvWordPopover(this)" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+            <button id="word-dl-btn2" onclick="dlvWordPopover(this)" style="display:inline-flex;align-items:center;gap:4px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 {{ __('deliverables.word_download') }}
             </button>
 
             {{-- 파일로 등록 --}}
-            <button onclick="dlvRegisterAsFile()" title="{{ __('deliverables.register_as_file_title') }}" style="display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
+            <button onclick="dlvRegisterAsFile()" title="{{ __('deliverables.register_as_file_title') }}" style="display:inline-flex;align-items:center;gap:4px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--t400)';this.style.color='var(--t600)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 {{ __('deliverables.register_as_file') }}
             </button>
@@ -658,17 +658,17 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
 
     {{-- 상단바 --}}
     <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
-        <button onclick="dlvCloseViewer()" style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
+        <button onclick="dlvCloseViewer()" style="display:inline-flex;align-items:center;gap:8px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             {{ __('deliverables.viewer_close') }}
         </button>
         <span id="dlv-viewer-step-title" style="flex:1;overflow:hidden;font-size:13px;font-weight:600;color:#e5e7eb;white-space:nowrap;text-overflow:ellipsis;"></span>
         <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;background:#2d1b5e;color:#c4b5fd;flex-shrink:0;">{{ $typeDef['shortName'] }}</span>
-        <button onclick="dlvWordPopover(this)" style="display:inline-flex;align-items:center;gap:5px;color:#a5b4fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;background:none;cursor:pointer;">
+        <button onclick="dlvWordPopover(this)" style="display:inline-flex;align-items:center;gap:4px;color:#a5b4fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;background:none;cursor:pointer;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('deliverables.word_download') }}
         </button>
-        <button id="dlv-ann-dl-btn" style="display:none;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
+        <button id="dlv-ann-dl-btn" style="display:none;align-items:center;gap:4px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('deliverables.viewer_ann_dl') }}
         </button>
@@ -801,17 +801,17 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
 
             {{-- 패널 헤더 --}}
             <div style="padding:12px 16px 10px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
-                <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:6px;">
+                <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                     <svg width="15" height="15" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     {{ __('deliverables.viewer_comments') }}
                     <span id="dlv-cm-count" style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
                 </div>
-                <div style="display:flex;gap:6px;margin-top:7px;">
+                <div style="display:flex;gap:8px;margin-top:7px;">
                     <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#ede9fe;color:#6d28d9;font-weight:600;">{{ __('deliverables.viewer_cm_screen') }}</span>
                     <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#f0fdf4;color:#065f46;font-weight:600;">{{ __('deliverables.viewer_cm_general') }}</span>
                 </div>
                 {{-- 단계 필터 바 --}}
-                <div id="dlv-cmt-filter-bar" style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                <div id="dlv-cmt-filter-bar" style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;">
                     <span id="dlv-cmt-filter-label" style="font-size:11px;color:#6b7280;"></span>
                     <button onclick="dlvToggleCmtFilter()" id="dlv-cmt-filter-btn"
                             style="font-size:11px;color:#7c3aed;background:none;border:1px solid #ede9fe;border-radius:5px;cursor:pointer;padding:2px 8px;font-weight:600;white-space:nowrap;"
@@ -820,7 +820,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
             </div>
 
             {{-- 의견 목록 --}}
-            <div id="dlv-cm-list" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;">
+            <div id="dlv-cm-list" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px;min-height:0;">
                 <div id="dlv-cm-empty" style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">{{ __('deliverables.viewer_cm_empty') }}</div>
             </div>
 
@@ -910,7 +910,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
         </div>
     </div>
 
-    <div id="dlv-fc-tabs" style="display:none;gap:5px;padding:8px 12px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;flex-shrink:0;"></div>
+    <div id="dlv-fc-tabs" style="display:none;gap:4px;padding:8px 12px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;flex-shrink:0;"></div>
     <div id="dlv-fc-body" style="flex:1;overflow-y:auto;min-height:0;"></div>
 </div>
 @endsection
@@ -1560,7 +1560,7 @@ async function dlvRegisterAsFile() {
                 const langTag = r.lang === 'en' ? '<span style="font-size:10px;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:3px;margin-left:4px;">EN</span>' : '';
                 const delBtn = `<button type="button" class="dlv-reg-hist-del" data-rid="${r.id}" title="${LANG.reg_history_delete}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:15px;line-height:1;padding:0 4px;margin-left:6px;align-self:flex-start;flex-shrink:0;">×</button>`;
                 return `
-                  <div data-pf="${r.project_file_id}" data-rid="${r.id}" class="dlv-reg-row dlv-reg-hist-row" style="display:flex;align-items:center;gap:6px;">
+                  <div data-pf="${r.project_file_id}" data-rid="${r.id}" class="dlv-reg-row dlv-reg-hist-row" style="display:flex;align-items:center;gap:8px;">
                     <span class="dlv-reg-row-lead dlv-reg-row-vbadge">v${r.file_version}</span>
                     <div class="dlv-reg-row-body" style="flex:1;min-width:0;">
                       <div class="dlv-reg-row-title"><span class="dlv-reg-row-title-name">${fname}</span>${langTag}</div>
@@ -1583,7 +1583,7 @@ async function dlvRegisterAsFile() {
                         const fname = String(r.file_name || LANG.reg_file_deleted).replace(/[<>"']/g,'');
                         const langTag = r.lang === 'en' ? '<span style="font-size:10px;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:3px;margin-left:4px;">EN</span>' : '';
                         const delBtn = `<button type="button" class="dlv-reg-hist-del" data-rid="${r.id}" title="${LANG.reg_history_delete}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:15px;line-height:1;padding:0 4px;margin-left:6px;align-self:flex-start;flex-shrink:0;">×</button>`;
-                        return `<div data-pf="${r.project_file_id}" data-rid="${r.id}" class="dlv-reg-row dlv-reg-hist-row" style="display:flex;align-items:center;gap:6px;">
+                        return `<div data-pf="${r.project_file_id}" data-rid="${r.id}" class="dlv-reg-row dlv-reg-hist-row" style="display:flex;align-items:center;gap:8px;">
                             <span class="dlv-reg-row-lead dlv-reg-row-vbadge">v${r.file_version}</span>
                             <div class="dlv-reg-row-body" style="flex:1;min-width:0;">
                               <div class="dlv-reg-row-title"><span class="dlv-reg-row-title-name">${fname}</span>${langTag}</div>
@@ -2805,7 +2805,7 @@ async function dlvRenderComments(list) {
     }
     el.innerHTML = list.map(c => `
         <div style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:10px;padding:10px 12px;">
-            <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px;">
                 <span style="font-size:11px;font-weight:700;color:#6d28d9;">${c.user_name}</span>
                 <span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#ede9fe;color:#6d28d9;font-weight:600;">${LANG.viewer_cm_step_n.replace(':step', c.step_order ?? '?')}</span>
                 <span style="font-size:10px;color:#9ca3af;flex:1;">${c.created_at}</span>
@@ -3869,7 +3869,7 @@ function _dgrCreateLightbox() {
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
                     <button id="dlv-dgr-lb-dl" onclick="dgrLbDownload()"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:7px 15px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+                        style="display:inline-flex;align-items:center;gap:4px;padding:7px 15px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         PNG
                     </button>
@@ -4193,7 +4193,7 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         list.innerHTML = items.map((f, i) =>
             `<div data-fid="${f.id}" data-idx="${i}"
                   onmousedown="event.preventDefault()" onclick="dlvFcPickFile(${f.id})"
-                  style="padding:6px 10px;font-size:12px;color:#1e293b;cursor:pointer;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:6px;"
+                  style="padding:6px 10px;font-size:12px;color:#1e293b;cursor:pointer;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;"
                   onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.7" style="color:#94a3b8;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.original_name)}</span>
@@ -4494,7 +4494,7 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
             `<div style="font-size:11px;color:#64748b;margin-top:3px;padding-left:8px;border-left:2px solid #ede9ff;word-break:break-word;">↳ <b style="color:#6d28d9;">${esc(r.author)}</b> ${esc(r.content)}</div>`
         ).join('');
         return `<div id="dlv-fc-c-${c.id}" style="padding:10px 16px;border-bottom:1px solid #f4f4f6;">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
                 <span style="font-size:11.5px;font-weight:700;color:#1e1b2e;">${esc(c.author)}</span>
                 <span style="font-size:10.5px;color:#9ca3af;">${esc(c.created_at)}</span>
                 ${pageBadge}${resolvedBadge}

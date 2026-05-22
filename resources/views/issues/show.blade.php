@@ -64,7 +64,7 @@
         @endif
 
         @if($issue->tags)
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:12px;">
             @foreach($issue->tags as $tag)
             <span style="font-size:11px;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:4px;">{{ $tag }}</span>
             @endforeach
@@ -183,14 +183,14 @@
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px;">
         <h3 style="font-size:13px;font-weight:700;color:#374151;margin:0 0 14px;">{{ __('issues.comments_title', ['count' => $issue->comments->count()]) }}</h3>
 
-        <div id="comments-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <div id="comments-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
             @foreach($issue->comments as $comment)
-            <div style="display:flex;gap:10px;padding:12px;background:#f9fafb;border-radius:8px;">
+            <div style="display:flex;gap:12px;padding:12px;background:#f9fafb;border-radius:8px;">
                 <div style="width:30px;height:30px;background:#e0e7ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#4f46e5;flex-shrink:0;">
                     {{ mb_substr($comment->author->name, 0, 1) }}
                 </div>
                 <div style="flex:1;">
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                         <span style="font-size:12px;font-weight:600;color:#374151;">{{ $comment->author->name }}</span>
                         <span style="font-size:11px;color:#9ca3af;">{{ $comment->created_at->format('Y-m-d H:i') }}</span>
                     </div>
@@ -212,7 +212,7 @@
 </div>
 
 {{-- ─── RIGHT: 사이드바 ─────────────────────────────────────── --}}
-<div style="display:flex;flex-direction:column;gap:14px;">
+<div style="display:flex;flex-direction:column;gap:12px;">
 
     {{-- 상태 변경 --}}
     @if($isManager || auth()->id() === $issue->reporter_id || auth()->id() === $issue->assignee_id)
@@ -230,7 +230,7 @@
     {{-- 이슈 정보 --}}
     <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:18px;">
         <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 12px;">{{ __('issues.issue_info') }}</p>
-        <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
             <div>
                 <p style="font-size:11px;color:#9ca3af;margin:0 0 2px;">{{ __('issues.info_assignee') }}</p>
                 <p style="font-size:13px;color:#374151;margin:0;font-weight:500;">{{ $issue->assignee?->name ?? __('issues.unassigned') }}</p>
@@ -283,7 +283,7 @@
         <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;margin:0 0 12px;">{{ __('issues.change_history') }}</p>
         <div style="display:flex;flex-direction:column;gap:8px;">
             @foreach($issue->changeHistories->take(10) as $history)
-            <div style="font-size:11px;color:#6b7280;display:flex;gap:6px;align-items:flex-start;">
+            <div style="font-size:11px;color:#6b7280;display:flex;gap:8px;align-items:flex-start;">
                 <span style="flex-shrink:0;color:#9ca3af;">{{ $history->changed_at->format('m-d H:i') }}</span>
                 <span>{!! __('issues.history_changed', [
                     'user'  => '<b>' . e($history->changedBy?->name) . '</b>',
@@ -305,7 +305,7 @@
     <div style="background:#fff;border-radius:14px;padding:28px;width:480px;max-width:95vw;position:relative;">
         <button onclick="closeResolveModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;">✕</button>
         <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">{{ __('issues.resolve_modal_title') }}</h3>
-        <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
             <div>
                 <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.resolution_label') }}</label>
                 <textarea id="resolution-input" rows="4" placeholder="{{ __('issues.resolution_placeholder') }}"
@@ -314,11 +314,11 @@
             </div>
             <div>
                 <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.final_status') }}</label>
-                <div style="display:flex;gap:10px;">
-                    <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+                <div style="display:flex;gap:12px;">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
                         <input type="radio" name="resolve-status" value="해결" checked> {{ __('issues.resolve_status_resolved') }}
                     </label>
-                    <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
                         <input type="radio" name="resolve-status" value="종결"> {{ __('issues.resolve_status_closed') }}
                     </label>
                 </div>
@@ -340,7 +340,7 @@
         <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">{{ __('issues.edit_modal_title') }}</h3>
         <form id="edit-form" onsubmit="submitEdit(event)">
             @method('PATCH')
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 <div>
                     <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.edit_field_title') }}</label>
                     <input name="title" value="{{ $issue->title }}"
@@ -457,7 +457,7 @@ async function submitComment() {
         div.style.cssText = 'display:flex;gap:10px;padding:12px;background:#f9fafb;border-radius:8px;';
         div.innerHTML = `<div style="width:30px;height:30px;background:#e0e7ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#4f46e5;flex-shrink:0;">${COMMENT_ME}</div>
             <div style="flex:1;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                     <span style="font-size:12px;font-weight:600;color:#374151;">${COMMENT_ME}</span>
                     <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
                 </div>

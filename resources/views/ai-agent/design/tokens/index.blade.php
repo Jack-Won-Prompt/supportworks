@@ -119,17 +119,17 @@
                     <div x-show="open" x-cloak @click.outside="open=false"
                          style="position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1.5px solid #ede8ff;border-radius:10px;padding:6px;z-index:100;min-width:160px;box-shadow:0 8px 24px rgba(30,27,46,.12);">
                         <a href="{{ route('ai-agent.projects.design.tokens.export', $project) }}?format=json"
-                           style="display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:7px;font-size:12.5px;color:#1e1b2e;text-decoration:none;font-weight:600;"
+                           style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;font-size:12.5px;color:#1e1b2e;text-decoration:none;font-weight:600;"
                            onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
                             JSON (W3C)
                         </a>
                         <a href="{{ route('ai-agent.projects.design.tokens.export', $project) }}?format=css"
-                           style="display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:7px;font-size:12.5px;color:#1e1b2e;text-decoration:none;font-weight:600;"
+                           style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;font-size:12.5px;color:#1e1b2e;text-decoration:none;font-weight:600;"
                            onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
                             CSS 변수
                         </a>
                         <a href="{{ route('ai-agent.projects.design.tokens.export', $project) }}?format=tailwind"
-                           style="display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:7px;font-size:12.5px;color:#1e1b2e;text-decoration:none;font-weight:600;"
+                           style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;font-size:12.5px;color:#1e1b2e;text-decoration:none;font-weight:600;"
                            onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
                             Tailwind Config
                         </a>
@@ -137,7 +137,7 @@
                 </div>
                 <button class="dt-btn ghost sm" @click="showExtractModal = true">재추출</button>
             </div>
-            <div x-show="editMode" style="display:flex;gap:6px;">
+            <div x-show="editMode" style="display:flex;gap:8px;">
                 <button class="dt-btn primary sm" @click="saveEdit" :disabled="saving">저장</button>
                 <button class="dt-btn secondary sm" @click="editMode = false">취소</button>
             </div>

@@ -36,7 +36,7 @@
                 };
             @endphp
             <a href="{{ route('ai-agent.projects.agent-sessions.show', [$project, $s]) }}" class="ags-card" style="text-decoration:none;color:inherit;display:block;">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
                     <strong style="font-size:14px;color:#1e1b2e;line-height:1.4;">{{ $s->title }}</strong>
                     <span class="ags-tag {{ $tag }}">{{ $status->label() }}</span>
                 </div>

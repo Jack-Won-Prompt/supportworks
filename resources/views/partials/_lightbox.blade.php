@@ -69,11 +69,11 @@
                 {{ __('viewer.close') }}
             </button>
             <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 8px;"></div>
-            <button id="img-lb-download" onclick="lbDownloadImage()" title="{{ __('viewer.download') }}" style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.85);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;">
+            <button id="img-lb-download" onclick="lbDownloadImage()" title="{{ __('viewer.download') }}" style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.85);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .15s;flex-shrink:0;">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
                 {{ __('viewer.download') }}
             </button>
-            <button id="img-lb-fullscreen" onclick="lbToggleFullscreen()" title="{{ __('viewer.fullscreen_title') }}" style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.85);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;margin-left:6px;">
+            <button id="img-lb-fullscreen" onclick="lbToggleFullscreen()" title="{{ __('viewer.fullscreen_title') }}" style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.85);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .15s;flex-shrink:0;margin-left:6px;">
                 <svg id="img-lb-fullscreen-icon-on"  width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                 <svg id="img-lb-fullscreen-icon-off" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 0H5m4 4L4 4m11 5h4m0 0V5m0 4l5-5M9 15v4m0 0H5m4 0l-5 5m11-5h4m0 0v4m0-4l5 5"/></svg>
                 <span id="img-lb-fullscreen-label">{{ __('viewer.fullscreen') }}</span>

@@ -4,7 +4,7 @@
 
 @section('header-actions')
 <button onclick="actionModal(true)"
-    style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;">
+    style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;">
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     {{ __('work.action_new') }}
 </button>
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => actionModal(true));
     {{-- ===== 왼쪽: 목록 ===== --}}
     <div>
         {{-- 필터 탭 + 프로젝트 드롭다운 --}}
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
 
             {{-- 상태 필터 탭 --}}
             <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => actionModal(true));
             @if($projects->count())
             <div x-data="{ open: false }" style="position:relative;">
                 <button @click="open=!open"
-                    style="display:inline-flex;align-items:center;gap:7px;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid {{ $projectId ? 'var(--t400)' : '#e5e7eb' }};background:{{ $projectId ? 'var(--t50)' : '#fff' }};color:{{ $projectId ? 'var(--tText)' : '#6b7280' }};cursor:pointer;transition:all .15s;">
+                    style="display:inline-flex;align-items:center;gap:8px;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid {{ $projectId ? 'var(--t400)' : '#e5e7eb' }};background:{{ $projectId ? 'var(--t50)' : '#fff' }};color:{{ $projectId ? 'var(--tText)' : '#6b7280' }};cursor:pointer;transition:all .15s;">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
                     {{ $selectedProject ? $selectedProject->name : __('work.task_project_label') }}
                     @if($projectId)
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => actionModal(true));
             <p style="font-size:13px;color:#16a34a;font-weight:500;">{{ __('work.action_all_done') }}</p>
         </div>
         @else
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
             @foreach($pendingItems as $item)
             @include('action-items._item', ['item' => $item])
             @endforeach
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => actionModal(true));
             <div x-show="open" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 -translate-y-1"
                 x-transition:enter-end="opacity-100 translate-y-0"
-                style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
                 @foreach($completedItems as $item)
                 @include('action-items._item', ['item' => $item])
                 @endforeach
@@ -216,12 +216,12 @@ document.addEventListener('DOMContentLoaded', () => actionModal(true));
     </div>
 
     {{-- ===== 오른쪽: 통계 패널 ===== --}}
-    <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:16px;">
+    <div style="display:flex;flex-direction:column;gap:12px;position:sticky;top:16px;">
 
         {{-- 통계 카드 --}}
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.05);">
             <div style="font-size:12px;font-weight:600;color:#9ca3af;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;">{{ __('work.action_stat_overview') }}</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div style="background:#f9fafb;border-radius:10px;padding:12px;text-align:center;">
                     <p style="font-size:22px;font-weight:700;color:#111827;line-height:1;">{{ $stats['total'] }}</p>
                     <p style="font-size:11px;color:#6b7280;margin-top:3px;">{{ __('work.action_stat_total') }}</p>
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => actionModal(true));
         @if($dueThisWeek->count())
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.05);">
             <div style="font-size:12px;font-weight:600;color:#9ca3af;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;">{{ __('work.action_due_this_week') }}</div>
-            <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
                 @foreach($dueThisWeek as $item)
                 <div style="display:flex;align-items:center;gap:8px;">
                     <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:{{ $item->isOverdue() ? '#ef4444' : '#f59e0b' }};"></span>
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => actionModal(true));
         @if($recentlyDone->count())
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.05);">
             <div style="font-size:12px;font-weight:600;color:#9ca3af;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;">{{ __('work.action_recently_done') }}</div>
-            <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
                 @foreach($recentlyDone as $item)
                 <div style="display:flex;align-items:center;gap:8px;">
                     <svg width="13" height="13" fill="none" stroke="#16a34a" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>

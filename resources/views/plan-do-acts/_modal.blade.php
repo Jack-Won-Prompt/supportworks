@@ -9,15 +9,15 @@
      style="display:none;position:fixed;inset:0;z-index:12000;background:rgba(15,10,40,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:640px;max-width:calc(100vw - 48px);max-height:88vh;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.32);display:flex;flex-direction:column;overflow:hidden;">
         {{-- 헤더 --}}
-        <div style="padding:16px 22px;border-bottom:1px solid #f0eeff;display:flex;align-items:center;gap:10px;">
+        <div style="padding:16px 22px;border-bottom:1px solid var(--color-border-default);display:flex;align-items:center;gap:12px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            <h3 id="pda-modal-title" style="margin:0;font-size:15px;font-weight:800;color:#1e1b2e;flex:1;">{{ __('plan-do-acts.modal_create') }}</h3>
-            <button type="button" onclick="pdaClose()" style="background:none;border:none;font-size:24px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">&times;</button>
+            <h3 id="pda-modal-title" style="margin:0;font-size:15px;font-weight:800;color:var(--color-text-primary);flex:1;">{{ __('plan-do-acts.modal_create') }}</h3>
+            <button type="button" onclick="pdaClose()" style="background:none;border:none;font-size:24px;color:var(--color-text-tertiary);cursor:pointer;line-height:1;padding:0;">&times;</button>
         </div>
         {{-- 본문 --}}
-        <div style="padding:18px 22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:18px 22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;">
             <div id="pda-source-wrap" style="display:none;">
-                <div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:5px;">{{ __('plan-do-acts.source_heading') }}</div>
+                <div style="font-size:11px;font-weight:700;color:var(--t600);margin-bottom:5px;">{{ __('plan-do-acts.source_heading') }}</div>
                 <div id="pda-source-box" style="background:#f8f7ff;border:1px solid #ece9ff;border-radius:9px;padding:10px 12px;font-size:12.5px;color:#4b5563;white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:160px;overflow-y:auto;"></div>
             </div>
             <div>
@@ -29,7 +29,7 @@
                     @endforeach
                 </select>
             </div>
-            <div style="display:flex;gap:10px;">
+            <div style="display:flex;gap:12px;">
                 <div style="flex:1;min-width:0;">
                     <label class="pda-label">{{ __('plan-do-acts.field_title') }}</label>
                     <input id="pda-title" type="text" class="pda-input" maxlength="255" placeholder="{{ __('plan-do-acts.title_placeholder') }}">
@@ -53,16 +53,16 @@
                 <textarea id="pda-do" class="pda-input pda-textarea" placeholder="{{ __('plan-do-acts.do_placeholder') }}"></textarea>
             </div>
             <div>
-                <label class="pda-label" style="color:#7c3aed;">{{ __('plan-do-acts.phase_act') }}</label>
+                <label class="pda-label" style="color:var(--t600);">{{ __('plan-do-acts.phase_act') }}</label>
                 <textarea id="pda-act" class="pda-input pda-textarea" placeholder="{{ __('plan-do-acts.act_placeholder') }}"></textarea>
             </div>
         </div>
         {{-- 푸터 --}}
-        <div style="padding:12px 22px;background:#faf9ff;border-top:1px solid #f0eeff;display:flex;align-items:center;gap:8px;">
-            <button type="button" id="pda-delete-btn" onclick="pdaDelete()" style="display:none;padding:8px 14px;background:#fff;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('plan-do-acts.btn_delete') }}</button>
+        <div style="padding:12px 22px;background:#faf9ff;border-top:1px solid var(--color-border-default);display:flex;align-items:center;gap:8px;">
+            <button type="button" id="pda-delete-btn" onclick="pdaDelete()" style="display:none;padding:8px 14px;background:#fff;color:var(--color-alert-warning-500);border:1px solid #fecaca;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('plan-do-acts.btn_delete') }}</button>
             <div style="flex:1;"></div>
-            <button type="button" onclick="pdaClose()" style="padding:8px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('plan-do-acts.btn_cancel') }}</button>
-            <button type="button" id="pda-save-btn" onclick="pdaSave()" style="padding:8px 20px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('plan-do-acts.btn_save') }}</button>
+            <button type="button" onclick="pdaClose()" style="padding:8px 16px;background:#fff;color:var(--color-text-secondary);border:1px solid var(--color-border-default);border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('plan-do-acts.btn_cancel') }}</button>
+            <button type="button" id="pda-save-btn" onclick="pdaSave()" style="padding:8px 20px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">{{ __('plan-do-acts.btn_save') }}</button>
         </div>
     </div>
 </div>

@@ -4,7 +4,7 @@
 
 @section('header-actions')
 <button onclick="document.getElementById('memo-add-form').classList.toggle('hidden')"
-    style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;">
+    style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;">
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     {{ __('work.memo_new') }}
 </button>
@@ -32,7 +32,7 @@ $colorMap = [
             <textarea name="content" rows="4" placeholder="{{ __('work.memo_content_placeholder') }}" required
                 style="width:100%;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box;">{{ old('content') }}</textarea>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
-                <div style="display:flex;gap:6px;align-items:center;">
+                <div style="display:flex;gap:8px;align-items:center;">
                     <span style="font-size:12px;color:#9ca3af;">{{ __('work.memo_color_label') }}</span>
                     @foreach($colorMap as $key => $c)
                     <label style="cursor:pointer;" title="{{ $c['label'] }}">
@@ -64,7 +64,7 @@ $colorMap = [
         style="margin-top:12px;padding:7px 18px;background:var(--t600);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">{{ __('work.memo_first_write') }}</button>
 </div>
 @else
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
     @foreach($memos as $memo)
     @php $c = $colorMap[$memo->color] ?? $colorMap['yellow']; @endphp
     <div x-data="{ editing: false }" style="background:{{ $c['bg'] }};border:1px solid {{ $c['border'] }};border-radius:14px;padding:16px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.05);min-height:140px;display:flex;flex-direction:column;">
@@ -103,7 +103,7 @@ $colorMap = [
                     style="width:100%;padding:4px 6px;border:1px solid {{ $c['border'] }};border-radius:6px;font-size:13px;background:rgba(255,255,255,.7);margin-bottom:6px;box-sizing:border-box;">
                 <textarea name="content" rows="4" style="width:100%;padding:4px 6px;border:1px solid {{ $c['border'] }};border-radius:6px;font-size:13px;background:rgba(255,255,255,.7);resize:vertical;box-sizing:border-box;">{{ $memo->content }}</textarea>
                 <input type="hidden" name="color" value="{{ $memo->color }}">
-                <div style="display:flex;gap:6px;margin-top:6px;">
+                <div style="display:flex;gap:8px;margin-top:6px;">
                     <button type="submit" style="flex:1;padding:5px;font-size:12px;background:var(--t600);color:#fff;border:none;border-radius:6px;cursor:pointer;">{{ __('common.save') }}</button>
                     <button type="button" @click="editing=false" style="flex:1;padding:5px;font-size:12px;background:rgba(0,0,0,.1);color:#374151;border:none;border-radius:6px;cursor:pointer;">{{ __('common.cancel') }}</button>
                 </div>

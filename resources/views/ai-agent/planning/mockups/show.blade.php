@@ -89,7 +89,7 @@
             <h1>{{ $screen->title }} 목업</h1>
             <p>웍스가 생성한 목업 코드를 미리보기하고 편집합니다.</p>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
             @if($prevScreen)
             <a href="{{ route('ai-agent.projects.planning.mockups.show', [$project, $prevScreen]) }}" class="mk-nav-arrow">← {{ $prevScreen->screen_id }}</a>
             @else
@@ -129,7 +129,7 @@
                     <span x-text="saving ? '저장 중...' : '저장'"></span>
                 </button>
                 <span x-show="saveStatus" x-text="saveStatus" style="font-size:12px;color:#64748b;"></span>
-                <div style="margin-left:auto;display:flex;gap:6px;">
+                <div style="margin-left:auto;display:flex;gap:8px;">
                     @if($standaloneUrl)
                     <a href="{{ $standaloneUrl }}" target="_blank" class="mk-btn ghost sm">전체화면 미리보기</a>
                     @endif
@@ -266,7 +266,7 @@
                     <div style="font-size:12.5px;opacity:.85;">이 목업을 생성하는 데 사용된 프롬프트를 확인하고 편집할 수 있습니다.</div>
                 </div>
                 <a href="{{ route('ai-agent.projects.planning.prompts.show', [$project, $screen]) }}"
-                   style="background:#fff;color:#1d4ed8;border:none;border-radius:9px;padding:8px 16px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                   style="background:#fff;color:#1d4ed8;border:none;border-radius:9px;padding:8px 16px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                     프롬프트 편집 →
                 </a>
             </div>

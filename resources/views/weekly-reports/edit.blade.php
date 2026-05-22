@@ -67,14 +67,14 @@
 {{-- 동시성 경고 모달 --}}
 <div id="concurrent-modal">
     <div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
             <div style="background:#fef3c7;border-radius:8px;padding:7px;">
                 <svg width="20" height="20" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             </div>
             <span style="font-size:15px;font-weight:700;color:#1f2937;">{{ __('weekly.concurrent_detected') }}</span>
         </div>
         <p id="concurrent-msg" style="font-size:13.5px;color:#374151;line-height:1.6;margin-bottom:20px;"></p>
-        <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
             <button onclick="closeConcurrentModal()" style="padding:8px 18px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;color:#374151;background:#fff;cursor:pointer;">{{ __('weekly.continue_writing') }}</button>
             <a href="{{ route('projects.show', $project) }}" style="padding:8px 18px;background:#6d28d9;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{{ __('weekly.back_to_project') }}</a>
         </div>
@@ -122,7 +122,7 @@
             <span id="week-label-badge" style="background:#ede9fe;color:#5b21b6;border-radius:6px;padding:3px 10px;font-size:12.5px;font-weight:700;"></span>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
             {{-- 팀명 --}}
             <div>
                 <label style="font-size:11.5px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px;">{{ __('weekly.team_name') }}</label>
@@ -162,7 +162,7 @@
 
     {{-- ─── 섹션 1: 주요 성과 요약 ─── --}}
     <div class="section-card">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
             <span class="section-number">1</span>
             <span class="section-title">{{ __('weekly.section1_title') }}</span>
             <span style="margin-left:6px;font-size:11px;background:#ede9fe;color:#7c3aed;border-radius:4px;padding:1px 7px;font-weight:600;">Rich Text</span>
@@ -215,20 +215,20 @@
         {{-- 섹션 2+3 미리보기 --}}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
             <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <span class="section-number" style="width:18px;height:18px;font-size:10px;">2</span>
                     <span style="font-size:12.5px;font-weight:700;color:#065f46;">{{ __('weekly.section2_preview_title') }}</span>
                     <span id="completed-count" style="background:#10b981;color:#fff;border-radius:999px;font-size:10px;padding:1px 7px;font-weight:700;margin-left:auto;">0</span>
                 </div>
-                <div id="section2-preview" style="display:flex;flex-direction:column;gap:2px;"></div>
+                <div id="section2-preview" style="display:flex;flex-direction:column;gap:4px;"></div>
             </div>
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <span class="section-number" style="width:18px;height:18px;font-size:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);">3</span>
                     <span style="font-size:12.5px;font-weight:700;color:#1e40af;">{{ __('weekly.section3_preview_title') }}</span>
                     <span id="inprogress-count" style="background:#3b82f6;color:#fff;border-radius:999px;font-size:10px;padding:1px 7px;font-weight:700;margin-left:auto;">0</span>
                 </div>
-                <div id="section3-preview" style="display:flex;flex-direction:column;gap:2px;"></div>
+                <div id="section3-preview" style="display:flex;flex-direction:column;gap:4px;"></div>
             </div>
         </div>
     </div>
@@ -236,7 +236,7 @@
     {{-- ─── 섹션 4: 차주 업무 계획 ─── --}}
     <div class="section-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
                 <span class="section-number" style="background:linear-gradient(135deg,#f59e0b,#d97706);">4</span>
                 <span class="section-title">{{ __('weekly.section4_title') }}</span>
             </div>
@@ -269,7 +269,7 @@
 
     {{-- ─── 섹션 5: 특이 사항 ─── --}}
     <div class="section-card">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
             <span class="section-number" style="background:linear-gradient(135deg,#ef4444,#dc2626);">5</span>
             <span class="section-title">{{ __('weekly.section5_title') }}</span>
         </div>
@@ -282,30 +282,30 @@
     <div style="position:sticky;bottom:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:#fff;border-top:1px solid #e9e7fb;margin:0 -24px;box-shadow:0 -4px 16px rgba(0,0,0,.06);">
         @if($isPopup)
         <button type="button" onclick="window.parent&&window.parent.closeWeeklyReportPopup(false)"
-            style="display:inline-flex;align-items:center;gap:6px;color:#6b7280;font-size:13px;background:none;border:none;cursor:pointer;padding:0;">
+            style="display:inline-flex;align-items:center;gap:8px;color:#6b7280;font-size:13px;background:none;border:none;cursor:pointer;padding:0;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             {{ __('common.close') }}
         </button>
         @else
         <a href="{{ route('projects.show', $project) }}"
-            style="display:inline-flex;align-items:center;gap:6px;color:#6b7280;font-size:13px;text-decoration:none;">
+            style="display:inline-flex;align-items:center;gap:8px;color:#6b7280;font-size:13px;text-decoration:none;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             {{ __('weekly.back_to_project') }}
         </a>
         @endif
-        <div style="display:flex;gap:10px;">
+        <div style="display:flex;gap:12px;">
             <button type="button" onclick="submitForm('draft')"
-                style="display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:1.5px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;font-size:13.5px;font-weight:600;cursor:pointer;">
+                style="display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:1.5px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;font-size:13.5px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                 {{ __('weekly.save_draft') }}
             </button>
             <button type="button" onclick="submitForm('submit')"
-                style="display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:8px;background:#059669;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;">
+                style="display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:none;border-radius:8px;background:#059669;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 {{ __('weekly.submit_report') }}
             </button>
             <button type="button" onclick="submitForm('download')"
-                style="display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;">
+                style="display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 {{ __('weekly.download_word') }}
             </button>
@@ -464,7 +464,7 @@ function renderCurrentTasks() {
 
         tr.innerHTML = `
             <td style="padding:6px 8px;">
-                <div style="display:flex;align-items:center;gap:6px;">
+                <div style="display:flex;align-items:center;gap:8px;">
                     <input type="text" value="${escHtml(task.task_name)}" placeholder="${escHtml(WR_I18N.taskNamePlaceholder)}"
                         style="border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:13px;width:100%;outline:none;"
                         oninput="updateCurrentTask('${task._id}','task_name',this.value)"

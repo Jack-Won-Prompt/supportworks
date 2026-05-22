@@ -266,7 +266,7 @@
                     <div class="fcs-code-toolbar">
                         <span class="fcs-code-filepath" x-text="selectedPath"></span>
                         <span class="fcs-code-purpose" x-text="selectedPurpose"></span>
-                        <div style="display:flex;gap:6px;flex-shrink:0;">
+                        <div style="display:flex;gap:8px;flex-shrink:0;">
                             <button class="fc-btn secondary sm" @click="copyCode()">
                                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                                 <span x-text="copied ? '복사됨!' : '복사'"></span>
@@ -275,7 +275,7 @@
                                 <button class="fc-btn ghost sm" @click="startEdit()">편집</button>
                             </template>
                             <template x-if="isEditing">
-                                <div style="display:flex;gap:5px;">
+                                <div style="display:flex;gap:4px;">
                                     <button class="fc-btn primary sm" :disabled="isSaving" @click="saveEdit()">
                                         <span x-text="isSaving ? '저장 중...' : '저장'"></span>
                                     </button>
@@ -309,7 +309,7 @@
                 베스트에포트 미리보기
                 <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:6px;">(실제 빌드 환경과 다를 수 있습니다)</span>
             </span>
-            <div style="display:flex;gap:6px;">
+            <div style="display:flex;gap:8px;">
                 <button class="fc-btn secondary sm" @click="reloadPreview()">새로고침</button>
                 <button class="fc-btn ghost sm" @click="togglePreview()" x-text="showPreview ? '숨기기' : '미리보기 열기'"></button>
             </div>

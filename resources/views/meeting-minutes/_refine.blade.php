@@ -14,22 +14,22 @@
 
 <div id="mm-refine-modal" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(15,12,30,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)mmCloseRefine()">
     <div style="background:#fff;width:560px;max-width:calc(100vw - 48px);max-height:85vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
-        <div style="padding:15px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <span style="font-size:14px;font-weight:700;color:#1e1b2e;display:inline-flex;align-items:center;gap:6px;">
+        <div style="padding:15px 20px;border-bottom:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <span style="font-size:14px;font-weight:700;color:var(--color-text-primary);display:inline-flex;align-items:center;gap:8px;">
                 <svg width="15" height="15" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                 웍스 정제 미리보기
             </span>
-            <button onclick="mmCloseRefine()" type="button" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:20px;line-height:1;padding:2px 4px;">&times;</button>
+            <button onclick="mmCloseRefine()" type="button" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:20px;line-height:1;padding:2px 4px;">&times;</button>
         </div>
         <div style="padding:16px 20px;overflow-y:auto;">
-            <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;">원문</p>
-            <div id="mm-refine-orig" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:9px;padding:11px 13px;font-size:13px;color:#374151;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow-y:auto;"></div>
-            <p style="margin:14px 0 6px;font-size:11px;font-weight:700;color:#7c3aed;letter-spacing:.04em;">정제 결과</p>
-            <div id="mm-refine-result" style="background:#faf5ff;border:1.5px solid #ddd6fe;border-radius:9px;padding:11px 13px;font-size:13px;color:#1f2937;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow-y:auto;"></div>
+            <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:var(--color-text-secondary);letter-spacing:.04em;">원문</p>
+            <div id="mm-refine-orig" style="background:#f9fafb;border:1px solid var(--color-border-default);border-radius:9px;padding:11px 13px;font-size:13px;color:var(--color-text-secondary);line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow-y:auto;"></div>
+            <p style="margin:14px 0 6px;font-size:11px;font-weight:700;color:var(--t600);letter-spacing:.04em;">정제 결과</p>
+            <div id="mm-refine-result" style="background:#faf5ff;border:1.5px solid var(--t200);border-radius:9px;padding:11px 13px;font-size:13px;color:#1f2937;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow-y:auto;"></div>
         </div>
-        <div style="padding:12px 20px;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
-            <button onclick="mmCloseRefine()" type="button" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
-            <button id="mm-refine-apply" type="button" style="padding:8px 18px;background:linear-gradient(135deg,#7c3aed,#9b8afb);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">적용</button>
+        <div style="padding:12px 20px;border-top:1px solid var(--color-bg-muted);display:flex;justify-content:flex-end;gap:8px;">
+            <button onclick="mmCloseRefine()" type="button" style="padding:8px 16px;background:var(--color-bg-muted);color:var(--color-text-secondary);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">취소</button>
+            <button id="mm-refine-apply" type="button" style="padding:8px 18px;background:linear-gradient(135deg,var(--t600),#9b8afb);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">적용</button>
         </div>
     </div>
 </div>

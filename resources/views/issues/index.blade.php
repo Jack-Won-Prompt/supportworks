@@ -94,13 +94,13 @@
             <span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:{{ $color['bg'] }};color:{{ $color['text'] }};">{{ $label }}</span>
             <span style="font-size:11px;color:#9ca3af;font-weight:500;">{{ $cols->count() }}</span>
         </div>
-        <div style="padding:8px;display:flex;flex-direction:column;gap:7px;min-height:80px;">
+        <div style="padding:8px;display:flex;flex-direction:column;gap:8px;min-height:80px;">
             @forelse($cols as $issue)
             <a href="{{ route('projects.issues.show', [$project, $issue]) }}"
                style="display:block;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;text-decoration:none;transition:box-shadow .12s;"
                onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow='none'">
                 <p style="font-size:12px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.4;">{{ Str::limit($issue->title, 50) }}</p>
-                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
                     @php $pc = \App\Models\Issue::PRIORITY_COLORS[$issue->priority] ?? ['bg'=>'#f3f4f6','text'=>'#6b7280']; @endphp
                     <span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:{{ $pc['bg'] }};color:{{ $pc['text'] }};">{{ $issue->priority_label }}</span>
                     <span style="font-size:10px;color:#9ca3af;">{{ $issue->category }}</span>
@@ -147,7 +147,7 @@
             <span style="margin-left:6px;font-size:10px;color:#6b7280;background:#f3f4f6;padding:1px 6px;border-radius:4px;">{{ __('issues.requirement_linked') }}</span>
             @endif
             @if($issue->tags)
-            <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;">
                 @foreach($issue->tags as $tag)
                 <span style="font-size:10px;color:#6b7280;background:#f3f4f6;padding:0px 5px;border-radius:3px;">{{ $tag }}</span>
                 @endforeach
@@ -179,7 +179,7 @@
         <button onclick="closeCreateModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;">✕</button>
         <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0 0 20px;">{{ __('issues.create_modal_title') }}</h3>
         <form id="create-form" onsubmit="submitCreate(event)">
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 <div>
                     <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('issues.field_title') }}</label>
                     <input name="title" required style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"

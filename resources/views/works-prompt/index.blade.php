@@ -451,22 +451,22 @@
 <div id="drawer-backdrop" class="wp-drawer-backdrop" onclick="worksPrompt.toggleDrawer()"></div>
 <aside id="history-drawer" class="wp-drawer">
     <div class="wp-drawer-h">
-        <strong style="font-size:14px;color:#1e1b2e;">이전 대화 이력</strong>
+        <strong style="font-size:14px;color:var(--color-text-primary);">이전 대화 이력</strong>
         <button onclick="worksPrompt.toggleDrawer()" style="background:none;border:none;cursor:pointer;color:#71717a;font-size:18px;">×</button>
     </div>
     <div class="wp-drawer-body">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <select id="history-mode-filter" onchange="worksPrompt.loadHistory(true)"
-                style="font-size:12px;border:1px solid #e7e4dc;border-radius:7px;padding:4px 10px;color:#3f3f46;background:#fff;cursor:pointer;outline:none;">
+                style="font-size:12px;border:1px solid #e7e4dc;border-radius:7px;padding:4px 10px;color:var(--color-text-primary);background:#fff;cursor:pointer;outline:none;">
                 <option value="all">전체</option>
                 <option value="project">프로젝트</option>
                 <option value="general">일반</option>
             </select>
         </div>
-        <div id="history-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-        <div id="history-empty" style="display:none;padding:24px;text-align:center;color:#a1a1aa;font-size:13px;">아직 이력이 없습니다.</div>
+        <div id="history-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="history-empty" style="display:none;padding:24px;text-align:center;color:var(--color-text-tertiary);font-size:13px;">아직 이력이 없습니다.</div>
         <div id="history-loading" style="display:none;padding:16px;text-align:center;">
-            <div style="display:inline-block;width:18px;height:18px;border:2px solid #ddd6fe;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;"></div>
+            <div style="display:inline-block;width:18px;height:18px;border:2px solid var(--t200);border-top-color:var(--t600);border-radius:50%;animation:spin .8s linear infinite;"></div>
         </div>
         <div id="history-more-btn" style="display:none;margin-top:10px;text-align:center;">
             <button onclick="worksPrompt.loadHistory(false)" class="wp-h-btn">더 보기</button>
@@ -478,18 +478,18 @@
 <div id="history-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.4);align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:14px;padding:22px;max-width:720px;width:92vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.18);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <h4 style="font-size:15px;font-weight:700;color:#1e1b2e;margin:0;">이력 상세</h4>
-            <button onclick="worksPrompt.closeHistoryModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:20px;line-height:1;padding:4px;">×</button>
+            <h4 style="font-size:15px;font-weight:700;color:var(--color-text-primary);margin:0;">이력 상세</h4>
+            <button onclick="worksPrompt.closeHistoryModal()" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:20px;line-height:1;padding:4px;">×</button>
         </div>
         <div style="overflow-y:auto;flex:1;">
-            <div id="modal-meta" style="font-size:12px;color:#a1a1aa;margin-bottom:12px;"></div>
-            <p style="font-size:12px;font-weight:600;color:#7c3aed;margin:0 0 6px;">질문</p>
-            <p id="modal-input" style="font-size:13px;color:#3f3f46;background:#faf8ff;border-radius:8px;padding:10px 12px;margin:0 0 14px;white-space:pre-wrap;"></p>
-            <p id="modal-prompt-label" style="font-size:12px;font-weight:600;color:#7c3aed;margin:0 0 6px;">답변</p>
-            <div id="modal-prompt" style="font-size:13px;color:#1e1b2e;background:#faf8ff;border:1px solid #ede9fe;border-radius:8px;padding:12px;white-space:pre-wrap;word-break:break-word;margin:0;max-height:380px;overflow-y:auto;line-height:1.6;"></div>
+            <div id="modal-meta" style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:12px;"></div>
+            <p style="font-size:12px;font-weight:600;color:var(--t600);margin:0 0 6px;">질문</p>
+            <p id="modal-input" style="font-size:13px;color:var(--color-text-primary);background:#faf8ff;border-radius:8px;padding:10px 12px;margin:0 0 14px;white-space:pre-wrap;"></p>
+            <p id="modal-prompt-label" style="font-size:12px;font-weight:600;color:var(--t600);margin:0 0 6px;">답변</p>
+            <div id="modal-prompt" style="font-size:13px;color:var(--color-text-primary);background:#faf8ff;border:1px solid var(--t100);border-radius:8px;padding:12px;white-space:pre-wrap;word-break:break-word;margin:0;max-height:380px;overflow-y:auto;line-height:1.6;"></div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #f0eeff;">
-            <button onclick="worksPrompt.deleteHistory()" class="wp-h-btn" style="border-color:#fecaca;color:#dc2626;background:#fff5f5;">삭제</button>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--color-border-default);">
+            <button onclick="worksPrompt.deleteHistory()" class="wp-h-btn" style="border-color:#fecaca;color:var(--color-alert-warning-500);background:#fff5f5;">삭제</button>
             <button id="modal-copy-btn" onclick="worksPrompt.copyModalPrompt()" class="wp-h-btn primary">복사</button>
         </div>
     </div>

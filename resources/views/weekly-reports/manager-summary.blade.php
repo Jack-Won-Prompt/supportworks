@@ -26,10 +26,10 @@
 <div class="space-y-5">
 
 {{-- ── 필터 + 액션 바 ── --}}
-<div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+<div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
 
     {{-- 주차 탭 --}}
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
         <a href="{{ route('projects.weekly-reports.manager-summary', ['project'=>$project,'week'=>'all']) }}"
             style="display:inline-flex;align-items:center;padding:5px 12px;border-radius:7px;font-size:12.5px;font-weight:600;text-decoration:none;transition:all .15s;
             {{ $showAll ? 'background:#4f46e5;color:#fff;' : 'border:1.5px solid #d1d5db;color:#6b7280;background:#fff;' }}"
@@ -63,7 +63,7 @@
 
     {{-- Word 다운로드 --}}
     <button type="button" onclick="openDownloadModal()"
-        style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:12.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;transition:all .15s;"
+        style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:12.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;transition:all .15s;"
         onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         {{ __('weekly.download_word_btn') }}
@@ -71,7 +71,7 @@
 
     {{-- 웍스 종합 분석 --}}
     <button type="button" onclick="openAiAnalysis()"
-        style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid #a7f3d0;border-radius:8px;font-size:12.5px;font-weight:600;color:#065f46;background:#f0fdf4;cursor:pointer;transition:all .15s;"
+        style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:1.5px solid #a7f3d0;border-radius:8px;font-size:12.5px;font-weight:600;color:#065f46;background:#f0fdf4;cursor:pointer;transition:all .15s;"
         onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
         {{ __('weekly.works_summary_analysis') }}
@@ -110,7 +110,7 @@
 <div style="background:#fff;border:1px solid #e9e7fb;border-radius:12px;overflow:hidden;">
 
     {{-- 주차 헤더 --}}
-    <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;">
         <span style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:7px;padding:3px 11px;font-size:12.5px;font-weight:700;">{{ $weekLabel }}</span>
         <span style="font-size:12px;color:#7c3aed;font-weight:500;">{{ $wStart->format('m/d') }} ~ {{ $wEnd->format('m/d') }}</span>
         <span style="font-size:11.5px;color:#9ca3af;margin-left:auto;">
@@ -130,7 +130,7 @@
     <div style="border-bottom:1px solid #f3f4f6;" id="{{ $cardId }}">
 
         {{-- 카드 헤더 (클릭 시 확장) --}}
-        <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;transition:background .12s;"
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;transition:background .12s;"
             onclick="toggleCard('{{ $cardId }}')"
             onmouseover="this.style.background='#fafaf9'" onmouseout="this.style.background=''">
 
@@ -185,7 +185,7 @@
 
                 {{-- 좌: 웍스 서머리 --}}
                 <div>
-                    <div style="font-size:12px;font-weight:700;color:#4f46e5;margin-bottom:10px;display:flex;align-items:center;gap:5px;">
+                    <div style="font-size:12px;font-weight:700;color:#4f46e5;margin-bottom:10px;display:flex;align-items:center;gap:4px;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                         {{ __('weekly.section1_title') }}
                     </div>
@@ -295,8 +295,8 @@
             @csrf
             <div style="padding:20px;">
                 <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">{{ __('weekly.download_range_hint') }}</p>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid #e9e7fb;border-radius:9px;cursor:pointer;transition:border-color .15s;"
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid #e9e7fb;border-radius:9px;cursor:pointer;transition:border-color .15s;"
                         onclick="selectDlRange(this,'current')">
                         <input type="radio" name="week" value="{{ $showAll ? 'all' : ($selectedWeek ?? 'all') }}" id="dl-current" checked style="accent-color:#6d28d9;width:15px;height:15px;">
                         <div>
@@ -306,7 +306,7 @@
                             <div style="font-size:11.5px;color:#9ca3af;margin-top:1px;">{{ __('weekly.current_view_basis', ['count' => $totalCount]) }}</div>
                         </div>
                     </label>
-                    <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid #e9e7fb;border-radius:9px;cursor:pointer;transition:border-color .15s;"
+                    <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid #e9e7fb;border-radius:9px;cursor:pointer;transition:border-color .15s;"
                         onclick="selectDlRange(this,'all')">
                         <input type="radio" name="week" value="all" id="dl-all" style="accent-color:#6d28d9;width:15px;height:15px;">
                         <div>
@@ -351,7 +351,7 @@
         </div>
 
         {{-- 로딩 --}}
-        <div id="ai-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 24px;gap:14px;flex:1;">
+        <div id="ai-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 24px;gap:12px;flex:1;">
             <div style="width:40px;height:40px;border:3px solid #d1fae5;border-top-color:#059669;border-radius:50%;animation:spin .7s linear infinite;"></div>
             <p style="font-size:13.5px;color:#6b7280;">{{ __('weekly.analyzing') }}</p>
         </div>

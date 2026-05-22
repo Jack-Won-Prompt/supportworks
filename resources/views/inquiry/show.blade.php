@@ -63,7 +63,7 @@
 @if($conversation->status !== 'closed')
 <form method="POST" action="{{ route('inquiry.close', $conversation) }}" onsubmit="return confirm('{{ __('messages.close_inquiry_confirm') }}')">
     @csrf
-    <button type="submit" style="display:flex;align-items:center;gap:5px;padding:5px 14px;background:transparent;color:#71717a;border:1px solid #d4d4d8;border-radius:9999px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='transparent';this.style.color='#71717a';this.style.borderColor='#d4d4d8'">
+    <button type="submit" style="display:flex;align-items:center;gap:4px;padding:5px 14px;background:transparent;color:#71717a;border:1px solid #d4d4d8;border-radius:9999px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='transparent';this.style.color='#71717a';this.style.borderColor='#d4d4d8'">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         {{ __('messages.close_inquiry') }}
     </button>
@@ -99,7 +99,7 @@
     </div>
 
     {{-- 메시지 스크롤 영역 --}}
-    <div id="msg-area" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 16px;">
+    <div id="msg-area" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 16px;">
         @foreach($conversation->messages as $msg)
         @php
             $isAdmin  = str_starts_with($msg->body, '[관리자');
@@ -109,7 +109,7 @@
         @endphp
         <div style="display:flex;flex-direction:column;align-items:{{ $isMe ? 'flex-end' : 'flex-start' }};">
             @if(!$isMe)
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <div style="width:26px;height:26px;border-radius:50%;background:var(--t500);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">{{ mb_substr($dispName, 0, 1) }}</div>
                 <span style="font-size:12px;font-weight:600;color:#52525b;">{{ $dispName }}</span>
                 <span style="font-size:11px;color:#a1a1aa;">{{ $msg->created_at->format('H:i') }}</span>
@@ -182,7 +182,7 @@
                     <span style="font-size:11px;color:#a1a1aa;">{{ __('messages.ctrl_enter_hint') }}</span>
                 </div>
                 <button type="submit" id="send-btn"
-                        style="display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--t500);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
+                        style="display:flex;align-items:center;gap:4px;padding:6px 14px;background:var(--t500);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                     {{ __('common.send') }}
                 </button>
@@ -380,7 +380,7 @@ async function appendMessage({ body, fileHtml = '', sender, created_at, isMe }) 
     if (!isMe) {
         const init = (sender.name || '?').charAt(0);
         wrap.innerHTML = `
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <div style="width:26px;height:26px;border-radius:50%;background:var(--t500);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${escHtml(init)}</div>
                 <span style="font-size:12px;font-weight:600;color:#52525b;">${escHtml(sender.name)}</span>
                 <span style="font-size:11px;color:#a1a1aa;">${time}</span>

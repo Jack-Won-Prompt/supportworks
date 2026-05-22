@@ -19,7 +19,7 @@
 @endpush
 
 @section('header-actions')
-<button onclick="document.getElementById('new-inquiry-modal').style.display='flex'" style="display:flex;align-items:center;gap:5px;padding:5px 14px;background:var(--t500);color:#fff;border:none;border-radius:9999px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
+<button onclick="document.getElementById('new-inquiry-modal').style.display='flex'" style="display:flex;align-items:center;gap:4px;padding:5px 14px;background:var(--t500);color:#fff;border:none;border-radius:9999px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     {{ __('messages.new_inquiry') }}
 </button>
@@ -29,7 +29,7 @@
 <div>
 
     {{-- 상태 요약 --}}
-    <div style="display:flex;gap:10px;margin-bottom:20px;">
+    <div style="display:flex;gap:12px;margin-bottom:20px;">
         <div style="flex:1;background:#fff;border:1px solid var(--t100);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;">
             <div style="width:36px;height:36px;border-radius:9px;background:var(--t100);display:flex;align-items:center;justify-content:center;">
                 <svg width="18" height="18" fill="none" stroke="var(--tText)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
@@ -69,7 +69,7 @@
         $statusColor = match($status) { 'open'=>'#d97706,#fef3c7', 'active'=>'var(--tText),var(--t100)', 'closed'=>'#6b7280,#f4f4f5', default=>'#d97706,#fef3c7' };
         [$sc, $sb] = explode(',', $statusColor);
     @endphp
-    <a href="{{ route('inquiry.show', $inq) }}" onclick="event.preventDefault();openInqView(this.href)" style="display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--t100);border-radius:10px;padding:14px 16px;margin-bottom:8px;text-decoration:none;transition:border-color .12s,box-shadow .12s;" onmouseover="this.style.borderColor='var(--t300)';this.style.boxShadow='0 2px 12px rgba(0,0,0,.06)'" onmouseout="this.style.borderColor='var(--t100)';this.style.boxShadow='none'">
+    <a href="{{ route('inquiry.show', $inq) }}" onclick="event.preventDefault();openInqView(this.href)" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--t100);border-radius:10px;padding:14px 16px;margin-bottom:8px;text-decoration:none;transition:border-color .12s,box-shadow .12s;" onmouseover="this.style.borderColor='var(--t300)';this.style.boxShadow='0 2px 12px rgba(0,0,0,.06)'" onmouseout="this.style.borderColor='var(--t100)';this.style.boxShadow='none'">
         {{-- 아이콘 --}}
         <div style="width:42px;height:42px;border-radius:10px;background:var(--t100);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="20" height="20" fill="none" stroke="var(--tText)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>

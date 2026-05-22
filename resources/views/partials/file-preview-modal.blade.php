@@ -3,7 +3,7 @@
 <div style="width:100%;max-width:560px;max-height:88vh;background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 70px rgba(0,0,0,.28);">
 
     {{-- 헤더 --}}
-    <div style="padding:16px 18px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <div style="padding:16px 18px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:12px;flex-shrink:0;">
         <svg width="16" height="16" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
         <span id="cm-filename" style="flex:1;font-size:13px;font-weight:700;color:#1f2937;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
         <span id="cm-count" style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:10px;font-weight:700;flex-shrink:0;"></span>
@@ -11,7 +11,7 @@
     </div>
 
     {{-- 의견 목록 --}}
-    <div id="cm-list" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:0;"></div>
+    <div id="cm-list" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-height:0;"></div>
 
     {{-- 새 의견 작성 폼 --}}
     <div style="padding:12px 16px;border-top:1px solid #f3f4f6;flex-shrink:0;background:#fafaf9;">
@@ -38,7 +38,7 @@
 
     {{-- 상단바 --}}
     <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
-        <button id="modal-close-btn" onclick="closePreview()" style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
+        <button id="modal-close-btn" onclick="closePreview()" style="display:inline-flex;align-items:center;gap:8px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             {{ __('viewer.close') }}
         </button>
@@ -46,21 +46,21 @@
         <span id="modal-version-bar" style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;"></span>
         <button id="modal-compare-btn" type="button" onclick="openVersionCompareMenu(event)"
                 title="{{ __('viewer.compare_versions_title') }}"
-                style="display:none;align-items:center;gap:5px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;"
+                style="display:none;align-items:center;gap:4px;color:#7dd3fc;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(125,211,252,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;"
                 onmouseover="this.style.background='rgba(125,211,252,.1)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
             {{ __('viewer.compare_versions') }}
         </button>
         <span id="modal-badge" style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;flex-shrink:0;"></span>
-        <button id="modal-upload-version" type="button" onclick="openUploadVersionModal()" style="display:inline-flex;align-items:center;gap:5px;color:#fde68a;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(253,230,138,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(253,230,138,.1)'" onmouseout="this.style.background='none'" title="{{ __('viewer.upload_revision_title') }}">
+        <button id="modal-upload-version" type="button" onclick="openUploadVersionModal()" style="display:inline-flex;align-items:center;gap:4px;color:#fde68a;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(253,230,138,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(253,230,138,.1)'" onmouseout="this.style.background='none'" title="{{ __('viewer.upload_revision_title') }}">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             {{ __('viewer.upload_revision') }}
         </button>
-        <button id="modal-version-history" type="button" onclick="openVersionHistory()" style="display:inline-flex;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'" title="{{ __('viewer.version_history') }}">
+        <button id="modal-version-history" type="button" onclick="openVersionHistory()" style="display:inline-flex;align-items:center;gap:4px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.3);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'" title="{{ __('viewer.version_history') }}">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ __('viewer.version_history') }}
         </button>
-        <a id="modal-download" href="#" style="display:inline-flex;align-items:center;gap:5px;color:#a5b4fc;font-size:12px;font-weight:600;text-decoration:none;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;flex-shrink:0;">
+        <a id="modal-download" href="#" style="display:inline-flex;align-items:center;gap:4px;color:#a5b4fc;font-size:12px;font-weight:600;text-decoration:none;padding:5px 10px;border:1px solid rgba(165,180,252,.25);border-radius:7px;flex-shrink:0;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.download') }}
         </a>
@@ -71,12 +71,12 @@
         </button>
         <button id="modal-download-comments" type="button" onclick="downloadCommentsReport()"
                 title="{{ __('viewer.download_with_comments_title') }}"
-                style="display:inline-flex;align-items:center;gap:5px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
+                style="display:inline-flex;align-items:center;gap:4px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
                 onmouseover="this.style.background='rgba(134,239,172,.1)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             {{ __('viewer.download_with_comments') }}
         </button>
-        <button id="ann-dl-btn" onclick="downloadAnnotatedPdf()" style="display:none;align-items:center;gap:5px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
+        <button id="ann-dl-btn" onclick="downloadAnnotatedPdf()" style="display:none;align-items:center;gap:4px;color:#c4b5fd;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(196,181,253,.25);border-radius:7px;flex-shrink:0;background:none;cursor:pointer;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.download_with_review') }}
         </button>
@@ -126,7 +126,7 @@
                         <img id="viewer-img" src="" alt="" style="display:block;margin:auto;">
                     </div>
                 </div>
-                <div style="position:absolute;bottom:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;background:#111827;border-top:1px solid rgba(255,255,255,.07);">
+                <div style="position:absolute;bottom:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 16px;background:#111827;border-top:1px solid rgba(255,255,255,.07);">
                     <button onclick="imgZoom(-0.25)"
                             style="padding:5px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;font-size:14px;cursor:pointer;line-height:1;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">−</button>
@@ -143,7 +143,7 @@
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">{{ __('viewer.zoom_original') }}</button>
                     <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
                     <button onclick="downloadViewerImage()" title="{{ __('viewer.download') }}"
-                            style="padding:5px 12px;background:rgba(99,102,241,.18);border:1px solid rgba(165,180,252,.35);color:#c7d2fe;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;"
+                            style="padding:5px 12px;background:rgba(99,102,241,.18);border:1px solid rgba(165,180,252,.35);color:#c7d2fe;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"
                             onmouseover="this.style.background='rgba(99,102,241,.3)'" onmouseout="this.style.background='rgba(99,102,241,.18)'">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
                         {{ __('viewer.download') }}
@@ -173,9 +173,9 @@
                         <div id="vid-markers" style="position:absolute;inset:0;pointer-events:none;"></div>
                     </div>
                     {{-- 컨트롤 버튼 --}}
-                    <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
                         <button type="button" onclick="vidSeekRelative(-10)" title="{{ __('viewer.vid_back_10') }}"
-                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 17l-5-5 5-5"/></svg>
                             {{ __('viewer.vid_back_10') }}
@@ -186,7 +186,7 @@
                             <svg id="vid-play-icon" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </button>
                         <button type="button" onclick="vidSeekRelative(10)" title="{{ __('viewer.vid_forward_10') }}"
-                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
                             {{ __('viewer.vid_forward_10') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17l5-5-5-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 17l5-5-5-5"/></svg>
@@ -195,7 +195,7 @@
                         <span id="vid-time-label" style="font-size:12px;color:#9ca3af;font-variant-numeric:tabular-nums;min-width:90px;text-align:center;">0:00 / 0:00</span>
                         <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px;"></div>
                         <button type="button" onclick="vidPauseAndAddComment()" title="{{ __('viewer.vid_add_comment_title') }}"
-                                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(196,181,253,.15);border:1px solid rgba(196,181,253,.3);color:#c4b5fd;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
+                                style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(196,181,253,.15);border:1px solid rgba(196,181,253,.3);color:#c4b5fd;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600;"
                                 onmouseover="this.style.background='rgba(196,181,253,.25)'" onmouseout="this.style.background='rgba(196,181,253,.15)'">
                             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                             {{ __('viewer.vid_add_comment') }}
@@ -211,7 +211,7 @@
                     <canvas id="pdf-canvas" style="box-shadow:0 4px 24px rgba(0,0,0,.5);display:block;margin:0 auto;"></canvas>
                 </div>
                 {{-- PDF 네비게이션 바 (하단) --}}
-                <div style="position:absolute;bottom:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;background:#111827;border-top:1px solid rgba(255,255,255,.07);">
+                <div style="position:absolute;bottom:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 16px;background:#111827;border-top:1px solid rgba(255,255,255,.07);">
                     <button id="pdf-first-btn" onclick="pdfFirstPage()" title="{{ __('viewer.pdf_first_page') }}"
                             style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#d1d5db;border-radius:6px;cursor:pointer;transition:background .15s;"
                             onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
@@ -277,7 +277,7 @@
 
             {{-- 패널 헤더 --}}
             <div style="padding:12px 16px 10px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
-                <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:6px;">
+                <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                     <svg width="15" height="15" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     {{ __('viewer.opinions') }}
                     <span id="comment-count" style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
@@ -287,12 +287,12 @@
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
-                <div style="display:flex;gap:6px;margin-top:7px;">
+                <div style="display:flex;gap:8px;margin-top:7px;">
                     <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#ede9fe;color:#6d28d9;font-weight:600;">{{ __('viewer.badge_screen_ann') }}</span>
                     <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#f0fdf4;color:#065f46;font-weight:600;">{{ __('viewer.badge_general') }}</span>
                 </div>
                 {{-- PDF 페이지 필터 바 (JS로 제어) --}}
-                <div id="cmt-filter-bar" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                <div id="cmt-filter-bar" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;">
                     <span id="cmt-filter-label" style="font-size:11px;color:#6b7280;"></span>
                     <button onclick="toggleCommentPageFilter()" id="cmt-filter-btn"
                             style="font-size:11px;color:#7c3aed;background:none;border:1px solid #ede9fe;border-radius:5px;cursor:pointer;padding:2px 8px;font-weight:600;white-space:nowrap;"
@@ -301,7 +301,7 @@
             </div>
 
             {{-- 의견 목록 --}}
-            <div id="comment-list" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
+            <div id="comment-list" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px;">
                 <div id="comment-empty" style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">{{ __('viewer.no_opinions') }}</div>
             </div>
 
@@ -317,7 +317,7 @@
                             <button type="button" onclick="adjustPage(1)" style="padding:4px 8px;background:none;border:none;cursor:pointer;color:#6b7280;font-size:14px;line-height:1;">+</button>
                         </div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
                         <span id="page-auto-badge" style="display:none;font-size:10px;background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:700;">{{ __('viewer.page_auto') }}</span>
                         <span style="font-size:10px;color:#9ca3af;">{{ __('viewer.page_blank_hint') }}</span>
                     </div>
@@ -342,20 +342,20 @@
 {{-- ============================  버전 비교 모달  ============================ --}}
 <div id="compare-modal" style="display:none;position:fixed;inset:0;z-index:10006;background:#0d0a1c;flex-direction:column;">
     {{-- 상단바 --}}
-    <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:14px;padding:0 16px;flex-shrink:0;">
-        <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;">
+    <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;">
+        <span style="font-size:13px;font-weight:700;color:#e5e7eb;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
             <svg width="15" height="15" fill="none" stroke="#7dd3fc" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="14" rx="1"/></svg>
             {{ __('viewer.compare_versions') }}
         </span>
         <span id="compare-title" style="flex:1;overflow:hidden;font-size:12px;color:#9ca3af;white-space:nowrap;text-overflow:ellipsis;"></span>
-        <label id="compare-sync-wrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
+        <label id="compare-sync-wrap" style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#c4b5fd;cursor:pointer;user-select:none;flex-shrink:0;opacity:.5;">
             <input type="checkbox" id="compare-sync-pages" onchange="onCompareSyncToggle()" disabled
                    style="width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;">
             <span id="compare-sync-label">{{ __('viewer.sync_same_page') }}</span>
         </label>
         <span id="compare-sync-note" style="display:none;font-size:11px;color:#6b7280;flex-shrink:0;"></span>
         <button onclick="closeCompare()"
-                style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;transition:background .15s;"
+                style="display:inline-flex;align-items:center;gap:8px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:1px solid rgba(196,181,253,.25);cursor:pointer;padding:6px 12px;border-radius:8px;flex-shrink:0;transition:background .15s;"
                 onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             {{ __('common.close') }}
@@ -380,23 +380,23 @@
 
     {{-- 상단바 --}}
     <div style="height:52px;background:rgba(20,17,35,.98);border-bottom:1px solid rgba(196,181,253,.12);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;border-radius:16px 16px 0 0;">
-        <button onclick="closeUrlViewer()" style="display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
+        <button onclick="closeUrlViewer()" style="display:inline-flex;align-items:center;gap:8px;color:#c4b5fd;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(196,181,253,.1)'" onmouseout="this.style.background='none'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             {{ __('viewer.close') }}
         </button>
         <span id="url-modal-fname" style="flex:1;overflow:hidden;font-size:13px;font-weight:600;color:#e5e7eb;white-space:nowrap;text-overflow:ellipsis;"></span>
         <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;background:#312e81;color:#a5b4fc;flex-shrink:0;">URL</span>
-        <button onclick="urlNewTab()" style="display:inline-flex;align-items:center;gap:5px;color:#a5b4fc;font-size:12px;font-weight:600;background:none;border:1px solid rgba(165,180,252,.25);padding:5px 10px;border-radius:7px;cursor:pointer;transition:background .15s;flex-shrink:0;" onmouseover="this.style.background='rgba(165,180,252,.1)'" onmouseout="this.style.background='none'">
+        <button onclick="urlNewTab()" style="display:inline-flex;align-items:center;gap:4px;color:#a5b4fc;font-size:12px;font-weight:600;background:none;border:1px solid rgba(165,180,252,.25);padding:5px 10px;border-radius:7px;cursor:pointer;transition:background .15s;flex-shrink:0;" onmouseover="this.style.background='rgba(165,180,252,.1)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             {{ __('viewer.open_new_tab') }}
         </button>
-        <button onclick="urlPrintPdf()" style="display:inline-flex;align-items:center;gap:5px;color:#fff;font-size:12px;font-weight:600;background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;padding:5px 12px;border-radius:7px;cursor:pointer;transition:opacity .15s;flex-shrink:0;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <button onclick="urlPrintPdf()" style="display:inline-flex;align-items:center;gap:4px;color:#fff;font-size:12px;font-weight:600;background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;padding:5px 12px;border-radius:7px;cursor:pointer;transition:opacity .15s;flex-shrink:0;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             {{ __('viewer.save_pdf') }}
         </button>
         <button type="button" onclick="downloadUrlCommentsReport()"
                 title="{{ __('viewer.url_download_comments_title') }}"
-                style="display:inline-flex;align-items:center;gap:5px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
+                style="display:inline-flex;align-items:center;gap:4px;color:#86efac;font-size:12px;font-weight:600;background:none;border:1px solid rgba(134,239,172,.3);border-radius:7px;padding:5px 10px;flex-shrink:0;cursor:pointer;transition:background .15s;"
                 onmouseover="this.style.background='rgba(134,239,172,.1)'" onmouseout="this.style.background='none'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             {{ __('viewer.download_with_review') }}
@@ -422,11 +422,11 @@
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
                     onload="window.onUrlModalLoad && onUrlModalLoad()">
             </iframe>
-            <div id="url-modal-block" style="display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;background:#1e1b2e;gap:18px;padding:48px;text-align:center;z-index:3;">
+            <div id="url-modal-block" style="display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;background:#1e1b2e;gap:20px;padding:48px;text-align:center;z-index:3;">
                 <div style="font-size:52px;">🔒</div>
                 <div style="font-size:16px;font-weight:700;color:#e9d5ff;">{{ __('viewer.embed_blocked_title') }}</div>
                 <div style="font-size:13px;color:#a78bfa;max-width:420px;line-height:1.8;">{!! __('viewer.embed_blocked_line1') !!}<br>{{ __('viewer.embed_blocked_line2') }}</div>
-                <a id="url-modal-block-link" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:7px;padding:11px 28px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                <a id="url-modal-block-link" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:11px 28px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     {{ __('viewer.open_new_tab_btn') }}
                 </a>
@@ -439,13 +439,13 @@
         {{-- 의견 패널 --}}
         <div id="url-comment-panel" style="width:340px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
             <div style="padding:12px 16px 10px;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
-                <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:6px;">
+                <div style="font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                     <svg width="15" height="15" fill="none" stroke="#6d28d9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     {{ __('viewer.opinions') }}
                     <span id="url-cmt-count" style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
                 </div>
             </div>
-            <div id="url-cmt-list" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
+            <div id="url-cmt-list" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px;">
                 <div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0;">{{ __('viewer.no_opinions') }}</div>
             </div>
             <div style="padding:12px 14px;border-top:1px solid #f3f4f6;flex-shrink:0;background:#fafaf9;">
@@ -481,7 +481,7 @@
 {{-- ============================  의견 → 논의사항 변환 다이얼로그  ============================ --}}
 <div id="cnv-confirm-modal" onclick="if(event.target===this)cnvCloseConfirm()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:480px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
-        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 {{ __('viewer.register_as_discussion') }}
@@ -504,7 +504,7 @@
 
 <div id="cnv-detail-modal" onclick="if(event.target===this)cnvCloseDetail()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:760px;max-width:calc(100vw - 48px);max-height:85vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
-        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:12px;">
             <h3 id="cnv-detail-title" style="margin:0;font-size:15px;font-weight:700;color:#1f2937;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ __('viewer.discussion') }}</h3>
             <span id="cnv-detail-status" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;flex-shrink:0;"></span>
             <button onclick="cnvCloseDetail()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;flex-shrink:0;">×</button>
@@ -519,7 +519,7 @@
         </div>
         <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;">
             <button onclick="cnvCloseDetail()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.close') }}</button>
-            <a id="cnv-detail-link" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+            <a id="cnv-detail-link" style="padding:7px 18px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                 {{ __('viewer.open_in_discussions') }}
                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </a>
@@ -533,7 +533,7 @@
 {{-- ====== 수정본 업로드 다이얼로그 ====== --}}
 <div id="upv-modal" onclick="if(event.target===this)closeUploadVersionModal()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:500px;max-width:calc(100vw - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
-        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                 {{ __('viewer.upload_revision_heading') }}
@@ -568,7 +568,7 @@
 {{-- ====== 버전 이력 다이얼로그 ====== --}}
 <div id="vh-modal" onclick="if(event.target===this)closeVersionHistory()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#fff;width:560px;max-width:calc(100vw - 48px);max-height:80vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
-        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;">{{ __('viewer.version_history') }}</h3>
             <button type="button" onclick="closeVersionHistory()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
         </div>
@@ -1684,7 +1684,7 @@ function openVersionCompareMenu(ev) {
     pop.style.cssText = 'position:fixed;z-index:10010;background:#241f3d;border:1px solid rgba(196,181,253,.25);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.55);padding:10px;width:288px;';
     pop.innerHTML = `
         <div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">${FM_STR.cmp_pick_versions} <span style="font-weight:500;color:#8b85a8;">${FM_STR.cmp_pick_hint}</span></div>
-        <div style="display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;">${rows}</div>
+        <div style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;">${rows}</div>
         <button id="vcmp-go" type="button" onclick="confirmVersionCompare()"
             style="margin-top:9px;width:100%;padding:8px;border:none;border-radius:7px;font-size:12px;font-weight:700;"></button>`;
     document.body.appendChild(pop);
@@ -2061,14 +2061,14 @@ function convertBtnHtml(c) {
     if (!c || c.parent_id) return '';
     if (c.discussion_id) {
         return `<button onclick="cnvOpenDetail(${c.discussion_id})" title="${FM_STR.view_discussion}"
-                    style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#15803d;background:#dcfce7;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                    style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#15803d;background:#dcfce7;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                     onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
                     ${FM_STR.discussion}
                 </button>`;
     }
     return `<button onclick="convertCommentToDiscussion(${c.id})" title="${FM_STR.register_discussion}"
-                style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#5b21b6;background:#ede9fe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#5b21b6;background:#ede9fe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                 onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 ${FM_STR.discussion}
@@ -2215,14 +2215,14 @@ function pdaBtnHtml(c) {
     if (!c || c.parent_id) return '';
     if (c.plan_do_act_id) {
         return `<button onclick="pdaOpenFromComment(${c.id})" title="${PDA_FM.view_edit}"
-                    style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#b45309;background:#fef3c7;border:1px solid #fde68a;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                    style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#b45309;background:#fef3c7;border:1px solid #fde68a;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                     onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></svg>
                     ${PDA_FM.nav}
                 </button>`;
     }
     return `<button onclick="pdaOpenFromComment(${c.id})" title="${PDA_FM.register}"
-                style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#7c3aed;background:#f3eefe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
+                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#7c3aed;background:#f3eefe;border:1px solid #ddd6fe;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:600;"
                 onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#f3eefe'">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 ${PDA_FM.nav}
@@ -2299,7 +2299,7 @@ function commentHtml(c, label) {
 
     const repliesHtml = (c.replies || []).map(r => `
         <div class="reply-card" id="panel-reply-${r.id}">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <div style="flex:1;min-width:0;">
                     <span style="font-size:11px;font-weight:700;color:#6d28d9;">↳ ${escHtml(r.user_name)}</span>
                     <span style="font-size:10px;color:#9ca3af;margin-left:5px;">${r.created_at}</span>
@@ -2311,22 +2311,22 @@ function commentHtml(c, label) {
     `).join('');
 
     const vidBadge = (c.video_time != null)
-        ? `<button onclick="vidSeekTo(${c.video_time})" class="page-badge" style="background:#ddd6fe;color:#5b21b6;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;" title="${FM_STR.vid_seek_to.replace(':time', vidFmtTime(c.video_time))}">
+        ? `<button onclick="vidSeekTo(${c.video_time})" class="page-badge" style="background:#ddd6fe;color:#5b21b6;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" title="${FM_STR.vid_seek_to.replace(':time', vidFmtTime(c.video_time))}">
                 <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor"><path d="M4 3v10l8-5z"/></svg>
                 ${vidFmtTime(c.video_time)}
             </button>`
         : '';
 
     return `<div class="comment-card" id="cmt-${c.id}">
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px;">
             <span class="page-badge" style="background:#f0fdf4;color:#065f46;">${FM_STR.badge_general}</span>
             ${c.page ? `<button type="button" onclick="event.stopPropagation();gotoPage(${c.page})" class="page-badge" title="${escHtml(label)} ${c.page}${FM_STR.goto_page_suffix}" style="background:#ede9fe;color:#6d28d9;border:none;cursor:pointer;">${escHtml(label)} ${c.page}</button>` : ''}
             ${vidBadge}
         </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
             <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
-            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">
                 ${convertBtnHtml(c)}
                 ${pdaBtnHtml(c)}
                 ${c.can_delete ? `<button onclick="deleteComment(${c.id}, this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
@@ -2341,7 +2341,7 @@ function commentHtml(c, label) {
         <div class="reply-form" id="panel-reply-form-${c.id}" style="display:none;">
             <textarea class="reply-textarea" id="panel-reply-ta-${c.id}" rows="2" placeholder="${FM_STR.reply_placeholder}"
                       onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();submitPanelReply(${c.id});}"></textarea>
-            <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:6px;">
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px;">
                 <button onclick="togglePanelReplyForm(${c.id})" style="padding:5px 12px;background:#f3f4f6;color:#374151;border:none;border-radius:5px;font-size:11px;cursor:pointer;">${FM_STR.cancel}</button>
                 <button onclick="submitPanelReply(${c.id})" style="padding:5px 14px;background:#7c3aed;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">${FM_STR.register}</button>
             </div>
@@ -2354,8 +2354,8 @@ function annCommentHtml(ann, label) {
     const text = ann.data?.text || '';
     return `<div class="comment-card" id="ann-cmt-${ann.id}" onclick="selectAnnotation(${ann.id})"
             style="cursor:pointer;border-left:3px solid #8b5cf6;">
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;">
-            <span class="page-badge" style="background:#ede9fe;color:#6d28d9;display:inline-flex;align-items:center;gap:3px;">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px;">
+            <span class="page-badge" style="background:#ede9fe;color:#6d28d9;display:inline-flex;align-items:center;gap:4px;">
                 <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 8h6M8 5v6" stroke-linecap="round"/></svg>
                 ${FM_STR.badge_screen_ann}
             </span>
@@ -2604,10 +2604,10 @@ function cmCommentHtml(c) {
 
     return `<div class="comment-card" id="cm-cmt-${c.id}">
         ${c.page ? `<div class="page-badge" style="background:#ede9fe;color:#6d28d9;margin-bottom:5px;">${FM_STR.page_badge.replace(':page', c.page)}</div>` : ''}
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
             <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
-            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">
                 ${convertBtnHtml(c)}
                 ${pdaBtnHtml(c)}
                 ${c.can_delete ? `<button class="cm-del-btn" data-cid="${c.id}" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
@@ -2621,7 +2621,7 @@ function cmCommentHtml(c) {
         ${repliesHtml ? `<div class="reply-thread">${repliesHtml}</div>` : '<div class="reply-thread" id="cm-replies-' + c.id + '" style="display:none;"></div>'}
         <div class="reply-form" id="cm-reply-form-${c.id}" style="display:none;">
             <textarea class="reply-textarea cm-reply-textarea" data-pid="${c.id}" rows="2" placeholder="${FM_STR.reply_placeholder}"></textarea>
-            <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:6px;">
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px;">
                 <button onclick="document.getElementById('cm-reply-form-${c.id}').style.display='none'" style="padding:5px 12px;background:#f3f4f6;color:#374151;border:none;border-radius:5px;font-size:11px;cursor:pointer;">${FM_STR.cancel}</button>
                 <button class="cm-reply-submit" data-pid="${c.id}" style="padding:5px 14px;background:#7c3aed;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">${FM_STR.register}</button>
             </div>
@@ -3453,7 +3453,7 @@ function urlRenderCmts(list) {
 function urlCmtHtml(c) {
     const rHtml = (c.replies || []).map(r => `
         <div class="reply-card">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <div style="flex:1;min-width:0;">
                     <span style="font-size:11px;font-weight:700;color:#6d28d9;">↳ ${escHtml(r.user_name)}</span>
                     <span style="font-size:10px;color:#9ca3af;margin-left:5px;">${r.created_at}</span>
@@ -3464,10 +3464,10 @@ function urlCmtHtml(c) {
         </div>`).join('');
 
     return `<div class="comment-card">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:700;color:#1f2937;">${escHtml(c.user_name)}</span>
             <span style="font-size:11px;color:#9ca3af;">${c.created_at}</span>
-            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">
                 ${convertBtnHtml(c)}
                 ${pdaBtnHtml(c)}
                 ${c.can_delete ? `<button onclick="urlDelCmt(${c.id},null,this)" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:16px;line-height:1;padding:0 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">×</button>` : ''}
@@ -3482,7 +3482,7 @@ function urlCmtHtml(c) {
         <div class="reply-form" id="url-reply-form-${c.id}" style="display:none;">
             <textarea class="reply-textarea" id="url-reply-ta-${c.id}" rows="2" placeholder="${FM_STR.reply_url_placeholder}"
                       onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();urlSubmitReply(${c.id});}"></textarea>
-            <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:6px;">
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px;">
                 <button onclick="urlToggleReply(${c.id})" style="padding:5px 12px;background:#f3f4f6;color:#374151;border:none;border-radius:5px;font-size:11px;cursor:pointer;">${FM_STR.cancel}</button>
                 <button onclick="urlSubmitReply(${c.id})" style="padding:5px 14px;background:#7c3aed;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">${FM_STR.register}</button>
             </div>
@@ -3756,7 +3756,7 @@ function showDeleteConfirmPopover(targetBtn, message, onConfirm) {
             <svg width="16" height="16" fill="none" stroke="#dc2626" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             <div style="font-size:13px;color:#374151;line-height:1.5;">${message || FM_STR.confirm_delete_short}</div>
         </div>
-        <div style="display:flex;gap:6px;justify-content:flex-end;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button type="button" class="sw-del-cancel" style="padding:5px 12px;background:#f3f4f6;color:#374151;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">${FM_STR.del_cancel}</button>
             <button type="button" class="sw-del-confirm" style="padding:5px 14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">${FM_STR.del_confirm}</button>
         </div>`;

@@ -28,7 +28,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 
     {{-- 헤더 --}}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
             <div style="width:36px;height:36px;background:#ede9fe;border-radius:10px;display:flex;align-items:center;justify-content:center;">
                 <svg width="18" height="18" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
             </div>
@@ -45,7 +45,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                 {{-- Word 다운로드 (언어 선택 드롭다운) --}}
                 <div style="position:relative;" id="word-dl-wrap">
                     <button onclick="toggleWordLangMenu(event)"
-                        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#1d4ed8;color:#fff;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;"
+                        style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#1d4ed8;color:#fff;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;"
                         onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1d4ed8'">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         {{ __('urs.download_word') }}
@@ -78,7 +78,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
                     </div>
                 </div>
                 <a href="{{ route('projects.urs.download.pdf', [$project, $urs]) }}"
-                   style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#dc2626;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;"
+                   style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#dc2626;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;"
                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     {{ __('urs.download_pdf') }}
@@ -128,7 +128,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 
         {{-- 로딩 --}}
         <div id="qa-loading" style="display:none;text-align:center;padding:24px 0;">
-            <div style="display:inline-flex;align-items:center;gap:10px;color:#7c3aed;font-size:13px;">
+            <div style="display:inline-flex;align-items:center;gap:12px;color:#7c3aed;font-size:13px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
                 </svg>
@@ -138,10 +138,10 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 
         {{-- Q&A 질문 패널 --}}
         <div id="qa-panel" style="{{ ($urs->status === 'qa_in_progress') ? '' : 'display:none;' }}">
-            <div id="qa-history" style="max-height:280px;overflow-y:auto;margin-bottom:16px;display:flex;flex-direction:column;gap:10px;"></div>
+            <div id="qa-history" style="max-height:280px;overflow-y:auto;margin-bottom:16px;display:flex;flex-direction:column;gap:12px;"></div>
 
             <div id="current-question-wrap" style="background:#f8f7ff;border:1px solid #e8e3ff;border-radius:12px;padding:18px;">
-                <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
                     <div style="width:24px;height:24px;background:var(--t600);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
                         <span id="qa-q-num" style="font-size:11px;font-weight:700;color:#fff;">1</span>
                     </div>
@@ -196,7 +196,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
 
         {{-- 생성 중 --}}
         <div id="generating-panel" style="display:none;text-align:center;padding:24px 0;">
-            <div style="display:inline-flex;align-items:center;gap:10px;color:#7c3aed;font-size:13px;">
+            <div style="display:inline-flex;align-items:center;gap:12px;color:#7c3aed;font-size:13px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
                 </svg>
@@ -226,7 +226,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
             {{-- 보기 모드 토글 --}}
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f8f7ff;background:#faf9ff;">
                 <span style="font-size:12px;color:#6b7280;">{{ __('urs.view_mode') }}</span>
-                <div style="display:flex;background:#f0eeff;border-radius:8px;padding:2px;gap:2px;">
+                <div style="display:flex;background:#f0eeff;border-radius:8px;padding:2px;gap:4px;">
                     <button id="view-mode-full-btn" onclick="setViewMode('full')"
                             style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--t600);color:#fff;transition:all .15s;">
                         {{ __('urs.view_mode_full') }}
@@ -260,7 +260,7 @@ $st = $statusMap[$urs->status] ?? $statusMap['draft'];
             {{-- 편집 모드 토글 --}}
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f8f7ff;background:#faf9ff;">
                 <span style="font-size:12px;color:#6b7280;">{{ __('urs.edit_mode') }}</span>
-                <div style="display:flex;background:#f0eeff;border-radius:8px;padding:2px;gap:2px;">
+                <div style="display:flex;background:#f0eeff;border-radius:8px;padding:2px;gap:4px;">
                     <button id="edit-mode-full-btn" onclick="setEditMode('full')"
                             style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--t600);color:#fff;transition:all .15s;">
                         {{ __('urs.edit_mode_full') }}
@@ -736,13 +736,13 @@ async function showDownloadButtons() {
     if (!container || container.querySelector('a')) return;
     container.innerHTML = `
         <a href="${WORD_URL}"
-           style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#1d4ed8;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;"
+           style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#1d4ed8;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;"
            onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1d4ed8'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Word
         </a>
         <a href="${PDF_URL}"
-           style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#dc2626;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;"
+           style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#dc2626;color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;"
            onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             PDF

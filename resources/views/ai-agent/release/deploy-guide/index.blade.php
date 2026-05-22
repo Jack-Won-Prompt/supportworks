@@ -102,7 +102,7 @@
 
             {{-- Tab bar --}}
             @if($artifact)
-            <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
                 <button class="dg-btn secondary" :class="tab==='preview' ? 'primary':'secondary'" @click="tab='preview'" style="padding:7px 16px;">미리보기</button>
                 <button class="dg-btn secondary" :class="tab==='edit'    ? 'primary':'secondary'" @click="tab='edit'"    style="padding:7px 16px;">편집</button>
             </div>

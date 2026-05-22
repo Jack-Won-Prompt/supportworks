@@ -4,7 +4,7 @@
 
 @section('header-breadcrumb')
     <span style="color:var(--t300);font-size:13px;">›</span>
-    <a href="{{ route('community.index') }}" style="font-size:13px;color:#a1a1aa;text-decoration:none;" onmouseover="this.style.color='var(--tText)'" onmouseout="this.style.color='#a1a1aa'">{{ __('messages.community') }}</a>
+    <a href="{{ route('community.index') }}" style="font-size:13px;color:var(--color-text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--tText)'" onmouseout="this.style.color='#a1a1aa'">{{ __('messages.community') }}</a>
 @endsection
 
 @section('content')

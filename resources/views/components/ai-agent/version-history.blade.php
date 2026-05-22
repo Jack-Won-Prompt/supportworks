@@ -232,7 +232,7 @@ $cfg = json_encode([
                         </div>
                     </template>
                     <template x-if="mode === 'list'">
-                        <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
                             <span style="font-size:11.5px;color:#94a3b8;" x-text="'총 ' + versions.length + '개 버전'"></span>
                         </div>
                     </template>

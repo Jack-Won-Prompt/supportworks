@@ -215,4 +215,17 @@ return [
     'original_text'             => '원문',
     'translate_fail'            => '번역에 실패했습니다.',
     'translate_req_error'       => '번역 요청 중 오류가 발생했습니다.',
+
+    // ── 워크스페이스 팝업 (상단바)
+    'ws_select_project'         => '프로젝트 선택',
+    'ws_select_menu'            => '메뉴 선택',
+    'ws_open_popup'             => '팝업 열기',
+    'ws_minimize'               => '최소화',
+    'ws_maximize'               => '최대화',
+    'ws_restore'                => '원래 크기',
+    'ws_close_popup'            => '팝업 닫기',
+    'ws_popup_blocked'          => '팝업이 차단되었습니다. 브라우저 설정에서 이 사이트의 팝업을 허용해 주세요.',
+    'ws_choose_project_first'   => '먼저 프로젝트를 선택하세요.',
+    'ws_choose_menu_first'      => '먼저 메뉴를 선택하세요.',
+    'ws_no_projects'            => '소속된 프로젝트가 없습니다.',
 ];

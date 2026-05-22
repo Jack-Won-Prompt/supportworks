@@ -12,7 +12,7 @@
 <div style="display:flex;gap:20px;align-items:flex-start;">
     @include('ai-agent.agent-sessions.partials.session-nav', ['active' => 'outputs'])
 
-    <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
         <div class="ags-card">
             <div class="ags-section-title">기존 피드백 ({{ $feedbacks->count() }})</div>
             @if($feedbacks->isEmpty())

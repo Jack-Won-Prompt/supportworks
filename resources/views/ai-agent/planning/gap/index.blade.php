@@ -235,7 +235,7 @@
         @endif
     </div>
 
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
         {{-- AS-IS --}}
         <div class="gap-prereq {{ $prereqs['as_is_ready'] ? 'ready' : 'missing' }}">
             <span class="gap-prereq-icon">{{ $prereqs['as_is_ready'] ? '✅' : '❌' }}</span>
@@ -267,7 +267,7 @@
     </div>
 
     @if($prereqs['as_is_ready'] && $prereqs['to_be_ready'])
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
         <button @click="triggerAnalyze()" class="gap-btn primary" :disabled="analyzing">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             <span x-text="analyzing ? '분석 중...' : (hasGaps ? '재분석' : 'Gap 분석 시작')"></span>
@@ -320,7 +320,7 @@
                 편집
             </button>
             <template x-if="editSummaryMode">
-                <div style="display:flex;gap:6px;">
+                <div style="display:flex;gap:8px;">
                     <button @click="saveSummary()" :disabled="savingSummary" class="gap-btn primary sm">
                         <span x-text="savingSummary ? '저장 중...' : '저장'"></span>
                     </button>
@@ -405,7 +405,7 @@
                                             <div x-show="gap.recommended_actions?.length > 0">
                                                 <div class="gap-detail-label">권장 조치</div>
                                                 <template x-for="(action, ai) in (gap.recommended_actions ?? [])" :key="ai">
-                                                    <div class="gap-detail-text" style="display:flex;gap:6px;margin-bottom:3px;">
+                                                    <div class="gap-detail-text" style="display:flex;gap:8px;margin-bottom:3px;">
                                                         <span style="color:var(--t600,#7c3aed);font-weight:700;" x-text="(ai+1) + '.'"></span>
                                                         <span x-text="action"></span>
                                                     </div>
@@ -584,7 +584,7 @@
             </div>
 
             {{-- Risk list --}}
-            <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 <template x-for="(risk, ri) in risks" :key="ri">
                     <div style="border:1.5px solid #ede8ff;border-radius:10px;padding:14px 16px;background:#fdfcff;">
                         <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px;">

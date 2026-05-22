@@ -116,7 +116,7 @@
         @if($doc->pending_content)
         <button class="tab-btn" onclick="switchTab('ai')" style="color:#d97706;">{{ __('work.planning_tab_ai') }}</button>
         @endif
-        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
             <button onclick="openWriteModal()"
                 style="display:flex;align-items:center;gap:4px;padding:4px 11px;font-size:12px;font-weight:600;color:#4f46e5;border:1px solid #c7d2fe;border-radius:6px;background:#eef2ff;cursor:pointer;white-space:nowrap;"
                 onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
@@ -162,9 +162,9 @@
     <div id="tab-edit" class="tab-panel" style="flex-direction:column;">
         <div style="padding:8px 16px;background:#f8fafc;border-bottom:1px solid #f4f4f5;display:flex;align-items:center;justify-content:space-between;gap:8px;">
             <span style="font-size:12px;color:#9ca3af;">{{ __('work.planning_md_hint') }}</span>
-            <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
                 <button id="btn-ai-cleanup" onclick="runAiCleanup()"
-                    style="display:flex;align-items:center;gap:5px;padding:5px 12px;font-size:12px;font-weight:600;color:#7c3aed;background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:7px;cursor:pointer;transition:all .12s;"
+                    style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:600;color:#7c3aed;background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:7px;cursor:pointer;transition:all .12s;"
                     onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     {{ __('work.planning_ai_cleanup') }}
@@ -183,7 +183,7 @@
     <div id="tab-aiwrite" class="tab-panel" style="flex-direction:column;overflow-y:auto;">
         {{-- 헤더 --}}
         <div style="padding:14px 20px;background:#f5f3ff;border-bottom:1px solid #ede9fe;">
-            <div style="font-size:13px;font-weight:700;color:#5b21b6;margin-bottom:2px;display:flex;align-items:center;gap:6px;">
+            <div style="font-size:13px;font-weight:700;color:#5b21b6;margin-bottom:2px;display:flex;align-items:center;gap:8px;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                 {{ __('planning.ai_write_heading') }}
             </div>
@@ -211,7 +211,7 @@
 
             <div style="display:flex;align-items:center;justify-content:flex-end;margin-top:10px;">
                 <button id="btn-ai-write" onclick="runAiWrite()"
-                    style="display:flex;align-items:center;gap:6px;padding:8px 20px;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:9px;cursor:pointer;">
+                    style="display:flex;align-items:center;gap:8px;padding:8px 20px;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:9px;cursor:pointer;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     {{ __('work.planning_ai_write_start') }}
                 </button>
@@ -220,7 +220,7 @@
 
         {{-- 로딩 --}}
         <div id="ai-write-loading" style="display:none;padding:40px 20px;text-align:center;">
-            <div style="display:inline-flex;align-items:center;gap:10px;padding:14px 24px;background:#f5f3ff;border-radius:12px;border:1px solid #ddd6fe;">
+            <div style="display:inline-flex;align-items:center;gap:12px;padding:14px 24px;background:#f5f3ff;border-radius:12px;border:1px solid #ddd6fe;">
                 <svg style="animation:spin 1s linear infinite;flex-shrink:0;" width="18" height="18" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span style="font-size:13px;font-weight:600;color:#5b21b6;">{{ __('work.planning_ai_writing') }}</span>
             </div>
@@ -228,7 +228,7 @@
 
         {{-- 결과 영역 --}}
         <div id="ai-write-result" style="display:none;flex:1;flex-direction:column;">
-            <div style="padding:12px 20px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="padding:12px 20px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;display:flex;align-items:center;justify-content:space-between;gap:12px;">
                 <div>
                     <span style="font-size:13px;font-weight:700;color:#065f46;">{{ __('work.planning_ai_done') }}</span>
                     <span id="ai-write-summary" style="font-size:12px;color:#047857;margin-left:8px;"></span>
@@ -249,7 +249,7 @@
     @if($doc->pending_content)
     {{-- 웍스 통합 결과 탭 --}}
     <div id="tab-ai" class="tab-panel" style="flex-direction:column;">
-        <div style="padding:12px 16px;background:#f5f3ff;border-bottom:1px solid #e0e7ff;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="padding:12px 16px;background:#f5f3ff;border-bottom:1px solid #e0e7ff;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <span style="font-size:13px;font-weight:600;color:#7c3aed;">{{ __('work.planning_ai_integrate_tab_label') }}</span>
             <div style="display:flex;gap:8px;flex-shrink:0;">
                 <button onclick="approveAi()" style="padding:6px 16px;font-size:13px;font-weight:600;color:#fff;background:#059669;border:none;border-radius:8px;cursor:pointer;">{{ __('work.planning_approve') }}</button>
@@ -267,7 +267,7 @@
     @if($doc->pending_content)
     {{-- 웍스 결과 요약 --}}
     <div id="ai-pending-banner">
-        <div style="font-size:13px;font-weight:700;color:#5b21b6;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        <div style="font-size:13px;font-weight:700;color:#5b21b6;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
             {{ __('work.planning_ai_pending') }}
         </div>
@@ -292,7 +292,7 @@
         <div style="padding:14px 16px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;">{{ __('work.planning_content_add') }}</div>
 
         {{-- 입력 유형 선택 --}}
-        <div style="padding:12px 16px 0;display:flex;gap:6px;flex-wrap:wrap;">
+        <div style="padding:12px 16px 0;display:flex;gap:8px;flex-wrap:wrap;">
             <button class="input-type-btn active" onclick="setInputType('text', this)">{{ __('work.planning_input_text') }}</button>
             <button class="input-type-btn" onclick="setInputType('memo', this)">{{ __('work.planning_input_memo') }}</button>
             <button class="input-type-btn" onclick="setInputType('requirement', this)">{{ __('work.planning_input_requirement') }}</button>
@@ -304,7 +304,7 @@
                 style="width:100%;padding:9px 12px;border:1px solid #e4e4e7;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;"
                 onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
             <div id="file-input-wrap" style="display:none;margin-top:8px;">
-                <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px dashed #d1d5db;border-radius:8px;cursor:pointer;background:#fafafa;transition:border-color .15s;"
+                <label style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px dashed #d1d5db;border-radius:8px;cursor:pointer;background:#fafafa;transition:border-color .15s;"
                     onmouseover="this.style.borderColor='var(--t400)'" onmouseout="this.style.borderColor='#d1d5db'">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;color:#9ca3af;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                     <span id="file-label-text" style="font-size:13px;color:#6b7280;">{{ __('work.planning_file_select') }}</span>
@@ -324,7 +324,7 @@
         <div style="border-top:1px solid #f4f4f5;">
             <div style="padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
                 <span style="font-size:12px;font-weight:600;color:#7c3aed;">{{ __('work.planning_pending_list') }}</span>
-                <button onclick="runAiIntegrate()" id="btn-ai" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#fff;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:8px;cursor:pointer;">
+                <button onclick="runAiIntegrate()" id="btn-ai" style="display:flex;align-items:center;gap:4px;padding:6px 14px;font-size:12px;font-weight:600;color:#fff;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:8px;cursor:pointer;">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     {{ __('work.planning_ai_integrate') }}
                 </button>
@@ -361,7 +361,7 @@
 
         {{-- 헤더 --}}
         <div style="padding:10px 14px;border-bottom:1px solid #f4f4f5;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
                 <svg width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                 <span style="font-size:13px;font-weight:700;color:#18181b;">{{ __('planning.feature_suggest') }}</span>
                 <span id="fs-count-badge" style="font-size:11px;font-weight:600;padding:1px 6px;border-radius:10px;background:#ede9fe;color:#7c3aed;">{{ $fsActiveCount }}/5</span>
@@ -383,7 +383,7 @@
         </div>
 
         {{-- 미니 탭바 --}}
-        <div style="display:flex;border-bottom:1px solid #f4f4f5;padding:0 10px;gap:2px;">
+        <div style="display:flex;border-bottom:1px solid #f4f4f5;padding:0 10px;gap:4px;">
             <button id="fs-tab-ai" onclick="switchFsTab('ai')"
                 style="padding:8px 10px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #7c3aed;color:#7c3aed;display:flex;align-items:center;gap:4px;">
                 {{ __('planning.fs_tab_ai') }}
@@ -400,9 +400,9 @@
         <div id="fs-panel-ai">
             @forelse($fsActive as $fs)
             <div class="fs-item fs-ai-item" id="fs-{{ $fs->id }}" style="padding:12px 14px;border-bottom:1px solid #f4f4f5;">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px;">
                     <span class="fs-title" style="font-size:13px;font-weight:700;color:#1e1b4b;flex:1;">{{ $fs->title }}</span>
-                    <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
                         <button onclick="deleteSuggestion({{ $fs->id }})" style="background:none;border:none;cursor:pointer;color:#d1d5db;padding:1px;" title="{{ __('planning.delete') }}">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -427,8 +427,8 @@
         <div id="fs-panel-applied" style="display:none;">
             @forelse($fsApplied as $fs)
             <div class="fs-item fs-applied-item" id="fs-ap-{{ $fs->id }}" data-heading="{{ $fs->title }}" style="padding:12px 14px;border-bottom:1px solid #f4f4f5;background:#f0fdf4;">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;">
-                    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
                         <span style="font-size:13px;font-weight:700;color:#065f46;flex:1;">{{ $fs->title }}</span>
                         <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 6px;">{{ __('planning.applied_badge') }}</span>
                     </div>
@@ -464,7 +464,7 @@
         </div>
 
         {{-- 미니 탭바 --}}
-        <div style="display:flex;border-bottom:1px solid #f4f4f5;padding:0 10px;gap:2px;">
+        <div style="display:flex;border-bottom:1px solid #f4f4f5;padding:0 10px;gap:4px;">
             <button id="pa-tab-active" onclick="switchPaTab('active')"
                 style="padding:8px 10px;font-size:11px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #7c3aed;color:#7c3aed;display:flex;align-items:center;gap:4px;">
                 {{ __('planning.pa_tab_active') }}
@@ -544,7 +544,7 @@
                  style="padding:10px 14px;border-bottom:1px solid #f9fafb;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;background:#f0fdf4;cursor:pointer;transition:background .1s;"
                  onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
                 <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:12px;font-weight:600;color:#065f46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                             {{ $app->requirement?->title ?? '#' . $app->requirement_id }}
                         </span>
@@ -607,7 +607,7 @@
      style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
             width:460px;max-width:94vw;z-index:6001;
             background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden;">
-    <div style="padding:20px 24px 16px;border-bottom:1px solid #fee2e2;background:#fef2f2;display:flex;align-items:center;gap:10px;">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid #fee2e2;background:#fef2f2;display:flex;align-items:center;gap:12px;">
         <svg width="20" height="20" fill="none" stroke="#b91c1c" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
         <span style="font-size:15px;font-weight:700;color:#b91c1c;">{{ __('planning.reset_modal_title') }}</span>
     </div>
@@ -650,7 +650,7 @@
             box-shadow:0 24px 80px rgba(15,15,35,.3);overflow:hidden;">
 
     {{-- 헤더 --}}
-    <div style="display:flex;align-items:center;gap:10px;padding:0 20px;height:52px;border-bottom:1px solid #f4f4f5;background:#fff;">
+    <div style="display:flex;align-items:center;gap:12px;padding:0 20px;height:52px;border-bottom:1px solid #f4f4f5;background:#fff;">
         <svg width="16" height="16" fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
         <span style="font-size:14px;font-weight:700;color:#111827;flex:1;">{{ __('planning.share_modal_title') }}</span>
         <button onclick="closeShareModal()" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid #e4e4e7;border-radius:7px;background:#fff;cursor:pointer;color:#6b7280;font-size:16px;"
@@ -666,7 +666,7 @@
                 {!! __('planning.share_off_desc') !!}
             </p>
             <button id="btn-share-create" onclick="createShareLink()"
-                style="width:100%;padding:10px;font-size:13px;font-weight:700;color:#fff;background:#059669;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"
+                style="width:100%;padding:10px;font-size:13px;font-weight:700;color:#fff;background:#059669;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"
                 onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 {{ __('planning.create_share_link') }}
@@ -675,13 +675,13 @@
 
         {{-- 공유 중 상태 --}}
         <div id="share-state-on" style="display:none;">
-            <div style="margin-bottom:14px;padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;display:flex;align-items:center;gap:6px;">
+            <div style="margin-bottom:14px;padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;display:flex;align-items:center;gap:8px;">
                 <svg width="13" height="13" fill="#059669" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" opacity=".15"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                 <span style="font-size:12px;font-weight:600;color:#065f46;">{{ __('planning.share_active') }}</span>
             </div>
 
             {{-- URL 입력+복사 --}}
-            <div style="display:flex;gap:6px;margin-bottom:14px;">
+            <div style="display:flex;gap:8px;margin-bottom:14px;">
                 <input id="share-url-input" type="text" readonly
                     style="flex:1;padding:8px 12px;font-size:12px;color:#374151;background:#f9fafb;border:1px solid #e4e4e7;border-radius:8px;outline:none;font-family:monospace;min-width:0;"
                     onclick="this.select()">
@@ -693,15 +693,15 @@
             </div>
 
             {{-- 새 창 열기 + PDF 다운로드 --}}
-            <div style="display:flex;gap:6px;margin-bottom:14px;">
+            <div style="display:flex;gap:8px;margin-bottom:14px;">
                 <a id="share-open-link" href="#" target="_blank"
-                   style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;font-size:12px;color:#4f46e5;border:1px solid #c7d2fe;border-radius:8px;text-decoration:none;background:#eef2ff;"
+                   style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px;font-size:12px;color:#4f46e5;border:1px solid #c7d2fe;border-radius:8px;text-decoration:none;background:#eef2ff;"
                    onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     {{ __('planning.open_preview') }}
                 </a>
                 <a id="share-pdf-link" href="#" target="_blank"
-                   style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;font-size:12px;font-weight:600;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;text-decoration:none;background:#fff;"
+                   style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px;font-size:12px;font-weight:600;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;text-decoration:none;background:#fff;"
                    onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     {{ __('planning.pdf_download') }}
@@ -735,12 +735,12 @@
             overflow:hidden;">
 
     {{-- 헤더 --}}
-    <div style="display:flex;align-items:center;gap:10px;padding:0 20px;height:54px;border-bottom:1px solid #e4e4e7;flex-shrink:0;background:#fff;border-radius:16px 16px 0 0;">
+    <div style="display:flex;align-items:center;gap:12px;padding:0 20px;height:54px;border-bottom:1px solid #e4e4e7;flex-shrink:0;background:#fff;border-radius:16px 16px 0 0;">
         <svg width="16" height="16" fill="none" stroke="#4f46e5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
         <span style="font-size:14px;font-weight:700;color:#1e1b4b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ __('planning.write_modal_title', ['title' => $doc->title]) }}</span>
 
         {{-- 뷰 모드 토글 --}}
-        <div style="display:flex;gap:2px;padding:3px;background:#f4f4f5;border-radius:8px;flex-shrink:0;">
+        <div style="display:flex;gap:4px;padding:3px;background:#f4f4f5;border-radius:8px;flex-shrink:0;">
             <button id="wm-btn-split"   onclick="setWriteView('split')"
                 style="padding:4px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:#4f46e5;color:#fff;transition:all .1s;">{{ __('planning.view_split') }}</button>
             <button id="wm-btn-editor"  onclick="setWriteView('editor')"
@@ -752,7 +752,7 @@
         <span style="font-size:11px;color:#9ca3af;flex-shrink:0;">Ctrl+S</span>
 
         <button id="wm-save-btn" onclick="saveWriteModal()"
-            style="display:flex;align-items:center;gap:5px;padding:7px 18px;font-size:13px;font-weight:700;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;flex-shrink:0;white-space:nowrap;"
+            style="display:flex;align-items:center;gap:4px;padding:7px 18px;font-size:13px;font-weight:700;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;flex-shrink:0;white-space:nowrap;"
             onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{{ __('common.save') }}
         </button>
@@ -762,7 +762,7 @@
     </div>
 
     {{-- 툴바 --}}
-    <div style="display:flex;align-items:center;gap:2px;padding:6px 14px;border-bottom:1px solid #f0f0f0;background:#fafafa;flex-shrink:0;flex-wrap:wrap;row-gap:4px;">
+    <div style="display:flex;align-items:center;gap:4px;padding:6px 14px;border-bottom:1px solid #f0f0f0;background:#fafafa;flex-shrink:0;flex-wrap:wrap;row-gap:4px;">
         <button onclick="wmTool('# ','')"              title="{{ __('planning.tool_h1') }}"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#1e1b4b;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H1</button>
         <button onclick="wmTool('## ','')"             title="{{ __('planning.tool_h2') }}"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#374151;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H2</button>
         <button onclick="wmTool('### ','')"            title="{{ __('planning.tool_h3') }}"      style="padding:3px 8px;font-size:11px;font-weight:700;color:#6b7280;border:1px solid #e4e4e7;border-radius:5px;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">H3</button>
@@ -1610,9 +1610,9 @@ async function _renderSuggestionItem(item) {
     el.id = 'fs-' + item.id;
     el.style.cssText = 'padding:12px 14px;border-bottom:1px solid #f4f4f5;';
     el.innerHTML = `
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;">
             <span class="fs-title" style="font-size:13px;font-weight:700;color:#1e1b4b;flex:1;">${escHtml(item.title)}</span>
-            <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
                 <button onclick="deleteSuggestion(${item.id})" style="background:none;border:none;cursor:pointer;color:#d1d5db;padding:1px;" title="${escAttr(_PLAN_T.delete)}">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -1769,8 +1769,8 @@ async function applyFeature(id, title) {
             apEl.dataset.heading = itemTitle;
             apEl.style.cssText = 'padding:12px 14px;border-bottom:1px solid #f4f4f5;background:#f0fdf4;';
             apEl.innerHTML = `
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;">
-                    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
                         <span style="font-size:13px;font-weight:700;color:#065f46;flex:1;">${escHtml(itemTitle)}</span>
                         <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 6px;">${escHtml(_PLAN_T.appliedBadge)}</span>
                     </div>
@@ -1885,7 +1885,7 @@ async function completePlanApp(appId, btn) {
         newEl.style.cssText   = 'padding:10px 14px;border-bottom:1px solid #f9fafb;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;background:#f0fdf4;cursor:pointer;transition:background .1s;';
         newEl.innerHTML = `
             <div style="flex:1;min-width:0;">
-                <div style="display:flex;align-items:center;gap:6px;">
+                <div style="display:flex;align-items:center;gap:8px;">
                     <span style="font-size:12px;font-weight:600;color:#065f46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(titleText)}</span>
                     <span style="flex-shrink:0;font-size:10px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #a7f3d0;border-radius:4px;padding:1px 5px;">${escHtml(_PLAN_T.completedBadge)}</span>
                 </div>
@@ -2203,7 +2203,7 @@ async function submitPlanEmail() {
         </div>
         <button onclick="closePlanEmailModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:0;line-height:1;">&times;</button>
     </div>
-    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px;">
         {{-- 문서 정보 --}}
         <div style="padding:10px 14px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;">
             <p style="font-size:11px;color:#7c3aed;font-weight:600;margin:0 0 2px;">{{ __('planning.email_attached_doc') }}</p>
@@ -2216,7 +2216,7 @@ async function submitPlanEmail() {
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">{{ __('planning.email_select_recipients') }} <span style="color:#ef4444;">*</span></label>
             <div style="border:1.5px solid #e4e4e7;border-radius:8px;max-height:160px;overflow-y:auto;">
                 @forelse($members as $m)
-                <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid #f4f4f5;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+                <label style="display:flex;align-items:center;gap:12px;padding:8px 12px;cursor:pointer;border-bottom:1px solid #f4f4f5;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
                     <input type="checkbox" name="plan_email_recipients[]" value="{{ $m->email }}"
                            style="width:14px;height:14px;accent-color:#4f46e5;flex-shrink:0;">
                     <div>
@@ -2258,7 +2258,7 @@ async function submitPlanEmail() {
         <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('planning.sch_modal_title') }}</h3>
         <button onclick="closeSchModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;padding:2px;line-height:1;">&times;</button>
     </div>
-    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px;">
         <div id="sch-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:13px;color:#dc2626;"></div>
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('planning.sch_group') }} <span style="color:#ef4444;">*</span></label>
@@ -2295,7 +2295,7 @@ async function submitPlanEmail() {
                       onfocus="this.style.borderColor='var(--t400)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
         </div>
     </div>
-    <div style="padding:0 22px 20px;display:flex;gap:10px;justify-content:flex-end;">
+    <div style="padding:0 22px 20px;display:flex;gap:12px;justify-content:flex-end;">
         <button onclick="closeSchModal()" style="padding:8px 18px;font-size:13px;color:#6b7280;background:#fff;border:1.5px solid #e4e4e7;border-radius:8px;cursor:pointer;"
                 onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.cancel') }}</button>
         <button onclick="submitSchModal()" id="sch-submit-btn" style="padding:8px 20px;font-size:13px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:8px;cursor:pointer;"
@@ -2313,7 +2313,7 @@ async function submitPlanEmail() {
             width:560px;max-width:calc(100vw - 32px);max-height:85vh;
             flex-direction:column;overflow:hidden;">
     {{-- 헤더 --}}
-    <div style="padding:16px 20px 12px;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-shrink:0;">
+    <div style="padding:16px 20px 12px;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;">
         <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
                 <span id="pa-modal-title" style="font-size:15px;font-weight:700;color:#18181b;"></span>

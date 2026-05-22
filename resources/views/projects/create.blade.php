@@ -5,7 +5,7 @@
 @section('breadcrumb')
 <a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">{{ __('projects.new_project') }}</span>
+<span style="color:var(--color-text-secondary);font-weight:500;">{{ __('projects.new_project') }}</span>
 @endsection
 
 @section('content')

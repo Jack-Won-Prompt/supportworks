@@ -14,7 +14,7 @@
 
 @section('page-actions')
 <button onclick="openLeaveModal()"
-    style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;transition:opacity .15s;"
+    style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--t600);color:#fff;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;transition:opacity .15s;"
     onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     {{ __('work.leave_apply_btn') }}
@@ -47,7 +47,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
         <div style="padding:10px 18px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                 <span style="font-size:10.5px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;">{{ __('work.leave_my_annual_stat', ['year' => $year]) }}</span>
-                <span style="display:flex;align-items:center;gap:5px;">
+                <span style="display:flex;align-items:center;gap:4px;">
                     <span style="font-size:12px;font-weight:700;color:#374151;">{{ $fmtDays($yearUsed['total']) }}{{ __('work.leave_unit_days') }}</span>
                     @if($yearUpcoming['total'] > 0)
                     <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;background:#ede9fe;color:#6d28d9;">+{{ $fmtDays($yearUpcoming['total']) }}{{ __('work.leave_status_upcoming') }}</span>
@@ -97,7 +97,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
         <div style="padding:10px 18px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                 <span style="font-size:10.5px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;">{{ __('work.leave_month_stat', ['month' => $monthName]) }}</span>
-                <span style="display:flex;align-items:center;gap:5px;">
+                <span style="display:flex;align-items:center;gap:4px;">
                     <span style="font-size:12px;font-weight:700;color:#374151;">{{ $fmtDays($monthUsed['total']) }}{{ __('work.leave_unit_days') }}</span>
                     @if($monthUpcoming['total'] > 0)
                     <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;background:#ede9fe;color:#6d28d9;">+{{ $fmtDays($monthUpcoming['total']) }}{{ __('work.leave_status_upcoming') }}</span>
@@ -147,7 +147,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
 @if($isManager && $teamStats->isNotEmpty())
 <div style="background:#fff;border-radius:12px;border:1px solid #f3f4f6;box-shadow:0 1px 6px rgba(0,0,0,.04);overflow:hidden;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid #f3f4f6;cursor:pointer;user-select:none;" onclick="toggleTeamStats()">
-        <div style="display:flex;align-items:center;gap:7px;">
+        <div style="display:flex;align-items:center;gap:8px;">
             <svg width="13" height="13" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
             <span style="font-size:10.5px;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.07em;">{{ __('work.leave_team_stats_heading', ['year' => $year]) }}</span>
         </div>
@@ -169,7 +169,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
                 @foreach($teamStats as $stat)
                 <tr style="border-bottom:1px solid #f8fafc;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
                     <td style="padding:7px 18px;">
-                        <div style="display:flex;align-items:center;gap:7px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
                             <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#c4b5fd,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">{{ mb_substr($stat['user_name'], 0, 1) }}</div>
                             <span style="font-size:12.5px;font-weight:500;color:#1e293b;">{{ $stat['user_name'] }}</span>
                             @if($stat['user_id'] === $myId)<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-weight:600;margin-left:2px;">{{ __('work.leave_self_badge') }}</span>@endif
@@ -234,7 +234,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
     </div>
 
     {{-- 달력 헤더 --}}
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;">
         @foreach([
             __('work.leave_dow_sun'),
             __('work.leave_dow_mon'),
@@ -253,7 +253,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
         $today        = now()->format('Y-m-d');
         $krHolidays   = \App\Helpers\KoreanHolidays::getHolidays($year);
     @endphp
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
         {{-- 빈 셀 --}}
         @for($i = 0; $i < $startDow; $i++)
         <div style="min-height:72px;padding:4px;border-radius:6px;background:#fafafa;"></div>
@@ -381,7 +381,7 @@ $monthName = \Carbon\Carbon::create($year, $month, 1)->locale(app()->getLocale()
             <h3 id="lm-title" style="font-size:15px;font-weight:700;color:#1e293b;margin:0;">{{ __('work.leave_modal_heading') }}</h3>
             <button onclick="closeLeaveModal()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;">×</button>
         </div>
-        <div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:12px;">
             <div id="lm-error" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;font-size:12px;color:#dc2626;"></div>
 
             {{-- 멤버 선택 (매니저만) --}}

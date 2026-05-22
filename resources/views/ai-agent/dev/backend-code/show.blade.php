@@ -201,7 +201,7 @@
         @if(!empty($decoded['dependencies']))
         <div class="bks-panel" style="margin-bottom:14px;">
             <div class="bks-panel-title">패키지</div>
-            <div style="padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px;">
+            <div style="padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;">
                 @foreach($decoded['dependencies'] as $dep)
                 <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;padding:3px 10px;border-radius:99px;background:#ede9fe;color:#6d28d9;font-weight:600;font-family:monospace;">
                     {{ $dep['name'] }}{{ isset($dep['version']) ? ':' . $dep['version'] : '' }}

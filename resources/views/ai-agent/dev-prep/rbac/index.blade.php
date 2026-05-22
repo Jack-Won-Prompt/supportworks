@@ -264,7 +264,7 @@
                                     <input type="text" x-model="editRoleForm.name">
                                     <label>설명</label>
                                     <textarea rows="2" x-model="editRoleForm.description"></textarea>
-                                    <div style="display:flex;gap:6px;margin-top:4px;">
+                                    <div style="display:flex;gap:8px;margin-top:4px;">
                                         <button class="rbac-btn primary xs" @click="saveEditRole(role.key)">저장</button>
                                         <button class="rbac-btn secondary xs" @click="cancelEdit()">취소</button>
                                     </div>
@@ -290,7 +290,7 @@
                             <input type="text" x-model="addRoleForm.name" placeholder="예: 개발자">
                             <label>설명</label>
                             <textarea rows="2" x-model="addRoleForm.description" placeholder="역할 설명"></textarea>
-                            <div style="display:flex;gap:6px;margin-top:4px;">
+                            <div style="display:flex;gap:8px;margin-top:4px;">
                                 <button class="rbac-btn primary xs" @click="saveNewRole()">추가</button>
                                 <button class="rbac-btn secondary xs" @click="cancelAddRole()">취소</button>
                             </div>
@@ -441,7 +441,7 @@
             </div>
 
             {{-- 액션 --}}
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
                 <button class="rbac-btn primary" @click="startGeneration()" :disabled="isGenerating">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     재생성

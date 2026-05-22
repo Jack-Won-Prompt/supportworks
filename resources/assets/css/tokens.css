@@ -1,0 +1,286 @@
+/* ============================================================
+   SK에코플랜트 분양관리시스템 - Design Tokens
+   Source: Figma 2XuiaLfnxBrYYgUFYMImme / Design System (0:1)
+   ============================================================ */
+/* 사용 규칙:
+   - 컴포넌트·페이지 CSS는 시맨틱 별칭(--color-text-*, --color-bg-*, --color-border-*)만 사용
+   - 원시 토큰(--color-primary-500, --color-gray-100 등)은 이 파일에서만 정의·참조
+   - 예외: 의도적으로 액센트와 무관한 고정 색(테마 피커 스와치)은 --color-bg-swatch-* 사용
+   NOTE: Input류 :focus-visible은 border + box-shadow 글로우(3px)로 강화 적용. */
+
+:root {
+  /* ===== Color - Primary (blue, brand) ===== */
+  --color-primary-50: #ebf6ff;
+  --color-primary-100: #c7e7ff;
+  --color-primary-200: #9acffd;
+  --color-primary-300: #6ab5f7;
+  --color-primary-400: #3ca0f8;
+  --color-primary-500: #0f86ef; /* default */
+  --color-primary-600: #006cca;
+  --color-primary-700: #004f95;
+  --color-primary-800: #003b6f;
+  --color-primary-900: #00284b;
+  --color-primary-1000: #00203c;
+
+  /* ===== Color - Secondary (orange, accent) ===== */
+  --color-secondary-50: #fff4ed;
+  --color-secondary-100: #ffe8d7;
+  --color-secondary-200: #ffd1b1;
+  --color-secondary-300: #faa76d;
+  --color-secondary-400: #ff8f3c;
+  --color-secondary-500: #ee7623; /* default */
+  --color-secondary-600: #dc6411;
+  --color-secondary-700: #cb5302;
+  --color-secondary-800: #bd4503;
+  --color-secondary-900: #af3700;
+  --color-secondary-1000: #9c2400;
+
+  /* ===== Color - Grayscale ===== */
+  --color-gray-0: #ffffff;
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f2f5;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #c5cad3;
+  --color-gray-400: #a1a8b6;
+  --color-gray-500: #828997;
+  --color-gray-600: #6b7280;
+  --color-gray-700: #484f5e;
+  --color-gray-800: #323948;
+  --color-gray-900: #212837;
+  --color-gray-1000: #111827;
+
+  /* ===== Color - Alert ===== */
+  --color-alert-warning-50: #ffeded;
+  --color-alert-warning-100: #ffeded;
+  --color-alert-warning-500: #ce0e2d;
+
+  /* TODO: Figma DS에 success/info 미정의 — 임시값 */
+  --color-alert-success-50: #f0fdf4;
+  --color-alert-success-500: #22c55e;
+  --color-alert-info-50: #ebf6ff;
+  --color-alert-info-500: #0f86ef;
+
+  /* ===== Color - Theme Accents ===== */
+  --color-theme-coral: #f25a3d;
+  --color-theme-blue: #0f86ef;
+  --color-theme-green: #2cc66c;
+  --color-theme-yellow: #fbaf2b;
+  --color-theme-purple: #950fef;
+
+  /* Active accent (overridden per [data-accent]) */
+  --color-theme-active: var(--color-theme-blue);
+
+  /* ===== Semantic - Text ===== */
+  --color-text-primary: var(--color-gray-1000);
+  --color-text-secondary: var(--color-gray-700);
+  --color-text-tertiary: var(--color-gray-500);
+  /* Figma input placeholder — gray-400 */
+  --color-text-placeholder: var(--color-gray-400);
+  --color-text-disabled: var(--color-gray-400);
+  --color-text-inverse: var(--color-gray-0);
+  --color-text-brand: var(--color-theme-active);
+  --color-text-accent: var(--color-secondary-500);
+  --color-text-danger: var(--color-alert-warning-500);
+  --color-text-success: var(--color-alert-success-500);
+  --color-text-link: var(--color-theme-active);
+
+  /* ===== Semantic - Background ===== */
+  --color-bg-base: var(--color-gray-0);
+  --color-bg-app: var(--color-gray-50);
+  --color-bg-muted: var(--color-gray-100);
+  --color-bg-hover: var(--color-gray-100);
+  --color-bg-active: var(--color-gray-200);
+
+  /* Form / grid label theme (Figma 2077:8716 / 2077:8720, grid-head primary/100·700) */
+  --color-bg-form-division: var(--color-bg-active);
+  --color-text-form-division: var(--color-gray-600);
+  --color-bg-form-label: color-mix(in srgb, var(--color-theme-active) 22%, var(--color-gray-0));
+  --color-text-form-label: color-mix(in srgb, var(--color-theme-active) 62%, var(--color-gray-1000));
+
+  --color-bg-brand: var(--color-theme-active);
+  --color-bg-brand-hover: color-mix(in srgb, var(--color-theme-active) 88%, var(--color-gray-1000));
+  --color-bg-brand-subtle: color-mix(in srgb, var(--color-theme-active) 12%, var(--color-gray-0));
+  --color-bg-accent: var(--color-secondary-500);
+  --color-bg-accent-subtle: var(--color-secondary-50);
+  --color-bg-danger: var(--color-alert-warning-500);
+  --color-bg-danger-subtle: var(--color-alert-warning-50);
+  --color-bg-success: var(--color-alert-success-500);
+  --color-bg-success-subtle: var(--color-alert-success-50);
+  --color-bg-disabled: var(--color-gray-100);
+  --color-bg-inverse: var(--color-gray-900);
+  --color-bg-overlay: color-mix(in srgb, var(--color-gray-1000) 50%, transparent);
+
+  /* ===== Semantic - Border ===== */
+  --color-border-default: var(--color-gray-200);
+  --color-border-strong: var(--color-gray-300);
+  --color-border-focus: var(--color-theme-active);
+  --color-border-accent: var(--color-secondary-500);
+  --color-border-danger: var(--color-alert-warning-500);
+  --color-border-success: var(--color-alert-success-500);
+  --color-border-disabled: var(--color-gray-200);
+  --color-border-emphasis: var(--color-gray-1000);
+
+  /* Theme picker swatches (fixed palette, not data-accent) */
+  --color-bg-swatch-coral: var(--color-theme-coral);
+  --color-bg-swatch-blue: var(--color-theme-blue);
+  --color-bg-swatch-green: var(--color-theme-green);
+  --color-bg-swatch-yellow: var(--color-theme-yellow);
+  --color-bg-swatch-purple: var(--color-theme-purple);
+
+  /* ===== Typography ===== */
+  --font-family-base: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif;
+
+  --font-size-h1: 18px;
+  --font-size-h2: 16px;
+  --font-size-body-14: 14px;
+  --font-size-body-13: 13px;
+  --font-size-caption: 12px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  --line-height-heading: 1.4;
+  --line-height-body: 1.6;
+
+  /* ===== Spacing (4px grid) ===== */
+  --space-0: 0;
+  --space-0_5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ===== Border Radius ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ===== Shadow ===== */
+  --shadow-floating: 0 4px 4px color-mix(in srgb, var(--color-gray-1000) 12%, transparent);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-gray-1000) 5%, transparent);
+  --shadow-md: 0 4px 8px color-mix(in srgb, var(--color-gray-1000) 8%, transparent);
+  --shadow-lg: 0 8px 16px color-mix(in srgb, var(--color-gray-1000) 12%, transparent);
+  --shadow-modal: 0 16px 32px color-mix(in srgb, var(--color-gray-1000) 16%, transparent);
+
+  /* ===== Z-index ===== */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 900;
+  --z-modal: 1000;
+  --z-popover: 1100;
+  --z-toast: 1200;
+
+  /* ===== Transition ===== */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* ===== Layout ===== */
+  --layout-sidebar-width-open: 240px;
+  --layout-sidebar-width-fold: 60px;
+  --layout-header-height: 60px;
+  --layout-tab-height: 40px;
+  --layout-main-padding: var(--space-6);
+  --layout-field-row-max-width: 480px;
+  --layout-pagination-item-size: var(--space-8);
+  --layout-table-cell-padding-y: var(--space-2);
+  --layout-table-cell-padding-x: var(--space-2);
+  --layout-table-header-height: var(--space-10);
+  --layout-table-row-height: var(--space-10);
+  --layout-modal-small-width: 400px;
+  --layout-modal-medium-width: 560px;
+  --layout-modal-large-width: 800px;
+  --layout-modal-max-height: calc(100dvh - var(--space-12));
+  --layout-toast-width: 360px;
+  --layout-toast-stack-gap: var(--space-2);
+}
+
+[data-theme="dark"] {
+  --color-text-primary: var(--color-gray-0);
+  --color-text-secondary: var(--color-gray-300);
+  --color-text-tertiary: var(--color-gray-400);
+  --color-text-placeholder: var(--color-gray-500);
+  --color-text-disabled: var(--color-gray-600);
+  --color-text-inverse: var(--color-gray-1000);
+
+  --color-bg-base: var(--color-gray-900);
+  --color-bg-app: var(--color-gray-1000);
+  --color-bg-muted: var(--color-gray-800);
+  --color-bg-hover: var(--color-gray-800);
+  --color-bg-active: var(--color-gray-700);
+  --color-bg-disabled: var(--color-gray-800);
+  --color-bg-inverse: var(--color-gray-100);
+  --color-bg-overlay: color-mix(in srgb, var(--color-gray-1000) 60%, transparent);
+  --color-bg-accent-subtle: var(--color-secondary-900);
+  --color-bg-success-subtle: color-mix(in srgb, var(--color-alert-success-500) 18%, transparent);
+
+  --color-bg-form-division: var(--color-gray-800);
+  --color-text-form-division: var(--color-gray-400);
+  --color-bg-form-label: color-mix(in srgb, var(--color-theme-active) 28%, transparent);
+  --color-text-form-label: color-mix(in srgb, var(--color-theme-active) 72%, var(--color-gray-0));
+  --color-bg-brand-hover: color-mix(in srgb, var(--color-theme-active) 78%, var(--color-gray-0));
+  --color-bg-brand-subtle: color-mix(in srgb, var(--color-theme-active) 24%, transparent);
+
+  --color-border-default: var(--color-gray-700);
+  --color-border-strong: var(--color-gray-600);
+  --color-border-disabled: var(--color-gray-700);
+}
+
+[data-accent="coral"] {
+  --color-theme-active: var(--color-theme-coral);
+  --color-bg-brand: var(--color-theme-coral);
+  --color-bg-brand-hover: color-mix(in srgb, var(--color-theme-coral) 85%, black);
+  --color-bg-brand-subtle: color-mix(in srgb, var(--color-theme-coral) 12%, transparent);
+  --color-text-brand: var(--color-theme-coral);
+  --color-border-focus: var(--color-theme-coral);
+}
+
+[data-accent="green"] {
+  --color-theme-active: var(--color-theme-green);
+  --color-bg-brand: var(--color-theme-green);
+  --color-bg-brand-hover: color-mix(in srgb, var(--color-theme-green) 85%, black);
+  --color-bg-brand-subtle: color-mix(in srgb, var(--color-theme-green) 12%, transparent);
+  --color-text-brand: var(--color-theme-green);
+  --color-border-focus: var(--color-theme-green);
+}
+
+[data-accent="blue"] {
+  --color-theme-active: var(--color-theme-blue);
+  --color-bg-brand: var(--color-theme-blue);
+  --color-bg-brand-hover: color-mix(in srgb, var(--color-theme-blue) 85%, black);
+  --color-bg-brand-subtle: color-mix(in srgb, var(--color-theme-blue) 12%, transparent);
+  --color-text-brand: var(--color-theme-blue);
+  --color-border-focus: var(--color-theme-blue);
+}
+
+[data-accent="yellow"] {
+  --color-theme-active: var(--color-theme-yellow);
+  --color-bg-brand: var(--color-theme-yellow);
+  --color-bg-brand-hover: color-mix(in srgb, var(--color-theme-yellow) 85%, black);
+  --color-bg-brand-subtle: color-mix(in srgb, var(--color-theme-yellow) 12%, transparent);
+  --color-text-brand: var(--color-theme-yellow);
+  --color-border-focus: var(--color-theme-yellow);
+}
+
+[data-accent="purple"] {
+  --color-theme-active: var(--color-theme-purple);
+  --color-bg-brand: var(--color-theme-purple);
+  --color-bg-brand-hover: color-mix(in srgb, var(--color-theme-purple) 85%, black);
+  --color-bg-brand-subtle: color-mix(in srgb, var(--color-theme-purple) 12%, transparent);
+  --color-text-brand: var(--color-theme-purple);
+  --color-border-focus: var(--color-theme-purple);
+}

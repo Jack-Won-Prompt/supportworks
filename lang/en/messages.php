@@ -215,4 +215,17 @@ return [
     'original_text'             => 'Original',
     'translate_fail'            => 'Translation failed.',
     'translate_req_error'       => 'An error occurred during the translation request.',
+
+    // ── Workspace popup (top bar)
+    'ws_select_project'         => 'Select project',
+    'ws_select_menu'            => 'Select menu',
+    'ws_open_popup'             => 'Open popup',
+    'ws_minimize'               => 'Minimize',
+    'ws_maximize'               => 'Maximize',
+    'ws_restore'                => 'Restore size',
+    'ws_close_popup'            => 'Close popup',
+    'ws_popup_blocked'          => 'Popup was blocked. Please allow popups for this site in your browser settings.',
+    'ws_choose_project_first'   => 'Please select a project first.',
+    'ws_choose_menu_first'      => 'Please select a menu first.',
+    'ws_no_projects'            => 'You are not assigned to any projects.',
 ];

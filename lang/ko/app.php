@@ -42,13 +42,12 @@ return [
     'sr_target_no_project'   => '연결 안 함',
     'theme_change'           => '테마 변경',
     'theme_colors'           => '테마 색상',
-    'theme_violet'           => '보라',
     'theme_blue'             => '파랑',
-    'theme_teal'             => '청록',
+    'theme_coral'            => '코랄',
     'theme_green'            => '녹색',
-    'theme_amber'            => '황금',
-    'theme_gray'             => '그레이',
-    'theme_white'            => '화이트',
+    'theme_yellow'           => '노랑',
+    'theme_violet'           => '보라',
+    'theme_custom'           => '사용자 지정',
     'lang_ko'                => '한국어',
     'lang_en'                => 'English',
 
@@ -190,4 +189,6 @@ return [
     'qp_copied'              => '복사됨',
     'qp_copy_failed'         => '복사에 실패했습니다.',
     'qp_confirm_del_prompt'  => '이 프롬프트를 삭제하시겠습니까?',
+
+    'accent_picker'          => '테마 색상',
 ];

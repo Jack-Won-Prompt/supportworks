@@ -11,7 +11,7 @@
     {{-- 시스템 공통 도구 --}}
 
     @if($toolId === '웍스-CHAT')
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;" onclick="aiAction('draft')">
                 {{ __('deliverables.tool_ai_draft') }}
             </button>
@@ -57,9 +57,9 @@
                 </div>
             </div>
             {{-- 승인자별 상태 --}}
-            <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:10px;">
+            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
                 @foreach($approvals as $a)
-                <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 9px;border-radius:6px;background:#f8fafc;">
+                <div style="display:flex;align-items:center;gap:8px;font-size:11px;padding:5px 9px;border-radius:6px;background:#f8fafc;">
                     <span>{{ $a->status === 'approved' ? '✅' : ($a->status === 'rejected' ? '❌' : '⏳') }}</span>
                     <span style="font-weight:600;color:#374151;">{{ $a->approver?->name ?? '-' }}</span>
                     <span style="color:#94a3b8;">{{ $a->status === 'approved' ? __('deliverables.approve_done') : ($a->status === 'rejected' ? __('deliverables.approve_rejected_lbl') : __('deliverables.approve_pending')) }}</span>
@@ -76,7 +76,7 @@
             @if($myPending)
             <div style="margin-bottom:10px;">
                 <div style="font-size:11px;color:#64748b;margin-bottom:6px;">{{ __('deliverables.approve_my_turn') }}</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                     <button type="button" class="dlv-btn"
                             style="font-size:11.5px;padding:5px 14px;background:#16a34a;color:#fff;border:none;"
                             onclick="dlvApprovalRespond({{ $myPending->id }}, 'approved')">
@@ -100,7 +100,7 @@
                     @endif
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
-                    <div style="flex:1;min-width:180px;display:flex;flex-wrap:wrap;gap:6px;">
+                    <div style="flex:1;min-width:180px;display:flex;flex-wrap:wrap;gap:8px;">
                         @foreach($projectMembers as $member)
                             @if($member->id !== auth()->id())
                             <label class="dlv-apr-chk">
@@ -131,7 +131,7 @@
             $hasTableField = collect($stepDef['fields'] ?? [])->contains('type', 'table');
             $wordUrl       = route('ai-agent.projects.deliverables.export-word', [$project, $typeId]);
         @endphp
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
             {{-- 뷰어 (팝업 모달) --}}
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;"
                     onclick="dlvOpenViewer()">
@@ -160,7 +160,7 @@
                 PDF
             </button>
             {{-- 공유 URL 표시 (링크 공유 활성 시) --}}
-            <div id="share-url-box" style="display:{{ $deliverable->share_token ? 'flex' : 'none' }};align-items:center;gap:6px;width:100%;margin-top:4px;">
+            <div id="share-url-box" style="display:{{ $deliverable->share_token ? 'flex' : 'none' }};align-items:center;gap:8px;width:100%;margin-top:4px;">
                 <input type="text" id="share-url-input" readonly
                        value="{{ $deliverable->share_token ? route('deliverables.public-share', $deliverable->share_token) : '' }}"
                        style="flex:1;font-size:10.5px;padding:4px 8px;border:1px solid #ddd6fe;border-radius:5px;background:#faf5ff;color:#5b21b6;outline:none;">
@@ -172,7 +172,7 @@
         </div>
 
     @elseif($toolId === 'VERSION')
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11.5px;padding:5px 10px;" onclick="alert('{{ __('deliverables.tool_version_coming') }}')">
                 {{ __('deliverables.tool_version') }}
             </button>
@@ -346,7 +346,7 @@
             </table>
         </div>
         <div class="dlv-risk-empty" style="display:none;">{{ __('deliverables.risk_empty') }}</div>
-        <div style="margin-top:14px;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;justify-content:center;">
+        <div style="margin-top:14px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;justify-content:center;">
             <div>
                 <div style="font-size:10.5px;font-weight:700;color:#64748b;text-align:center;margin-bottom:4px;">{{ __('deliverables.risk_heatmap') }}</div>
                 <table class="dlv-risk-heat"><tbody class="dlv-risk-heat-body"></tbody></table>
@@ -608,7 +608,7 @@
         <div class="tool-id">{{ $toolId }}</div>
         <p>{{ $toolDef['name'] ?? $toolId }}</p>
         <p style="margin-top:6px;font-size:11px;color:#b0b8c9;">{{ __('deliverables.tool_matrix_desc') }}</p>
-        <div style="display:flex;gap:6px;justify-content:center;margin-top:12px;">
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11px;padding:4px 10px;" onclick="aiAction('tool-generate')">{{ __('deliverables.tool_ai_generate') }}</button>
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11px;padding:4px 10px;" onclick="alert('{{ __('deliverables.tool_matrix_coming') }}')">{{ __('deliverables.tool_matrix_open') }}</button>
         </div>
@@ -616,7 +616,7 @@
 
 @elseif($toolId === 'FORM-CHECKLIST')
     {{-- 체크리스트 빌더: 컴팩트 가로형 --}}
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#faf5ff;border-radius:7px;">
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;background:#faf5ff;border-radius:7px;">
         <svg width="14" height="14" fill="none" stroke="var(--t500)" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
         <span style="font-size:11.5px;font-weight:700;color:var(--t700);flex:1;">{{ $toolDef['name'] ?? $toolId }}</span>
         <span style="font-size:10px;color:#94a3b8;">{{ __('deliverables.tool_checklist_desc') }}</span>
@@ -688,7 +688,7 @@
             </div>
             <div class="md-preview-pane" style="height:200px;"></div>
         </div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
+        <div style="display:flex;gap:8px;margin-top:6px;">
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11px;padding:4px 10px;" onclick="aiAction('draft')">{{ __('deliverables.tool_ai_draft') }}</button>
             <button type="button" class="dlv-btn dlv-btn-outline" style="font-size:11px;padding:4px 10px;" onclick="alert('{{ __('deliverables.tool_pdf_coming') }}')">{{ __('deliverables.tool_pdf_short') }}</button>
         </div>

@@ -19,7 +19,7 @@
 <div class="aia-page-actions">
     @foreach($actions as $action)
         <a href="{{ $action['href'] ?? '#' }}"
-           style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;transition:all .15s;
+           style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;transition:all .15s;
                   {{ ($action['primary'] ?? true) ? 'background:var(--t600);color:#fff;' : 'background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;' }}">
             {{ $action['label'] }}
         </a>

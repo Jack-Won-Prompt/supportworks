@@ -231,7 +231,7 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
         {{-- 프로젝트 종합 통계 --}}
         <div class="apv-section">
             <div class="apv-section-title">프로젝트 종합 통계</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 @foreach([
                     ['산출물', $projectStats['total_artifacts'] . '개'],
                     ['화면 수', $projectStats['total_screens'] . '개'],
@@ -302,14 +302,14 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
         {{-- Phase 5 tasks --}}
         <div class="apv-section" style="margin-top:0;">
             <div class="apv-section-title">Phase 5 구성 작업</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
                 @foreach([
                     ['T48', '통합 릴리즈 패키지', route('ai-agent.projects.release.package.index', $project)],
                     ['T49', '배포 가이드',          route('ai-agent.projects.release.deploy-guide.index', $project)],
                     ['T50', '사용자 매뉴얼',         route('ai-agent.projects.release.user-manual.index', $project)],
                     ['T51', '마이그레이션 가이드',    route('ai-agent.projects.release.migration-guide.index', $project)],
                 ] as [$task, $label, $link])
-                <a href="{{ $link }}" style="display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:8px;background:#f8fafc;text-decoration:none;font-size:12.5px;color:#1e1b2e;transition:background .1s;" onmouseover="this.style.background='#ede8ff'" onmouseout="this.style.background='#f8fafc'">
+                <a href="{{ $link }}" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:#f8fafc;text-decoration:none;font-size:12.5px;color:#1e1b2e;transition:background .1s;" onmouseover="this.style.background='#ede8ff'" onmouseout="this.style.background='#f8fafc'">
                     <span style="font-size:10px;font-weight:700;background:#ede8ff;color:#7c3aed;padding:1px 7px;border-radius:99px;">{{ $task }}</span>
                     {{ $label }}
                     <svg style="margin-left:auto;" width="11" height="11" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -325,7 +325,7 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
                 전체 5개 Phase의 산출물과 웍스 활용 통계를 종합한 보고서를 확인합니다.
             </p>
             <a href="{{ route('ai-agent.projects.release.approval.summary', $project) }}"
-               style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#7c3aed;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
+               style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;background:#7c3aed;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
                 📋 종합 보고서 보기 →
             </a>
         </div>

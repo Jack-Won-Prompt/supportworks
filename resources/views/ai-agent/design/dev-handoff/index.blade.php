@@ -183,7 +183,7 @@
     @if($artifact)
     <div class="dh-card">
         <div class="dh-card-ttl">핸드오프 산출물</div>
-        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;">
+        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
             <div style="font-size:22px;font-weight:800;font-family:monospace;color:#16a34a;">v{{ $artifact->version }}</div>
             <div style="flex:1;">
                 <div style="font-size:13px;font-weight:600;color:#1e1b2e;">{{ $artifact->title }}</div>
@@ -246,7 +246,7 @@
                     </td>
                     <td style="font-size:12px;color:#64748b;">{{ $screen['figma']['frame_name'] ?? '-' }}</td>
                     <td>
-                        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
                             @if($screen['figma']['view_url'])
                             <a href="{{ $screen['figma']['view_url'] }}" target="_blank" class="dh-link dh-link-design">
                                 Design
@@ -338,7 +338,7 @@
             </div>
         </div>
 
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <a href="{{ route('ai-agent.projects.design.figma-dev.package', $project) }}"
                class="dh-btn dh-btn-primary">
                 📦 통합 패키지 다운로드 (zip)

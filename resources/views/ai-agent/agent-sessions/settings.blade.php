@@ -11,7 +11,7 @@
 
 <div class="ags-card" style="max-width:640px;">
     <div class="ags-section-title">현재 설정</div>
-    <dl style="display:grid;grid-template-columns:180px 1fr;gap:8px 18px;font-size:13px;color:#475569;margin:0;">
+    <dl style="display:grid;grid-template-columns:180px 1fr;gap:8px 20px;font-size:13px;color:#475569;margin:0;">
         <dt>Output 유형 (frontend_stack)</dt>
         <dd style="margin:0;color:#1e1b2e;">{{ $config?->frontend_stack?->label() ?? '미설정' }}</dd>
 

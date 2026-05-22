@@ -5,7 +5,7 @@
 
 @section('page-actions')
     <button onclick="openAddModal()"
-       style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:13px;color:#fff;background:var(--t500);border-radius:8px;border:none;cursor:pointer;font-family:inherit;"
+       style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;font-size:13px;color:#fff;background:var(--t500);border-radius:8px;border:none;cursor:pointer;font-family:inherit;"
        onmouseover="this.style.background='var(--t600)'" onmouseout="this.style.background='var(--t500)'">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>{{ __('projects.gantt_add_schedule') }}
     </button>
@@ -285,7 +285,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
     <div style="font-size:12px;color:#71717a;margin-bottom:12px;">
         <span id="pp-assignee"></span> · <span id="pp-priority"></span>
     </div>
-    <div style="display:flex;gap:6px;">
+    <div style="display:flex;gap:8px;">
         <button id="pp-show" type="button" onclick="openEditModal(_ppTid)" style="flex:1;text-align:center;padding:6px;font-size:12px;border:1px solid #e4e4e7;border-radius:7px;color:#52525b;background:#fff;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('projects.detail_edit') }}</button>
         <form id="pp-del-form" method="POST" style="flex:1;">
             @csrf @method('DELETE')
@@ -341,7 +341,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
         <button onclick="closeAddModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:20px;padding:0;line-height:1;">&times;</button>
     </div>
 
-    <form id="add-schedule-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:14px;">
+    <form id="add-schedule-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;">
         @csrf
         {{-- 제목 + 그룹명 --}}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -376,7 +376,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
                 <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.start_datetime') }} <span style="color:#ef4444;">*</span></label>
-                <div style="display:flex;gap:5px;">
+                <div style="display:flex;gap:4px;">
                     <input type="date" id="am-start-d" required
                            style="flex:1;min-width:0;padding:8px 8px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
@@ -387,7 +387,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
             </div>
             <div>
                 <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.end_datetime') }}</label>
-                <div style="display:flex;gap:5px;">
+                <div style="display:flex;gap:4px;">
                     <input type="date" id="am-end-d"
                            style="flex:1;min-width:0;padding:8px 8px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
@@ -476,7 +476,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
         </div>
         <button onclick="closeEditModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:20px;padding:0;line-height:1;">&times;</button>
     </div>
-    <div style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:14px;">
+    <div style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;">
         <input type="hidden" id="em-tid">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
@@ -506,7 +506,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
                 <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.start_datetime') }} <span style="color:#ef4444;">*</span></label>
-                <div style="display:flex;gap:5px;">
+                <div style="display:flex;gap:4px;">
                     <input type="date" id="em-start-d" required
                            style="flex:1;min-width:0;padding:8px 8px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
@@ -517,7 +517,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
             </div>
             <div>
                 <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('projects.end_datetime') }}</label>
-                <div style="display:flex;gap:5px;">
+                <div style="display:flex;gap:4px;">
                     <input type="date" id="em-end-d"
                            style="flex:1;min-width:0;padding:8px 8px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit;"
                            onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">
@@ -887,7 +887,7 @@ async function renderLeft() {
                         <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor"><circle cx="3" cy="2.5" r="1.2"/><circle cx="7" cy="2.5" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11.5" r="1.2"/><circle cx="7" cy="11.5" r="1.2"/></svg>
                     </span>
                     <span class="task-name" title="${esc(t.name)}">${esc(t.name)}</span>
-                    ${t._files_count > 0 ? `<span onclick="event.stopPropagation();openGanttFileChip(${t.id},event)" title="${escAttr(GANTT_STR.viewAttachments)}" style="display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>${t._files_count}</span>` : ''}
+                    ${t._files_count > 0 ? `<span onclick="event.stopPropagation();openGanttFileChip(${t.id},event)" title="${escAttr(GANTT_STR.viewAttachments)}" style="display:inline-flex;align-items:center;gap:4px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:600;color:#4f46e5;background:#eef2ff;cursor:pointer;flex-shrink:0;white-space:nowrap;"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>${t._files_count}</span>` : ''}
                 </div>
                 <div class="lc lc-status"><span class="sbadge" data-tid="${t.id}" onclick="openStatusDropdown(event, ${t.id})">${t._status_label}<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.5;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></span></div>
                 <div class="lc lc-assignee" onclick="openAssigneeDropdown(event,${t.id})" title="{{ __('projects.col_assignee') }}">${esc(t._assignee)}</div>

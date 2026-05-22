@@ -2,18 +2,7 @@
 
 @section('title', __('dashboard.title'))
 
-@section('header-actions')
-<div style="display:flex;align-items:center;gap:8px;">
-    <span id="gs-saved" style="font-size:11px;color:#22c55e;opacity:0;transition:opacity .4s;white-space:nowrap;">{{ __('dashboard.layout_saved') }}</span>
-    <button onclick="resetDashboardLayout()"
-            style="font-size:12px;padding:5px 12px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;"
-            onmouseover="this.style.borderColor='#c4b5fd';this.style.color='#7c3aed'"
-            onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">
-        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-        {{ __('dashboard.reset_layout') }}
-    </button>
-</div>
-@endsection
+@section('header-actions')@endsection
 
 @section('content')
 @php
@@ -135,10 +124,22 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
 
 <div style="padding:20px 0 0;">
 
-{{-- 인사말 --}}
-<div style="margin-bottom:16px;">
-    <div style="font-size:19px;font-weight:700;color:#1e1b2e;">{{ $greeting }}, {{ auth()->user()->name }}{{ __('dashboard.greeting_suffix') }}</div>
-    <div style="font-size:13px;color:#94a3b8;margin-top:3px;">{{ $today->format(__('dashboard.date_format_full')) }} · {{ __('dashboard.greeting_wish') }}</div>
+{{-- 인사말 + 레이아웃 초기화 --}}
+<div style="margin-bottom:16px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div style="min-width:0;">
+        <div style="font-size:19px;font-weight:700;color:var(--color-text-primary);">{{ $greeting }}, {{ auth()->user()->name }}{{ __('dashboard.greeting_suffix') }}</div>
+        <div style="font-size:13px;color:var(--color-text-tertiary);margin-top:3px;">{{ $today->format(__('dashboard.date_format_full')) }} · {{ __('dashboard.greeting_wish') }}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <span id="gs-saved" style="font-size:11px;color:var(--color-alert-success-500);opacity:0;transition:opacity .4s;white-space:nowrap;">{{ __('dashboard.layout_saved') }}</span>
+        <button onclick="resetDashboardLayout()"
+                style="font-size:12px;padding:5px 12px;border:1px solid var(--color-border-default);border-radius:7px;background:#fff;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+                onmouseover="this.style.borderColor='var(--t300)';this.style.color='var(--t600)'"
+                onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            {{ __('dashboard.reset_layout') }}
+        </button>
+    </div>
 </div>
 
 {{-- ═══════════════════════════════════════════
@@ -147,14 +148,14 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
 <div class="gs-kpi-grid">
 
                     {{-- 오늘 일정 (회의 + 일정 + 마감 Action item) --}}
-                    <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:4px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_today') }}</span>
+                            <span style="font-size:10px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_today') }}</span>
                             <div style="width:28px;height:28px;background:#e0e7ff;border-radius:8px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="14" height="14" fill="none" stroke="#6366f1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                         </div>
-                        <div style="font-size:26px;font-weight:800;color:#1e1b2e;line-height:1;">{{ $todayCount }}</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--color-text-primary);line-height:1;">{{ $todayCount }}</div>
                         <div style="font-size:10px;color:#a5b4c8;">
                             @if($todayCount === 0)
                                 {{ __('dashboard.stat_today_empty') }}
@@ -169,62 +170,62 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     </div>
 
                     {{-- 전체 프로젝트 --}}
-                    <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:4px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_total_projects') }}</span>
-                            <div style="width:28px;height:28px;background:#ede9fe;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                            <span style="font-size:10px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_total_projects') }}</span>
+                            <div style="width:28px;height:28px;background:var(--t100);border-radius:8px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="14" height="14" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             </div>
                         </div>
-                        <div style="font-size:26px;font-weight:800;color:#1e1b2e;line-height:1;">{{ $totalProjects }}</div>
-                        <div style="font-size:10px;color:#a5b4c8;">{{ __('dashboard.stat_active_count') }} <strong style="color:#22c55e;">{{ $activeProjects }}</strong>{{ __('dashboard.stat_active_suffix') }}</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--color-text-primary);line-height:1;">{{ $totalProjects }}</div>
+                        <div style="font-size:10px;color:#a5b4c8;">{{ __('dashboard.stat_active_count') }} <strong style="color:var(--color-alert-success-500);">{{ $activeProjects }}</strong>{{ __('dashboard.stat_active_suffix') }}</div>
                     </div>
 
                     {{-- 이번달 회의록 --}}
-                    <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:4px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_minutes_month') }}</span>
+                            <span style="font-size:10px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_minutes_month') }}</span>
                             <div style="width:28px;height:28px;background:#fce7f3;border-radius:8px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="14" height="14" fill="none" stroke="#ec4899" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </div>
                         </div>
-                        <div style="font-size:26px;font-weight:800;color:#1e1b2e;line-height:1;">{{ $minutesThisMonth }}</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--color-text-primary);line-height:1;">{{ $minutesThisMonth }}</div>
                         <div style="font-size:10px;color:#a5b4c8;">{{ $today->format('m') }}{{ __('dashboard.stat_month_label') }} {{ __('dashboard.stat_minutes_count') }}</div>
                     </div>
 
                     {{-- 내 Tasks --}}
-                    <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:4px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_my_tasks') }}</span>
+                            <span style="font-size:10px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_my_tasks') }}</span>
                             <div style="width:28px;height:28px;background:#dbeafe;border-radius:8px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="14" height="14" fill="none" stroke="#3b82f6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                             </div>
                         </div>
-                        <div style="font-size:26px;font-weight:800;color:#1e1b2e;line-height:1;">{{ $todoTasks }}</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--color-text-primary);line-height:1;">{{ $todoTasks }}</div>
                         <div style="font-size:10px;color:#a5b4c8;">{{ __('dashboard.stat_tasks_in_progress') }}</div>
                     </div>
 
                     {{-- Action 아이템 --}}
-                    <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:4px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_action_items') }}</span>
+                            <span style="font-size:10px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_action_items') }}</span>
                             <div style="width:28px;height:28px;background:#fff7ed;border-radius:8px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="14" height="14" fill="none" stroke="#f97316" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             </div>
                         </div>
-                        <div style="font-size:26px;font-weight:800;color:#1e1b2e;line-height:1;">{{ $pendingActionItems }}</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--color-text-primary);line-height:1;">{{ $pendingActionItems }}</div>
                         <div style="font-size:10px;color:#a5b4c8;">{{ __('dashboard.stat_pending_items') }}</div>
                     </div>
 
                     {{-- 미답변 Q&A --}}
-                    <div style="background:#fff;border:1px solid #f0eeff;border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;padding:14px 14px;display:flex;flex-direction:column;gap:4px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
-                            <span style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_unanswered_qa') }}</span>
+                            <span style="font-size:10px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;">{{ __('dashboard.stat_unanswered_qa') }}</span>
                             <div style="width:28px;height:28px;background:#dcfce7;border-radius:8px;display:flex;align-items:center;justify-content:center;">
                                 <svg width="14" height="14" fill="none" stroke="#22c55e" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                         </div>
-                        <div style="font-size:26px;font-weight:800;color:#1e1b2e;line-height:1;">{{ $pendingQuestions }}</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--color-text-primary);line-height:1;">{{ $pendingQuestions }}</div>
                         <div style="font-size:10px;color:#a5b4c8;">{{ __('dashboard.stat_awaiting_answer') }}</div>
                     </div>
 
@@ -240,10 +241,10 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
             <div class="gs-card">
                 <div class="gs-drag-handle">
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:28px;height:28px;background:#ede9fe;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <div style="width:28px;height:28px;background:var(--t100);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg width="14" height="14" fill="none" stroke="var(--t600)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ __('dashboard.recent_projects') }}</span>
+                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('dashboard.recent_projects') }}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <a href="{{ route('projects.index') }}" style="font-size:12px;color:var(--t500);text-decoration:none;font-weight:600;">{{ __('dashboard.view_all') }}</a>
@@ -269,15 +270,15 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                             {{ mb_substr($project->name, 0, 1) }}
                         </div>
                         <div style="flex:1;min-width:0;">
-                            <a href="{{ route('projects.show', $project) }}" style="font-size:13px;font-weight:600;color:#1e1b2e;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $project->name }}</a>
-                            <div style="font-size:11px;color:#94a3b8;margin-top:1px;">{{ $project->creator->name }}</div>
+                            <a href="{{ route('projects.show', $project) }}" style="font-size:13px;font-weight:600;color:var(--color-text-primary);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $project->name }}</a>
+                            <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:1px;">{{ $project->creator->name }}</div>
                         </div>
                         <span style="font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;flex-shrink:0;{{ $statusStyle[$project->status] ?? 'background:#f1f5f9;color:#64748b' }}">
                             {{ $project->status_label }}
                         </span>
                     </div>
                     @empty
-                    <div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:13px;">
+                    <div style="text-align:center;padding:24px 0;color:var(--color-text-tertiary);font-size:13px;">
                         {{ __('dashboard.no_projects') }}<br>
                         <a href="#" onclick="openNewProjectModal();return false;" style="color:var(--t500);font-size:12px;font-weight:600;text-decoration:none;">{{ __('dashboard.add_project') }}</a>
                     </div>
@@ -327,12 +328,12 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <div style="width:28px;height:28px;background:#dcfce7;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg width="14" height="14" fill="none" stroke="#16a34a" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ $calNow->format(__('dashboard.cal_month_format')) }}</span>
+                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ $calNow->format(__('dashboard.cal_month_format')) }}</span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:6px;">
-                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#dcfce7;color:#16a34a;font-weight:600;">{{ __('dashboard.cal_schedule_badge') }} {{ $calendarSchedules->count() }}</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#dcfce7;color:var(--color-alert-success-500);font-weight:600;">{{ __('dashboard.cal_schedule_badge') }} {{ $calendarSchedules->count() }}</span>
                         <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#fff7ed;color:#f97316;font-weight:600;">Action {{ $calendarActionItems->count() }}</span>
-                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#ede9fe;color:#7c3aed;font-weight:600;">회의 {{ $calendarMeetings->count() }}</span>
+                        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--t100);color:var(--t600);font-weight:600;">회의 {{ $calendarMeetings->count() }}</span>
                         <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#e0f2fe;color:#0284c7;font-weight:600;">논의 {{ $calendarDiscussions->count() }}</span>
                         <svg class="gs-grip" width="14" height="14" fill="#c4b5fd" viewBox="0 0 14 14">
                             <circle cx="3" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
@@ -344,24 +345,24 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
 
                 <div class="gs-card-body">
                     {{-- 범례 --}}
-                    <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#7c3aed;"></div>{{ __('dashboard.legend_high') }}</div>
+                    <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:var(--t600);"></div>{{ __('dashboard.legend_high') }}</div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#f59e0b;"></div>{{ __('dashboard.legend_medium') }}</div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#f97316;border:1.5px solid #fed7aa;"></div>Action</div>
-                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#7c3aed;"></div>회의</div>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:var(--t600);"></div>회의</div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#0ea5e9;"></div>논의</div>
-                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:#ef4444;"></div>{{ __('dashboard.legend_delayed') }}</div>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b;"><div style="width:7px;height:7px;border-radius:50%;background:var(--color-alert-warning-500);"></div>{{ __('dashboard.legend_delayed') }}</div>
                     </div>
 
                     {{-- 요일 헤더 --}}
-                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;">
                         @foreach(__('dashboard.day_names') as $dow)
-                        <div style="text-align:center;font-size:10px;font-weight:700;color:{{ $loop->first ? '#ef4444' : ($loop->last ? '#3b82f6' : '#94a3b8') }};padding:3px 0;">{{ $dow }}</div>
+                        <div style="text-align:center;font-size:10px;font-weight:700;color:{{ $loop->first ? 'var(--color-alert-warning-500)' : ($loop->last ? '#3b82f6' : 'var(--color-text-tertiary)') }};padding:3px 0;">{{ $dow }}</div>
                         @endforeach
                     </div>
 
                     {{-- 날짜 셀 --}}
-                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="cal-grid">
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="cal-grid">
                         @php $cell = 0; @endphp
                         @for($row = 0; $row < 6; $row++)
                             @for($col = 0; $col < 7; $col++)
@@ -384,21 +385,21 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                 @endphp
                                 <div onclick="{{ $hasAnything ? "showDayEvents($dayNum)" : '' }}"
                                      style="border-radius:8px;padding:5px 2px;text-align:center;min-height:44px;position:relative;
-                                        {{ $isToday ? 'background:#f59e0b;box-shadow:0 0 0 2px #fde68a;'.($hasAnything ? 'cursor:pointer;' : '') : ($hasAnything ? 'background:#f5f3ff;cursor:pointer;' : '') }}
+                                        {{ $isToday ? 'background:#f59e0b;box-shadow:0 0 0 2px #fde68a;'.($hasAnything ? 'cursor:pointer;' : '') : ($hasAnything ? 'background:var(--t50);cursor:pointer;' : '') }}
                                         {{ !$isValid ? 'opacity:0;pointer-events:none;' : '' }}"
                                      class="{{ $hasAnything && !$isToday ? 'cal-day-hover' : '' }}">
                                     @if($isValid)
-                                    <div style="font-size:12px;font-weight:{{ $isToday ? '800' : '500' }};color:{{ $isToday ? '#fff' : ($col===0 ? '#ef4444' : ($col===6 ? '#3b82f6' : '#374151')) }};line-height:1.2;">{{ $dayNum }}</div>
+                                    <div style="font-size:12px;font-weight:{{ $isToday ? '800' : '500' }};color:{{ $isToday ? '#fff' : ($col===0 ? 'var(--color-alert-warning-500)' : ($col===6 ? '#3b82f6' : 'var(--color-text-secondary)')) }};line-height:1.2;">{{ $dayNum }}</div>
                                     @if($isToday)
                                     <div style="font-size:7px;font-weight:800;color:#fff;letter-spacing:.5px;line-height:1;margin-top:1px;">오늘</div>
                                     @endif
                                     @if($hasAnything)
-                                    <div style="display:flex;justify-content:center;gap:2px;margin-top:3px;flex-wrap:wrap;align-items:center;">
+                                    <div style="display:flex;justify-content:center;gap:4px;margin-top:3px;flex-wrap:wrap;align-items:center;">
                                         @foreach($dayDots->take(4) as $dot)
                                         <div style="width:5px;height:5px;border-radius:50%;background:{{ $isToday ? 'rgba(255,255,255,.8)' : $dot['c'] }};{{ $dot['b'] && !$isToday ? 'border:1px solid rgba(249,115,22,.3);' : '' }}flex-shrink:0;"></div>
                                         @endforeach
                                         @if($dayDots->count() > 4)
-                                        <div style="font-size:8px;color:{{ $isToday ? 'rgba(255,255,255,.8)' : '#94a3b8' }};line-height:5px;">+{{ $dayDots->count() - 4 }}</div>
+                                        <div style="font-size:8px;color:{{ $isToday ? 'rgba(255,255,255,.8)' : 'var(--color-text-tertiary)' }};line-height:5px;">+{{ $dayDots->count() - 4 }}</div>
                                         @endif
                                     </div>
                                     @endif
@@ -417,47 +418,47 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
 
                     {{-- 통합 이벤트 목록 --}}
                     @if($upcomingMerged->isNotEmpty())
-                    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f0eeff;">
-                        <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:8px;">{{ __('dashboard.upcoming_events') }}</div>
+                    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--color-border-default);">
+                        <div style="font-size:11px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:8px;">{{ __('dashboard.upcoming_events') }}</div>
                         @foreach($upcomingMerged->take(4) as $ev)
                         @php $evToday = $ev['date'] && \Illuminate\Support\Carbon::parse($ev['date'])->isToday(); @endphp
                         @if($ev['type'] === 'schedule')
                         @php $s = $ev['item']; @endphp
                         <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
-                            <div style="width:6px;height:6px;border-radius:50%;background:{{ $priDot[$s->priority] ?? '#7c3aed' }};flex-shrink:0;"></div>
+                            <div style="width:6px;height:6px;border-radius:50%;background:{{ $priDot[$s->priority] ?? 'var(--t600)' }};flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $s->title }}</div>
-                                <div style="font-size:10px;color:#94a3b8;">{{ $s->start_date->format(__('dashboard.date_format_day_time')) }}{{ $s->project ? ' · '.$s->project->name : '' }}</div>
+                                <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $s->title }}</div>
+                                <div style="font-size:10px;color:var(--color-text-tertiary);">{{ $s->start_date->format(__('dashboard.date_format_day_time')) }}{{ $s->project ? ' · '.$s->project->name : '' }}</div>
                             </div>
                             <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;{{ $s->status==='pending' ? 'background:#fef9c3;color:#ca8a04' : 'background:#dbeafe;color:#2563eb' }}">{{ $s->status_label }}</span>
                         </div>
                         @elseif($ev['type'] === 'action')
                         @php $a = $ev['item']; @endphp
                         <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
-                            <div style="width:6px;height:6px;border-radius:50%;background:{{ $a->isOverdue() ? '#ef4444' : '#f97316' }};flex-shrink:0;"></div>
+                            <div style="width:6px;height:6px;border-radius:50%;background:{{ $a->isOverdue() ? 'var(--color-alert-warning-500)' : '#f97316' }};flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $a->title }}</div>
-                                <div style="font-size:10px;color:#94a3b8;">{{ __('dashboard.deadline') }} {{ $a->due_date->format(__('dashboard.date_format_day')) }}{{ $a->project ? ' · '.$a->project->name : '' }}</div>
+                                <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $a->title }}</div>
+                                <div style="font-size:10px;color:var(--color-text-tertiary);">{{ __('dashboard.deadline') }} {{ $a->due_date->format(__('dashboard.date_format_day')) }}{{ $a->project ? ' · '.$a->project->name : '' }}</div>
                             </div>
-                            <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;{{ $a->isOverdue() ? 'background:#fee2e2;color:#dc2626' : 'background:#fff7ed;color:#f97316' }}">{{ $a->isOverdue() ? __('dashboard.delayed') : 'Action' }}</span>
+                            <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;{{ $a->isOverdue() ? 'background:var(--color-bg-danger-subtle);color:var(--color-alert-warning-500)' : 'background:#fff7ed;color:#f97316' }}">{{ $a->isOverdue() ? __('dashboard.delayed') : 'Action' }}</span>
                         </div>
                         @elseif($ev['type'] === 'meeting')
                         @php $m = $ev['item']; @endphp
                         <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
-                            <div style="width:6px;height:6px;border-radius:50%;background:#7c3aed;flex-shrink:0;"></div>
+                            <div style="width:6px;height:6px;border-radius:50%;background:var(--t600);flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $m->title }}</div>
-                                <div style="font-size:10px;color:#94a3b8;">{{ $m->meeting_date->format('n/j H:i') }}{{ $m->project ? ' · '.$m->project->name : '' }}</div>
+                                <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $m->title }}</div>
+                                <div style="font-size:10px;color:var(--color-text-tertiary);">{{ $m->meeting_date->format('n/j H:i') }}{{ $m->project ? ' · '.$m->project->name : '' }}</div>
                             </div>
-                            <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;background:#ede9fe;color:#7c3aed;">회의</span>
+                            <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;background:var(--t100);color:var(--t600);">회의</span>
                         </div>
                         @else
                         @php $d = $ev['item']; @endphp
                         <div class="{{ $evToday ? 'db-today' : '' }}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8f7ff;">
                             <div style="width:6px;height:6px;border-radius:50%;background:#0ea5e9;flex-shrink:0;"></div>
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $d->title }}</div>
-                                <div style="font-size:10px;color:#94a3b8;">{{ $d->discussion_date->format('n/j') }}{{ $d->project ? ' · '.$d->project->name : '' }}</div>
+                                <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $d->title }}</div>
+                                <div style="font-size:10px;color:var(--color-text-tertiary);">{{ $d->discussion_date->format('n/j') }}{{ $d->project ? ' · '.$d->project->name : '' }}</div>
                             </div>
                             <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;flex-shrink:0;background:#e0f2fe;color:#0284c7;">논의</span>
                         </div>
@@ -465,7 +466,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         @endforeach
                     </div>
                     @else
-                    <div style="text-align:center;padding:10px 0 0;font-size:12px;color:#94a3b8;">{{ __('dashboard.no_remaining_events') }}</div>
+                    <div style="text-align:center;padding:10px 0 0;font-size:12px;color:var(--color-text-tertiary);">{{ __('dashboard.no_remaining_events') }}</div>
                     @endif
                 </div>
             </div>
@@ -480,10 +481,10 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
             <div class="gs-card">
                 <div class="gs-drag-handle">
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:28px;height:28px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <div style="width:28px;height:28px;background:var(--color-bg-success-subtle);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg width="14" height="14" fill="none" stroke="#16a34a" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ __('dashboard.recent_files') }}</span>
+                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('dashboard.recent_files') }}</span>
                     </div>
                     <svg class="gs-grip" width="14" height="14" fill="#c4b5fd" viewBox="0 0 14 14">
                         <circle cx="3" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
@@ -493,14 +494,14 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                 </div>
                 <div class="gs-card-body">
                     @forelse($recentFiles as $file)
-                    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f8f7ff;">
+                    <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f8f7ff;">
                         <span style="font-size:18px;flex-shrink:0;">{{ $file->icon }}</span>
                         <div style="flex:1;min-width:0;">
                             <button onclick="openPreview({{ $file->id }}, {{ $file->project_id }})"
                                     style="background:none;border:none;cursor:pointer;padding:0;text-align:left;width:100%;">
-                                <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">{{ $file->original_name }}</div>
+                                <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">{{ $file->original_name }}</div>
                             </button>
-                            <div style="font-size:10px;color:#94a3b8;margin-top:2px;display:flex;align-items:center;gap:6px;">
+                            <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px;display:flex;align-items:center;gap:8px;">
                                 <span>{{ $file->project->name }}</span>
                                 <span>·</span>
                                 <span>{{ $file->created_at->format('m.d') }}</span>
@@ -508,7 +509,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                 <button type="button"
                                         onclick="dbToggleFileComments({{ $file->project_id }}, {{ $file->id }}, this, event)"
                                         title="{{ __('dashboard.opinions') }}"
-                                        style="background:none;border:0;padding:0;color:#7c3aed;font-weight:600;cursor:pointer;font-size:10px;display:inline-flex;align-items:center;gap:2px;">
+                                        style="background:none;border:0;padding:0;color:var(--t600);font-weight:600;cursor:pointer;font-size:10px;display:inline-flex;align-items:center;gap:4px;">
                                     <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     <span>{{ __('dashboard.opinions') }} {{ $file->comments_count }}</span>
                                 </button>
@@ -516,14 +517,14 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                             </div>
                         </div>
                         <button onclick="openPreview({{ $file->id }}, {{ $file->project_id }})"
-                                style="flex-shrink:0;background:none;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:11px;color:#6b7280;cursor:pointer;white-space:nowrap;"
+                                style="flex-shrink:0;background:none;border:1px solid var(--color-border-default);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap;"
                                 onmouseover="this.style.background='#f5f3ff';this.style.borderColor='#c4b5fd';this.style.color='#7c3aed'"
                                 onmouseout="this.style.background='none';this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">
                             {{ __('dashboard.open_file') }}
                         </button>
                     </div>
                     @empty
-                    <div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:13px;">{{ __('dashboard.no_files') }}</div>
+                    <div style="text-align:center;padding:24px 0;color:var(--color-text-tertiary);font-size:13px;">{{ __('dashboard.no_files') }}</div>
                     @endforelse
                 </div>
             </div>
@@ -541,7 +542,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <div style="width:28px;height:28px;background:#fce7f3;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg width="14" height="14" fill="none" stroke="#ec4899" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ __('dashboard.recent_minutes') }}</span>
+                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('dashboard.recent_minutes') }}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <a href="{{ route('meeting-minutes.index') }}" style="font-size:12px;color:var(--t500);text-decoration:none;font-weight:600;">{{ __('dashboard.view_all') }}</a>
@@ -557,24 +558,24 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     <a href="#" onclick="event.preventDefault(); dbOpenMinutePopup({{ $minute->id }})" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f8f7ff;text-decoration:none;" class="db-row-hover{{ $minute->meeting_date->isToday() ? ' db-today' : '' }}">
                         <div style="width:42px;text-align:center;flex-shrink:0;">
                             <div style="font-size:16px;font-weight:800;color:var(--t600);line-height:1;">{{ $minute->meeting_date->format('d') }}</div>
-                            <div style="font-size:10px;color:#94a3b8;font-weight:600;">{{ $minute->meeting_date->format('M') }}</div>
+                            <div style="font-size:10px;color:var(--color-text-tertiary);font-weight:600;">{{ $minute->meeting_date->format('M') }}</div>
                         </div>
                         <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $minute->title }}</div>
-                            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">
+                            <div style="font-size:13px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $minute->title }}</div>
+                            <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;">
                                 {{ $minute->author->name }}
                                 @if($minute->project) · {{ $minute->project->name }}@endif
                             </div>
                         </div>
                         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-                            <span style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;{{ $minute->type === 'project' ? 'background:#ede9fe;color:var(--t600)' : 'background:#f0f9ff;color:#0284c7' }};">{{ $minute->type_label }}</span>
+                            <span style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;{{ $minute->type === 'project' ? 'background:var(--t100);color:var(--t600)' : 'background:#f0f9ff;color:#0284c7' }};">{{ $minute->type_label }}</span>
                             @if($minute->actionItems->count())
                             <span style="font-size:10px;color:#f97316;">Action {{ $minute->actionItems->count() }}{{ __('dashboard.count_items') }}</span>
                             @endif
                         </div>
                     </a>
                     @empty
-                    <div style="text-align:center;padding:28px 0;color:#94a3b8;font-size:13px;">
+                    <div style="text-align:center;padding:28px 0;color:var(--color-text-tertiary);font-size:13px;">
                         <div style="font-size:28px;margin-bottom:6px;">📋</div>
                         {{ __('dashboard.no_minutes') }}<br>
                         <a href="{{ route('meeting-minutes.index') }}?new=1" style="color:var(--t500);font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;display:inline-block;">{{ __('dashboard.write_minutes') }}</a>
@@ -596,7 +597,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <div style="width:28px;height:28px;background:#dbeafe;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg width="14" height="14" fill="none" stroke="#3b82f6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ __('dashboard.my_tasks') }}</span>
+                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('dashboard.my_tasks') }}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <a href="{{ route('tasks.index') }}" style="font-size:12px;color:var(--t500);text-decoration:none;font-weight:600;">{{ __('dashboard.view_all') }}</a>
@@ -611,17 +612,17 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     @php $priColor = ['high'=>'#ef4444','medium'=>'#f59e0b','low'=>'#22c55e']; @endphp
                     @forelse($myTasks as $task)
                     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f8f7ff;">
-                        <div style="width:7px;height:7px;border-radius:50%;background:{{ $priColor[$task->priority] ?? '#94a3b8' }};flex-shrink:0;"></div>
+                        <div style="width:7px;height:7px;border-radius:50%;background:{{ $priColor[$task->priority] ?? 'var(--color-text-tertiary)' }};flex-shrink:0;"></div>
                         <div style="flex:1;min-width:0;">
-                            <div style="font-size:12px;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $task->title }}</div>
-                            @if($task->project)<div style="font-size:10px;color:#94a3b8;margin-top:1px;">{{ $task->project->name }}</div>@endif
+                            <div style="font-size:12px;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $task->title }}</div>
+                            @if($task->project)<div style="font-size:10px;color:var(--color-text-tertiary);margin-top:1px;">{{ $task->project->name }}</div>@endif
                         </div>
                         <span style="font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;flex-shrink:0;{{ $task->status === 'in_progress' ? 'background:#dbeafe;color:#2563eb' : 'background:#f1f5f9;color:#64748b' }}">
                             {{ $task->status === 'in_progress' ? __('dashboard.task_in_progress') : __('dashboard.task_todo') }}
                         </span>
                     </div>
                     @empty
-                    <div style="text-align:center;padding:20px 0;color:#94a3b8;font-size:12px;">{{ __('dashboard.no_tasks') }}</div>
+                    <div style="text-align:center;padding:20px 0;color:var(--color-text-tertiary);font-size:12px;">{{ __('dashboard.no_tasks') }}</div>
                     @endforelse
                 </div>
             </div>
@@ -639,7 +640,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <div style="width:28px;height:28px;background:#ecfdf5;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg width="14" height="14" fill="none" stroke="#10b981" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ __('dashboard.recent_community') }}</span>
+                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('dashboard.recent_community') }}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <a href="{{ route('community.index') }}" style="font-size:12px;color:var(--t500);text-decoration:none;font-weight:600;">{{ __('dashboard.view_all') }}</a>
@@ -652,22 +653,22 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                 </div>
                 <div class="gs-card-body">
                     @forelse($recentCommunityPosts as $post)
-                    <a href="{{ route('community.show', $post) }}" style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f8f7ff;text-decoration:none;" class="db-row-hover">
+                    <a href="{{ route('community.show', $post) }}" style="display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid #f8f7ff;text-decoration:none;" class="db-row-hover">
                         <div style="flex:1;min-width:0;">
-                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
+                            <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
                                 <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;color:#fff;background:{{ $post->category_color }};flex-shrink:0;">{{ $post->category_label }}</span>
-                                @if($post->pinned)<span style="font-size:10px;color:#ef4444;font-weight:600;flex-shrink:0;">📌</span>@endif
+                                @if($post->pinned)<span style="font-size:10px;color:var(--color-alert-warning-500);font-weight:600;flex-shrink:0;">📌</span>@endif
                             </div>
-                            <div style="font-size:12px;font-weight:600;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $post->title }}</div>
-                            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">{{ $post->user->name }} · {{ $post->created_at->diffForHumans() }}</div>
+                            <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $post->title }}</div>
+                            <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px;">{{ $post->user->name }} · {{ $post->created_at->diffForHumans() }}</div>
                         </div>
-                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">
-                            <div style="display:flex;align-items:center;gap:3px;font-size:10px;color:#94a3b8;">
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+                            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--color-text-tertiary);">
                                 <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                 {{ $post->all_comments_count }}
                             </div>
                             @if($post->votes > 0)
-                            <div style="display:flex;align-items:center;gap:2px;font-size:10px;color:#10b981;font-weight:600;">
+                            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#10b981;font-weight:600;">
                                 <svg width="10" height="10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"/></svg>
                                 {{ $post->votes }}
                             </div>
@@ -675,7 +676,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         </div>
                     </a>
                     @empty
-                    <div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:12px;">
+                    <div style="text-align:center;padding:24px 0;color:var(--color-text-tertiary);font-size:12px;">
                         <div style="font-size:24px;margin-bottom:6px;">💬</div>
                         {{ __('dashboard.no_posts') }}<br>
                         <a href="{{ route('community.index') }}" style="color:var(--t500);font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;display:inline-block;">{{ __('dashboard.write_first_post') }}</a>
@@ -697,10 +698,10 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                         <div style="width:28px;height:28px;background:#fff7ed;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <svg width="14" height="14" fill="none" stroke="#f97316" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#1e1b2e;">{{ __('dashboard.my_action_items') }}</span>
+                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('dashboard.my_action_items') }}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:11px;color:#94a3b8;">{{ $pendingActions->count() }}{{ __('dashboard.pending_count') }}</span>
+                        <span style="font-size:11px;color:var(--color-text-tertiary);">{{ $pendingActions->count() }}{{ __('dashboard.pending_count') }}</span>
                         <a href="{{ route('action-items.index') }}" style="font-size:12px;color:var(--t500);text-decoration:none;font-weight:600;">{{ __('dashboard.view_all') }}</a>
                         <svg class="gs-grip" width="14" height="14" fill="#c4b5fd" viewBox="0 0 14 14">
                             <circle cx="3" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
@@ -713,7 +714,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     @php $actionsByProject = $pendingActions->groupBy(fn($a) => $a->project_id ?? 'none'); @endphp
 
                     @if($pendingActions->isEmpty())
-                    <div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:12px;">
+                    <div style="text-align:center;padding:24px 0;color:var(--color-text-tertiary);font-size:12px;">
                         <div style="font-size:24px;margin-bottom:6px;">✅</div>
                         {{ __('dashboard.no_pending') }}
                     </div>
@@ -721,10 +722,10 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                     @foreach($actionsByProject as $projectId => $actions)
                     @php $proj = $actions->first()->project; @endphp
                     <div style="margin-bottom:12px;">
-                        <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#f8f7ff;border-radius:7px;margin-bottom:6px;">
-                            <div style="width:6px;height:6px;border-radius:50%;background:{{ $proj ? 'var(--t500)' : '#94a3b8' }};flex-shrink:0;"></div>
-                            <span style="font-size:11px;font-weight:700;color:{{ $proj ? 'var(--t600)' : '#94a3b8' }};">{{ $proj ? $proj->name : __('dashboard.no_project') }}</span>
-                            <span style="font-size:10px;color:#94a3b8;margin-left:auto;">{{ $actions->count() }}{{ __('dashboard.count_items') }}</span>
+                        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:#f8f7ff;border-radius:7px;margin-bottom:6px;">
+                            <div style="width:6px;height:6px;border-radius:50%;background:{{ $proj ? 'var(--t500)' : 'var(--color-text-tertiary)' }};flex-shrink:0;"></div>
+                            <span style="font-size:11px;font-weight:700;color:{{ $proj ? 'var(--t600)' : 'var(--color-text-tertiary)' }};">{{ $proj ? $proj->name : __('dashboard.no_project') }}</span>
+                            <span style="font-size:10px;color:var(--color-text-tertiary);margin-left:auto;">{{ $actions->count() }}{{ __('dashboard.count_items') }}</span>
                         </div>
                         @foreach($actions as $action)
                         <div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;margin-bottom:2px;" class="action-row-hover{{ $action->due_date && $action->due_date->isToday() ? ' db-today' : '' }}">
@@ -735,10 +736,10 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
                                         title="{{ __('dashboard.mark_done') }}"></button>
                             </form>
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $action->title }}</div>
+                                <div style="font-size:12px;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $action->title }}</div>
                             </div>
                             @if($action->due_date)
-                            <span style="font-size:10px;font-weight:600;flex-shrink:0;{{ $action->isOverdue() ? 'color:#ef4444;' : ($action->isDueSoon() ? 'color:#f59e0b;' : 'color:#94a3b8;') }}">
+                            <span style="font-size:10px;font-weight:600;flex-shrink:0;{{ $action->isOverdue() ? 'color:var(--color-alert-warning-500);' : ($action->isDueSoon() ? 'color:#f59e0b;' : 'color:var(--color-text-tertiary);') }}">
                                 {{ $action->due_date->format('m/d') }}
                                 @if($action->isOverdue()) {{ __('dashboard.overdue') }}@elseif($action->isDueSoon()) {{ __('dashboard.due_soon') }}@endif
                             </span>
@@ -833,15 +834,15 @@ async function showDayEvents(day) {
         <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #e8e3ff;">
             <div style="width:6px;height:6px;border-radius:50%;background:${e.dot};flex-shrink:0;"></div>
             <div style="flex:1;min-width:0;">
-                <div style="font-size:12px;font-weight:600;color:#1e1b2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.title}</div>
-                <div style="font-size:10px;color:#94a3b8;">${e.sub}</div>
+                <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.title}</div>
+                <div style="font-size:10px;color:var(--color-text-tertiary);">${e.sub}</div>
             </div>
             <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;${e.badge_style};flex-shrink:0;">${e.badge}</span>
         </div>`;
 
     let html = '';
-    if (scheds.length)      html += `<div style="font-size:10px;font-weight:700;color:#7c3aed;margin:4px 0 2px;">${STR.schedule_label}</div>` + scheds.map(row).join('');
-    if (meetings.length)    html += `<div style="font-size:10px;font-weight:700;color:#7c3aed;margin:8px 0 2px;">회의</div>` + meetings.map(row).join('');
+    if (scheds.length)      html += `<div style="font-size:10px;font-weight:700;color:var(--t600);margin:4px 0 2px;">${STR.schedule_label}</div>` + scheds.map(row).join('');
+    if (meetings.length)    html += `<div style="font-size:10px;font-weight:700;color:var(--t600);margin:8px 0 2px;">회의</div>` + meetings.map(row).join('');
     if (discussions.length) html += `<div style="font-size:10px;font-weight:700;color:#0ea5e9;margin:8px 0 2px;">논의</div>` + discussions.map(row).join('');
     if (actions.length)     html += `<div style="font-size:10px;font-weight:700;color:#f97316;margin:8px 0 2px;">${STR.action_label}</div>` + actions.map(row).join('');
     list.innerHTML = html;
@@ -922,11 +923,11 @@ async function resetDashboardLayout() {
     <div style="padding:11px 14px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;flex-shrink:0;">
         <svg width="14" height="14" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div style="flex:1;min-width:0;">
-            <div id="db-fc-pop-title" style="font-size:12.5px;font-weight:700;color:#1e1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ __('dashboard.opinions') }}</div>
+            <div id="db-fc-pop-title" style="font-size:12.5px;font-weight:700;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ __('dashboard.opinions') }}</div>
         </div>
-        <button type="button" onclick="dbFcClosePop()" style="background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">&times;</button>
+        <button type="button" onclick="dbFcClosePop()" style="background:none;border:none;font-size:18px;color:var(--color-text-tertiary);cursor:pointer;line-height:1;padding:0;">&times;</button>
     </div>
-    <div id="db-fc-pop-body" style="flex:1;overflow-y:auto;padding:8px 12px;min-height:0;font-size:11.5px;color:#6b7280;">{{ __('dashboard.fc_loading') }}</div>
+    <div id="db-fc-pop-body" style="flex:1;overflow-y:auto;padding:8px 12px;min-height:0;font-size:11.5px;color:var(--color-text-secondary);">{{ __('dashboard.fc_loading') }}</div>
 </div>
 
 {{-- 회의록 상세 팝업 --}}
@@ -1011,7 +1012,7 @@ function dbToggleFileComments(projectId, fileId, btn, ev){
         return;
     }
 
-    body.innerHTML = `<div style="padding:6px 0;color:#94a3b8;">${dbFcEsc(DB_FC_TXT.loading)}</div>`;
+    body.innerHTML = `<div style="padding:6px 0;color:var(--color-text-tertiary);">${dbFcEsc(DB_FC_TXT.loading)}</div>`;
     requestAnimationFrame(dbFcPositionPop);
 
     const url = `${DB_FILE_COMMENTS_BASE}/${projectId}/files/${fileId}/comments`;
@@ -1021,7 +1022,7 @@ function dbToggleFileComments(projectId, fileId, btn, ev){
             const list = (d.comments || []).filter(c => !c.parent_id);
             let html;
             if (!list.length){
-                html = `<div style="padding:6px 0;color:#94a3b8;">${dbFcEsc(DB_FC_TXT.empty)}</div>`;
+                html = `<div style="padding:6px 0;color:var(--color-text-tertiary);">${dbFcEsc(DB_FC_TXT.empty)}</div>`;
             } else {
                 html = list.map(c => dbFcCommentHtml(c)).join('');
             }
@@ -1029,22 +1030,22 @@ function dbToggleFileComments(projectId, fileId, btn, ev){
             body.innerHTML = html;
             requestAnimationFrame(dbFcPositionPop);
         })
-        .catch(() => { body.innerHTML = `<div style="padding:6px 0;color:#dc2626;">${dbFcEsc(DB_FC_TXT.failed)}</div>`; });
+        .catch(() => { body.innerHTML = `<div style="padding:6px 0;color:var(--color-alert-warning-500);">${dbFcEsc(DB_FC_TXT.failed)}</div>`; });
 }
 
 function dbFcCommentHtml(c){
     const author = c.user_name || c.author || (c.user && c.user.name) || c.guest_name || '';
     const when   = c.created_at_formatted || c.created_at || '';
-    const page   = c.page ? `<span style="font-size:9.5px;font-weight:700;color:#6d28d9;background:#ede9fe;border-radius:3px;padding:0 4px;margin-left:3px;">${DB_FC_TXT.page} ${c.page}</span>` : '';
+    const page   = c.page ? `<span style="font-size:9.5px;font-weight:700;color:var(--t700);background:var(--t100);border-radius:3px;padding:0 4px;margin-left:3px;">${DB_FC_TXT.page} ${c.page}</span>` : '';
     const replies = (c.replies || []).slice(0, 3).map(r =>
-        `<div style="margin-top:3px;padding-left:8px;border-left:2px solid #ede9fe;color:#6b7280;font-size:10.5px;">↳ <b style="color:#6d28d9;">${dbFcEsc(r.user_name || (r.user && r.user.name) || r.guest_name || '')}</b> ${dbFcEsc(r.content)}</div>`
+        `<div style="margin-top:3px;padding-left:8px;border-left:2px solid var(--t100);color:var(--color-text-secondary);font-size:10.5px;">↳ <b style="color:var(--t700);">${dbFcEsc(r.user_name || (r.user && r.user.name) || r.guest_name || '')}</b> ${dbFcEsc(r.content)}</div>`
     ).join('');
-    return `<div style="padding:6px 0;border-bottom:1px dashed #ede9fe;">
-        <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#9ca3af;">
-            <b style="color:#1e1b2e;">${dbFcEsc(author)}</b>
+    return `<div style="padding:6px 0;border-bottom:1px dashed var(--t100);">
+        <div style="display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--color-text-tertiary);">
+            <b style="color:var(--color-text-primary);">${dbFcEsc(author)}</b>
             <span>${dbFcEsc(when)}</span>${page}
         </div>
-        <div style="font-size:11.5px;color:#374151;white-space:pre-wrap;word-break:break-word;line-height:1.5;margin-top:2px;">${dbFcEsc(c.content)}</div>
+        <div style="font-size:11.5px;color:var(--color-text-secondary);white-space:pre-wrap;word-break:break-word;line-height:1.5;margin-top:2px;">${dbFcEsc(c.content)}</div>
         ${replies}
     </div>`;
 }

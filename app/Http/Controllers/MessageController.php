@@ -352,6 +352,51 @@ class MessageController extends Controller
         return redirect()->route('messages.index');
     }
 
+    /**
+     * messages 화면 상단 워크스페이스 팝업용 — 내가 멤버인 프로젝트 목록 + 권한 허용 메뉴.
+     * 메뉴는 7개 주요 메뉴만 노출, hasFeature() 권한 체크 적용.
+     */
+    public function workspaceProjects(): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+
+        $projects = $user->projects()
+            ->orderBy('projects.name')
+            ->get(['projects.id', 'projects.name', 'projects.status']);
+
+        // 주요 메뉴 7개 — feature 권한 키와 URL 라우트 키
+        $allMenus = [
+            ['key' => 'overview',     'feature' => null,           'label' => __('projects.nav_overview'),     'route' => 'projects.show'],
+            ['key' => 'planning',     'feature' => 'planning',     'label' => __('projects.planning'),         'route' => 'projects.planning.index'],
+            ['key' => 'requirements', 'feature' => 'requirements', 'label' => __('projects.nav_requirements'), 'route' => 'projects.requirements.index'],
+            ['key' => 'schedules',    'feature' => 'schedules',    'label' => __('projects.schedule'),         'route' => 'projects.schedules.index'],
+            ['key' => 'gantt',        'feature' => 'gantt',        'label' => __('projects.gantt'),            'route' => 'projects.gantt'],
+            ['key' => 'issues',       'feature' => 'issues',       'label' => __('projects.nav_issues'),       'route' => 'projects.issues.index'],
+            ['key' => 'files',        'feature' => 'files',        'label' => __('projects.files'),            'route' => 'projects.files.index'],
+        ];
+
+        $menus = array_values(array_filter($allMenus, fn($m) => $m['feature'] === null || $user->hasFeature($m['feature'])));
+
+        $items = $projects->map(function ($p) use ($menus) {
+            $menuList = array_map(fn($m) => [
+                'key'   => $m['key'],
+                'label' => $m['label'],
+                'url'   => route($m['route'], $p),
+            ], $menus);
+
+            return [
+                'id'     => $p->id,
+                'name'   => $p->name,
+                'status' => $p->status,
+                'menus'  => $menuList,
+            ];
+        });
+
+        return response()->json([
+            'projects' => $items,
+        ]);
+    }
+
     // 내가 속한 프로젝트의 다른 멤버 목록 (중복 제거, 이름순)
     private function projectMates(User $user): \Illuminate\Database\Eloquent\Collection
     {

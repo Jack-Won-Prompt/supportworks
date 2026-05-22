@@ -15,10 +15,10 @@
         <small>세션을 끝까지 진행해 최종 승인하면 이곳에 표시됩니다.</small>
     </div>
 @else
-    <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
         @foreach($confirmed as $c)
             <div class="ags-card">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
                     <div>
                         <strong style="font-size:13.5px;">
                             @if($c->output)

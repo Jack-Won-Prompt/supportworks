@@ -1057,7 +1057,7 @@
                     </div>
                     <div class="ai-msg">
                         <div class="ai-avatar bot">🤖</div>
-                        <div class="ai-bubble bot" style="display:flex;align-items:center;gap:5px;">
+                        <div class="ai-bubble bot" style="display:flex;align-items:center;gap:4px;">
                             <div class="ai-typing">
                                 <div class="t-dot"></div>
                                 <div class="t-dot"></div>

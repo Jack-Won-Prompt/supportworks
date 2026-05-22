@@ -21,7 +21,7 @@
     <div style="position:relative;background:#fff;border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.18);margin:16px;">
 
         {{-- Header --}}
-        <div style="display:flex;align-items:center;gap:10px;padding:20px 24px 16px;border-bottom:1.5px solid #f1f5f9;">
+        <div style="display:flex;align-items:center;gap:12px;padding:20px 24px 16px;border-bottom:1.5px solid #f1f5f9;">
             <svg width="18" height="18" viewBox="0 0 38 57" fill="none" style="flex-shrink:0;">
                 <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE"/>
                 <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 0 1-19 0z" fill="#0ACF83"/>
@@ -78,19 +78,19 @@
             {{-- Actions --}}
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
                 <button @click="save" :disabled="loading || !pat.trim()"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:8px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--t600,#7c3aed);color:#fff;transition:background .15s;"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:8px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--t600,#7c3aed);color:#fff;transition:background .15s;"
                         onmouseover="if(!this.disabled)this.style.background='var(--t700,#6d28d9)'" onmouseout="this.style.background='var(--t600,#7c3aed)'">
                     <svg x-show="!loading" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                     <svg x-show="loading" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin .7s linear infinite;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     저장
                 </button>
                 <button x-show="hasToken" @click="validate" :disabled="loading || !hasToken"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;transition:all .15s;"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;transition:all .15s;"
                         onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
                     검증
                 </button>
                 <button x-show="hasToken" @click="deletePat" :disabled="loading"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;background:#fef2f2;color:#dc2626;border:1.5px solid #fca5a5;transition:all .15s;margin-left:auto;"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;background:#fef2f2;color:#dc2626;border:1.5px solid #fca5a5;transition:all .15s;margin-left:auto;"
                         onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
                     삭제
                 </button>

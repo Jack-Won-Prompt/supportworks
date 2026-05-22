@@ -184,20 +184,20 @@
         {{-- 빠른 이동 --}}
         <div class="rpt-card" style="background:#fafaff;">
             <div class="rpt-card-title">🔗 빠른 이동</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-                <a href="{{ route('ai-agent.projects.release.package.download', $project) }}" style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:700;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <a href="{{ route('ai-agent.projects.release.package.download', $project) }}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:700;">
                     📦 최종 패키지 다운로드
                 </a>
-                <a href="{{ route('ai-agent.projects.release.package.index', $project) }}" style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
+                <a href="{{ route('ai-agent.projects.release.package.index', $project) }}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
                     T48 통합 패키지
                 </a>
-                <a href="{{ route('ai-agent.projects.release.deploy-guide.index', $project) }}" style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
+                <a href="{{ route('ai-agent.projects.release.deploy-guide.index', $project) }}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
                     T49 배포 가이드
                 </a>
-                <a href="{{ route('ai-agent.projects.release.user-manual.index', $project) }}" style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
+                <a href="{{ route('ai-agent.projects.release.user-manual.index', $project) }}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
                     T50 사용자 매뉴얼
                 </a>
-                <a href="{{ route('ai-agent.projects.release.migration-guide.index', $project) }}" style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
+                <a href="{{ route('ai-agent.projects.release.migration-guide.index', $project) }}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f1f5f9;color:#1e1b2e;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;">
                     T51 마이그레이션 가이드
                 </a>
             </div>

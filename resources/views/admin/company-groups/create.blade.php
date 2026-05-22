@@ -46,7 +46,7 @@
                 <label for="is_active" style="font-size:13px;color:#334155;cursor:pointer;">{{ __('admin.active_on_create') }}</label>
             </div>
 
-            <div style="display:flex;gap:10px;padding-top:8px;border-top:1px solid #f1f5f9;">
+            <div style="display:flex;gap:12px;padding-top:8px;border-top:1px solid #f1f5f9;">
                 <button type="submit" class="btn-primary">{{ __('admin.create') }}</button>
                 <a href="{{ route('admin.company-groups.index') }}" class="btn-secondary">{{ __('admin.cancel') }}</a>
             </div>

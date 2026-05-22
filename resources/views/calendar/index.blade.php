@@ -77,20 +77,20 @@
 <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;overflow:hidden;">
 
     {{-- 달력 위 좌측 날짜 네비게이션 --}}
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #f3f4f6;">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--color-bg-muted);">
         <a href="{{ route('calendar', ['year'=>$prev->year,'month'=>$prev->month]) }}"
-           style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid #e4e4e7;border-radius:7px;background:#fff;color:#52525b;text-decoration:none;"
+           style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid #e4e4e7;border-radius:7px;background:#fff;color:var(--color-text-secondary);text-decoration:none;"
            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </a>
-        <span style="font-size:14px;font-weight:600;color:#18181b;min-width:90px;text-align:center;">{{ __('calendar.year_month', ['year' => $year, 'month' => $month]) }}</span>
+        <span style="font-size:14px;font-weight:600;color:var(--color-text-primary);min-width:90px;text-align:center;">{{ __('calendar.year_month', ['year' => $year, 'month' => $month]) }}</span>
         <a href="{{ route('calendar', ['year'=>$next->year,'month'=>$next->month]) }}"
-           style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid #e4e4e7;border-radius:7px;background:#fff;color:#52525b;text-decoration:none;"
+           style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid #e4e4e7;border-radius:7px;background:#fff;color:var(--color-text-secondary);text-decoration:none;"
            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
         <a href="{{ route('calendar', ['year'=>now()->year,'month'=>now()->month]) }}"
-           style="padding:5px 12px;font-size:13px;font-weight:500;border:1px solid #e4e4e7;border-radius:7px;background:#fff;color:#52525b;text-decoration:none;"
+           style="padding:5px 12px;font-size:13px;font-weight:500;border:1px solid #e4e4e7;border-radius:7px;background:#fff;color:var(--color-text-secondary);text-decoration:none;"
            onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('calendar.today') }}</a>
     </div>
 
@@ -155,8 +155,8 @@
 <div id="cal-overlay" onclick="closeDetail()"></div>
 <div id="cal-detail">
     <div id="cal-detail-header">
-        <span id="cd-date" style="font-size:13px;font-weight:600;color:#52525b;"></span>
-        <button onclick="closeDetail()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:20px;line-height:1;">&times;</button>
+        <span id="cd-date" style="font-size:13px;font-weight:600;color:var(--color-text-secondary);"></span>
+        <button onclick="closeDetail()" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:20px;line-height:1;">&times;</button>
     </div>
     <div id="cd-body"></div>
 </div>
@@ -192,13 +192,13 @@ function renderEventCard(ev) {
             ? (ev.start + (ev.time ? ' ' + ev.time : '') + (ev.location ? ' · ' + ev.location : ''))
             : ev.start;
         return `<a href="${ev.show_url}" style="display:block;text-decoration:none;margin-bottom:8px;">
-            <div style="border:1px solid #f4f4f5;border-radius:9px;padding:10px 12px;transition:background .1s;"
+            <div style="border:1px solid var(--color-bg-muted);border-radius:9px;padding:10px 12px;transition:background .1s;"
                  onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                     <span style="background:${col};color:#fff;font-size:11px;font-weight:500;padding:1px 7px;border-radius:4px;">${typeLabel}</span>
-                    <span style="font-size:11px;color:#94a3b8;">${ev.project || ''}</span>
+                    <span style="font-size:11px;color:var(--color-text-tertiary);">${ev.project || ''}</span>
                 </div>
-                <div style="font-size:13px;font-weight:600;color:#18181b;margin-bottom:3px;">${ev.title}</div>
+                <div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:3px;">${ev.title}</div>
                 <div style="font-size:11.5px;color:#71717a;">${sub}</div>
             </div>
         </a>`;
@@ -208,13 +208,13 @@ function renderEventCard(ev) {
     const label = STATUS_LABEL[ev.status] || ev.status;
     const textCol = ev.status === 'cancelled' ? '#6b7280' : '#fff';
     return `<a href="${ev.show_url}" style="display:block;text-decoration:none;margin-bottom:8px;">
-        <div style="border:1px solid #f4f4f5;border-radius:9px;padding:10px 12px;transition:background .1s;"
+        <div style="border:1px solid var(--color-bg-muted);border-radius:9px;padding:10px 12px;transition:background .1s;"
              onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                <span style="background:${ev.status==='cancelled'?'#f3f4f6':col};color:${textCol};font-size:11px;font-weight:500;padding:1px 7px;border-radius:4px;">${label}</span>
-                <span style="font-size:11px;color:#94a3b8;">${ev.project}</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span style="background:${ev.status==='cancelled'?'var(--color-bg-muted)':col};color:${textCol};font-size:11px;font-weight:500;padding:1px 7px;border-radius:4px;">${label}</span>
+                <span style="font-size:11px;color:var(--color-text-tertiary);">${ev.project}</span>
             </div>
-            <div style="font-size:13px;font-weight:600;color:#18181b;margin-bottom:3px;">${ev.title}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:3px;">${ev.title}</div>
             <div style="font-size:11.5px;color:#71717a;">${ev.start}${ev.end && ev.end !== ev.start ? ' ~ ' + ev.end : ''} · ${ev.assignee || STR_UNASSIGNED}</div>
         </div>
     </a>`;
@@ -249,7 +249,7 @@ function calHoverShow(cell, key) {
     const evts = ALL_EVENTS[key] || [];
     if (!evts.length) return;
 
-    pop.innerHTML = `<div style="font-size:11px;font-weight:700;color:#52525b;margin-bottom:5px;">${key} · ${evts.length}건</div>`
+    pop.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--color-text-secondary);margin-bottom:5px;">${key} · ${evts.length}건</div>`
         + evts.map(ev => {
             const col = ev.type === 'meeting'    ? '#7c3aed'
                       : ev.type === 'discussion' ? '#0ea5e9'

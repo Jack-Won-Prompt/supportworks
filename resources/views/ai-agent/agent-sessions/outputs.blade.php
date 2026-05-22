@@ -19,10 +19,10 @@
                 <small>Phase 7 이후 OutputGenerationService가 활성화되면 생성 버튼이 노출됩니다.</small>
             </div>
         @else
-            <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
                 @foreach($outputs as $o)
                     <a href="{{ route('ai-agent.projects.agent-sessions.outputs.show', [$project, $session, $o]) }}" class="ags-card" style="text-decoration:none;color:inherit;display:block;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
                             <div>
                                 <strong style="font-size:13.5px;">v{{ $o->version_no }} · {{ $o->output_type->label() }}</strong>
                                 @if($o->change_summary)

@@ -140,11 +140,11 @@
         <h3>컴포넌트 명세가 없습니다</h3>
         <p>Figma 컴포넌트 라이브러리에서 자동으로 명세를 추출합니다.</p>
 
-        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
             <input type="url" x-model="figmaUrl" class="cs-url-input"
                    placeholder="https://www.figma.com/file/ABC123/My-Design-System">
 
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#64748b;cursor:pointer;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#64748b;cursor:pointer;">
                 <input type="checkbox" x-model="linkTokens" style="accent-color:var(--t500);">
                 Design Tokens와 연결 (자동 매핑)
                 <span x-show="hasTokens" style="color:#15803d;font-size:11px;">(토큰 추출 산출물 있음)</span>
@@ -239,7 +239,7 @@
                     </div>
                     <div class="cs-card-body">
                         <div class="cs-card-name" title="{{ $component['name'] ?? $key }}">{{ $component['name'] ?? $key }}</div>
-                        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
                             <span class="cs-type-badge {{ ($component['type'] ?? '') === 'ComponentSet' ? 'set' : 'solo' }}">
                                 {{ ($component['type'] ?? 'Component') === 'ComponentSet' ? 'Set' : 'Solo' }}
                             </span>
@@ -324,7 +324,7 @@
                 <div class="cs-section-label">사용 가이드</div>
                 <textarea x-model="detail.documentation" class="cs-doc-area"
                           placeholder="이 컴포넌트의 사용 가이드를 작성하세요..."></textarea>
-                <div style="display:flex;gap:6px;margin-top:8px;">
+                <div style="display:flex;gap:8px;margin-top:8px;">
                     <button @click="saveDoc()" :disabled="savingDoc" class="cs-btn primary sm">
                         <span x-text="savingDoc ? '저장 중...' : '저장'"></span>
                     </button>

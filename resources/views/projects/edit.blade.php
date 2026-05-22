@@ -7,7 +7,7 @@
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<span style="color:#374151;font-weight:500;">{{ __('common.edit') }}</span>
+<span style="color:var(--color-text-secondary);font-weight:500;">{{ __('common.edit') }}</span>
 @endsection
 
 @section('content')
@@ -69,37 +69,37 @@
             </div>
 
             {{-- SI 계약 모드 --}}
-            <div style="border-top:1px solid #f3f4f6;padding-top:16px;">
-                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <div style="border-top:1px solid var(--color-bg-muted);padding-top:16px;">
+                <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
                     <input type="checkbox" name="si_mode_enabled" value="1"
                            {{ old('si_mode_enabled', $project->si_mode_enabled) ? 'checked' : '' }}
                            style="width:16px;height:16px;accent-color:var(--t500);">
                     <div>
-                        <span style="font-size:13px;font-weight:600;color:#374151;">{{ __('projects.si_mode_title') }}</span>
-                        <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">{{ __('projects.si_mode_desc') }}</p>
+                        <span style="font-size:13px;font-weight:600;color:var(--color-text-secondary);">{{ __('projects.si_mode_title') }}</span>
+                        <p style="font-size:11px;color:var(--color-text-tertiary);margin:2px 0 0;">{{ __('projects.si_mode_desc') }}</p>
                     </div>
                 </label>
             </div>
 
             {{-- SM 유지보수 모드 --}}
-            <div style="border-top:1px solid #f3f4f6;padding-top:16px;">
-                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <div style="border-top:1px solid var(--color-bg-muted);padding-top:16px;">
+                <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
                     <input type="checkbox" name="sm_mode_enabled" value="1"
                            {{ old('sm_mode_enabled', $project->sm_mode_enabled) ? 'checked' : '' }}
                            style="width:16px;height:16px;accent-color:var(--t500);">
                     <div>
-                        <span style="font-size:13px;font-weight:600;color:#374151;">{{ __('projects.sm_mode_title') }}</span>
-                        <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">{{ __('projects.sm_mode_desc') }}</p>
+                        <span style="font-size:13px;font-weight:600;color:var(--color-text-secondary);">{{ __('projects.sm_mode_title') }}</span>
+                        <p style="font-size:11px;color:var(--color-text-tertiary);margin:2px 0 0;">{{ __('projects.sm_mode_desc') }}</p>
                     </div>
                 </label>
             </div>
 
             {{-- 웍스 분석 모델 기본값 --}}
-            <div style="border-top:1px solid #f3f4f6;padding-top:16px;">
-                <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 10px;">{{ __('projects.works_model_title') }}</p>
+            <div style="border-top:1px solid var(--color-bg-muted);padding-top:16px;">
+                <p style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin:0 0 10px;">{{ __('projects.works_model_title') }}</p>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
-                        <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">{{ __('projects.llm_provider') }}</label>
+                        <label style="display:block;font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;">{{ __('projects.llm_provider') }}</label>
                         <select name="preferred_llm_provider" id="edit_llm_provider"
                                 style="width:100%;padding:7px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;"
                                 onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"
@@ -113,7 +113,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">{{ __('projects.llm_model') }}</label>
+                        <label style="display:block;font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;">{{ __('projects.llm_model') }}</label>
                         <select name="preferred_llm_model" id="edit_llm_model"
                                 style="width:100%;padding:7px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;"
                                 onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'">

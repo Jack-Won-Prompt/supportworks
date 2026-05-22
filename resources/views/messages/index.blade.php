@@ -5,14 +5,191 @@
 
 @section('content')
 <style>
-#msg-wrap {
+/* ── 워크스페이스 쉘 (상단바 + msg-wrap 을 감싸는 외곽 컨테이너) */
+#ws-shell {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
     margin: -20px -24px -24px;
-    padding: 10px;
     height: calc(100vh - 52px);
     background: #f1f0f7;
     border-top: 1px solid var(--t100);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* ── 워크스페이스 상단바 */
+#ws-topbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 14px;
+    background: #fff;
+    border-bottom: 1px solid var(--t100);
+    min-height: 44px;
+}
+.ws-tb-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ws-tb-sel {
+    height: 30px;
+    padding: 0 28px 0 10px;
+    border: 1.5px solid var(--t100);
+    border-radius: 8px;
+    background: #fff;
+    color: #374151;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3'><path stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+    background-size: 9px;
+    max-width: 220px;
+    text-overflow: ellipsis;
+}
+.ws-tb-sel:focus { border-color: var(--t400); }
+.ws-tb-sel:disabled { background-color: #f9fafb; color: #9ca3af; cursor: not-allowed; }
+.ws-tb-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 30px;
+    padding: 0 11px;
+    border: 1.5px solid var(--t200);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--t500);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .12s, border-color .12s, color .12s;
+    white-space: nowrap;
+}
+.ws-tb-btn:hover { background: var(--t50); border-color: var(--t400); }
+.ws-tb-btn.primary { background: linear-gradient(135deg, var(--t300), var(--t500)); color: #fff; border-color: transparent; }
+.ws-tb-btn.primary:hover { filter: brightness(1.05); }
+.ws-tb-btn.icon-only { padding: 0; width: 30px; justify-content: center; color: #6b7280; }
+.ws-tb-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.ws-tb-btn[disabled]:hover { background: #fff; border-color: var(--t200); }
+.ws-tb-sep { width: 1px; height: 22px; background: var(--t100); margin: 0 2px; }
+.ws-tb-status { font-size: 11.5px; color: #9ca3af; padding: 0 6px; white-space: nowrap; }
+.ws-tb-status.is-open { color: var(--t500); font-weight: 600; }
+
+/* ── 플로팅 팝업 (메뉴 화면을 띄우는 떠있는 창) */
+#ws-popup {
+    display: none;
+    position: fixed;
+    z-index: 9500;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 14px 44px rgba(0,0,0,.22), 0 2px 10px rgba(0,0,0,.08);
+    overflow: hidden;
+    min-width: 320px;
+    min-height: 120px;
+    flex-direction: column;
+    border: 1px solid var(--t100);
+}
+#ws-popup.is-open { display: flex; }
+#ws-popup.is-dragging { transition: none; user-select: none; }
+#ws-popup.is-resizing { transition: none; user-select: none; }
+#ws-popup.is-minimized #ws-popup-body { display: none; }
+#ws-popup.is-minimized { height: auto !important; min-height: 0; resize: none; }
+
+#ws-popup-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px 7px 13px;
+    background: linear-gradient(180deg, #fafafa, #f3f4f6);
+    border-bottom: 1px solid var(--t100);
+    cursor: move;
+    user-select: none;
+    flex-shrink: 0;
+    min-height: 36px;
+}
+#ws-popup-title {
+    flex: 1;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+#ws-popup-title svg { flex-shrink: 0; color: var(--t500); }
+.ws-tt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #6b7280;
+    transition: background .12s, color .12s;
+    flex-shrink: 0;
+}
+.ws-tt-btn:hover { background: rgba(0,0,0,.06); color: #1f2937; }
+.ws-tt-btn.close-btn:hover { background: #fee2e2; color: #dc2626; }
+
+#ws-popup-body {
+    flex: 1;
+    position: relative;
+    background: #f5f3ff;
+    overflow: hidden;
+}
+#ws-popup-iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+}
+#ws-popup-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+/* 리사이즈 핸들 */
+.ws-rs {
+    position: absolute;
+    z-index: 5;
+}
+.ws-rs-r  { top: 36px; right: 0; bottom: 12px; width: 6px; cursor: ew-resize; }
+.ws-rs-b  { left: 12px; right: 12px; bottom: 0; height: 6px; cursor: ns-resize; }
+.ws-rs-l  { top: 36px; left: 0; bottom: 12px; width: 6px; cursor: ew-resize; }
+.ws-rs-t  { left: 12px; right: 12px; top: 0; height: 6px; cursor: ns-resize; display:none; /* 타이틀바와 겹쳐 비활성 */ }
+.ws-rs-br { right: 0; bottom: 0; width: 14px; height: 14px; cursor: nwse-resize; }
+.ws-rs-bl { left: 0; bottom: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+.ws-rs-tr { top: 0; right: 0; width: 14px; height: 14px; cursor: nesw-resize; display:none; }
+.ws-rs-tl { top: 0; left: 0; width: 14px; height: 14px; cursor: nwse-resize; display:none; }
+.ws-rs-br::after {
+    content: '';
+    position: absolute; right: 3px; bottom: 3px;
+    width: 8px; height: 8px;
+    border-right: 2px solid #c4b5fd;
+    border-bottom: 2px solid #c4b5fd;
+    border-bottom-right-radius: 3px;
+}
+
+#msg-wrap {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    min-height: 0;
     overflow: hidden;
     box-sizing: border-box;
 }
@@ -559,13 +736,76 @@
 .member-avatar-sm { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; }
 </style>
 
+<div id="ws-shell">
+
+    {{-- ── 워크스페이스 상단바 (프로젝트/메뉴 선택 + 팝업 컨트롤) ── --}}
+    <div id="ws-topbar" role="toolbar" aria-label="Project workspace controls">
+        <div class="ws-tb-group">
+            <select id="ws-project-sel" class="ws-tb-sel" aria-label="{{ __('messages.ws_select_project') }}" disabled>
+                <option value="">{{ __('messages.ws_select_project') }}</option>
+            </select>
+            <select id="ws-menu-sel" class="ws-tb-sel" aria-label="{{ __('messages.ws_select_menu') }}" disabled>
+                <option value="">{{ __('messages.ws_select_menu') }}</option>
+            </select>
+            <button type="button" id="ws-open-btn" class="ws-tb-btn primary" onclick="wsOpenPopup()" disabled
+                    title="{{ __('messages.ws_open_popup') }}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                {{ __('messages.ws_open_popup') }}
+            </button>
+            <span id="ws-status" class="ws-tb-status"></span>
+        </div>
+        <div class="ws-tb-group">
+            <button type="button" id="ws-min-btn" class="ws-tb-btn icon-only" onclick="wsMinimize()" disabled
+                    title="{{ __('messages.ws_minimize') }}" aria-label="{{ __('messages.ws_minimize') }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" d="M5 19h14"/></svg>
+            </button>
+            <button type="button" id="ws-max-btn" class="ws-tb-btn icon-only" onclick="wsMaximize()" disabled
+                    title="{{ __('messages.ws_maximize') }}" aria-label="{{ __('messages.ws_maximize') }}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="4" width="16" height="16" rx="1.5"/></svg>
+            </button>
+            <span class="ws-tb-sep"></span>
+            <button type="button" id="ws-close-btn" class="ws-tb-btn icon-only" onclick="wsClosePopup()" disabled
+                    title="{{ __('messages.ws_close_popup') }}" aria-label="{{ __('messages.ws_close_popup') }}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </div>
+    </div>
+
+    {{-- ── 플로팅 팝업 (메뉴 화면용 떠있는 창) ── --}}
+    <div id="ws-popup" role="dialog" aria-label="Project workspace popup">
+        <div id="ws-popup-titlebar" ondblclick="wsMaximize()">
+            <div id="ws-popup-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                <span id="ws-popup-title-text"></span>
+            </div>
+            <button type="button" class="ws-tt-btn" onclick="wsMinimize()" title="{{ __('messages.ws_minimize') }}" aria-label="{{ __('messages.ws_minimize') }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" d="M5 19h14"/></svg>
+            </button>
+            <button type="button" class="ws-tt-btn" onclick="wsMaximize()" title="{{ __('messages.ws_maximize') }}" aria-label="{{ __('messages.ws_maximize') }}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="4" width="16" height="16" rx="1.5"/></svg>
+            </button>
+            <button type="button" class="ws-tt-btn close-btn" onclick="wsClosePopup()" title="{{ __('messages.ws_close_popup') }}" aria-label="{{ __('messages.ws_close_popup') }}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </div>
+        <div id="ws-popup-body">
+            <iframe id="ws-popup-iframe" name="ws-popup-iframe" title="Project workspace"></iframe>
+            <div id="ws-popup-loading" style="display:none;">{{ __('common.loading') ?? 'Loading...' }}</div>
+        </div>
+        <span class="ws-rs ws-rs-r"  data-rs="r"></span>
+        <span class="ws-rs ws-rs-b"  data-rs="b"></span>
+        <span class="ws-rs ws-rs-l"  data-rs="l"></span>
+        <span class="ws-rs ws-rs-br" data-rs="br"></span>
+        <span class="ws-rs ws-rs-bl" data-rs="bl"></span>
+    </div>
+
 <div id="msg-wrap">
 
     {{-- ── 대화 목록 ── --}}
     <div id="conv-list">
         <div id="conv-list-hdr">
-            <p style="font-size:13px;font-weight:700;color:#1e1b2e;margin:0 0 8px;">{{ __('messages.messages') }}</p>
-            <div style="display:flex;gap:5px;margin-bottom:8px;">
+            <p style="font-size:13px;font-weight:700;color:var(--color-text-primary);margin:0 0 8px;">{{ __('messages.messages') }}</p>
+            <div style="display:flex;gap:4px;margin-bottom:8px;">
                 <button onclick="openNewModal('dm')"
                     style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 0;font-size:12px;font-weight:600;color:var(--tText);background:var(--t50);border:1px solid var(--t200);border-radius:7px;cursor:pointer;"
                     onmouseover="this.style.background='var(--t100)'" onmouseout="this.style.background='var(--t50)'">
@@ -607,7 +847,7 @@
                     @endif
                     <div style="flex:1;min-width:0;padding-right:18px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">
-                            <div style="display:flex;align-items:center;gap:5px;min-width:0;">
+                            <div style="display:flex;align-items:center;gap:4px;min-width:0;">
                                 <span class="conv-name" style="{{ $unread ? 'font-weight:700;' : '' }}">{{ $dispName }}</span>
                                 @if($conv->is_group)<span class="group-tag">{{ __('messages.group_tag') }}</span>@endif
                             </div>
@@ -628,7 +868,7 @@
                 <button class="conv-leave-btn" onclick="leaveConv(event,{{ $conv->id }})" title="{{ __('messages.leave_conv') }}">×</button>
                 </div>
             @empty
-                <div style="padding:40px 16px;text-align:center;font-size:13px;color:#b8b0d8;line-height:2;">
+                <div style="padding:40px 16px;text-align:center;font-size:13px;color:var(--color-text-tertiary);line-height:2;">
                     {{ __('messages.no_conversations') }}<br>{{ __('messages.start_new_message') }}
                 </div>
             @endforelse
@@ -651,10 +891,10 @@
                         <svg width="18" height="18" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                     <div style="position:relative;min-width:0;flex:1;">
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span style="font-size:15px;font-weight:700;color:#1e1b2e;">{{ $conversation->name }}</span>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:15px;font-weight:700;color:var(--color-text-primary);">{{ $conversation->name }}</span>
                             <button type="button" id="group-tag-btn" onclick="toggleMembersPopover(event)"
-                                    class="group-tag" style="border:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;"
+                                    class="group-tag" style="border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"
                                     title="{{ __('messages.view_members') }}">
                                 {{ __('messages.group_member_count', ['count' => $conversation->participants->count()]) }}
                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -670,10 +910,10 @@
                         </div>
 
                         {{-- 구성원 팝오버 --}}
-                        <div id="members-popover" style="display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:50;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.12);min-width:260px;max-width:340px;max-height:360px;overflow:hidden;display:none;flex-direction:column;">
-                            <div style="padding:10px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fafafa;">
+                        <div id="members-popover" style="display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:50;background:#fff;border:1px solid var(--color-border-default);border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.12);min-width:260px;max-width:340px;max-height:360px;overflow:hidden;display:none;flex-direction:column;">
+                            <div style="padding:10px 14px;border-bottom:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fafafa;">
                                 <span style="font-size:12px;font-weight:700;color:#1f2937;">{{ __('messages.member_count', ['count' => $conversation->participants->count()]) }}</span>
-                                <button type="button" onclick="closeMembersPopover()" style="background:none;border:none;font-size:18px;line-height:1;color:#9ca3af;cursor:pointer;padding:0;">×</button>
+                                <button type="button" onclick="closeMembersPopover()" style="background:none;border:none;font-size:18px;line-height:1;color:var(--color-text-tertiary);cursor:pointer;padding:0;">×</button>
                             </div>
                             <ul style="list-style:none;margin:0;padding:6px 0;overflow-y:auto;flex:1;">
                                 @foreach($conversation->participants as $m)
@@ -682,7 +922,7 @@
                                         <button type="button"
                                             @if(!$isMe) onclick="mentionMemberInComposer(@js($m->name))" @endif
                                             @if($isMe) disabled title="{{ __('messages.mention_self_disabled') }}" @else title="{{ __('messages.mention_add') }}" @endif
-                                            style="width:100%;display:flex;align-items:center;gap:9px;padding:7px 14px;background:none;border:none;cursor:{{ $isMe ? 'default' : 'pointer' }};text-align:left;{{ $isMe ? 'opacity:.6;' : '' }}"
+                                            style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 14px;background:none;border:none;cursor:{{ $isMe ? 'default' : 'pointer' }};text-align:left;{{ $isMe ? 'opacity:.6;' : '' }}"
                                             @if(!$isMe) onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='none'" @endif>
                                             <div style="width:28px;height:28px;border-radius:50%;background:{{ $mColor }};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                                 {{ mb_substr($m->name, 0, 1) }}
@@ -691,7 +931,7 @@
                                                 <div style="font-size:13px;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                                     {{ $m->name }}{{ $isMe ? ' ('.__('messages.me').')' : '' }}
                                                 </div>
-                                                <div style="font-size:11px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                <div style="font-size:11px;color:var(--color-text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                                     {{ $m->email }}
                                                 </div>
                                             </div>
@@ -702,7 +942,7 @@
                         </div>
                     </div>
                     <button type="button" id="invite-btn" onclick="openInviteModal()" title="{{ __('messages.invite_to_room') }}"
-                            style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#fff;border:1.5px solid var(--t200);color:var(--t500);font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;flex-shrink:0;transition:all .15s;"
+                            style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:#fff;border:1.5px solid var(--t200);color:var(--t500);font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;flex-shrink:0;transition:all .15s;"
                             onmouseover="this.style.background='var(--t100)';this.style.borderColor='var(--t500)'" onmouseout="this.style.background='#fff';this.style.borderColor='var(--t200)'">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         {{ __('messages.invite') }}
@@ -711,8 +951,8 @@
                     @php $other = $conversation->otherParticipant($me); $color = $colors[($other?->id ?? 0) % count($colors)]; @endphp
                     <div class="conv-avatar" style="background:{{ $color }};width:36px;height:36px;font-size:14px;">{{ mb_substr($other?->name ?? '?', 0, 1) }}</div>
                     <div>
-                        <div style="font-size:15px;font-weight:700;color:#1e1b2e;">{{ $other?->name ?? __('messages.unknown_user') }}</div>
-                        <div style="font-size:12px;color:#9e97c0;">{{ $other?->email }}</div>
+                        <div style="font-size:15px;font-weight:700;color:var(--color-text-primary);">{{ $other?->name ?? __('messages.unknown_user') }}</div>
+                        <div style="font-size:12px;color:var(--color-text-tertiary);">{{ $other?->email }}</div>
                     </div>
                 @endif
             </div>
@@ -727,7 +967,7 @@
                 <div id="invite-modal" class="modal-box" style="display:none;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                         <span class="modal-title">{{ __('messages.invite_to_room') }}</span>
-                        <button onclick="closeInviteModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;">&times;</button>
+                        <button onclick="closeInviteModal()" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:22px;line-height:1;">&times;</button>
                     </div>
                     <form id="invite-form" onsubmit="return submitInvite(event)">
                         @csrf
@@ -735,7 +975,7 @@
                             <input type="text" id="invite-search" class="modal-input" placeholder="{{ __('messages.search_name_email') }}" oninput="filterInviteCandidates(this.value)">
                         </div>
                         @if($inviteCandidates->isEmpty())
-                            <div style="padding:32px 12px;text-align:center;color:#9ca3af;font-size:13px;">
+                            <div style="padding:32px 12px;text-align:center;color:var(--color-text-tertiary);font-size:13px;">
                                 {{ __('messages.no_invite_candidates') }}<br>
                                 <span style="font-size:11px;">{{ __('messages.no_invite_candidates_hint') }}</span>
                             </div>
@@ -747,8 +987,8 @@
                                         <input type="checkbox" name="member_ids[]" value="{{ $u->id }}" onchange="updateInviteCount()">
                                         <div class="member-avatar-sm" style="background:{{ $ac }};">{{ mb_substr($u->name, 0, 1) }}</div>
                                         <div>
-                                            <div style="font-size:13px;font-weight:500;color:#1e1b2e;">{{ $u->name }}</div>
-                                            <div style="font-size:11px;color:#9e97c0;">{{ $u->email }}</div>
+                                            <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">{{ $u->name }}</div>
+                                            <div style="font-size:11px;color:var(--color-text-tertiary);">{{ $u->email }}</div>
                                         </div>
                                     </label>
                                 @endforeach
@@ -756,7 +996,7 @@
                             <div id="invite-selected-count" style="font-size:12px;color:var(--t500);margin-top:6px;font-weight:500;"></div>
                         @endif
                         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
-                            <button type="button" onclick="closeInviteModal()" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:#52525b;cursor:pointer;">{{ __('common.cancel') }}</button>
+                            <button type="button" onclick="closeInviteModal()" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;">{{ __('common.cancel') }}</button>
                             <button type="submit" id="invite-submit-btn" @if($inviteCandidates->isEmpty()) disabled style="opacity:.4;cursor:not-allowed;" @endif
                                 style="padding:8px 20px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);">
                                 {{ __('messages.invite') }}
@@ -772,15 +1012,15 @@
             @endphp
             <div id="esf-modal" onclick="if(event.target===this)esfClose()" style="display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
                 <div style="background:#fff;width:520px;max-width:calc(100vw - 48px);max-height:calc(100vh - 48px);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;display:flex;flex-direction:column;">
-                    <div style="padding:16px 22px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;">
+                    <div style="padding:16px 22px;border-bottom:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;">
                         <h3 style="margin:0;font-size:15px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:8px;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t500)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                             {{ __('messages.file_email_send') }}
                         </h3>
-                        <button type="button" onclick="esfClose()" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1;padding:0;">×</button>
+                        <button type="button" onclick="esfClose()" style="background:none;border:none;font-size:22px;color:var(--color-text-tertiary);cursor:pointer;line-height:1;padding:0;">×</button>
                     </div>
                     <div style="padding:16px 22px;overflow-y:auto;flex:1;">
-                        <div id="esf-filename" style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#6b7280;display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+                        <div id="esf-filename" style="background:#f9fafb;border:1px solid var(--color-bg-muted);border-radius:8px;padding:9px 12px;font-size:12.5px;color:var(--color-text-secondary);display:flex;align-items:center;gap:8px;margin-bottom:14px;">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                             <span id="esf-filename-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
                         </div>
@@ -788,44 +1028,44 @@
                         {{-- 구성원 선택 --}}
                         <div style="margin-bottom:14px;">
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                                <label style="font-size:12px;font-weight:700;color:#374151;">{{ __('messages.esf_members_label') }}</label>
+                                <label style="font-size:12px;font-weight:700;color:var(--color-text-secondary);">{{ __('messages.esf_members_label') }}</label>
                                 @if($esfMembers->count() > 0)
                                 <div style="display:flex;gap:8px;">
                                     <button type="button" onclick="esfToggleAllMembers(true)" style="background:none;border:none;font-size:11.5px;color:var(--t500);cursor:pointer;padding:0;">{{ __('messages.esf_select_all') }}</button>
                                     <span style="color:#d1d5db;">·</span>
-                                    <button type="button" onclick="esfToggleAllMembers(false)" style="background:none;border:none;font-size:11.5px;color:#9ca3af;cursor:pointer;padding:0;">{{ __('messages.esf_deselect_all') }}</button>
+                                    <button type="button" onclick="esfToggleAllMembers(false)" style="background:none;border:none;font-size:11.5px;color:var(--color-text-tertiary);cursor:pointer;padding:0;">{{ __('messages.esf_deselect_all') }}</button>
                                 </div>
                                 @endif
                             </div>
-                            <div id="esf-members-list" style="border:1px solid #e5e7eb;border-radius:8px;max-height:160px;overflow-y:auto;background:#fff;">
+                            <div id="esf-members-list" style="border:1px solid var(--color-border-default);border-radius:8px;max-height:160px;overflow-y:auto;background:#fff;">
                                 @forelse($esfMembers as $m)
                                     @php $hasEmail = (bool) filter_var($m->email ?? '', FILTER_VALIDATE_EMAIL); @endphp
-                                    <label style="display:flex;align-items:center;gap:9px;padding:8px 12px;border-bottom:1px solid #f3f4f6;cursor:{{ $hasEmail ? 'pointer' : 'not-allowed' }};{{ $hasEmail ? '' : 'opacity:.55;' }}">
+                                    <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-bg-muted);cursor:{{ $hasEmail ? 'pointer' : 'not-allowed' }};{{ $hasEmail ? '' : 'opacity:.55;' }}">
                                         <input type="checkbox" class="esf-member-cb" value="{{ $m->id }}" data-email="{{ $m->email }}" @if(!$hasEmail) disabled @endif style="width:15px;height:15px;accent-color:var(--t500);cursor:inherit;">
                                         <span style="flex:1;font-size:13px;color:#1f2937;font-weight:600;">{{ $m->name }}</span>
-                                        <span style="font-size:11.5px;color:#9ca3af;">{{ $hasEmail ? $m->email : __('messages.esf_no_email') }}</span>
+                                        <span style="font-size:11.5px;color:var(--color-text-tertiary);">{{ $hasEmail ? $m->email : __('messages.esf_no_email') }}</span>
                                     </label>
                                 @empty
-                                    <div style="padding:14px;text-align:center;font-size:12.5px;color:#9ca3af;">{{ __('messages.esf_no_members') }}</div>
+                                    <div style="padding:14px;text-align:center;font-size:12.5px;color:var(--color-text-tertiary);">{{ __('messages.esf_no_members') }}</div>
                                 @endforelse
                             </div>
                         </div>
 
                         {{-- 이메일 직접 입력 --}}
                         <div>
-                            <label for="esf-extra-emails" style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">
+                            <label for="esf-extra-emails" style="display:block;font-size:12px;font-weight:700;color:var(--color-text-secondary);margin-bottom:6px;">
                                 {{ __('messages.esf_extra_emails_label') }}
                             </label>
                             <textarea id="esf-extra-emails" rows="2" placeholder="{{ __('messages.esf_extra_emails_placeholder') }}"
-                                style="width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 11px;font-size:13px;outline:none;font-family:inherit;resize:vertical;line-height:1.5;box-sizing:border-box;transition:border-color .15s;"
+                                style="width:100%;border:1.5px solid var(--color-border-default);border-radius:8px;padding:8px 11px;font-size:13px;outline:none;font-family:inherit;resize:vertical;line-height:1.5;box-sizing:border-box;transition:border-color .15s;"
                                 onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
-                            <div style="font-size:11px;color:#9ca3af;margin-top:4px;">{{ __('messages.esf_extra_emails_hint') }}</div>
+                            <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px;">{{ __('messages.esf_extra_emails_hint') }}</div>
                         </div>
                     </div>
-                    <div style="padding:12px 22px;background:#fafafa;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
-                        <span id="esf-recipients-summary" style="font-size:11.5px;color:#6b7280;"></span>
+                    <div style="padding:12px 22px;background:#fafafa;border-top:1px solid var(--color-bg-muted);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;">
+                        <span id="esf-recipients-summary" style="font-size:11.5px;color:var(--color-text-secondary);"></span>
                         <div style="display:flex;gap:8px;">
-                            <button type="button" onclick="esfClose()" style="padding:7px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
+                            <button type="button" onclick="esfClose()" style="padding:7px 16px;background:#fff;color:var(--color-text-secondary);border:1px solid var(--color-border-default);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('common.cancel') }}</button>
                             <button type="button" id="esf-send-btn" onclick="esfDoSend()" style="padding:7px 18px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">{{ __('messages.send_email') }}</button>
                         </div>
                     </div>
@@ -877,7 +1117,7 @@
 
                     @if($msgDate !== $prevDate)
                         <div style="text-align:center;" data-date="{{ $msgDate }}">
-                            <span style="display:inline-block;font-size:11.5px;color:#a1a1aa;background:var(--t100);padding:3px 12px;border-radius:20px;">
+                            <span style="display:inline-block;font-size:11.5px;color:var(--color-text-tertiary);background:var(--t100);padding:3px 12px;border-radius:20px;">
                                 {{ $msg->created_at->format(__('messages.php_date_label_format')) }}
                             </span>
                         </div>
@@ -952,7 +1192,7 @@
                             </div>
                         </div>
                         @if($isMine)
-                        <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:2px;padding-bottom:2px;">
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:4px;padding-bottom:2px;">
                             @if($readLabel !== '')
                             <span class="msg-read {{ $readLabel === __('messages.read') ? '' : 'unread' }}" data-read-badge>{{ $readLabel }}</span>
                             @endif
@@ -981,7 +1221,7 @@
                     <input type="hidden" name="reply_to_id" id="reply-to-id-input" value="">
                     <div id="input-box">
                         <label for="file-input" title="{{ __('messages.attach_file') }}"
-                            style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1.5px solid var(--t100);border-radius:10px;cursor:pointer;color:#a1a1aa;flex-shrink:0;transition:all .15s;"
+                            style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1.5px solid var(--t100);border-radius:10px;cursor:pointer;color:var(--color-text-tertiary);flex-shrink:0;transition:all .15s;"
                             onmouseover="this.style.borderColor='var(--t500)';this.style.color='var(--t500)'" onmouseout="this.style.borderColor='var(--t100)';this.style.color='#a1a1aa'">
                             <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         </label>
@@ -1002,7 +1242,7 @@
                         {{-- 이모지 버튼 --}}
                         <div style="position:relative;flex-shrink:0;">
                             <button type="button" id="emoji-toggle" title="{{ __('messages.emoji_title') }}"
-                                style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1.5px solid var(--t100);border-radius:10px;cursor:pointer;color:#a1a1aa;background:#fff;transition:all .15s;"
+                                style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1.5px solid var(--t100);border-radius:10px;cursor:pointer;color:var(--color-text-tertiary);background:#fff;transition:all .15s;"
                                 onmouseover="this.style.borderColor='var(--t500)';this.style.color='var(--t500)'" onmouseout="this.style.borderColor='var(--t100)';this.style.color='#a1a1aa'">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                             </button>
@@ -1049,6 +1289,7 @@
         @endif
     </div>
 </div>
+</div>{{-- /#ws-shell --}}
 
 {{-- Plan-Do-Act 등록/수정 팝업 --}}
 @include('plan-do-acts._modal')
@@ -1075,17 +1316,17 @@
                 {{ __('common.close') }}
             </button>
             <button id="img-lb-fullscreen" onclick="lbToggleFullscreen()" title="{{ __('files.fullscreen_title') }}"
-                    style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;margin-left:6px;">
+                    style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .15s;flex-shrink:0;margin-left:6px;">
                 <svg id="img-lb-fullscreen-icon" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0-4h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                 <span id="img-lb-fullscreen-label">{{ __('files.fullscreen') }}</span>
             </button>
             <button id="img-lb-download" onclick="lbDownloadCurrent()" title="{{ __('common.download') }}"
-                    style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;flex-shrink:0;margin-left:6px;">
+                    style="background:rgba(255,255,255,.12);border:none;border-radius:7px;height:28px;padding:0 10px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .15s;flex-shrink:0;margin-left:6px;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 <span>{{ __('common.download') }}</span>
             </button>
             <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 8px;"></div>
-            <span style="font-size:10px;font-weight:600;color:#6b7280;letter-spacing:.4px;margin-right:4px;">{{ __('messages.annotation_label') }}</span>
+            <span style="font-size:10px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.4px;margin-right:4px;">{{ __('messages.annotation_label') }}</span>
             <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 4px;"></div>
             <button id="lb-ann-btn-number" onclick="lbSetAnnTool('number')" title="{{ __('viewer.ann_number') }}" class="lb-ann-tool-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><text x="7" y="7.5" text-anchor="middle" dominant-baseline="central" font-size="7" font-weight="700" fill="currentColor">1</text></svg></button>
             <button id="lb-ann-btn-rect"   onclick="lbSetAnnTool('rect')"   title="{{ __('viewer.ann_rect') }}"   class="lb-ann-tool-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" stroke="currentColor" stroke-width="1.5" rx="1"/></svg></button>
@@ -1093,11 +1334,11 @@
             <button id="lb-ann-btn-line"   onclick="lbSetAnnTool('line')"   title="{{ __('viewer.ann_line') }}"   class="lb-ann-tool-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="12" x2="11" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polygon points="11,3 7.5,4.5 9.5,7" fill="currentColor"/></svg></button>
             <button id="lb-ann-btn-text"   onclick="lbSetAnnTool('text')"   title="{{ __('viewer.ann_text') }}"   class="lb-ann-tool-btn" style="font-size:13px;font-weight:700;line-height:1;">T</button>
             <div style="width:1px;height:16px;background:rgba(255,255,255,.08);margin:0 6px;"></div>
-            <span style="font-size:10px;color:#6b7280;margin-right:4px;">{{ __('messages.annotation_color') }}</span>
-            <button onclick="lbSetAnnColor('#ef4444')" data-lbcolor="#ef4444" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;padding:0;outline:2px solid #fff;outline-offset:2px;flex-shrink:0;"></button>
+            <span style="font-size:10px;color:var(--color-text-secondary);margin-right:4px;">{{ __('messages.annotation_color') }}</span>
+            <button onclick="lbSetAnnColor('#ef4444')" data-lbcolor="#ef4444" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:var(--color-alert-warning-500);border:none;cursor:pointer;padding:0;outline:2px solid #fff;outline-offset:2px;flex-shrink:0;"></button>
             <button onclick="lbSetAnnColor('#f97316')" data-lbcolor="#f97316" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:#f97316;border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
             <button onclick="lbSetAnnColor('#eab308')" data-lbcolor="#eab308" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:#eab308;border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
-            <button onclick="lbSetAnnColor('#22c55e')" data-lbcolor="#22c55e" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
+            <button onclick="lbSetAnnColor('#22c55e')" data-lbcolor="#22c55e" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:var(--color-alert-success-500);border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
             <button onclick="lbSetAnnColor('#3b82f6')" data-lbcolor="#3b82f6" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
             <button onclick="lbSetAnnColor('#a855f7')" data-lbcolor="#a855f7" class="lb-ann-color-btn" style="width:16px;height:16px;border-radius:50%;background:#a855f7;border:none;cursor:pointer;padding:0;flex-shrink:0;"></button>
             <div style="flex:1;"></div>
@@ -1148,14 +1389,14 @@
 </div>
 
 {{-- 라이트박스 텍스트 주석 입력 팝업 --}}
-<div id="lb-ann-text-popup" style="display:none;position:fixed;z-index:10010;background:#fff;border:2px solid #a78bfa;border-radius:10px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.25);min-width:280px;max-width:360px;">
-    <div id="lb-ann-text-popup-title" style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:8px;">{{ __('messages.ann_text_title') }}</div>
+<div id="lb-ann-text-popup" style="display:none;position:fixed;z-index:10010;background:#fff;border:2px solid var(--t400);border-radius:10px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.25);min-width:280px;max-width:360px;">
+    <div id="lb-ann-text-popup-title" style="font-size:11px;font-weight:700;color:var(--t700);margin-bottom:8px;">{{ __('messages.ann_text_title') }}</div>
     <textarea id="lb-ann-text-input" rows="4" placeholder="{{ __('messages.ann_text_placeholder') }}"
-           style="width:100%;border:1.5px solid #e5e7eb;border-radius:6px;padding:7px 10px;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;min-height:80px;line-height:1.5;font-family:inherit;transition:border-color .15s;"
+           style="width:100%;border:1.5px solid var(--color-border-default);border-radius:6px;padding:7px 10px;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;min-height:80px;line-height:1.5;font-family:inherit;transition:border-color .15s;"
            onfocus="this.style.borderColor='#a78bfa'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;">
-        <button onclick="lbConfirmAnnText()" style="flex:1;padding:6px 0;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">{{ __('common.confirm') }}</button>
-        <button onclick="lbCancelAnnText()" style="flex:1;padding:6px 0;background:#f3f4f6;color:#374151;border:none;border-radius:6px;font-size:12px;cursor:pointer;">{{ __('common.cancel') }}</button>
+        <button onclick="lbConfirmAnnText()" style="flex:1;padding:6px 0;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">{{ __('common.confirm') }}</button>
+        <button onclick="lbCancelAnnText()" style="flex:1;padding:6px 0;background:var(--color-bg-muted);color:var(--color-text-secondary);border:none;border-radius:6px;font-size:12px;cursor:pointer;">{{ __('common.cancel') }}</button>
     </div>
 </div>
 
@@ -1164,7 +1405,7 @@
 <div id="dm-modal" class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <span class="modal-title">{{ __('messages.dm') }}</span>
-        <button onclick="closeModal('dm')" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;">&times;</button>
+        <button onclick="closeModal('dm')" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:22px;line-height:1;">&times;</button>
     </div>
     <form method="POST" action="{{ route('messages.store') }}" enctype="multipart/form-data">
         @csrf
@@ -1183,10 +1424,10 @@
         </div>
         <div style="margin-bottom:18px;">
             <label class="modal-label">{{ __('messages.file_attach_optional') }}</label>
-            <input type="file" name="files[]" multiple style="font-size:13px;color:#5b5677;">
+            <input type="file" name="files[]" multiple style="font-size:13px;color:var(--color-text-secondary);">
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;">
-            <button type="button" onclick="closeModal('dm')" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:#52525b;cursor:pointer;">{{ __('common.cancel') }}</button>
+            <button type="button" onclick="closeModal('dm')" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;">{{ __('common.cancel') }}</button>
             <button type="submit" style="padding:8px 20px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);">{{ __('messages.send_btn') }}</button>
         </div>
     </form>
@@ -1197,16 +1438,16 @@
 <div id="group-modal" class="modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <span class="modal-title">{{ __('messages.new_group') }}</span>
-        <button onclick="closeModal('group')" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;">&times;</button>
+        <button onclick="closeModal('group')" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:22px;line-height:1;">&times;</button>
     </div>
     <form method="POST" action="{{ route('messages.group') }}" enctype="multipart/form-data">
         @csrf
         <div style="margin-bottom:14px;">
-            <label class="modal-label">{{ __('messages.group_name') }} <span style="color:#ef4444;">*</span></label>
+            <label class="modal-label">{{ __('messages.group_name') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
             <input type="text" name="name" required class="modal-input" placeholder="{{ __('messages.group_name_placeholder') }}">
         </div>
         <div style="margin-bottom:14px;">
-            <label class="modal-label">{{ __('messages.select_members') }} <span style="color:#ef4444;">*</span></label>
+            <label class="modal-label">{{ __('messages.select_members') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
             <div id="member-list">
                 @foreach($users as $u)
                     @php $avatarColors = ['#a394f9','#7dd3fc','#6ee7b7','#fcd34d','#f9a8d4','#c4b5fd']; $ac = $avatarColors[$u->id % count($avatarColors)]; @endphp
@@ -1214,8 +1455,8 @@
                         <input type="checkbox" name="member_ids[]" value="{{ $u->id }}">
                         <div class="member-avatar-sm" style="background:{{ $ac }};">{{ mb_substr($u->name, 0, 1) }}</div>
                         <div>
-                            <div style="font-size:13px;font-weight:500;color:#1e1b2e;">{{ $u->name }}</div>
-                            <div style="font-size:11px;color:#9e97c0;">{{ $u->email }}</div>
+                            <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">{{ $u->name }}</div>
+                            <div style="font-size:11px;color:var(--color-text-tertiary);">{{ $u->email }}</div>
                         </div>
                     </label>
                 @endforeach
@@ -1223,11 +1464,11 @@
             <div id="selected-count" style="font-size:12px;color:var(--t500);margin-top:6px;font-weight:500;"></div>
         </div>
         <div style="margin-bottom:14px;">
-            <label class="modal-label">{{ __('messages.first_message') }} <span style="color:#ef4444;">*</span></label>
+            <label class="modal-label">{{ __('messages.first_message') }} <span style="color:var(--color-alert-warning-500);">*</span></label>
             <textarea name="body" rows="3" class="modal-input" placeholder="{{ __('messages.first_message_placeholder') }}"></textarea>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;">
-            <button type="button" onclick="closeModal('group')" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:#52525b;cursor:pointer;">{{ __('common.cancel') }}</button>
+            <button type="button" onclick="closeModal('group')" style="padding:8px 16px;border:1.5px solid var(--t100);border-radius:9px;background:#fff;font-size:13px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;">{{ __('common.cancel') }}</button>
             <button type="submit" style="padding:8px 20px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--t300),var(--t500));color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);">{{ __('messages.create_group') }}</button>
         </div>
     </form>
@@ -1564,7 +1805,7 @@ async function showTranslateError(msg) {
         toast.style.cssText = 'margin-bottom:6px;padding:6px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:12px;display:flex;align-items:center;gap:6px;';
         area.insertBefore(toast, area.firstChild);
     }
-    toast.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>' + msg + ' <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#dc2626;font-size:14px;line-height:1;padding:0;">&times;</button>';
+    toast.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>' + msg + ' <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--color-alert-warning-500);font-size:14px;line-height:1;padding:0;">&times;</button>';
     clearTimeout(toast._timer);
     toast._timer = setTimeout(() => toast.remove(), 8000);
 }
@@ -2020,7 +2261,7 @@ async function renderMessage(data) {
         lastDate = data.date;
         const d = document.createElement('div');
         d.style.textAlign = 'center'; d.dataset.date = data.date;
-        d.innerHTML = `<span style="display:inline-block;font-size:11.5px;color:#a1a1aa;background:var(--t100);padding:3px 12px;border-radius:20px;">${data.date_label}</span>`;
+        d.innerHTML = `<span style="display:inline-block;font-size:11.5px;color:var(--color-text-tertiary);background:var(--t100);padding:3px 12px;border-radius:20px;">${data.date_label}</span>`;
         cm.insertBefore(d, document.getElementById('bottom'));
     }
 
@@ -2058,7 +2299,7 @@ async function renderMessage(data) {
 
     const displayTime = fmtTime(data.created_at_iso || data.created_at);
     const timeWrap = isMine
-        ? `<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:2px;padding-bottom:2px;">${readBadgeHtml}<span class="msg-time">${displayTime}</span></div>`
+        ? `<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:4px;padding-bottom:2px;">${readBadgeHtml}<span class="msg-time">${displayTime}</span></div>`
         : `<span class="msg-time">${displayTime}</span>`;
 
     const LANG_NAMES = { ko:'한국어', en:'English', ja:'日本語', zh:'中文' };
@@ -2245,7 +2486,7 @@ window.addEventListener('newChatMessage', async function(e) {
         if (catId === 'recent') {
             const recent = getRecent();
             if (!recent.length) {
-                grid.innerHTML = `<div style="grid-column:1/-1;padding:20px;text-align:center;font-size:12px;color:#b8b0d8;">${STR_EMOJI_NO_RECENT}</div>`;
+                grid.innerHTML = `<div style="grid-column:1/-1;padding:20px;text-align:center;font-size:12px;color:var(--color-text-tertiary);">${STR_EMOJI_NO_RECENT}</div>`;
             } else {
                 grid.innerHTML = recent.map(emojiBtn).join('');
             }
@@ -2253,7 +2494,7 @@ window.addEventListener('newChatMessage', async function(e) {
             // 최근 사용 미리보기 (다른 카테고리 볼 때도 표시)
             const recent = getRecent();
             if (recent.length) {
-                recentEl.innerHTML = `<div class="ep-section-label">${EMOJI_CATS.recent}</div><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:1px;margin-bottom:6px;">${recent.slice(0,8).map(emojiBtn).join('')}</div>`;
+                recentEl.innerHTML = `<div class="ep-section-label">${EMOJI_CATS.recent}</div><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:6px;">${recent.slice(0,8).map(emojiBtn).join('')}</div>`;
             }
             grid.innerHTML = cat.list.map(emojiBtn).join('');
         }
@@ -2287,7 +2528,7 @@ window.addEventListener('newChatMessage', async function(e) {
         if (currentCatId !== 'recent') {
             const recent = getRecent();
             if (recent.length) {
-                recentEl.innerHTML = `<div class="ep-section-label">${EMOJI_CATS.recent}</div><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:1px;margin-bottom:6px;">${recent.slice(0,8).map(emojiBtn).join('')}</div>`;
+                recentEl.innerHTML = `<div class="ep-section-label">${EMOJI_CATS.recent}</div><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:6px;">${recent.slice(0,8).map(emojiBtn).join('')}</div>`;
             }
         }
         closeEmojiPicker();
@@ -2308,7 +2549,7 @@ window.addEventListener('newChatMessage', async function(e) {
             const unique = [...new Set(all)];
             recentEl.innerHTML = '';
             grid.innerHTML = unique.slice(0, 64).map(emojiBtn).join('') ||
-                `<div style="grid-column:1/-1;padding:20px;text-align:center;font-size:12px;color:#b8b0d8;">${STR_EMOJI_SEARCH_EMPTY}</div>`;
+                `<div style="grid-column:1/-1;padding:20px;text-align:center;font-size:12px;color:var(--color-text-tertiary);">${STR_EMOJI_SEARCH_EMPTY}</div>`;
             gridWrap.scrollTop = 0;
         }, 100);
     });
@@ -2384,7 +2625,7 @@ async function analyzeMsg(msgId, btn) {
 
     panel.dataset.forMsg = msgId;
     panel.classList.add('visible');
-    body.innerHTML = `<span style="color:#a1a1aa;font-size:11.5px;">${MSG_STR.aiAnalyzing}</span>`;
+    body.innerHTML = `<span style="color:var(--color-text-tertiary);font-size:11.5px;">${MSG_STR.aiAnalyzing}</span>`;
     btn.disabled = true;
 
     fetch('{{ route("messages.analyze") }}', {
@@ -2399,7 +2640,7 @@ async function analyzeMsg(msgId, btn) {
     .then(r => r.json())
     .then(data => {
         if (!data.ok) {
-            body.innerHTML = `<span style="color:#dc2626;font-size:12px;">⚠ ${escA(data.error||MSG_STR.aiError)}</span>`;
+            body.innerHTML = `<span style="color:var(--color-alert-warning-500);font-size:12px;">⚠ ${escA(data.error||MSG_STR.aiError)}</span>`;
             return;
         }
         const r = data.result;
@@ -2415,7 +2656,7 @@ async function analyzeMsg(msgId, btn) {
             ${actions}`;
     })
     .catch(() => {
-        body.innerHTML = `<span style="color:#dc2626;font-size:12px;">${MSG_STR.aiNetworkError}</span>`;
+        body.innerHTML = `<span style="color:var(--color-alert-warning-500);font-size:12px;">${MSG_STR.aiNetworkError}</span>`;
     })
     .finally(() => { btn.disabled = false; });
 }
@@ -2719,7 +2960,7 @@ async function openLightbox(src, alt, msgId) {
         requestAnimationFrame(_lbUpdateSvgPosition);
     }
     document.getElementById('img-lightbox-name').textContent = alt || '';
-    document.getElementById('img-lb-comments').innerHTML = `<span style="color:#a1a1aa;font-size:12px;text-align:center;margin:auto;">${MSG_STR.lbLoading}</span>`;
+    document.getElementById('img-lb-comments').innerHTML = `<span style="color:var(--color-text-tertiary);font-size:12px;text-align:center;margin:auto;">${MSG_STR.lbLoading}</span>`;
     document.getElementById('img-lb-comment-count').textContent = '';
     document.getElementById('img-lb-textarea').value = '';
     if (msgId) { loadLbComments(msgId); lbLoadAnnotations(msgId); }
@@ -2803,7 +3044,7 @@ async function renderLbComments(comments) {
     list.innerHTML = '';
     count.textContent = comments.length ? comments.length + MSG_STR.lbCountSuffix : '';
     if (!comments.length) {
-        list.innerHTML = `<span style="color:#a1a1aa;font-size:12px;text-align:center;margin:auto;">${MSG_STR.noOpinionYet}</span>`;
+        list.innerHTML = `<span style="color:var(--color-text-tertiary);font-size:12px;text-align:center;margin:auto;">${MSG_STR.noOpinionYet}</span>`;
         return;
     }
     comments.forEach(c => {
@@ -2884,7 +3125,7 @@ async function deleteLbComment(msgId, commentId, btn) {
         const count = document.getElementById('img-lb-comment-count');
         const n = list.querySelectorAll('.lb-comment').length;
         count.textContent = n ? n + MSG_STR.lbCountSuffix : '';
-        if (!n) list.innerHTML = `<span style="color:#a1a1aa;font-size:12px;text-align:center;margin:auto;">${MSG_STR.noOpinionYet}</span>`;
+        if (!n) list.innerHTML = `<span style="color:var(--color-text-tertiary);font-size:12px;text-align:center;margin:auto;">${MSG_STR.noOpinionYet}</span>`;
     });
 }
 
@@ -3470,5 +3711,368 @@ document.addEventListener('keydown', e => {
         closeLightbox();
     }
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// 워크스페이스 팝업 (상단바 컨트롤 + 인페이지 플로팅 팝업)
+// ─────────────────────────────────────────────────────────────────────────
+(function () {
+    const PROJECTS_URL = @json(route('messages.workspace.projects'));
+    const LS_KEY       = 'msgWorkspaceState.v2';   // v1(window.open 기반)과 키 분리
+    const STR = {
+        select_project:       @json(__('messages.ws_select_project')),
+        select_menu:          @json(__('messages.ws_select_menu')),
+        open_popup:           @json(__('messages.ws_open_popup')),
+        close_popup:          @json(__('messages.ws_close_popup')),
+        choose_project_first: @json(__('messages.ws_choose_project_first')),
+        choose_menu_first:    @json(__('messages.ws_choose_menu_first')),
+        no_projects:          @json(__('messages.ws_no_projects')),
+        restore:              @json(__('messages.ws_restore')),
+        maximize:             @json(__('messages.ws_maximize')),
+    };
+
+    const $proj   = document.getElementById('ws-project-sel');
+    const $menu   = document.getElementById('ws-menu-sel');
+    const $open   = document.getElementById('ws-open-btn');
+    const $min    = document.getElementById('ws-min-btn');
+    const $max    = document.getElementById('ws-max-btn');
+    const $close  = document.getElementById('ws-close-btn');
+    const $stat   = document.getElementById('ws-status');
+    const $popup  = document.getElementById('ws-popup');
+    const $tbar   = document.getElementById('ws-popup-titlebar');
+    const $title  = document.getElementById('ws-popup-title-text');
+    const $iframe = document.getElementById('ws-popup-iframe');
+    const $load   = document.getElementById('ws-popup-loading');
+
+    let projects = [];
+    let savedBounds = null;   // 최대화 전 원본 위치/크기
+    let isOpen = false;
+    let isMaximized = false;
+    let isMinimized = false;
+
+    function loadState() {
+        try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+    }
+    function saveState(s) {
+        try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {}
+    }
+    function patchState(patch) {
+        const s = loadState();
+        saveState(Object.assign(s, patch));
+    }
+
+    function setStatus(text, isOpenFlag) {
+        $stat.textContent = text || '';
+        $stat.classList.toggle('is-open', !!isOpenFlag);
+    }
+
+    function refreshControls() {
+        const hasProj = !!$proj.value;
+        const hasMenu = !!$menu.value;
+        $menu.disabled  = !hasProj || projects.length === 0;
+        $open.disabled  = !(hasProj && hasMenu);
+        $min.disabled   = !isOpen;
+        $max.disabled   = !isOpen;
+        $close.disabled = !isOpen;
+        $max.title      = isMaximized ? STR.restore : STR.maximize;
+    }
+
+    function fillProjects() {
+        $proj.innerHTML = '';
+        const opt0 = document.createElement('option');
+        opt0.value = '';
+        opt0.textContent = projects.length ? STR.select_project : STR.no_projects;
+        $proj.appendChild(opt0);
+        for (const p of projects) {
+            const o = document.createElement('option');
+            o.value = String(p.id);
+            o.textContent = p.name;
+            $proj.appendChild(o);
+        }
+        $proj.disabled = projects.length === 0;
+    }
+
+    function fillMenus(projectId) {
+        $menu.innerHTML = '';
+        const opt0 = document.createElement('option');
+        opt0.value = '';
+        opt0.textContent = STR.select_menu;
+        $menu.appendChild(opt0);
+        const proj = projects.find(p => String(p.id) === String(projectId));
+        if (!proj) { $menu.disabled = true; return; }
+        for (const m of (proj.menus || [])) {
+            const o = document.createElement('option');
+            o.value = m.key;
+            o.textContent = m.label;
+            o.dataset.url = m.url;
+            $menu.appendChild(o);
+        }
+        $menu.disabled = false;
+    }
+
+    function getSelectedUrl() {
+        const projId = $proj.value;
+        const menuKey = $menu.value;
+        if (!projId || !menuKey) return null;
+        const proj = projects.find(p => String(p.id) === String(projId));
+        if (!proj) return null;
+        const menu = (proj.menus || []).find(m => m.key === menuKey);
+        if (!menu?.url) return null;
+        // 팝업 안의 페이지에서는 전역 사이드바·헤더·공지를 숨기기 위해 ?embed=1
+        return menu.url + (menu.url.includes('?') ? '&' : '?') + 'embed=1';
+    }
+
+    function getStatusText() {
+        if (!$proj.value || !$menu.value) return '';
+        return $proj.options[$proj.selectedIndex].text + ' · ' + $menu.options[$menu.selectedIndex].text;
+    }
+
+    function defaultBounds() {
+        const vw = window.innerWidth, vh = window.innerHeight;
+        // 화면 우측 절반 영역
+        const w = Math.max(420, Math.floor(vw * 0.5));
+        const h = Math.max(360, Math.floor(vh * 0.85));
+        const left = Math.max(8, vw - w - 16);
+        const top  = Math.max(8, Math.floor((vh - h) / 2));
+        return { w, h, left, top };
+    }
+
+    function clampBounds(b) {
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const w = Math.min(b.w, vw - 16);
+        const h = Math.min(b.h, vh - 16);
+        const left = Math.max(0, Math.min(b.left, vw - w));
+        const top  = Math.max(0, Math.min(b.top,  vh - h));
+        return { w, h, left, top };
+    }
+
+    function applyBounds(b) {
+        const cb = clampBounds(b);
+        $popup.style.left   = cb.left + 'px';
+        $popup.style.top    = cb.top  + 'px';
+        $popup.style.width  = cb.w + 'px';
+        $popup.style.height = cb.h + 'px';
+    }
+
+    function loadUrlInIframe(url) {
+        if (!url) return;
+        $load.style.display = 'flex';
+        $iframe.onload = () => { $load.style.display = 'none'; };
+        $iframe.src = url;
+    }
+
+    function showPopup() {
+        const s = loadState();
+        const b = s.bounds || defaultBounds();
+        applyBounds(b);
+        $popup.classList.add('is-open');
+        isOpen = true;
+        isMinimized = false;
+        $popup.classList.remove('is-minimized');
+    }
+
+    function hidePopup() {
+        $popup.classList.remove('is-open', 'is-minimized');
+        isOpen = false;
+        isMaximized = false;
+        isMinimized = false;
+        savedBounds = null;
+        $iframe.src = 'about:blank';
+        $load.style.display = 'none';
+    }
+
+    // ── 공개 함수 (HTML onclick 에서 호출) ──
+    window.wsOpenPopup = function () {
+        const url = getSelectedUrl();
+        if (!url) {
+            if (!$proj.value)      alert(STR.choose_project_first);
+            else if (!$menu.value) alert(STR.choose_menu_first);
+            return;
+        }
+        if (!isOpen) showPopup();
+        $title.textContent = getStatusText();
+        loadUrlInIframe(url);
+        setStatus(getStatusText(), true);
+        refreshControls();
+    };
+
+    window.wsClosePopup = function () {
+        if (!isOpen) return;
+        hidePopup();
+        setStatus('', false);
+        refreshControls();
+    };
+
+    window.wsMinimize = function () {
+        if (!isOpen) return;
+        isMinimized = !isMinimized;
+        $popup.classList.toggle('is-minimized', isMinimized);
+        refreshControls();
+    };
+
+    window.wsMaximize = function () {
+        if (!isOpen) return;
+        if (isMinimized) {
+            isMinimized = false;
+            $popup.classList.remove('is-minimized');
+        }
+        if (!isMaximized) {
+            savedBounds = {
+                w: $popup.offsetWidth,  h: $popup.offsetHeight,
+                left: $popup.offsetLeft, top: $popup.offsetTop,
+            };
+            applyBounds({ w: window.innerWidth - 16, h: window.innerHeight - 16, left: 8, top: 8 });
+            isMaximized = true;
+        } else {
+            const b = savedBounds || defaultBounds();
+            applyBounds(b);
+            isMaximized = false;
+        }
+        refreshControls();
+    };
+
+    // ── 드래그 (타이틀바) ──
+    let dragState = null;
+    $tbar.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.ws-tt-btn')) return;
+        if (isMaximized) return;
+        e.preventDefault();
+        dragState = {
+            startX: e.clientX, startY: e.clientY,
+            origLeft: $popup.offsetLeft, origTop: $popup.offsetTop,
+        };
+        $popup.classList.add('is-dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd, { once: true });
+    });
+    function onDragMove(e) {
+        if (!dragState) return;
+        const dx = e.clientX - dragState.startX;
+        const dy = e.clientY - dragState.startY;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let nl = dragState.origLeft + dx;
+        let nt = dragState.origTop  + dy;
+        nl = Math.max(0, Math.min(nl, vw - $popup.offsetWidth));
+        nt = Math.max(0, Math.min(nt, vh - 36));
+        $popup.style.left = nl + 'px';
+        $popup.style.top  = nt + 'px';
+    }
+    function onDragEnd() {
+        $popup.classList.remove('is-dragging');
+        document.removeEventListener('mousemove', onDragMove);
+        if (!isMaximized) {
+            patchState({ bounds: {
+                w: $popup.offsetWidth, h: $popup.offsetHeight,
+                left: $popup.offsetLeft, top: $popup.offsetTop,
+            }});
+        }
+        dragState = null;
+    }
+
+    // ── 리사이즈 (가장자리/모서리 핸들) ──
+    let resizeState = null;
+    $popup.querySelectorAll('.ws-rs').forEach(h => {
+        h.addEventListener('mousedown', (e) => {
+            if (isMaximized) return;
+            e.preventDefault();
+            e.stopPropagation();
+            resizeState = {
+                dir: h.dataset.rs,
+                startX: e.clientX, startY: e.clientY,
+                origW: $popup.offsetWidth, origH: $popup.offsetHeight,
+                origLeft: $popup.offsetLeft, origTop: $popup.offsetTop,
+            };
+            $popup.classList.add('is-resizing');
+            document.addEventListener('mousemove', onResizeMove);
+            document.addEventListener('mouseup', onResizeEnd, { once: true });
+        });
+    });
+    function onResizeMove(e) {
+        if (!resizeState) return;
+        const dx = e.clientX - resizeState.startX;
+        const dy = e.clientY - resizeState.startY;
+        const minW = 320, minH = 160;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let nw = resizeState.origW, nh = resizeState.origH, nl = resizeState.origLeft, nt = resizeState.origTop;
+        const dir = resizeState.dir;
+        if (dir.includes('r')) nw = Math.max(minW, Math.min(resizeState.origW + dx, vw - nl - 8));
+        if (dir.includes('b')) nh = Math.max(minH, Math.min(resizeState.origH + dy, vh - nt - 8));
+        if (dir.includes('l')) {
+            const candW = Math.max(minW, resizeState.origW - dx);
+            nl = resizeState.origLeft + (resizeState.origW - candW);
+            nl = Math.max(0, nl);
+            nw = resizeState.origW + resizeState.origLeft - nl;
+        }
+        $popup.style.width  = nw + 'px';
+        $popup.style.height = nh + 'px';
+        $popup.style.left   = nl + 'px';
+        $popup.style.top    = nt + 'px';
+    }
+    function onResizeEnd() {
+        $popup.classList.remove('is-resizing');
+        document.removeEventListener('mousemove', onResizeMove);
+        if (!isMaximized) {
+            patchState({ bounds: {
+                w: $popup.offsetWidth, h: $popup.offsetHeight,
+                left: $popup.offsetLeft, top: $popup.offsetTop,
+            }});
+        }
+        resizeState = null;
+    }
+
+    // 창 리사이즈 시 팝업 경계 재조정
+    window.addEventListener('resize', () => {
+        if (!isOpen) return;
+        if (isMaximized) {
+            applyBounds({ w: window.innerWidth - 16, h: window.innerHeight - 16, left: 8, top: 8 });
+        } else {
+            applyBounds({
+                w: $popup.offsetWidth, h: $popup.offsetHeight,
+                left: $popup.offsetLeft, top: $popup.offsetTop,
+            });
+        }
+    });
+
+    // ── 선택 이벤트 ──
+    $proj.addEventListener('change', () => {
+        fillMenus($proj.value);
+        patchState({ projectId: $proj.value, menuKey: '' });
+        refreshControls();
+    });
+    $menu.addEventListener('change', () => {
+        patchState({ menuKey: $menu.value });
+        if (isOpen) {
+            const url = getSelectedUrl();
+            if (url) {
+                loadUrlInIframe(url);
+                $title.textContent = getStatusText();
+                setStatus(getStatusText(), true);
+            }
+        }
+        refreshControls();
+    });
+
+    // ── 초기 로드 ──
+    fetch(PROJECTS_URL, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+            projects = Array.isArray(data?.projects) ? data.projects : [];
+            fillProjects();
+            const s = loadState();
+            if (s.projectId && projects.some(p => String(p.id) === String(s.projectId))) {
+                $proj.value = String(s.projectId);
+                fillMenus(s.projectId);
+                if (s.menuKey) {
+                    const has = Array.from($menu.options).some(o => o.value === s.menuKey);
+                    if (has) $menu.value = s.menuKey;
+                }
+            }
+            refreshControls();
+        })
+        .catch(() => {
+            $proj.innerHTML = '<option value="">' + STR.no_projects + '</option>';
+            $proj.disabled = true;
+            refreshControls();
+        });
+})();
 </script>
 @endsection

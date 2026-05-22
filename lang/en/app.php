@@ -42,13 +42,12 @@ return [
     'sr_target_no_project'   => 'Not linked',
     'theme_change'           => 'Change theme',
     'theme_colors'           => 'Theme color',
-    'theme_violet'           => 'Violet',
     'theme_blue'             => 'Blue',
-    'theme_teal'             => 'Teal',
+    'theme_coral'            => 'Coral',
     'theme_green'            => 'Green',
-    'theme_amber'            => 'Amber',
-    'theme_gray'             => 'Gray',
-    'theme_white'            => 'White',
+    'theme_yellow'           => 'Yellow',
+    'theme_violet'           => 'Purple',
+    'theme_custom'           => 'Custom',
     'lang_ko'                => '한국어',
     'lang_en'                => 'English',
 
@@ -190,4 +189,6 @@ return [
     'qp_copied'              => 'Copied',
     'qp_copy_failed'         => 'Failed to copy.',
     'qp_confirm_del_prompt'  => 'Delete this prompt?',
+
+    'accent_picker'          => 'Theme color',
 ];

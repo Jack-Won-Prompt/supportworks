@@ -25,7 +25,7 @@ h1{font-size:22px;font-weight:800;color:#1e293b;margin-bottom:12px;line-height:1
 <body>
 <div class="wrap">
     <div style="text-align:center;margin-bottom:20px;">
-        <div style="display:inline-flex;align-items:center;gap:9px;">
+        <div style="display:inline-flex;align-items:center;gap:8px;">
             <div style="width:30px;height:30px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;">S</div>
             <span style="font-size:15px;font-weight:700;color:#1e293b;">SupportWorks</span>
         </div>

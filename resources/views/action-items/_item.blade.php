@@ -39,7 +39,7 @@
         </a>
         @endif
 
-        <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
             {{-- 마감일 --}}
             @if($item->due_date)
             <span style="font-size:11px;padding:2px 7px;border-radius:10px;background:{{ $item->is_completed ? '#f3f4f6' : ($item->isOverdue() ? '#fee2e2' : '#fef3c7') }};color:{{ $item->is_completed ? '#9ca3af' : ($item->isOverdue() ? '#dc2626' : '#d97706') }};">

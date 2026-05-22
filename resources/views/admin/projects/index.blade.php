@@ -46,7 +46,7 @@
                 @endforeach
             </select>
 
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#334155;cursor:pointer;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#334155;cursor:pointer;">
                 <input type="checkbox" name="si_mode" value="1" {{ request('si_mode') ? 'checked':'' }} style="accent-color:#6366f1;">
                 SI 모드만
             </label>
@@ -152,14 +152,14 @@
         <h3 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;">데이터 초기화</h3>
         <span style="font-size:11px;color:#94a3b8;">Super Admin 전용 · 되돌릴 수 없습니다</span>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
 
         {{-- 회의록 초기화 --}}
         <form method="POST" action="{{ route('admin.reset.meeting-minutes') }}"
               onsubmit="return confirm('회의록 전체를 초기화합니다.\n첨부된 메모·액션아이템도 모두 삭제됩니다.\n이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?')">
             @csrf @method('DELETE')
             <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;font-weight:700;color:#dc2626;background:#fff;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;transition:all .12s;"
+                    style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;font-size:12px;font-weight:700;color:#dc2626;background:#fff;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;transition:all .12s;"
                     onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 회의록 전체 초기화
@@ -171,7 +171,7 @@
               onsubmit="return confirm('위클리 리포트 전체를 초기화합니다.\nAI 요약 데이터도 함께 삭제됩니다.\n이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?')">
             @csrf @method('DELETE')
             <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;font-weight:700;color:#dc2626;background:#fff;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;transition:all .12s;"
+                    style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;font-size:12px;font-weight:700;color:#dc2626;background:#fff;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;transition:all .12s;"
                     onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 위클리 리포트 전체 초기화

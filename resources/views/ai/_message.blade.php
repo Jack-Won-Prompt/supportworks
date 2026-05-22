@@ -55,7 +55,7 @@
                 </div>
             </div>
             @if($msg->doc_download_url && $msg->doc_status === 'completed')
-            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
                 <a href="{{ $msg->doc_download_url }}" download="{{ $msg->doc_file_name ?? 'document.docx' }}" class="ai-doc-download-btn">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     {{ __('ai.download') }}

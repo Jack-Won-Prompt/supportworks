@@ -262,7 +262,7 @@ $isPending  = $stage->status === StageStatus::PENDING_APPROVAL;
                 개발 단계가 활성화되었습니다. Frontend 코드 생성, Backend 개발, API 연계를 시작할 수 있습니다.
             </p>
             <a href="{{ route('ai-agent.projects.dev.index', $project) }}"
-               style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#16a34a;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
+               style="display:inline-flex;align-items:center;gap:4px;padding:7px 14px;background:#16a34a;color:#fff;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;">
                 개발 단계로 이동 →
             </a>
         </div>

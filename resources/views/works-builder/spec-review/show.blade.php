@@ -12,7 +12,7 @@
     <span>›</span>
     <a href="{{ route('wb.tasks.show', $task) }}" class="hover:text-indigo-500 transition-colors">Task #{{ $task->id }}</a>
     <span>›</span>
-    <span style="color:#374151;font-weight:500;">기획서 검토</span>
+    <span style="color:var(--color-text-secondary);font-weight:500;">기획서 검토</span>
 @endsection
 
 @section('content')
