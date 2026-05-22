@@ -1825,6 +1825,10 @@ async function loadSession(id) {
 }
 
 async function deleteSession(id, btn) {
+    const ok = (typeof window.__confirm === 'function')
+        ? await window.__confirm('이 AI 세션을 삭제하시겠습니까?')
+        : confirm('이 AI 세션을 삭제하시겠습니까?');
+    if (!ok) return;
     btn.style.opacity = '.4';
     const res = await del(ROUTES.sessDelete(id));
     if (res.ok) {

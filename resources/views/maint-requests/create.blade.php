@@ -10,8 +10,8 @@
 
         <div class="grid grid-cols-12 gap-4">
             <div class="col-span-8">
-                <label class="block text-sm font-medium text-gray-700 mb-1">메뉴 <span class="text-red-500">*</span></label>
-                <input list="menu-list" name="menu_name" value="{{ old('menu_name') }}" required
+                <label class="block text-sm font-medium text-gray-700 mb-1">메뉴</label>
+                <input list="menu-list" name="menu_name" value="{{ old('menu_name') }}"
                        placeholder="메뉴명 입력 (목록에 없으면 자동 등록)"
                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <datalist id="menu-list">
@@ -96,7 +96,7 @@
                 </datalist>
             </div>
             <div class="col-span-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">위드웍스 담당자</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">링크더랩 담당자</label>
                 <input list="dev-list" name="assignee_name" value="{{ old('assignee_name') }}"
                        placeholder="이름 입력"
                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">

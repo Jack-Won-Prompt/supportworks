@@ -7,11 +7,7 @@
 @section('content')
 <div style="padding:24px 0;">
 
-    @if(session('success'))
-    <div style="background:#dcfce7;border:1px solid #bbf7d0;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--color-alert-success-500);">
-        {{ session('success') }}
-    </div>
-    @endif
+    {{-- session('success') 는 전역 토스트(window.appToast)로 표시됨 --}}
 
     {{-- 액션 바 --}}
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;">
@@ -108,7 +104,7 @@
                 <div style="display:flex;align-items:center;gap:16px;font-size:12px;color:var(--color-text-tertiary);flex-wrap:wrap;">
                     <span>📅 {{ $minute->meeting_date->format('Y.m.d H:i') }}</span>
                     @if($minute->location)
-                    <span>📍 {{ $minute->location }}</span>
+                    <span>📍 {{ $minute->display_location }}</span>
                     @endif
                     <span>✍️ {{ $minute->author->name }}</span>
                     <span>👥 {{ __('maintenance.attendees_count', ['count' => $minute->attendees->count()]) }}</span>
@@ -704,7 +700,13 @@ async function openEditModal(minuteId) {
     document.getElementById('modal-project-id').value = d.project_id || '';
     document.getElementById('modal-project-code').value = d.project_code || '';
     document.getElementById('modal-weekly-dept').value = d.weekly_department || '';
-    document.getElementById('modal-location').value = d.location || '';
+    // Outlook/Teams 자동 입력 "Name <email>" 형식이면 이름만 추출
+    (function() {
+        let loc = d.location || '';
+        const m = loc.match(/^(.+?)\s*<\s*[^<>\s]+@[^<>\s]+\s*>\s*$/);
+        if (m) loc = m[1].trim();
+        document.getElementById('modal-location').value = loc;
+    })();
     document.getElementById('modal-agenda').value = d.agenda || '';
     document.getElementById('modal-discussion').value = d.discussion || '';
     document.getElementById('modal-decisions').value = d.decisions || '';

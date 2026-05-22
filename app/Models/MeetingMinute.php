@@ -20,6 +20,20 @@ class MeetingMinute extends Model
         'meeting_date' => 'datetime',
     ];
 
+    /**
+     * 위치 표시값 — Outlook/Teams 가 자동 입력하는
+     * "Name <email@domain>" 형태이면 이름(앞부분)만 추출. 그 외는 원본 그대로.
+     */
+    public function getDisplayLocationAttribute(): ?string
+    {
+        $raw = $this->location;
+        if (!$raw) return $raw;
+        if (preg_match('/^(.+?)\s*<\s*[^<>\s]+@[^<>\s]+\s*>\s*$/', $raw, $m)) {
+            return trim($m[1]);
+        }
+        return $raw;
+    }
+
     public function author()
     {
         return $this->belongsTo(User::class, 'author_id');

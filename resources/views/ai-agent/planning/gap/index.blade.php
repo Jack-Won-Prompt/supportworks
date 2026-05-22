@@ -201,11 +201,7 @@
     @endif
 </div>
 
-@if(session('success'))
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:#166534;">
-    {{ session('success') }}
-</div>
-@endif
+{{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
 {{-- ── Reanalysis warning modal ──────────────────────────────────────────── --}}
 <template x-if="showReanalysisWarning">

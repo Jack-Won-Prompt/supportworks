@@ -464,8 +464,8 @@
 
                     <div class="sidebar-divider"></div>
 
-                    {{-- Works Builder 섹션 --}}
-                    @if(auth()->user()->hasFeature('works_builder'))
+                    {{-- Works Builder 섹션 — 관리자 전용 --}}
+                    @if(auth()->user()->isAdmin() && auth()->user()->hasFeature('works_builder'))
                     <div style="margin-bottom:4px;">
                         <div class="gsb-hide" style="padding:6px 10px 4px;">
                             <span class="section-label">{{ __('app.nav_wb_section') }}</span>
@@ -505,24 +505,28 @@
                         <div class="gsb-hide" style="padding:6px 10px 4px;">
                             <span class="section-label">{{ __('app.nav_works_tools') }}</span>
                         </div>
+                        {{-- 웍스 채팅 메뉴 숨김 처리
                         @if(auth()->user()->hasFeature('ai_chat'))
                         <a href="{{ route('ai.index') }}" class="sidebar-item {{ request()->routeIs('ai.index') || (request()->routeIs('ai.*') && !request()->routeIs('ai-agent.*')) ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
                             <span class="gsb-hide">{{ __('app.nav_works_chat') }}</span>
                         </a>
-                        @endif {{-- ai_chat feature --}}
+                        @endif
+                        --}}
                         @if(auth()->user()->hasFeature('prompt_agent'))
                         <a href="{{ route('works-prompt.index') }}" class="sidebar-item {{ request()->routeIs('works-prompt.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                             <span class="gsb-hide">{{ __('app.nav_prompt_agent') }}</span>
                         </a>
                         @endif {{-- prompt_agent feature --}}
+                        {{-- 웍스 개발 Agent 메뉴 숨김 처리
                         @if(auth()->user()->hasFeature('ai_agent'))
                         <a href="{{ route('ai-agent.dashboard', ['force_home' => 1]) }}" class="sidebar-item {{ request()->routeIs('ai-agent.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                             <span class="gsb-hide">{{ __('app.nav_works_dev_agent') }}</span>
                         </a>
-                        @endif {{-- ai_agent feature --}}
+                        @endif
+                        --}}
                     </div>
 
                     <div class="sidebar-divider"></div>
@@ -1083,31 +1087,26 @@
                 @endforeach
                 @endunless
 
-                {{-- 알림 메시지 --}}
-                @if(session('success') || session('error') || $errors->any())
-                <div style="padding:12px 24px 0;">
-                    @if(session('success'))
-                        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#15803d;font-size:13px;margin-bottom:8px;">
-                            <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                            {{ session('success') }}
-                        </div>
-                    @endif
-                    @if(session('error'))
-                        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:13px;margin-bottom:8px;">
-                            <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                            {{ session('error') }}
-                        </div>
-                    @endif
-                    @if($errors->any())
-                        <div style="padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:13px;margin-bottom:8px;">
-                            <ul style="list-style:disc;padding-left:16px;margin:0;space-y:2px;">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </div>
+                {{-- 알림 메시지: 화면 영역 배너가 아닌 전역 토스트로 표시 (window.appToast) --}}
+                @php
+                    $__flashSuccess = session('success');
+                    $__flashError   = session('error');
+                    $__flashStatus  = session('status');
+                    $__flashWarning = session('warning');
+                    $__flashErrors  = $errors->any() ? $errors->all() : [];
+                @endphp
+                @if($__flashSuccess || $__flashError || $__flashStatus || $__flashWarning || count($__flashErrors))
+                <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    @if($__flashSuccess) window.appToast && window.appToast('success', @json($__flashSuccess)); @endif
+                    @if($__flashStatus)  window.appToast && window.appToast('success', @json($__flashStatus));  @endif
+                    @if($__flashWarning) window.appToast && window.appToast('warning', @json($__flashWarning)); @endif
+                    @if($__flashError)   window.appToast && window.appToast('error',   @json($__flashError));   @endif
+                    @foreach($__flashErrors as $__e)
+                        window.appToast && window.appToast('error', @json($__e), 6000);
+                    @endforeach
+                });
+                </script>
                 @endif
 
                 {{-- 페이지 콘텐츠 (embed=1 일 때 패딩 축소) --}}
@@ -1398,7 +1397,49 @@
         window.MY_INQUIRY_CONV_IDS = new Set(@json($myInquiryConvIds));
         window.OPEN_CONV_ID = null; // 메시지 페이지에서 덮어씀
 
-        // ── 인앱 토스트 ────────────────────────────────────────
+        // ── 전역 액션 결과 토스트 (success/error/warning/info) ──
+        // 사용: window.appToast('success', '저장되었습니다');  window.appToast('error', '실패했습니다', 6000);
+        window.appToast = function(type, message, duration) {
+            if (!message) return;
+            duration = duration || (type === 'error' ? 5500 : 4000);
+            let host = document.getElementById('app-toast-container');
+            if (!host) {
+                host = document.createElement('div');
+                host.id = 'app-toast-container';
+                host.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:480px;';
+                document.body.appendChild(host);
+            }
+            const palette = {
+                success: {bg:'#ecfdf5', border:'#a7f3d0', text:'#047857', icon:'M5 13l4 4L19 7'},
+                error:   {bg:'#fef2f2', border:'#fecaca', text:'#b91c1c', icon:'M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'},
+                warning: {bg:'#fffbeb', border:'#fde68a', text:'#b45309', icon:'M12 9v2m0 4h.01M4.93 19.07a10 10 0 1114.14 0H4.93z'},
+                info:    {bg:'#eff6ff', border:'#bfdbfe', text:'#1d4ed8', icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'},
+            }[type] || {bg:'#f3f4f6', border:'#e5e7eb', text:'#374151', icon:'M13 16h-1v-4h-1m1-4h.01'};
+            const t = document.createElement('div');
+            t.style.cssText =
+                'background:'+palette.bg+';border:1px solid '+palette.border+';color:'+palette.text+
+                ';padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.08);'+
+                'font-size:13px;min-width:280px;max-width:480px;display:flex;align-items:flex-start;gap:8px;'+
+                'pointer-events:auto;transform:translateX(20px);opacity:0;transition:transform .2s, opacity .2s;';
+            const msgEscaped = String(message).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            t.innerHTML =
+                '<svg style="width:18px;height:18px;flex-shrink:0;margin-top:1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">'+
+                  '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="'+palette.icon+'"/>'+
+                '</svg>'+
+                '<div style="flex:1;line-height:1.5;">'+msgEscaped+'</div>'+
+                '<button type="button" style="background:none;border:0;color:inherit;cursor:pointer;font-size:18px;line-height:1;padding:0 0 0 4px;opacity:.5;">&times;</button>';
+            const dismiss = function () {
+                t.style.opacity = '0';
+                t.style.transform = 'translateX(20px)';
+                setTimeout(function () { t.remove(); }, 220);
+            };
+            t.querySelector('button').onclick = dismiss;
+            host.appendChild(t);
+            requestAnimationFrame(function () { t.style.opacity='1'; t.style.transform='translateX(0)'; });
+            setTimeout(dismiss, duration);
+        };
+
+        // ── 인앱 토스트 (메시지/문의 알림용 — 별도 스타일 유지) ─
         window.showToast = async function(senderName, preview, href) {
             const t = document.createElement('div');
             t.style.cssText = 'display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #ede8ff;border-radius:14px;padding:12px 16px;box-shadow:0 8px 28px rgba(139,122,240,.18);pointer-events:auto;cursor:pointer;max-width:320px;opacity:0;transform:translateY(12px);transition:all .25s;';

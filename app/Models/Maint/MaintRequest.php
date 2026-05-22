@@ -16,6 +16,7 @@ class MaintRequest extends Model
         'progress_raw', 'colo_check_raw',
         'colo_user_id', 'assignee_id', 'assignee_raw',
         'eta', 'grid_refresh', 'completed_at',
+        'paid_dev_enabled', 'paid_dev_days', 'paid_dev_cost', 'paid_dev_description', 'paid_dev_sent_at',
     ];
 
     protected $casts = [
@@ -25,12 +26,16 @@ class MaintRequest extends Model
         'excel_no'                => 'integer',
         'ai_summary_at'           => 'datetime',
         'ai_summary_context_ids'  => 'array',
+        'paid_dev_enabled'        => 'boolean',
+        'paid_dev_days'           => 'integer',
+        'paid_dev_cost'           => 'integer',
+        'paid_dev_sent_at'        => 'datetime',
     ];
 
     public const PRIORITIES = ['normal', 'urgent', 'critical', 'recheck'];
 
     public const STATUSES = [
-        'draft', 'requested', 'planned', 'in_progress', 'pending_check',
+        'draft', 'requested', 'planned', 'in_progress', 'additional_dev', 'pending_check',
         'discussion_needed', 'on_hold', 'awaiting_file', 'replied',
         'review_requested', 'review_again', 'completed',
     ];
@@ -43,6 +48,11 @@ class MaintRequest extends Model
     public function coloUser(): BelongsTo
     {
         return $this->belongsTo(MaintUser::class, 'colo_user_id');
+    }
+
+    public function companyGroup(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CompanyGroup::class, 'company_group_id');
     }
 
     public function assignee(): BelongsTo

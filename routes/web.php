@@ -643,6 +643,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post  ('maint-requests/{maintRequest}/notes',              [\App\Http\Controllers\MaintRequestController::class, 'storeNote'])  ->name('maint-requests.notes.store');
     Route::delete('maint-requests/{maintRequest}/notes/{note}',        [\App\Http\Controllers\MaintRequestController::class, 'destroyNote'])->name('maint-requests.notes.destroy');
     Route::post  ('maint-requests/works-summary',                      [\App\Http\Controllers\MaintRequestController::class, 'worksSummary'])->name('maint-requests.works-summary');
+    Route::post  ('maint-requests/upload-image',                       [\App\Http\Controllers\MaintRequestController::class, 'uploadImage'])->name('maint-requests.upload-image');
+    Route::get   ('maint-requests/export/excel',                       [\App\Http\Controllers\MaintRequestController::class, 'exportExcel'])->name('maint-requests.export-excel');
+    Route::post  ('maint-requests/{maintRequest}/send-to-manager',     [\App\Http\Controllers\MaintRequestController::class, 'sendToManager'])->name('maint-requests.send-to-manager');
+
+    // SR 이미지 주석 + 댓글
+    Route::get   ('maint-requests/{maintRequest}/image-annotations',                       [\App\Http\Controllers\MaintRequestImageAnnotationController::class, 'index'])  ->name('maint-requests.image-annotations.index');
+    Route::post  ('maint-requests/{maintRequest}/image-annotations',                       [\App\Http\Controllers\MaintRequestImageAnnotationController::class, 'store'])  ->name('maint-requests.image-annotations.store');
+    Route::patch ('maint-requests/{maintRequest}/image-annotations/{annotation}',          [\App\Http\Controllers\MaintRequestImageAnnotationController::class, 'update']) ->name('maint-requests.image-annotations.update');
+    Route::delete('maint-requests/{maintRequest}/image-annotations/{annotation}',          [\App\Http\Controllers\MaintRequestImageAnnotationController::class, 'destroy'])->name('maint-requests.image-annotations.destroy');
+
+    Route::get   ('maint-requests/{maintRequest}/image-comments',                          [\App\Http\Controllers\MaintRequestImageCommentController::class, 'index'])  ->name('maint-requests.image-comments.index');
+    Route::post  ('maint-requests/{maintRequest}/image-comments',                          [\App\Http\Controllers\MaintRequestImageCommentController::class, 'store'])  ->name('maint-requests.image-comments.store');
+    Route::delete('maint-requests/{maintRequest}/image-comments/{comment}',                [\App\Http\Controllers\MaintRequestImageCommentController::class, 'destroy'])->name('maint-requests.image-comments.destroy');
     Route::post  ('maint-requests/import',                             [\App\Http\Controllers\MaintRequestController::class, 'import'])->name('maint-requests.import');
     Route::patch ('maint-requests/{maintRequest}/quick',               [\App\Http\Controllers\MaintRequestController::class, 'quickUpdate'])->name('maint-requests.quick');
     Route::get   ('maint-requests/embed/closed',                       [\App\Http\Controllers\MaintRequestController::class, 'embedClosed'])->name('maint-requests.embed.closed');

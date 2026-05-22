@@ -78,6 +78,11 @@
     @php
         $flashSuccess = session('success');
         $flashError   = session('error');
+
+        // 상태 변경 권한 — 관리자 또는 링크더랩 회사 소속 사용자만
+        $linkthelabId   = \App\Models\CompanyGroup::where('name', '링크더랩')->value('id');
+        $canChangeStatus = auth()->user()->isAdmin()
+            || (int) auth()->user()->company_group_id === (int) $linkthelabId;
     @endphp
 
     {{-- 필터 + 페이지 사이즈 + 엑셀 업로드 --}}
@@ -130,7 +135,8 @@
         <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors">조회</button>
     </form>
 
-    {{-- 엑셀 업로드 (회사 선택 + 비동기 + 프로그레스) --}}
+    {{-- 엑셀 업로드 (회사 선택 + 비동기 + 프로그레스) — 관리자/SR 담당자만 노출 --}}
+    @if($canFilterByCompany)
     <div class="inline-flex flex-col" style="min-width:260px;">
         <form action="{{ route('maint-requests.import') }}" enctype="multipart/form-data" id="maint-import-form" class="inline-flex items-center gap-1.5">
             @csrf
@@ -157,6 +163,7 @@
             <div id="maint-import-progress-label" class="text-xs font-medium text-emerald-700 mt-1 text-center">0%</div>
         </div>
     </div>
+    @endif
 
     @if(request()->hasAny(['q','status','priority','assignee_id','colo_user_id','company_group_id','bucket']))
         <a href="{{ route('maint-requests.index') }}" class="px-3 py-2 text-gray-500 rounded-lg text-sm hover:bg-gray-100 transition-colors">초기화</a>
@@ -167,6 +174,14 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         신규 요청
     </button>
+
+    {{-- 엑셀 다운로드 — 현재 필터 그대로 반영, 화면 전환 없이 바로 다운로드 --}}
+    <a href="{{ route('maint-requests.export-excel', request()->query()) }}"
+       class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-300 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 transition-colors"
+       title="현재 조회 조건의 SR을 엑셀 파일로 다운로드">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
+        엑셀 다운로드
+    </a>
 
     <div class="ml-auto text-sm text-gray-500">검색 결과 <span class="font-semibold text-gray-900">{{ number_format($requests->total()) }}</span>건</div>
     </div>
@@ -182,7 +197,7 @@
                     <th class="px-4 py-3 text-left">요약</th>
                     <th class="px-4 py-3 text-left w-28">상태</th>
                     <th class="px-4 py-3 text-left w-24">콜로</th>
-                    <th class="px-4 py-3 text-left w-24">위드웍스</th>
+                    <th class="px-4 py-3 text-left w-24">링크더랩</th>
                     <th class="px-4 py-3 text-left w-28">요청일</th>
                     <th class="px-4 py-3 text-left w-28">완료예정</th>
                     @if(auth()->user()->isAdmin())
@@ -207,14 +222,18 @@
                     </td>
                     <td class="px-4 py-3 text-gray-900 max-w-md truncate" title="{{ $r->summary }}">{{ $r->summary }}</td>
                     <td class="px-4 py-3" onclick="event.stopPropagation()">
-                        <select class="maint-quick-status maint-pill-select"
-                                data-id="{{ $r->id }}"
-                                data-original="{{ $r->status }}"
-                                style="{{ $statusStyles[$r->status] ?? '' }}">
-                            @foreach($statusLabels as $k => $v)
-                                <option value="{{ $k }}" data-style="{{ $statusStyles[$k] ?? '' }}" style="{{ $statusStyles[$k] ?? '' }}" {{ $r->status===$k ? 'selected' : '' }}>{{ $v }}</option>
-                            @endforeach
-                        </select>
+                        @if($canChangeStatus)
+                            <select class="maint-quick-status maint-pill-select"
+                                    data-id="{{ $r->id }}"
+                                    data-original="{{ $r->status }}"
+                                    style="{{ $statusStyles[$r->status] ?? '' }}">
+                                @foreach($statusLabels as $k => $v)
+                                    <option value="{{ $k }}" data-style="{{ $statusStyles[$k] ?? '' }}" style="{{ $statusStyles[$k] ?? '' }}" {{ $r->status===$k ? 'selected' : '' }}>{{ $v }}</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
+                        @endif
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $r->coloUser?->name ?? '-' }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $r->assignee?->name ?? ($r->assignee_raw ?? '-') }}</td>
@@ -549,6 +568,15 @@
     .maint-pill-select.is-saved {
         animation: maintPillFlash .9s ease;
     }
+    /* 읽기 전용 상태 pill (권한 없는 사용자) */
+    .maint-pill-static {
+        display:inline-block;
+        border-radius:9999px;
+        padding:2px 10px;
+        font-size:12px;
+        font-weight:500;
+        line-height:1.4;
+    }
     @keyframes maintPillFlash {
         0%   { box-shadow: 0 0 0 0 rgba(16,185,129,.0); }
         20%  { box-shadow: 0 0 0 3px rgba(16,185,129,.45); }
@@ -623,8 +651,8 @@ document.addEventListener('keydown', function(e){
 
         <div class="grid grid-cols-12 gap-4">
             <div class="col-span-8">
-                <label class="block text-sm font-medium text-gray-700 mb-1">메뉴 <span class="text-red-500">*</span></label>
-                <input list="modal-menu-list" name="menu_name" value="{{ old('menu_name') }}" required
+                <label class="block text-sm font-medium text-gray-700 mb-1">메뉴</label>
+                <input list="modal-menu-list" name="menu_name" value="{{ old('menu_name') }}"
                        placeholder="메뉴명 입력 (목록에 없으면 자동 등록)"
                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <datalist id="modal-menu-list">
@@ -650,54 +678,17 @@ document.addEventListener('keydown', function(e){
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">상세 내용</label>
-            <textarea name="content" rows="6" placeholder="요청 사항 상세"
-                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ old('content') }}</textarea>
+            {{-- Quill 리치 에디터 (이미지 paste · 리사이즈 · 뷰어) — SR 상세와 동일 동작 --}}
+            <div class="sr-quill" id="sr-modal-quill-wrap">
+                <div id="sr-modal-quill-editor"></div>
+            </div>
+            <input type="hidden" name="content" id="sr-modal-content-input" value="{{ old('content') }}">
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">구분</label>
-                <input type="text" name="category" value="{{ old('category') }}" maxlength="100"
-                       placeholder="에러 / 개선 등"
-                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">콜로 담당자</label>
-                <input list="modal-colo-list" name="colo_user_name" value="{{ old('colo_user_name') }}"
-                       placeholder="이름 입력"
-                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <datalist id="modal-colo-list">
-                    @foreach($coloUsers as $u)<option value="{{ $u->name }}"></option>@endforeach
-                </datalist>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">위드웍스 담당자</label>
-                <input list="modal-dev-list" name="assignee_name" value="{{ old('assignee_name') }}"
-                       placeholder="이름 입력"
-                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <datalist id="modal-dev-list">
-                    @foreach($devUsers as $u)<option value="{{ $u->name }}"></option>@endforeach
-                </datalist>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">요청일</label>
-                <input type="date" name="request_date" value="{{ old('request_date', now()->toDateString()) }}"
-                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">완료 예정일</label>
-                <input type="date" name="eta" value="{{ old('eta') }}"
-                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
-                <select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-                    @foreach($statusLabels as $k => $v)
-                        <option value="{{ $k }}" {{ old('status', 'requested')===$k ? 'selected' : '' }}>{{ $v }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
+        {{-- 콜로 담당자(요청자) 자동, 요청일은 등록 시각, 상태는 'requested' 자동 --}}
+        <input type="hidden" name="colo_user_name" value="{{ auth()->user()->name }}">
+        <input type="hidden" name="request_date" value="{{ now()->toDateString() }}">
+        <input type="hidden" name="status" value="requested">
 
         @if($errors->any())
             <div class="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
@@ -735,5 +726,110 @@ document.addEventListener('keydown', function(e){
     // 검증 실패 시 모달 자동 재오픈
     document.addEventListener('DOMContentLoaded', maintOpenCreateModal);
 @endif
+</script>
+
+{{-- 공유 이미지 라이트박스 (전체 창 · 다운로드) --}}
+@include('maint-requests._image-lightbox')
+
+{{-- 신규 SR 모달의 Quill 리치 에디터 (이미지 paste · 리사이즈 · 뷰어) — SR 상세와 동일한 기능 --}}
+<link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css">
+<style>
+    .sr-quill { border:1px solid var(--color-border-default); border-radius:8px; transition:border-color .15s; }
+    .sr-quill.focused { border-color:#6366f1; }
+    .sr-quill .ql-toolbar { border:none; border-bottom:1px solid var(--color-border-default); padding:6px 10px; background:#f8fafc; border-radius:8px 8px 0 0; }
+    .sr-quill .ql-container { border:none; font-family:inherit; }
+    .sr-quill .ql-editor { min-height:180px; max-height:380px; overflow-y:auto; padding:12px 14px; font-size:13.5px; color:var(--color-text-primary); line-height:1.6; }
+    .sr-quill .ql-editor.ql-blank::before { font-style:normal; color:var(--color-text-placeholder); }
+    .sr-quill .ql-editor img { max-width:100%; height:auto; border-radius:6px; margin:6px 0; cursor:pointer; }
+    .sr-quill .ql-editor img.sr-img-selected { outline:2px solid var(--t500); outline-offset:1px; }
+</style>
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+(function() {
+    const editorEl = document.getElementById('sr-modal-quill-editor');
+    const wrapEl   = document.getElementById('sr-modal-quill-wrap');
+    const hiddenEl = document.getElementById('sr-modal-content-input');
+    if (!editorEl || !hiddenEl) return;
+
+    const UPLOAD_URL = @json(route('maint-requests.upload-image'));
+    const CSRF = document.querySelector('meta[name=csrf-token]')?.content || @json(csrf_token());
+
+    const quill = new Quill(editorEl, {
+        theme: 'snow',
+        placeholder: '상세 내용을 입력하세요. 이미지는 복사·붙여넣기(Ctrl+V) 또는 툴바 아이콘으로 첨부됩니다.',
+        modules: {
+            toolbar: [
+                [{ header: [false, 1, 2, 3] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ color: [] }, { background: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['blockquote', 'code-block'],
+                ['link', 'image'],
+                ['clean'],
+            ],
+        },
+    });
+
+    // 초기 콘텐츠 (old() 값) 로드
+    const initial = (hiddenEl.value || '').trim();
+    if (initial) {
+        if (/<\w+[\s\S]*?>/.test(initial)) {
+            quill.clipboard.dangerouslyPasteHTML(0, initial);
+        } else {
+            quill.setText(initial);
+        }
+    }
+
+    quill.on('selection-change', r => { wrapEl.classList.toggle('focused', !!r); });
+
+    const form = editorEl.closest('form');
+    if (form) {
+        form.addEventListener('submit', () => {
+            const html = quill.getLength() <= 1 ? '' : quill.root.innerHTML;
+            hiddenEl.value = html;
+        });
+    }
+
+    function uploadImage(file) {
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('image', file);
+        fetch(UPLOAD_URL, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            body: fd,
+            credentials: 'same-origin',
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+            if (!data.url) return;
+            const range = quill.getSelection(true) || { index: quill.getLength() };
+            quill.insertEmbed(range.index, 'image', data.url);
+            quill.setSelection(range.index + 1);
+        })
+        .catch(err => alert('이미지 업로드 실패: ' + err));
+    }
+
+    quill.getModule('toolbar').addHandler('image', () => {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*';
+        inp.onchange = () => { if (inp.files[0]) uploadImage(inp.files[0]); };
+        inp.click();
+    });
+    quill.root.addEventListener('paste', e => {
+        const imgItem = [...(e.clipboardData?.items || [])].find(it => it.type.startsWith('image/'));
+        if (!imgItem) return;
+        e.preventDefault();
+        uploadImage(imgItem.getAsFile());
+    });
+
+    // 이미지 클릭 → 라이트박스로 큰 화면 보기 (전체 창 · 다운로드 기능)
+    quill.root.addEventListener('click', (e) => {
+        if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            if (window.openSrImageLightbox) window.openSrImageLightbox(e.target.src, e.target.alt || '');
+        }
+    });
+})();
 </script>
 @endsection

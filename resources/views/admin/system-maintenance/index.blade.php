@@ -9,11 +9,7 @@
         <p style="font-size:13px;color:#64748b;margin:0;">{{ __('admin.sm_desc') }}</p>
     </div>
 
-    @if(session('success'))
-    <div style="margin-bottom:18px;padding:10px 14px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;font-size:13px;color:#065f46;">
-        {{ session('success') }}
-    </div>
-    @endif
+    {{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
     <form method="POST" action="{{ route('admin.system-maintenance.update') }}">
         @csrf

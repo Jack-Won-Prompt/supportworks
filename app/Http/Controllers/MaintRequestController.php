@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\MaintRequestNotificationMail;
 use App\Models\Maint\MaintMenu;
 use App\Models\Maint\MaintRequest;
 use App\Models\Maint\MaintRequestNote;
 use App\Models\Maint\MaintUser;
+use App\Models\User;
 use App\Services\Maint\SrSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as XlsxDate;
 
@@ -26,18 +30,30 @@ class MaintRequestController extends Controller
         // ── 권한 기반 접근 범위 결정 ──
         $u = auth()->user();
         $isSrPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+
+        // 링크더랩 회사 소속 일반 사용자는 자기 회사 SR + 추가개발(유상) SR 모두 접근
+        $linkthelabId = \App\Models\CompanyGroup::where('name', '링크더랩')->value('id');
+        $isLinkthelabMember = !$isSrPrivileged && $u && (int) $u->company_group_id === (int) $linkthelabId;
+
         // null = 제한 없음, 양수 = 해당 회사로 제한, 0 = 접근 불가
         $accessScope = null;
         if (!$isSrPrivileged) {
             $accessScope = $u?->company_group_id ? (int) $u->company_group_id : 0;
         }
 
-        $applyAccessScope = function ($qb) use ($accessScope) {
+        $applyAccessScope = function ($qb) use ($accessScope, $isLinkthelabMember) {
             if ($accessScope === 0) {
-                // 비권한자 + 회사 없음 → 결과 없음
                 $qb->whereRaw('1=0');
             } elseif ($accessScope !== null) {
-                $qb->where('company_group_id', $accessScope);
+                if ($isLinkthelabMember) {
+                    // 링크더랩 일반 사용자: 본인 회사 OR 추가개발 활성 SR
+                    $qb->where(function ($x) use ($accessScope) {
+                        $x->where('company_group_id', $accessScope)
+                          ->orWhere('paid_dev_enabled', true);
+                    });
+                } else {
+                    $qb->where('company_group_id', $accessScope);
+                }
             }
         };
 
@@ -84,12 +100,14 @@ class MaintRequestController extends Controller
         $menus      = MaintMenu::orderBy('name')->get(['id', 'name']);
         $coloUsers  = MaintUser::colo()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
         $devUsers   = MaintUser::withworks()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $categories = MaintRequest::whereNotNull('category')->where('category', '!=', '')
+            ->distinct()->orderBy('category')->pluck('category')->values();
 
         $canFilterByCompany = $isSrPrivileged;
         $companyGroups = \DB::table('company_groups')->orderBy('name')->get(['id', 'name']);
 
         return view('maint-requests.index', compact(
-            'requests', 'menus', 'coloUsers', 'devUsers', 'bucket', 'perPage',
+            'requests', 'menus', 'coloUsers', 'devUsers', 'categories', 'bucket', 'perPage',
             'canFilterByCompany', 'companyGroups', 'statusCounts'
         ));
     }
@@ -98,7 +116,7 @@ class MaintRequestController extends Controller
     {
         // 모든 상태가 정확히 한 버킷에만 속하도록 (합계 = 전체)
         return [
-            'in_progress' => ['draft', 'requested', 'planned', 'in_progress'],
+            'in_progress' => ['draft', 'requested', 'planned', 'in_progress', 'additional_dev'],
             'reviewing'   => ['pending_check', 'review_requested', 'review_again', 'discussion_needed', 'on_hold', 'awaiting_file', 'replied'],
             'completed'   => ['completed'],
         ];
@@ -116,23 +134,34 @@ class MaintRequestController extends Controller
 
     private function detailData(MaintRequest $maintRequest): array
     {
-        $maintRequest->load(['menu', 'coloUser', 'assignee', 'notes' => fn ($q) => $q->oldest('id')]);
+        $maintRequest->load(['menu', 'coloUser', 'assignee', 'companyGroup', 'notes' => fn ($q) => $q->oldest('id')]);
+
+        // 기존 SR 에서 사용된 구분(category) distinct 목록 — 입력 보조용
+        $categories = MaintRequest::whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->values();
 
         return [
-            'r'         => $maintRequest,
-            'menus'     => MaintMenu::orderBy('name')->get(['id', 'name']),
-            'coloUsers' => MaintUser::colo()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-            'devUsers'  => MaintUser::withworks()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'r'          => $maintRequest,
+            'menus'      => MaintMenu::orderBy('name')->get(['id', 'name']),
+            'coloUsers'  => MaintUser::colo()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'devUsers'   => MaintUser::withworks()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'categories' => $categories,
         ];
     }
 
     public function create()
     {
-        $menus     = MaintMenu::orderBy('name')->get(['id', 'name']);
-        $coloUsers = MaintUser::colo()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $devUsers  = MaintUser::withworks()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $menus      = MaintMenu::orderBy('name')->get(['id', 'name']);
+        $coloUsers  = MaintUser::colo()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $devUsers   = MaintUser::withworks()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $categories = MaintRequest::whereNotNull('category')->where('category', '!=', '')
+            ->distinct()->orderBy('category')->pluck('category')->values();
 
-        return view('maint-requests.create', compact('menus', 'coloUsers', 'devUsers'));
+        return view('maint-requests.create', compact('menus', 'coloUsers', 'devUsers', 'categories'));
     }
 
     public function store(Request $request)
@@ -160,7 +189,8 @@ class MaintRequestController extends Controller
         $data['company_group_id'] = auth()->user()?->company_group_id;
         abort_if(empty($data['company_group_id']), 422, '회사 소속이 없는 사용자는 SR을 등록할 수 없습니다.');
 
-        DB::transaction(function () use (&$data) {
+        $newSr = null;
+        DB::transaction(function () use (&$data, &$newSr) {
             $data['menu_id']      = $this->resolveMenu($data);
             $data['colo_user_id'] = $this->resolveUser($data['colo_user_id'] ?? null, $data['colo_user_name'] ?? null, 'colo');
             $data['assignee_id']  = $this->resolveUser($data['assignee_id'] ?? null, $data['assignee_name'] ?? null, 'withworks');
@@ -168,8 +198,10 @@ class MaintRequestController extends Controller
 
             $data['status'] = $data['status'] ?? 'draft';
 
-            MaintRequest::create($data);
+            $newSr = MaintRequest::create($data);
         });
+
+        $this->sendMaintRequestNotification($newSr, '등록');
 
         return redirect()->route('maint-requests.index')->with('success', '요청이 등록되었습니다.');
     }
@@ -192,7 +224,12 @@ class MaintRequestController extends Controller
             'assignee_id'      => 'nullable|exists:maint_users,id',
             'assignee_name'    => 'nullable|string|max:100',
             'status'           => 'required|in:' . implode(',', MaintRequest::STATUSES),
+            'paid_dev_enabled'     => 'nullable|boolean',
+            'paid_dev_days'        => 'nullable|integer|min:0|max:9999',
+            'paid_dev_cost'        => 'nullable|integer|min:0',
+            'paid_dev_description' => 'nullable|string|max:5000',
         ]);
+        $data['paid_dev_enabled'] = $request->boolean('paid_dev_enabled');
         $this->normalizeAiSummaryFields($data);
 
         DB::transaction(function () use (&$data, $maintRequest) {
@@ -209,6 +246,8 @@ class MaintRequestController extends Controller
 
             $maintRequest->update($data);
         });
+
+        $this->sendMaintRequestNotification($maintRequest->fresh(), '수정');
 
         if (request()->boolean('_modal')) {
             return redirect()->route('maint-requests.embed', $maintRequest)->with('success', '수정되었습니다.');
@@ -228,6 +267,14 @@ class MaintRequestController extends Controller
         }
 
         if (array_key_exists('status', $data)) {
+            // 상태 변경은 링크더랩 사용자(관리자 or 링크더랩 회사 소속)만 허용
+            $u = auth()->user();
+            $linkthelabId = \App\Models\CompanyGroup::where('name', '링크더랩')->value('id');
+            $canChangeStatus = $u && ($u->isAdmin() || (int) $u->company_group_id === (int) $linkthelabId);
+            if (!$canChangeStatus) {
+                return response()->json(['ok' => false, 'message' => '상태 변경 권한이 없습니다.'], 403);
+            }
+
             if ($data['status'] === 'completed' && !$maintRequest->completed_at) {
                 $data['completed_at'] = now();
             } elseif ($data['status'] !== 'completed') {
@@ -288,6 +335,10 @@ class MaintRequestController extends Controller
 
     public function import(Request $request)
     {
+        // 관리자 / SR 담당자만 허용 (UI 가드와 동일 — 직접 POST 우회 방지)
+        $u = auth()->user();
+        abort_unless($u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false)), 403);
+
         $request->validate([
             'file'             => 'required|file|mimes:xlsx,xls|max:51200',
             'company_group_id' => 'required|exists:company_groups,id',
@@ -740,5 +791,389 @@ class MaintRequestController extends Controller
             'context_ids'  => $result['context_ids'],
             'provider'     => $result['provider'],
         ]);
+    }
+
+    /**
+     * SR 상세 내용 리치 에디터의 이미지 업로드 (paste / 툴바).
+     * storage/app/public/maint-sr/images 에 저장 후 공개 URL 반환.
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:5120',  // 5MB
+        ]);
+        $path = $request->file('image')->store('maint-sr/images', 'public');
+        return response()->json(['url' => asset('storage/' . $path)]);
+    }
+
+    /**
+     * SR 요청 엑셀 다운로드.
+     * - 현재 사용자가 접근 가능한 모든 SR (권한자: 전체 또는 필터, 비권한자: 본인 회사)
+     * - 시트 1: 대시보드 (KPI · 상태/우선순위 분포)
+     * - 시트 2: 상세 리스트 (헤더 스타일링, freeze, autofilter, 자동 폭)
+     * - 파일명: SR_요청_YYYYMMDD-HHmmss.xlsx
+     */
+    public function exportExcel(Request $request)
+    {
+        $u = auth()->user();
+        $isSrPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+
+        // 비권한자는 본인 회사 SR만
+        $q = MaintRequest::query()
+            ->with(['menu', 'coloUser', 'assignee', 'companyGroup'])
+            ->latest('id');
+        if (!$isSrPrivileged) {
+            if (!$u?->company_group_id) abort(403, '회사 소속 없는 사용자는 다운로드할 수 없습니다.');
+            $q->where('company_group_id', $u->company_group_id);
+        } elseif ($cg = $request->integer('company_group_id')) {
+            $q->where('company_group_id', $cg);
+        }
+
+        // 필터(현재 화면 상태 그대로 반영)
+        if ($s = $request->string('status')->toString())   $q->where('status', $s);
+        if ($p = $request->string('priority')->toString()) $q->where('priority', $p);
+        if ($a = $request->integer('assignee_id'))         $q->where('assignee_id', $a);
+        if ($c = $request->integer('colo_user_id'))        $q->where('colo_user_id', $c);
+        if ($kw = trim($request->string('q')->toString())) {
+            $q->where(function ($x) use ($kw) {
+                $x->where('summary', 'like', "%{$kw}%")
+                  ->orWhere('content', 'like', "%{$kw}%");
+            });
+        }
+        $bucket = $request->string('bucket')->toString();
+        $bucketStatuses = self::bucketStatuses();
+        if ($bucket && $bucket !== 'all' && isset($bucketStatuses[$bucket])) {
+            $q->whereIn('status', $bucketStatuses[$bucket]);
+        }
+
+        $rows = $q->get();
+
+        // 상태 카운트
+        $statusCounts = $rows->groupBy('status')->map->count();
+        $priorityCounts = $rows->groupBy('priority')->map->count();
+
+        // PhpSpreadsheet 작성
+        $book = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+        // ── 시트 1: 대시보드 ──
+        $dash = $book->getActiveSheet();
+        $dash->setTitle('대시보드');
+
+        $statusLabels = [
+            'draft' => '작성중', 'requested' => '요청', 'planned' => '진행예정', 'in_progress' => '진행중',
+            'additional_dev' => '추가 개발',
+            'pending_check' => '확인대기', 'discussion_needed' => '논의필요', 'on_hold' => '보류',
+            'awaiting_file' => '파일대기', 'replied' => '답변완료', 'review_requested' => '검토요청',
+            'review_again' => '재확인', 'completed' => '완료',
+        ];
+        $priorityLabels = ['normal' => '일반', 'urgent' => '긴급', 'critical' => '초긴급', 'recheck' => '재확인'];
+        $bucketDefs = self::bucketStatuses();
+
+        // 컬럼 폭 (카드형 레이아웃 8컬럼)
+        foreach (['A','B','C','D','E','F','G','H'] as $col) {
+            $dash->getColumnDimension($col)->setWidth(16);
+        }
+
+        // ── 헤더 ──
+        $dash->setCellValue('A1', 'SR 요청 대시보드');
+        $dash->mergeCells('A1:H1');
+        $dash->getStyle('A1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 18, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '0F86EF']],
+            'alignment' => ['vertical' => 'center', 'horizontal' => 'center'],
+        ]);
+        $dash->getRowDimension(1)->setRowHeight(40);
+
+        $companyName = $u?->companyGroup?->name ?: ($isSrPrivileged ? '전체 회사' : '');
+        $dash->setCellValue('A2', '회사: ' . ($companyName ?: '-') . '   |   추출: ' . now()->format('Y-m-d H:i'));
+        $dash->mergeCells('A2:H2');
+        $dash->getStyle('A2')->applyFromArray([
+            'font' => ['size' => 10, 'color' => ['rgb' => '6B7280']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => 'F8FAFC']],
+        ]);
+        $dash->getRowDimension(2)->setRowHeight(22);
+
+        // ── 빈 행 ──
+        $dash->getRowDimension(3)->setRowHeight(12);
+
+        // ── KPI 카드 4종 (화면 상단과 동일) ──
+        $bucketCount = fn(array $statuses) => $rows->whereIn('status', $statuses)->count();
+        $kpis = [
+            ['col'=>'A', 'span'=>2, 'label'=>'전체',      'value'=>$rows->count(),                 'bg'=>'EEF2FF', 'fg'=>'3730A3'],
+            ['col'=>'C', 'span'=>2, 'label'=>'진행/예정', 'value'=>$bucketCount($bucketDefs['in_progress']), 'bg'=>'FEF3C7', 'fg'=>'92400E'],
+            ['col'=>'E', 'span'=>2, 'label'=>'검토중',    'value'=>$bucketCount($bucketDefs['reviewing']),   'bg'=>'FFEDD5', 'fg'=>'9A3412'],
+            ['col'=>'G', 'span'=>2, 'label'=>'완료',      'value'=>$bucketCount($bucketDefs['completed']),   'bg'=>'D1FAE5', 'fg'=>'065F46'],
+        ];
+        foreach ($kpis as $k) {
+            $colStart = $k['col'];
+            $colEnd = chr(ord($k['col']) + $k['span'] - 1);
+            // 라벨 카드 상단
+            $dash->setCellValue($colStart . '4', $k['label']);
+            $dash->mergeCells("{$colStart}4:{$colEnd}4");
+            $dash->getStyle("{$colStart}4")->applyFromArray([
+                'font' => ['size' => 11, 'color' => ['rgb' => $k['fg']], 'bold' => true],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => $k['bg']]],
+                'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+                'borders' => ['top' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'E5E7EB']], 'left' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'E5E7EB']], 'right' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
+            ]);
+            // 큰 숫자
+            $dash->setCellValue($colStart . '5', number_format($k['value']));
+            $dash->mergeCells("{$colStart}5:{$colEnd}5");
+            $dash->getStyle("{$colStart}5")->applyFromArray([
+                'font' => ['size' => 28, 'color' => ['rgb' => $k['fg']], 'bold' => true],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => $k['bg']]],
+                'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+                'borders' => ['bottom' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'E5E7EB']], 'left' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'E5E7EB']], 'right' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
+            ]);
+        }
+        $dash->getRowDimension(4)->setRowHeight(28);
+        $dash->getRowDimension(5)->setRowHeight(56);
+        $dash->getRowDimension(6)->setRowHeight(14);
+
+        // ── 상태별·우선순위별 상세 ──
+        $dash->setCellValue('A7', '상태별 상세');
+        $dash->mergeCells('A7:D7');
+        $dash->setCellValue('E7', '우선순위별');
+        $dash->mergeCells('E7:H7');
+        $dash->getStyle('A7:H7')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '484F5E']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+        ]);
+        $dash->getRowDimension(7)->setRowHeight(26);
+
+        // 상태별 (2개씩 두 페어 = A/B, C/D)
+        $statusKeys = array_keys($statusLabels);
+        $rowR = 8;
+        for ($i = 0; $i < count($statusKeys); $i += 2) {
+            $dash->setCellValue("A{$rowR}", $statusLabels[$statusKeys[$i]]);
+            $dash->setCellValue("B{$rowR}", $statusCounts[$statusKeys[$i]] ?? 0);
+            if (isset($statusKeys[$i + 1])) {
+                $dash->setCellValue("C{$rowR}", $statusLabels[$statusKeys[$i + 1]]);
+                $dash->setCellValue("D{$rowR}", $statusCounts[$statusKeys[$i + 1]] ?? 0);
+            }
+            $rowR++;
+        }
+        $statusEndRow = $rowR - 1;
+
+        // 우선순위 (E,F=라벨, G,H=값)
+        $priRow = 8;
+        foreach ($priorityLabels as $k => $label) {
+            $dash->setCellValue("E{$priRow}", $label);
+            $dash->mergeCells("E{$priRow}:F{$priRow}");
+            $dash->setCellValue("G{$priRow}", $priorityCounts[$k] ?? 0);
+            $dash->mergeCells("G{$priRow}:H{$priRow}");
+            $priRow++;
+        }
+        $priEndRow = $priRow - 1;
+
+        $endRow = max($statusEndRow, $priEndRow);
+        $dash->getStyle("A8:H{$endRow}")->applyFromArray([
+            'font' => ['size' => 11, 'color' => ['rgb' => '374151']],
+            'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'E5E7EB']]],
+            'alignment' => ['vertical' => 'center'],
+        ]);
+        $dash->getStyle("A8:A{$statusEndRow}")->getFont()->setBold(true);
+        $dash->getStyle("C8:C{$statusEndRow}")->getFont()->setBold(true);
+        $dash->getStyle("E8:F{$priEndRow}")->getFont()->setBold(true);
+        $dash->getStyle("B8:B{$statusEndRow}")->getAlignment()->setHorizontal('right');
+        $dash->getStyle("D8:D{$statusEndRow}")->getAlignment()->setHorizontal('right');
+        $dash->getStyle("G8:H{$priEndRow}")->getAlignment()->setHorizontal('right');
+        for ($r = 8; $r <= $endRow; $r++) {
+            $dash->getRowDimension($r)->setRowHeight(22);
+        }
+
+        // ── 시트 2: 상세 리스트 ──
+        $list = $book->createSheet();
+        $list->setTitle('SR 리스트');
+
+        $headers = ['#', '회사', '메뉴', '우선순위', '상태', '구분', '요약', '콜로 담당', '링크더랩 담당', '요청일', '완료예정', '완료일', '등록일'];
+        $list->fromArray($headers, null, 'A1');
+
+        $headRange = 'A1:' . chr(64 + count($headers)) . '1';
+        $list->getStyle($headRange)->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '0F86EF']],
+            'alignment' => ['vertical' => 'center', 'horizontal' => 'center'],
+            'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => '006CCA']]],
+        ]);
+        $list->getRowDimension(1)->setRowHeight(28);
+
+        $r = 2;
+        foreach ($rows as $sr) {
+            $list->fromArray([
+                $sr->id,
+                $sr->companyGroup?->name ?? '',
+                $sr->menu?->name ?? '',
+                $priorityLabels[$sr->priority] ?? $sr->priority,
+                $statusLabels[$sr->status] ?? $sr->status,
+                $sr->category ?? '',
+                $sr->summary ?? '',
+                $sr->coloUser?->name ?? '',
+                $sr->assignee?->name ?? '',
+                optional($sr->request_date)->format('Y-m-d') ?? '',
+                optional($sr->eta)->format('Y-m-d') ?? '',
+                optional($sr->completed_at)->format('Y-m-d') ?? '',
+                optional($sr->created_at)->format('Y-m-d H:i') ?? '',
+            ], null, "A{$r}");
+
+            // 우선순위 배경색
+            $priColor = ['urgent' => 'FFE8D7', 'critical' => 'FFEDED', 'recheck' => 'FFF4ED'][$sr->priority] ?? null;
+            if ($priColor) {
+                $list->getStyle("D{$r}")->getFill()->setFillType('solid')->getStartColor()->setRGB($priColor);
+            }
+            // 상태 배경색
+            $statColor = ['completed' => 'F0FDF4', 'in_progress' => 'EBF6FF', 'on_hold' => 'F1F2F5'][$sr->status] ?? null;
+            if ($statColor) {
+                $list->getStyle("E{$r}")->getFill()->setFillType('solid')->getStartColor()->setRGB($statColor);
+            }
+            $r++;
+        }
+        $endRow = $r - 1;
+        if ($endRow >= 2) {
+            $list->getStyle("A2:M{$endRow}")
+                ->getBorders()->getAllBorders()->setBorderStyle('thin')->getColor()->setRGB('E5E7EB');
+        }
+
+        // 자동 폭 + freeze + autofilter
+        foreach (range('A', 'M') as $col) {
+            $list->getColumnDimension($col)->setAutoSize(true);
+        }
+        $list->freezePane('A2');
+        $list->setAutoFilter("A1:M{$endRow}");
+
+        // 첫 시트(대시보드) 를 활성 시트로
+        $book->setActiveSheetIndex(0);
+
+        // 다운로드 응답
+        $filename = 'SR_요청_' . now()->format('Ymd-His') . '.xlsx';
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($book);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
+        ]);
+    }
+
+    /**
+     * 추가 개발(유상) 매니저 전송 — 매니저 + 요청자 + 링크더랩 담당자에게 이메일,
+     * SR 상태를 'additional_dev' 로 변경, paid_dev_sent_at 기록.
+     */
+    public function sendToManager(Request $request, MaintRequest $maintRequest)
+    {
+        $data = $request->validate([
+            'days'        => 'required|integer|min:0|max:9999',
+            'cost'        => 'required|integer|min:0',
+            'description' => 'required|string|max:5000',
+        ]);
+
+        $maintRequest->loadMissing(['coloUser', 'assignee', 'companyGroup']);
+
+        // SR 요청자 식별 — 콜로 담당자(coloUser) 이름과 회사 매칭
+        $requesterUser = null;
+        if ($maintRequest->coloUser && $maintRequest->company_group_id) {
+            $requesterUser = \App\Models\User::where('company_group_id', $maintRequest->company_group_id)
+                ->where('name', $maintRequest->coloUser->name)
+                ->whereNotNull('email')
+                ->first();
+        }
+        if (!$requesterUser) {
+            return response()->json(['ok' => false, 'message' => 'SR 요청자(회사 측 담당자)를 가입된 사용자로 매핑할 수 없어 매니저를 찾을 수 없습니다.'], 422);
+        }
+
+        // 매니저 = 요청자 회사의 manager 권한 사용자
+        $managers = \App\Models\User::where('company_group_id', $requesterUser->company_group_id)
+            ->where(function ($q) {
+                $q->where('role', 'manager')->orWhere('role', 'admin');
+            })
+            ->whereNotNull('email')
+            ->get();
+        if ($managers->isEmpty()) {
+            return response()->json(['ok' => false, 'message' => '요청자 회사에 매니저 권한 사용자가 없습니다.'], 422);
+        }
+
+        // 링크더랩 담당자
+        $devUser = null;
+        if ($maintRequest->assignee) {
+            $devUser = \App\Models\User::where('is_sr_agent', true)
+                ->where('name', $maintRequest->assignee->name)
+                ->whereNotNull('email')
+                ->first();
+        }
+
+        $recipients = $managers->pluck('email')->all();
+        $recipients[] = $requesterUser->email;
+        if ($devUser?->email) $recipients[] = $devUser->email;
+        $recipients = array_values(array_unique(array_filter($recipients, fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))));
+
+        if (empty($recipients)) {
+            return response()->json(['ok' => false, 'message' => '유효한 수신자 이메일이 없습니다.'], 422);
+        }
+
+        // 저장 + 상태 변경
+        $maintRequest->update([
+            'paid_dev_enabled'    => true,
+            'paid_dev_days'       => (int) $data['days'],
+            'paid_dev_cost'       => (int) $data['cost'],
+            'paid_dev_description'=> $data['description'],
+            'paid_dev_sent_at'    => now(),
+            'status'              => 'additional_dev',
+        ]);
+
+        try {
+            Mail::send(new \App\Mail\PaidDevRequestMail($maintRequest->fresh(), $recipients, $requesterUser->name));
+            return response()->json(['ok' => true, 'message' => '매니저(' . $managers->count() . '명)에게 전송했습니다. SR 상태가 \'추가 개발\'로 변경되었습니다.']);
+        } catch (\Throwable $e) {
+            Log::warning('PaidDev 메일 발송 실패: ' . $e->getMessage(), ['sr_id' => $maintRequest->id]);
+            return response()->json(['ok' => true, 'message' => '저장은 완료됐으나 이메일 발송 실패: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * SR 등록/수정 시 이메일 알림 발송.
+     *  - 수신자 1: SR 등록자 (현재 created_by 컬럼 없음 → 추후 매핑 대비) 또는 콜로 담당자의 매핑된 User
+     *  - 수신자 2: 링크더랩 SR 담당자 — assignee.name 으로 users 테이블 매칭 (company=링크더랩, is_sr_agent=true)
+     * 매칭되지 않거나 이메일이 없으면 건너뜀. 발송 실패해도 본 작업은 진행.
+     */
+    private function sendMaintRequestNotification(?MaintRequest $sr, string $eventLabel): void
+    {
+        if (!$sr) return;
+        try {
+            $sr->loadMissing(['companyGroup', 'coloUser', 'assignee']);
+
+            $recipients = [];
+
+            // 1) 콜로(요청 회사) 측 담당자 — 회사그룹 사용자 중 이름 매칭
+            if ($sr->coloUser && $sr->company_group_id) {
+                $u = User::where('company_group_id', $sr->company_group_id)
+                    ->where('name', $sr->coloUser->name)
+                    ->whereNotNull('email')
+                    ->first();
+                if ($u && filter_var($u->email, FILTER_VALIDATE_EMAIL)) {
+                    $recipients[] = $u->email;
+                }
+            }
+
+            // 2) 링크더랩 SR 담당자 (위드웍스측) — is_sr_agent + 이름 매칭
+            if ($sr->assignee) {
+                $u = User::where('is_sr_agent', true)
+                    ->where('name', $sr->assignee->name)
+                    ->whereNotNull('email')
+                    ->first();
+                if ($u && filter_var($u->email, FILTER_VALIDATE_EMAIL)) {
+                    $recipients[] = $u->email;
+                }
+            }
+
+            $recipients = array_values(array_unique($recipients));
+            if (empty($recipients)) return;
+
+            Mail::send(new MaintRequestNotificationMail($sr, $recipients, $eventLabel));
+        } catch (\Throwable $e) {
+            Log::warning('MaintRequest 이메일 알림 실패: ' . $e->getMessage(), ['sr_id' => $sr->id ?? null]);
+        }
     }
 }

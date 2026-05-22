@@ -13,12 +13,7 @@
 
 @section('content')
 
-@if(session('success'))
-<div style="margin-bottom:16px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#166534;font-size:13px;display:flex;align-items:center;gap:8px;">
-    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-    {{ session('success') }}
-</div>
-@endif
+{{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
 {{-- ── 관리자 목록 ── --}}
 <div class="admin-card" style="padding:0;overflow:hidden;margin-bottom:20px;">

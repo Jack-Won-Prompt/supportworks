@@ -14,9 +14,7 @@
         <div style="font-size:13px;color:var(--color-text-tertiary);margin-top:3px;">{{ __('shared-folder.subtitle') }}</div>
     </div>
 
-    @if(session('success'))
-    <div style="background:#dcfce7;border:1px solid #bbf7d0;color:#166534;border-radius:9px;padding:9px 14px;font-size:13px;">{{ session('success') }}</div>
-    @endif
+    {{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
     @if($errors->any())
     <div style="background:var(--color-bg-danger-subtle);border:1px solid #fecaca;color:#b91c1c;border-radius:9px;padding:9px 14px;font-size:13px;">{{ $errors->first() }}</div>
     @endif

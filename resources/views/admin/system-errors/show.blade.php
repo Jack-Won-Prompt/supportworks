@@ -16,11 +16,7 @@
         </a>
     </div>
 
-    @if(session('success'))
-    <div class="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">
-        {{ session('success') }}
-    </div>
-    @endif
+    {{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
     {{-- 헤더 카드 --}}
     <div class="bg-white border border-slate-200 rounded-xl p-5 mb-4">

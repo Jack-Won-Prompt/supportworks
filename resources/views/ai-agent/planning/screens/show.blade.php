@@ -62,13 +62,7 @@
 @section('ai-agent-content')
 <div class="psc-show-wrap">
 
-    {{-- 플래시 --}}
-    @if(session('success'))
-    <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:11px 16px;font-size:13px;color:#166534;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        {{ session('success') }}
-    </div>
-    @endif
+    {{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
     {{-- 헤더 --}}
     <div class="psc-show-hdr">

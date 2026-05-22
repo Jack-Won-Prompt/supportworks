@@ -449,8 +449,9 @@ class AppServiceProvider extends ServiceProvider
                 'statusLabels' => [
                     'draft'             => '작성중',
                     'requested'         => '요청',
-                    'planned'           => '개발예정',
+                    'planned'           => '진행예정',
                     'in_progress'       => '진행중',
+                    'additional_dev'    => '추가 개발',
                     'pending_check'     => '확인대기',
                     'discussion_needed' => '논의필요',
                     'on_hold'           => '보류',
@@ -465,6 +466,7 @@ class AppServiceProvider extends ServiceProvider
                     'requested'         => 'background:#dbeafe;color:#1e40af;',
                     'planned'           => 'background:#e0e7ff;color:#3730a3;',
                     'in_progress'       => 'background:#fef3c7;color:#92400e;',
+                    'additional_dev'    => 'background:#ede9fe;color:#5b21b6;',
                     'pending_check'     => 'background:#fce7f3;color:#9d174d;',
                     'discussion_needed' => 'background:#fee2e2;color:#991b1b;',
                     'on_hold'           => 'background:#f3e8ff;color:#6b21a8;',

@@ -26,17 +26,7 @@
 @include('partials.project-nav', ['project'=>$project, 'active'=>'weekly-reports'])
 <div class="space-y-5">
 
-    @if(session('success'))
-    <div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px 16px;font-size:13px;color:#065f46;">
-        {{ session('success') }}
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px 16px;font-size:13px;color:#991b1b;">
-        {{ session('error') }}
-    </div>
-    @endif
+    {{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
     {{-- 매니저 툴바 --}}
     @if($isManager && !$reports->isEmpty())

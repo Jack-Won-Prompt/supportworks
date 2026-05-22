@@ -35,11 +35,7 @@
 @section('content')
 <div style="max-width:100%;margin:0 auto;">
 
-    @if(session('success'))
-    <div style="background:#dcfce7;border:1px solid #bbf7d0;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--color-alert-success-500);">
-        {{ session('success') }}
-    </div>
-    @endif
+    {{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
     <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start;">
 
@@ -70,7 +66,7 @@
                         <span>📍</span>
                         <div>
                             <div style="font-size:11px;color:var(--color-text-tertiary);">{{ __('maintenance.location') }}</div>
-                            <div style="font-weight:600;color:var(--color-text-primary);">{{ $meetingMinute->location }}</div>
+                            <div style="font-weight:600;color:var(--color-text-primary);">{{ $meetingMinute->display_location }}</div>
                         </div>
                     </div>
                     @endif

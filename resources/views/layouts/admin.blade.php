@@ -269,11 +269,24 @@
         </header>
 
         <main class="admin-content">
-            @if(session('success'))
-            <div class="alert-success">{{ session('success') }}</div>
-            @endif
-            @if($errors->any())
-            <div class="alert-error">{{ $errors->first() }}</div>
+            {{-- 알림 메시지: 화면 영역 배너 대신 전역 토스트로 표시 --}}
+            @php
+                $__adminFlashSuccess = session('success');
+                $__adminFlashError   = session('error');
+                $__adminFlashStatus  = session('status');
+                $__adminFlashErrors  = $errors->any() ? $errors->all() : [];
+            @endphp
+            @if($__adminFlashSuccess || $__adminFlashError || $__adminFlashStatus || count($__adminFlashErrors))
+            <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                @if($__adminFlashSuccess) window.appToast && window.appToast('success', @json($__adminFlashSuccess)); @endif
+                @if($__adminFlashStatus)  window.appToast && window.appToast('success', @json($__adminFlashStatus));  @endif
+                @if($__adminFlashError)   window.appToast && window.appToast('error',   @json($__adminFlashError));   @endif
+                @foreach($__adminFlashErrors as $__e)
+                    window.appToast && window.appToast('error', @json($__e), 6000);
+                @endforeach
+            });
+            </script>
             @endif
 
             @yield('content')
@@ -294,6 +307,47 @@ const ADMIN_STR = {
     guest:      '{{ __("admin.guest") }}',
     newMessage: '{{ __("admin.new_message") }}',
     user:       '{{ __("admin.user") }}',
+};
+
+// ── 전역 액션 결과 토스트 (success/error/warning/info) — app.blade.php 와 동일 시그니처 ──
+window.appToast = function(type, message, duration) {
+    if (!message) return;
+    duration = duration || (type === 'error' ? 5500 : 4000);
+    let host = document.getElementById('app-toast-container');
+    if (!host) {
+        host = document.createElement('div');
+        host.id = 'app-toast-container';
+        host.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:480px;';
+        document.body.appendChild(host);
+    }
+    const palette = {
+        success: {bg:'#ecfdf5', border:'#a7f3d0', text:'#047857', icon:'M5 13l4 4L19 7'},
+        error:   {bg:'#fef2f2', border:'#fecaca', text:'#b91c1c', icon:'M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'},
+        warning: {bg:'#fffbeb', border:'#fde68a', text:'#b45309', icon:'M12 9v2m0 4h.01M4.93 19.07a10 10 0 1114.14 0H4.93z'},
+        info:    {bg:'#eff6ff', border:'#bfdbfe', text:'#1d4ed8', icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'},
+    }[type] || {bg:'#f3f4f6', border:'#e5e7eb', text:'#374151', icon:'M13 16h-1v-4h-1m1-4h.01'};
+    const t = document.createElement('div');
+    t.style.cssText =
+        'background:'+palette.bg+';border:1px solid '+palette.border+';color:'+palette.text+
+        ';padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.08);'+
+        'font-size:13px;min-width:280px;max-width:480px;display:flex;align-items:flex-start;gap:8px;'+
+        'pointer-events:auto;transform:translateX(20px);opacity:0;transition:transform .2s, opacity .2s;';
+    const msgEscaped = String(message).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    t.innerHTML =
+        '<svg style="width:18px;height:18px;flex-shrink:0;margin-top:1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">'+
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="'+palette.icon+'"/>'+
+        '</svg>'+
+        '<div style="flex:1;line-height:1.5;">'+msgEscaped+'</div>'+
+        '<button type="button" style="background:none;border:0;color:inherit;cursor:pointer;font-size:18px;line-height:1;padding:0 0 0 4px;opacity:.5;">&times;</button>';
+    const dismiss = function () {
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(20px)';
+        setTimeout(function () { t.remove(); }, 220);
+    };
+    t.querySelector('button').onclick = dismiss;
+    host.appendChild(t);
+    requestAnimationFrame(function () { t.style.opacity='1'; t.style.transform='translateX(0)'; });
+    setTimeout(dismiss, duration);
 };
 // ── 관리자 메뉴 검색 ─────────────────────────────────────────
 (function() {

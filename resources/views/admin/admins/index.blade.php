@@ -8,11 +8,7 @@
 
 @section('content')
 
-@if(session('success'))
-<div class="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">
-    {{ session('success') }}
-</div>
-@endif
+{{-- session 플래시는 전역 토스트(window.appToast)로 표시됨 --}}
 
 <div class="admin-card" style="padding:0;overflow:hidden;">
     <table class="admin-table">
