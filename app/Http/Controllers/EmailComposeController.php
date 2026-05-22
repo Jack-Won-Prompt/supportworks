@@ -54,7 +54,8 @@ class EmailComposeController extends Controller
     }
 
     /**
-     * 이메일 발송 — 발송 후 휴대폰 번호가 있는 수신자에게 SMS 알림 동반 전송.
+     * 이메일 발송 — multipart 폼 (HTML 본문 + 첨부파일).
+     *   - 발송 후 휴대폰 번호가 있는 수신자에게 SMS 알림 동반 전송.
      */
     public function send(Request $request): JsonResponse
     {
@@ -62,10 +63,12 @@ class EmailComposeController extends Controller
         abort_unless($sender, 401);
 
         $request->validate([
-            'subject'      => 'required|string|max:200',
-            'body'         => 'required|string|max:50000',
-            'recipients'   => 'required|array|min:1',
-            'recipients.*' => 'string|max:300',
+            'subject'        => 'required|string|max:200',
+            'body'           => 'required|string|max:1000000',  // HTML 이라 max 크게
+            'recipients'     => 'required|array|min:1',
+            'recipients.*'   => 'string|max:300',
+            'attachments'    => 'nullable|array|max:10',
+            'attachments.*'  => 'file|max:20480',  // 파일당 20MB
         ]);
 
         // 입력 정규화: "이름 <email>" / "email" 모두 허용.
@@ -77,6 +80,18 @@ class EmailComposeController extends Controller
 
         if ($entries->isEmpty()) {
             return response()->json(['ok' => false, 'message' => '유효한 수신 이메일이 없습니다.'], 422);
+        }
+
+        // 첨부파일 임시 저장 (메일 발송 후 정리)
+        $attachments = [];
+        foreach ((array) $request->file('attachments', []) as $file) {
+            if (!$file) continue;
+            $path = $file->store('email-compose/attachments/' . date('Ymd'), 'local');
+            $attachments[] = [
+                'path' => storage_path('app/private/' . $path),
+                'name' => $file->getClientOriginalName(),
+                'mime' => $file->getMimeType(),
+            ];
         }
 
         // 동일 회사 구성원 매핑 (id 또는 email 기준) — 휴대폰 번호 조회용.
@@ -94,7 +109,7 @@ class EmailComposeController extends Controller
             $email = $e['email'];
             $name  = $e['name'] ?: ($companyUsers[mb_strtolower($email)]->name ?? null);
             try {
-                Mail::to($email, $name)->send(new ComposeMail($sender, $subject, $body, $name));
+                Mail::to($email, $name)->send(new ComposeMail($sender, $subject, $body, $name, $attachments));
                 $sent++;
             } catch (\Throwable $ex) {
                 \App\Models\SystemErrorLog::record($ex, 'warning');
@@ -110,6 +125,11 @@ class EmailComposeController extends Controller
             }
         }
 
+        // 임시 첨부파일 정리
+        foreach ($attachments as $att) {
+            @unlink($att['path']);
+        }
+
         return response()->json([
             'ok'      => $sent > 0,
             'sent'    => $sent,
@@ -118,6 +138,17 @@ class EmailComposeController extends Controller
                 ? "{$sent}건 발송 완료" . ($errors ? ' (' . count($errors) . '건 실패)' : '')
                 : '발송에 실패했습니다.',
         ]);
+    }
+
+    /**
+     * 본문 이미지 업로드 (Quill 에디터 paste/insert).
+     */
+    public function uploadImage(Request $request): JsonResponse
+    {
+        abort_unless(Auth::check(), 401);
+        $request->validate(['image' => 'required|image|max:5120']);  // 5MB
+        $path = $request->file('image')->store('email-compose/images/' . date('Ymd'), 'public');
+        return response()->json(['url' => asset('storage/' . $path)]);
     }
 
     /**

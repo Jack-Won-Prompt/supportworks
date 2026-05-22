@@ -373,8 +373,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
 
     // 상단바 이메일 보내기 (팝오버)
-    Route::get ('/email-compose/recipients', [\App\Http\Controllers\EmailComposeController::class, 'recipients'])->name('email-compose.recipients');
-    Route::post('/email-compose',             [\App\Http\Controllers\EmailComposeController::class, 'send'])->name('email-compose.send');
+    Route::get ('/email-compose/recipients',   [\App\Http\Controllers\EmailComposeController::class, 'recipients'])->name('email-compose.recipients');
+    Route::post('/email-compose',              [\App\Http\Controllers\EmailComposeController::class, 'send'])->name('email-compose.send');
+    Route::post('/email-compose/upload-image', [\App\Http\Controllers\EmailComposeController::class, 'uploadImage'])->name('email-compose.upload-image');
 
     // 메시지
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');

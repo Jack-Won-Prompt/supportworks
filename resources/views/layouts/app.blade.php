@@ -779,8 +779,21 @@
                                     </div>
                                     <div>
                                         <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('common.content') }}</label>
-                                        <textarea id="mail-compose-body" rows="6" maxlength="50000" required
-                                            style="width:100%;padding:9px 11px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;color:#374151;box-sizing:border-box;resize:vertical;line-height:1.6;font-family:inherit;"></textarea>
+                                        <div id="mail-quill-wrap" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff;">
+                                            <div id="mail-quill-editor" style="min-height:160px;max-height:280px;"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">
+                                            <span>{{ __('app.mail_attachments') ?? '첨부파일' }}</span>
+                                            <label for="mail-compose-attach" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#f5f3ff;border:1px solid #ddd6fe;color:#7c3aed;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">
+                                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                                파일 선택
+                                            </label>
+                                            <input type="file" id="mail-compose-attach" multiple style="display:none;" onchange="mailComposeAddFiles(this.files); this.value='';">
+                                            <span id="mail-compose-attach-info" style="font-size:11px;color:#94a3b8;font-weight:500;">(최대 10개·개당 20MB)</span>
+                                        </label>
+                                        <div id="mail-compose-attach-chips" style="display:flex;flex-wrap:wrap;gap:4px;min-height:4px;"></div>
                                     </div>
                                     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:4px;">
                                         <span id="mail-compose-status" style="font-size:11.5px;color:#94a3b8;"></span>
@@ -792,25 +805,238 @@
                                 </form>
                             </div>
                         </div>
+                        <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css">
+                        <style>
+                            #mail-quill-wrap .ql-toolbar { border:none; border-bottom:1px solid #e5e7eb; padding:5px 8px; background:#fafafa; }
+                            #mail-quill-wrap .ql-container { border:none; font-family:inherit; }
+                            #mail-quill-wrap .ql-editor { min-height:160px; max-height:280px; overflow-y:auto; padding:10px 12px; font-size:13px; color:#374151; line-height:1.65; }
+                            #mail-quill-wrap .ql-editor img { max-width:100%; height:auto; border-radius:4px; cursor:pointer; }
+                            #mail-quill-wrap .ql-editor img.mail-img-selected { outline:2px solid #7c3aed; outline-offset:1px; }
+                            /* 이미지 리사이즈 오버레이 (페이지 전역) */
+                            #mail-img-overlay { position:fixed; pointer-events:none; z-index:20; display:none; }
+                            #mail-img-overlay.is-active { display:block; }
+                            .mail-img-handle { position:absolute; width:10px; height:10px; background:#7c3aed; border:1.5px solid #fff; border-radius:2px; pointer-events:auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+                            .mail-img-handle.h-tl { top:-5px; left:-5px; cursor:nwse-resize; }
+                            .mail-img-handle.h-tm { top:-5px; left:50%; margin-left:-5px; cursor:ns-resize; }
+                            .mail-img-handle.h-tr { top:-5px; right:-5px; cursor:nesw-resize; }
+                            .mail-img-handle.h-ml { top:50%; margin-top:-5px; left:-5px; cursor:ew-resize; }
+                            .mail-img-handle.h-mr { top:50%; margin-top:-5px; right:-5px; cursor:ew-resize; }
+                            .mail-img-handle.h-bl { bottom:-5px; left:-5px; cursor:nesw-resize; }
+                            .mail-img-handle.h-bm { bottom:-5px; left:50%; margin-left:-5px; cursor:ns-resize; }
+                            .mail-img-handle.h-br { bottom:-5px; right:-5px; cursor:nwse-resize; }
+                        </style>
+                        <div id="mail-img-overlay">
+                            <span class="mail-img-handle h-tl" data-dir="tl"></span>
+                            <span class="mail-img-handle h-tm" data-dir="tm"></span>
+                            <span class="mail-img-handle h-tr" data-dir="tr"></span>
+                            <span class="mail-img-handle h-ml" data-dir="ml"></span>
+                            <span class="mail-img-handle h-mr" data-dir="mr"></span>
+                            <span class="mail-img-handle h-bl" data-dir="bl"></span>
+                            <span class="mail-img-handle h-bm" data-dir="bm"></span>
+                            <span class="mail-img-handle h-br" data-dir="br"></span>
+                        </div>
+                        <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
                         <script>
                             (function() {
                                 let _mcRecipients = [];   // 추가된 수신자: {label, value}
                                 let _mcAllUsers   = [];   // 수신 가능 사용자 전체
+                                let _mcAttachments = [];  // 첨부 File 객체
+                                let _mcQuill = null;      // Quill 인스턴스 (lazy init)
+
+                                // Quill StyledImage blot — 리사이즈 style 보존
+                                function registerMailStyledImage() {
+                                    if (window.__mailStyledImageRegistered || !window.Quill) return;
+                                    window.__mailStyledImageRegistered = true;
+                                    const ImageBlot = Quill.import('formats/image');
+                                    const PRESERVED = ['alt', 'height', 'width', 'style'];
+                                    class StyledImage extends ImageBlot {
+                                        static formats(domNode) {
+                                            return PRESERVED.reduce((acc, attr) => {
+                                                if (domNode.hasAttribute(attr)) acc[attr] = domNode.getAttribute(attr);
+                                                return acc;
+                                            }, {});
+                                        }
+                                        format(name, value) {
+                                            if (PRESERVED.indexOf(name) > -1) {
+                                                if (value) this.domNode.setAttribute(name, value);
+                                                else this.domNode.removeAttribute(name);
+                                            } else { super.format(name, value); }
+                                        }
+                                    }
+                                    Quill.register(StyledImage, true);
+                                }
+
+                                function initMailQuill() {
+                                    if (_mcQuill || !window.Quill) return;
+                                    registerMailStyledImage();
+                                    const editorEl = document.getElementById('mail-quill-editor');
+                                    if (!editorEl) return;
+                                    _mcQuill = new Quill(editorEl, {
+                                        theme: 'snow',
+                                        placeholder: '내용을 입력하세요. 이미지는 복사·붙여넣기로 첨부할 수 있습니다.',
+                                        modules: {
+                                            toolbar: [
+                                                [{ header: [false, 1, 2] }],
+                                                ['bold','italic','underline','strike'],
+                                                [{ color: [] }, { background: [] }],
+                                                [{ list: 'ordered' }, { list: 'bullet' }],
+                                                ['link','image'],
+                                                ['clean'],
+                                            ],
+                                        },
+                                    });
+                                    // 이미지 업로드 (toolbar 버튼)
+                                    _mcQuill.getModule('toolbar').addHandler('image', () => {
+                                        const inp = document.createElement('input');
+                                        inp.type = 'file'; inp.accept = 'image/*';
+                                        inp.onchange = () => { if (inp.files[0]) mailComposeUploadImage(inp.files[0]); };
+                                        inp.click();
+                                    });
+                                    // 클립보드 paste 이미지
+                                    _mcQuill.root.addEventListener('paste', e => {
+                                        const it = [...(e.clipboardData?.items || [])].find(x => x.type.startsWith('image/'));
+                                        if (!it) return;
+                                        e.preventDefault();
+                                        mailComposeUploadImage(it.getAsFile());
+                                    });
+                                    // 이미지 클릭 → 리사이즈 핸들 표시
+                                    _mcQuill.root.addEventListener('click', e => {
+                                        if (e.target.tagName === 'IMG') { e.preventDefault(); mcSelectImage(e.target); }
+                                        else { mcSelectImage(null); }
+                                    });
+                                    // 스크롤/리사이즈 시 핸들 재배치
+                                    window.addEventListener('scroll', mcPositionOverlay, true);
+                                    window.addEventListener('resize', mcPositionOverlay);
+                                    // 리사이즈 핸들 드래그
+                                    document.querySelectorAll('#mail-img-overlay .mail-img-handle').forEach(h => {
+                                        h.addEventListener('mousedown', mcResizeStart);
+                                    });
+                                }
+
+                                function mailComposeUploadImage(file) {
+                                    if (!file || !_mcQuill) return;
+                                    const fd = new FormData(); fd.append('image', file);
+                                    fetch('{{ route('email-compose.upload-image') }}', {
+                                        method: 'POST',
+                                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept':'application/json' },
+                                        credentials: 'same-origin',
+                                        body: fd,
+                                    }).then(r => r.ok ? r.json() : Promise.reject(r.status))
+                                      .then(d => {
+                                          if (!d.url) return;
+                                          const range = _mcQuill.getSelection(true) || { index: _mcQuill.getLength() };
+                                          _mcQuill.insertEmbed(range.index, 'image', d.url);
+                                          _mcQuill.setSelection(range.index + 1);
+                                      })
+                                      .catch(err => alert('이미지 업로드 실패: ' + err));
+                                }
+
+                                // ── 이미지 리사이즈 핸들 ──
+                                let _mcSelectedImg = null;
+                                let _mcResizeState = null;
+                                function mcSelectImage(img) {
+                                    if (_mcSelectedImg) _mcSelectedImg.classList.remove('mail-img-selected');
+                                    _mcSelectedImg = img;
+                                    if (img) { img.classList.add('mail-img-selected'); mcPositionOverlay(); }
+                                    else { document.getElementById('mail-img-overlay')?.classList.remove('is-active'); }
+                                }
+                                function mcPositionOverlay() {
+                                    const ov = document.getElementById('mail-img-overlay');
+                                    if (!ov || !_mcSelectedImg) { ov?.classList.remove('is-active'); return; }
+                                    const r = _mcSelectedImg.getBoundingClientRect();
+                                    ov.style.left = r.left + 'px';
+                                    ov.style.top  = r.top + 'px';
+                                    ov.style.width  = r.width + 'px';
+                                    ov.style.height = r.height + 'px';
+                                    ov.classList.add('is-active');
+                                }
+                                function mcResizeStart(e) {
+                                    if (!_mcSelectedImg) return;
+                                    e.preventDefault();
+                                    const rect = _mcSelectedImg.getBoundingClientRect();
+                                    _mcResizeState = { dir: e.currentTarget.dataset.dir, startX: e.clientX, startY: e.clientY, origW: rect.width, origH: rect.height, aspect: rect.width / rect.height };
+                                    document.body.style.userSelect = 'none';
+                                    document.addEventListener('mousemove', mcResizeMove);
+                                    document.addEventListener('mouseup', mcResizeEnd, { once: true });
+                                }
+                                function mcResizeMove(e) {
+                                    if (!_mcResizeState || !_mcSelectedImg) return;
+                                    const dx = e.clientX - _mcResizeState.startX;
+                                    const dy = e.clientY - _mcResizeState.startY;
+                                    const dir = _mcResizeState.dir;
+                                    let nw = _mcResizeState.origW, nh = _mcResizeState.origH;
+                                    if (dir.includes('r')) nw = Math.max(40, _mcResizeState.origW + dx);
+                                    if (dir.includes('l')) nw = Math.max(40, _mcResizeState.origW - dx);
+                                    if (dir.includes('b')) nh = Math.max(40, _mcResizeState.origH + dy);
+                                    if (dir.includes('t')) nh = Math.max(40, _mcResizeState.origH - dy);
+                                    const isCorner = dir.length === 2;
+                                    if (isCorner) {
+                                        const wRatio = nw / _mcResizeState.origW, hRatio = nh / _mcResizeState.origH;
+                                        const ratio = Math.abs(wRatio - 1) > Math.abs(hRatio - 1) ? wRatio : hRatio;
+                                        nw = Math.max(40, _mcResizeState.origW * ratio);
+                                        nh = nw / _mcResizeState.aspect;
+                                    }
+                                    _mcSelectedImg.style.width = Math.round(nw) + 'px';
+                                    _mcSelectedImg.style.height = isCorner ? '' : Math.round(nh) + 'px';
+                                    mcPositionOverlay();
+                                }
+                                function mcResizeEnd() {
+                                    document.body.style.userSelect = '';
+                                    document.removeEventListener('mousemove', mcResizeMove);
+                                    _mcResizeState = null;
+                                }
+
+                                // ── 첨부파일 ──
+                                window.mailComposeAddFiles = function(files) {
+                                    for (const f of files) {
+                                        if (_mcAttachments.length >= 10) { alert('첨부파일은 최대 10개까지 가능합니다.'); break; }
+                                        if (f.size > 20 * 1024 * 1024) { alert(`"${f.name}" 은 20MB 를 초과합니다.`); continue; }
+                                        if (_mcAttachments.some(x => x.name === f.name && x.size === f.size)) continue;
+                                        _mcAttachments.push(f);
+                                    }
+                                    mailComposeRenderAttachments();
+                                };
+                                function mailComposeRenderAttachments() {
+                                    const box = document.getElementById('mail-compose-attach-chips');
+                                    if (!box) return;
+                                    box.innerHTML = _mcAttachments.map((f, i) => {
+                                        const sizeKb = f.size < 1024*1024 ? (Math.round(f.size/102.4)/10) + 'KB' : (Math.round(f.size/(1024*102.4))/10) + 'MB';
+                                        return `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 9px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:6px;font-size:11.5px;font-weight:500;max-width:240px;">
+                                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</span>
+                                            <span style="color:#a16207;font-size:10px;">${sizeKb}</span>
+                                            <button type="button" onclick="mailComposeRemoveFile(${i})" style="background:none;border:none;cursor:pointer;color:#92400e;font-size:13px;line-height:1;padding:0 2px;">&times;</button>
+                                        </span>`;
+                                    }).join('');
+                                }
+                                window.mailComposeRemoveFile = function(idx) {
+                                    _mcAttachments.splice(idx, 1);
+                                    mailComposeRenderAttachments();
+                                };
 
                                 window.mailComposeToggle = function() {
                                     const pop = document.getElementById('mail-compose-pop');
                                     if (!pop) return;
                                     const show = pop.style.display === 'none' || !pop.style.display;
                                     pop.style.display = show ? 'flex' : 'none';
-                                    if (show) mailComposeLoadRecipients();   // 매 오픈마다 재조회 (캐시 X)
+                                    if (show) {
+                                        mailComposeLoadRecipients();   // 매 오픈마다 재조회
+                                        setTimeout(initMailQuill, 50); // Quill 지연 초기화
+                                    } else {
+                                        mcSelectImage(null);
+                                    }
                                 };
                                 window.mailComposeClose = function() {
                                     const pop = document.getElementById('mail-compose-pop');
                                     if (pop) pop.style.display = 'none';
+                                    mcSelectImage(null);
                                 };
                                 document.addEventListener('click', function(e) {
                                     const wrap = document.getElementById('mail-compose-wrap');
                                     if (!wrap) return;
+                                    // 이미지 리사이즈 오버레이(팝오버 바깥)는 무시
+                                    const ov = document.getElementById('mail-img-overlay');
+                                    if (ov && ov.contains(e.target)) return;
                                     if (!wrap.contains(e.target)) { mailComposeClose(); return; }
                                     const search = document.getElementById('mail-compose-search');
                                     const dd = document.getElementById('mail-compose-dropdown');
@@ -923,7 +1149,8 @@
                                 window.mailComposeSend = async function(ev) {
                                     ev.preventDefault();
                                     const subject = document.getElementById('mail-compose-subject').value.trim();
-                                    const body    = document.getElementById('mail-compose-body').value;
+                                    const bodyHtml = _mcQuill ? (_mcQuill.getLength() <= 1 ? '' : _mcQuill.root.innerHTML) : '';
+                                    const bodyText = _mcQuill ? _mcQuill.getText().trim() : '';
                                     const direct  = document.getElementById('mail-compose-direct').value.trim();
                                     const status  = document.getElementById('mail-compose-status');
                                     const btn     = document.getElementById('mail-compose-send');
@@ -934,7 +1161,7 @@
                                         status.textContent = @json(__('app.mail_need_recipient'));
                                         return false;
                                     }
-                                    if (!subject || !body.trim()) {
+                                    if (!subject || (!bodyText && !bodyHtml.match(/<img/i))) {
                                         status.style.color = '#dc2626';
                                         status.textContent = @json(__('app.mail_need_subject_body'));
                                         return false;
@@ -947,18 +1174,19 @@
                                     status.textContent = '';
 
                                     try {
+                                        const fd = new FormData();
+                                        fd.append('subject', subject);
+                                        fd.append('body', bodyHtml);
+                                        _mcRecipients.forEach(r => fd.append('recipients[]', r.value));
+                                        _mcAttachments.forEach(f => fd.append('attachments[]', f, f.name));
                                         const r = await fetch('{{ route('email-compose.send') }}', {
                                             method: 'POST',
                                             headers: {
-                                                'Content-Type': 'application/json',
                                                 'Accept': 'application/json',
                                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                                             },
-                                            body: JSON.stringify({
-                                                subject,
-                                                body,
-                                                recipients: _mcRecipients.map(r => r.value),
-                                            }),
+                                            credentials: 'same-origin',
+                                            body: fd,
                                         });
                                         const d = await r.json();
                                         if (!d.ok) throw new Error(d.message || @json(__('app.mail_send_failed')));
@@ -966,10 +1194,12 @@
                                         status.style.color = '#15803d';
                                         status.textContent = d.message || @json(__('app.mail_send_done'));
                                         document.getElementById('mail-compose-subject').value = '';
-                                        document.getElementById('mail-compose-body').value = '';
+                                        if (_mcQuill) _mcQuill.setContents([]);
                                         document.getElementById('mail-compose-direct').value = '';
                                         _mcRecipients = [];
+                                        _mcAttachments = [];
                                         mailComposeRenderChips();
+                                        mailComposeRenderAttachments();
                                         setTimeout(() => { mailComposeClose(); status.textContent = ''; }, 1200);
                                     } catch (e) {
                                         status.style.color = '#dc2626';
@@ -1110,7 +1340,7 @@
                 @endif
 
                 {{-- 페이지 콘텐츠 (embed=1 일 때 패딩 축소) --}}
-                <main style="flex:1;overflow-y:auto;padding:{{ $embedMode ? '12px 14px' : '20px 24px 24px' }};background:#f5f3ff;">
+                <main style="flex:1;overflow-y:auto;padding:{{ $embedMode ? '12px 14px' : '20px 24px 24px' }};background:var(--tBg);">
                     @hasSection('breadcrumb')
                     <nav style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:12px;color:#9ca3af;margin-bottom:14px;">
                         @yield('breadcrumb')

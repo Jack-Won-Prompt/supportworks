@@ -118,6 +118,7 @@ return [
     'mail_sending'           => '발송 중…',
     'mail_send_failed'       => '발송 실패',
     'mail_send_done'         => '발송 완료',
+    'mail_attachments'       => '첨부파일',
 
     // ── 메모
     'memo_add'               => '메모 추가',

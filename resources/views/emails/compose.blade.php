@@ -25,7 +25,7 @@
     </tr>
     <tr>
       <td style="padding:18px 36px 28px;">
-        <div style="font-size:14px;color:#27272a;line-height:1.7;white-space:pre-wrap;word-break:break-word;">{!! nl2br(e($emailBody)) !!}</div>
+        <div style="font-size:14px;color:#27272a;line-height:1.7;word-break:break-word;">{!! $emailBody !!}</div>
       </td>
     </tr>
     <tr>

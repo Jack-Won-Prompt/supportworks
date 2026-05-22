@@ -3,7 +3,7 @@
 
 @push('styles')
 <style>
-.pl-wrap { display:flex; height:calc(100vh - 52px); margin:-20px -24px -24px; overflow:hidden; background:#f8fafc; }
+.pl-wrap { display:flex; height:calc(100vh - 52px); margin:-20px -24px -24px; overflow:hidden; background:var(--tBg); }
 .pl-side { width:220px; min-width:220px; background:#fff; border-right:1px solid #e8e3ff; display:flex; flex-direction:column; }
 .pl-side-header { padding:14px 14px 10px; border-bottom:1px solid #f0ecff; }
 .pl-side-header h2 { font-size:13px; font-weight:700; color:#1e1b2e; margin:0 0 10px; }

@@ -11,7 +11,7 @@
     flex-direction: column;
     margin: -20px -24px -24px;
     height: calc(100vh - 52px);
-    background: #f1f0f7;
+    background: var(--tBg);
     border-top: 1px solid var(--t100);
     overflow: hidden;
     box-sizing: border-box;

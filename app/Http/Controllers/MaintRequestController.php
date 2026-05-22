@@ -442,28 +442,103 @@ class MaintRequestController extends Controller
                 ]);
             };
 
-            $resolveUser = function (string $name, string $team) use (&$userCache, $norm, &$stats, $companyGroupId): int {
-                $name = $norm($name);
-                $key = "{$team}:{$name}";
+            // 대리점 (colo) MaintUser 확보 — 같은 이름의 회사 User 가 있으면 user_id 도 매핑.
+            $resolveAgency = function () use (&$userCache, $companyGroupId): int {
+                $key = "colo:대리점:{$companyGroupId}";
                 if (isset($userCache[$key])) return $userCache[$key];
-                $existing = DB::table('maint_users')->where('team', $team)->where('name', $name)->first(['id', 'company_group_id']);
+
+                $existing = DB::table('maint_users')
+                    ->where('team', 'colo')
+                    ->where('name', '대리점')
+                    ->where('company_group_id', $companyGroupId)
+                    ->first(['id', 'user_id']);
+
+                $agencyUserId = $companyGroupId
+                    ? DB::table('users')->where('company_group_id', $companyGroupId)->where('name', '대리점')->value('id')
+                    : null;
+
                 if ($existing) {
-                    // 콜로 사용자가 회사 매핑이 없으면 업로드 시 지정된 회사로 자동 세팅
-                    if ($team === 'colo' && $companyGroupId && empty($existing->company_group_id)) {
+                    if ($agencyUserId && empty($existing->user_id)) {
                         DB::table('maint_users')->where('id', $existing->id)->update([
-                            'company_group_id' => $companyGroupId,
-                            'updated_at'       => now(),
+                            'user_id'    => $agencyUserId,
+                            'updated_at' => now(),
                         ]);
-                        $stats['colo_users_company_set']++;
                     }
                     return $userCache[$key] = (int) $existing->id;
                 }
+
+                return $userCache[$key] = DB::table('maint_users')->insertGetId([
+                    'name'             => '대리점',
+                    'team'             => 'colo',
+                    'user_id'          => $agencyUserId,
+                    'company_group_id' => $companyGroupId,
+                    'is_active'        => 1,
+                    'created_at'       => now(),
+                    'updated_at'       => now(),
+                ]);
+            };
+
+            $resolveUser = function (?string $name, string $team) use (&$userCache, $norm, &$stats, $companyGroupId, $resolveAgency): ?int {
+                $clean = $name ? $norm($name) : '';
+
+                // 요청자(colo)는 5단계: 빈값 → 대리점 / User 매칭 → 정상 MaintUser / User 미매칭 → 대리점
+                if ($team === 'colo') {
+                    if ($clean === '') return $resolveAgency();
+
+                    $matchUserId = $companyGroupId
+                        ? DB::table('users')
+                            ->where('company_group_id', $companyGroupId)
+                            ->where('name', $clean)
+                            ->value('id')
+                        : null;
+
+                    // 회사에 동명 User 가 없으면 대리점으로 폴백
+                    if (!$matchUserId) return $resolveAgency();
+
+                    $key = "colo:{$clean}:{$companyGroupId}";
+                    if (isset($userCache[$key])) return $userCache[$key];
+
+                    $existing = DB::table('maint_users')
+                        ->where('team', 'colo')
+                        ->where('name', $clean)
+                        ->where('company_group_id', $companyGroupId)
+                        ->first(['id', 'user_id']);
+
+                    if ($existing) {
+                        if (empty($existing->user_id)) {
+                            DB::table('maint_users')->where('id', $existing->id)->update([
+                                'user_id'    => $matchUserId,
+                                'updated_at' => now(),
+                            ]);
+                        }
+                        return $userCache[$key] = (int) $existing->id;
+                    }
+
+                    $stats['users_added']++;
+                    return $userCache[$key] = DB::table('maint_users')->insertGetId([
+                        'name'             => $clean,
+                        'team'             => 'colo',
+                        'user_id'          => $matchUserId,
+                        'company_group_id' => $companyGroupId,
+                        'is_active'        => 1,
+                        'created_at'       => now(),
+                        'updated_at'       => now(),
+                    ]);
+                }
+
+                // withworks (담당자): 회사 무관, 빈값이면 null
+                if ($clean === '') return null;
+                $key = "{$team}:{$clean}";
+                if (isset($userCache[$key])) return $userCache[$key];
+                $existing = DB::table('maint_users')->where('team', $team)->where('name', $clean)->first(['id']);
+                if ($existing) return $userCache[$key] = (int) $existing->id;
+
                 $stats['users_added']++;
                 return $userCache[$key] = DB::table('maint_users')->insertGetId([
-                    'name'             => $name,
+                    'name'             => $clean,
                     'team'             => $team,
                     'user_id'          => null,
-                    'company_group_id' => ($team === 'colo') ? $companyGroupId : null,
+                    'company_group_id' => null,
                     'is_active'        => 1,
                     'created_at'       => now(),
                     'updated_at'       => now(),
@@ -498,7 +573,8 @@ class MaintRequestController extends Controller
                 }
 
                 $menuId = $resolveMenu($menuName);
-                $coloUserId = $row['colo_user'] ? $resolveUser($row['colo_user'], 'colo') : null;
+                // colo_user 는 빈값이면 대리점, 이름은 있지만 회사 User 와 매칭 안되면 대리점으로 폴백
+                $coloUserId = $resolveUser($row['colo_user'], 'colo');
 
                 $assigneeId  = null;
                 $assigneeRaw = null;

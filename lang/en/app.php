@@ -118,6 +118,7 @@ return [
     'mail_sending'           => 'Sending…',
     'mail_send_failed'       => 'Failed to send',
     'mail_send_done'         => 'Sent successfully',
+    'mail_attachments'       => 'Attachments',
 
     // ── Memos
     'memo_add'               => 'Add memo',
