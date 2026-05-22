@@ -125,7 +125,7 @@
         <div style="padding:16px 18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
             <h3 style="font-size:13px;font-weight:700;color:#1e293b;margin:0;">{{ __('admin.users_in_group') }}</h3>
             <div style="display:flex;gap:8px;">
-                <button type="button" onclick="openCgInviteModal()" style="font-size:11px;padding:5px 12px;background:#7c3aed;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">??{{ __('admin.invite_email_modal') }}</button>
+                <button type="button" onclick="openCgInviteModal()" style="font-size:11px;padding:5px 12px;background:#7c3aed;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">{{ __('admin.invite_email_modal') }}</button>
                 <button type="button" @click="openModal = true" class="btn-primary" style="font-size:11px;padding:5px 10px;">+ {{ __('admin.add_user') }}</button>
             </div>
         </div>

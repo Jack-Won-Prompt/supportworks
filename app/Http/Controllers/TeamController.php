@@ -21,21 +21,30 @@ class TeamController extends Controller
     {
         $user = auth()->user();
 
-        // 구성원 목록 — 본인이 참여한 프로젝트의 멤버 전원 (회사 무관, 본인 포함)
+        // 구성원 목록 — 같은 회사 OR 같은 프로젝트 참여자 합집합 (본인 포함)
         // 관리자는 전체 사용자를 봄
         if ($user->isAdmin()) {
             $members = User::orderBy('name')->get();
         } else {
             $myProjectIds = ProjectMember::where('user_id', $user->id)->pluck('project_id');
-            if ($myProjectIds->isEmpty()) {
-                $members = User::where('id', $user->id)->get();
-            } else {
-                $members = User::whereIn('id', function ($q) use ($myProjectIds) {
-                        $q->select('user_id')->from('project_members')->whereIn('project_id', $myProjectIds);
-                    })
-                    ->orderBy('name')
-                    ->get();
-            }
+            $myCompanyId  = $user->company_group_id;
+
+            $members = User::where(function ($q) use ($myProjectIds, $myCompanyId, $user) {
+                    // 본인은 항상 포함
+                    $q->where('id', $user->id);
+                    // 같은 회사
+                    if ($myCompanyId) {
+                        $q->orWhere('company_group_id', $myCompanyId);
+                    }
+                    // 같은 프로젝트 (회사 무관)
+                    if ($myProjectIds->isNotEmpty()) {
+                        $q->orWhereIn('id', function ($sub) use ($myProjectIds) {
+                            $sub->select('user_id')->from('project_members')->whereIn('project_id', $myProjectIds);
+                        });
+                    }
+                })
+                ->orderBy('name')
+                ->get();
         }
 
         $invitations = Invitation::with('inviter')
