@@ -28,6 +28,12 @@ return [
     'category_added'      => 'Folder added.',
     'category_deleted'    => 'Folder deleted.',
     'category_delete_confirm' => 'Delete this folder? Files in it will move to Uncategorized.',
+    'category_has_children' => 'Cannot delete a folder that has subfolders. Please remove subfolders first.',
+    'max_depth_reached'   => 'Folders can be nested up to :max levels.',
+    'invalid_parent'      => 'Invalid parent folder.',
+    'add_subfolder'       => 'Add subfolder',
+    'subfolder_name_ph'   => 'Subfolder name',
+    'subfolder_of'        => 'Add under :parent',
 
     // List
     'file_list'           => 'Files',

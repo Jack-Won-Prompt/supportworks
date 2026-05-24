@@ -18,8 +18,11 @@ class SharedFileController extends Controller
 
         $categories = SharedFileCategory::where('company_group_id', $cgId)
             ->withCount(['files' => fn ($q) => $this->applyVisibility($q, $userId)])
-            ->orderBy('sort_order')->orderBy('name')
+            ->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')
             ->get();
+
+        // 트리 구조 빌드 (parent_id로 묶고 depth 계산)
+        $tree = $this->buildCategoryTree($categories);
 
         $categoryId = $request->query('category');
         $q          = trim((string) $request->query('q', ''));
@@ -33,7 +36,10 @@ class SharedFileController extends Controller
         if ($categoryId === 'none') {
             $query->whereNull('category_id');
         } elseif ($categoryId) {
-            $query->where('category_id', $categoryId);
+            // 선택한 폴더와 모든 하위 폴더의 파일 모두 포함
+            $descendantIds = $this->descendantIds($categories, (int) $categoryId);
+            $descendantIds[] = (int) $categoryId;
+            $query->whereIn('category_id', $descendantIds);
         }
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
@@ -52,9 +58,45 @@ class SharedFileController extends Controller
         $uncategorizedCount = $this->applyVisibility((clone $base()), $userId)->whereNull('category_id')->count();
 
         return view('shared-folder.index', compact(
-            'categories', 'files', 'categoryId', 'q', 'scope',
+            'categories', 'tree', 'files', 'categoryId', 'q', 'scope',
             'totalCount', 'sharedCount', 'myPersonalCount', 'uncategorizedCount'
         ));
+    }
+
+    /** 카테고리 컬렉션 → 트리 배열 [['cat'=>$c, 'depth'=>1, 'children'=>[...]]] */
+    private function buildCategoryTree($categories, ?int $parentId = null, int $depth = 1): array
+    {
+        $nodes = [];
+        foreach ($categories as $c) {
+            if ((int) $c->parent_id !== (int) $parentId) continue;
+            $nodes[] = [
+                'cat'      => $c,
+                'depth'    => $depth,
+                'children' => $depth < SharedFileCategory::MAX_DEPTH
+                    ? $this->buildCategoryTree($categories, (int) $c->id, $depth + 1)
+                    : [],
+            ];
+        }
+        return $nodes;
+    }
+
+    /** 특정 카테고리의 모든 자손 ID 목록 */
+    private function descendantIds($categories, int $rootId): array
+    {
+        $ids = [];
+        $byParent = [];
+        foreach ($categories as $c) {
+            $byParent[(int) $c->parent_id][] = (int) $c->id;
+        }
+        $stack = $byParent[$rootId] ?? [];
+        while ($stack) {
+            $id = array_pop($stack);
+            $ids[] = $id;
+            foreach ($byParent[$id] ?? [] as $childId) {
+                $stack[] = $childId;
+            }
+        }
+        return $ids;
     }
 
     /** 가시범위 적용: 공유(is_personal=false) 또는 내가 올린 개인자료만. scope=mine_personal이면 내 개인자료만. */
@@ -165,30 +207,50 @@ class SharedFileController extends Controller
         return back()->with('success', __('shared-folder.moved'));
     }
 
-    /** 카테고리(폴더) 추가 */
+    /** 카테고리(폴더) 추가 — 최대 3단계 깊이 */
     public function storeCategory(Request $request)
     {
         $cgId = $this->companyGroupId();
 
         $data = $request->validate([
-            'name'  => 'required|string|max:80',
-            'color' => 'nullable|string|max:7',
+            'name'      => 'required|string|max:80',
+            'color'     => 'nullable|string|max:7',
+            'parent_id' => 'nullable|integer',
         ]);
+
+        $parentId = $data['parent_id'] ?? null;
+        if ($parentId) {
+            $parent = SharedFileCategory::where('id', $parentId)
+                ->where('company_group_id', $cgId)
+                ->first();
+            if (!$parent) {
+                return back()->with('error', __('shared-folder.invalid_parent'));
+            }
+            if ($parent->depth() >= SharedFileCategory::MAX_DEPTH) {
+                return back()->with('error', __('shared-folder.max_depth_reached', ['max' => SharedFileCategory::MAX_DEPTH]));
+            }
+        }
 
         SharedFileCategory::create([
             'company_group_id' => $cgId,
+            'parent_id'        => $parentId,
             'name'             => $data['name'],
             'color'            => ($data['color'] ?? null) ?: '#6366f1',
-            'sort_order'       => (int) SharedFileCategory::where('company_group_id', $cgId)->max('sort_order') + 1,
+            'sort_order'       => (int) SharedFileCategory::where('company_group_id', $cgId)
+                                        ->where('parent_id', $parentId)->max('sort_order') + 1,
         ]);
 
         return back()->with('success', __('shared-folder.category_added'));
     }
 
-    /** 카테고리 삭제 (소속 파일은 미분류로 이동) */
+    /** 카테고리 삭제 — 자식 폴더가 있으면 삭제 불가, 소속 파일은 미분류로 이동 */
     public function destroyCategory(SharedFileCategory $sharedFileCategory)
     {
         abort_unless($sharedFileCategory->company_group_id === $this->companyGroupId(), 403);
+
+        if ($sharedFileCategory->children()->exists()) {
+            return back()->with('error', __('shared-folder.category_has_children'));
+        }
 
         $sharedFileCategory->delete();
 

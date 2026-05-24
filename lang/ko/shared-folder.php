@@ -28,6 +28,12 @@ return [
     'category_added'      => '폴더가 추가되었습니다.',
     'category_deleted'    => '폴더가 삭제되었습니다.',
     'category_delete_confirm' => '이 폴더를 삭제할까요? 폴더 안의 파일은 미분류로 이동합니다.',
+    'category_has_children' => '하위 폴더가 있는 폴더는 삭제할 수 없습니다. 하위 폴더부터 정리해 주세요.',
+    'max_depth_reached'   => '폴더는 최대 :max 단계까지만 만들 수 있습니다.',
+    'invalid_parent'      => '상위 폴더가 유효하지 않습니다.',
+    'add_subfolder'       => '하위 폴더 추가',
+    'subfolder_name_ph'   => '하위 폴더 이름',
+    'subfolder_of'        => ':parent 안에 추가',
 
     // 목록
     'file_list'           => '파일 목록',

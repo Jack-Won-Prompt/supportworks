@@ -842,7 +842,15 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">{{ __('app.mail_to') }}</label>
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                                            <label style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.03em;margin:0;">{{ __('app.mail_to') }}</label>
+                                            <button type="button" onclick="mailComposeAddSelf()" title="{{ __('app.mail_send_to_self') }}"
+                                                style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--t50,#f5f3ff);border:1px solid var(--t200,#ddd6fe);color:var(--t700,#6d28d9);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:background .12s;"
+                                                onmouseover="this.style.background='var(--t100,#ede9fe)'" onmouseout="this.style.background='var(--t50,#f5f3ff)'">
+                                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                {{ __('app.mail_send_to_self') }}
+                                            </button>
+                                        </div>
                                         <div style="position:relative;margin-bottom:6px;">
                                             <input id="mail-compose-search" type="text" autocomplete="off"
                                                 placeholder="{{ __('app.mail_search_member') }}"
@@ -1073,6 +1081,34 @@
                                     _mcRecipients.push({ label, value });
                                     mailComposeRenderChips();
                                 }
+
+                                // 나에게 메일 보내기 — 자신을 수신자 chip으로 추가
+                                window.mailComposeAddSelf = function() {
+                                    const name  = @json(auth()->user()?->name ?? '');
+                                    const email = @json(auth()->user()?->email ?? '');
+                                    const phone = @json(auth()->user()?->phone ?? '');
+                                    if (!email) return;
+                                    const value = `${name}|${email}|${phone}`;
+                                    const label = `${name} <${email}>`.trim();
+                                    if (_mcRecipients.some(r => r.value === value)) {
+                                        // 이미 있으면 잠깐 상태 메시지로 안내
+                                        const st = document.getElementById('mail-compose-status');
+                                        if (st) {
+                                            const prev = st.textContent;
+                                            st.textContent = @json(__('app.mail_self_already_added'));
+                                            setTimeout(() => { if (st.textContent === @json(__('app.mail_self_already_added'))) st.textContent = prev; }, 1800);
+                                        }
+                                        return;
+                                    }
+                                    mailComposeAddChip(label, value);
+                                    // 드롭다운의 체크박스도 동기화
+                                    const dd = document.getElementById('mail-compose-dropdown');
+                                    if (dd) {
+                                        dd.querySelectorAll('input[type=checkbox]').forEach(cb => {
+                                            if (cb.dataset.val === value) cb.checked = true;
+                                        });
+                                    }
+                                };
                                 function mailComposeRemoveChip(idx) {
                                     _mcRecipients.splice(idx, 1);
                                     mailComposeRenderChips();

@@ -34,33 +34,44 @@
             <a href="{{ $catBase }}?category=none" class="sf-cat {{ $categoryId === 'none' ? 'active' : '' }}">
                 <span>🗂️ {{ __('shared-folder.category_none') }}</span><span class="sf-cat-n">{{ $uncategorizedCount }}</span>
             </a>
-            @foreach($categories as $cat)
-            <div style="display:flex;align-items:center;">
-                <a href="{{ $catBase }}?category={{ $cat->id }}" class="sf-cat {{ (string)$categoryId === (string)$cat->id ? 'active' : '' }}" style="flex:1;min-width:0;">
-                    <span style="display:flex;align-items:center;gap:8px;min-width:0;">
-                        <span style="width:9px;height:9px;border-radius:3px;background:{{ $cat->color }};flex-shrink:0;"></span>
-                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $cat->name }}</span>
-                    </span>
-                    <span class="sf-cat-n">{{ $cat->files_count }}</span>
-                </a>
-                <form method="POST" action="{{ route('shared-folder.categories.destroy', $cat) }}"
-                      onsubmit="return confirm('{{ __('shared-folder.category_delete_confirm') }}')" style="margin:0;">
-                    @csrf @method('DELETE')
-                    <button type="submit" title="{{ __('shared-folder.delete') }}" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:14px;padding:2px 4px;line-height:1;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">&times;</button>
-                </form>
-            </div>
+            {{-- 트리 구조 렌더 (최대 3단계) — 재귀 partial --}}
+            @foreach($tree as $node)
+                @include('shared-folder._tree_node', ['node' => $node, 'catBase' => $catBase, 'categoryId' => $categoryId])
             @endforeach
-            {{-- 폴더 추가 --}}
+
+            {{-- 폴더 추가 (루트 또는 선택된 상위 폴더 안에) --}}
             <form method="POST" action="{{ route('shared-folder.categories.store') }}" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--color-bg-muted);">
                 @csrf
-                <input type="text" name="name" maxlength="80" required placeholder="{{ __('shared-folder.category_name_ph') }}"
+                <input type="hidden" id="sf-parent-id" name="parent_id" value="">
+                <div id="sf-parent-hint" style="display:none;font-size:11px;color:var(--t700);background:var(--t50);padding:4px 8px;border-radius:6px;display:none;align-items:center;justify-content:space-between;gap:6px;">
+                    <span id="sf-parent-hint-text"></span>
+                    <button type="button" onclick="sfClearSubAdd()" title="{{ __('common.cancel') }}" style="background:none;border:none;cursor:pointer;color:var(--t600);font-size:14px;line-height:1;padding:0 2px;">&times;</button>
+                </div>
+                <input type="text" id="sf-name-input" name="name" maxlength="80" required placeholder="{{ __('shared-folder.category_name_ph') }}"
                        style="width:100%;padding:6px 9px;border:1px solid var(--color-border-default);border-radius:6px;font-size:12px;outline:none;box-sizing:border-box;">
-                <button type="submit" style="width:100%;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 9px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:background .12s;"
+                <button type="submit" id="sf-submit-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 9px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:background .12s;"
                         onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    {{ __('shared-folder.category_add') }}
+                    <span id="sf-submit-label">{{ __('shared-folder.category_add') }}</span>
                 </button>
             </form>
+            <script>
+            function sfShowSubAdd(parentId, parentName) {
+                document.getElementById('sf-parent-id').value = parentId;
+                document.getElementById('sf-parent-hint').style.display = 'flex';
+                document.getElementById('sf-parent-hint-text').textContent =
+                    @json(__('shared-folder.subfolder_of', ['parent' => ':PARENT:'])).replace(':PARENT:', parentName);
+                document.getElementById('sf-name-input').placeholder = @json(__('shared-folder.subfolder_name_ph'));
+                document.getElementById('sf-submit-label').textContent = @json(__('shared-folder.add_subfolder'));
+                document.getElementById('sf-name-input').focus();
+            }
+            function sfClearSubAdd() {
+                document.getElementById('sf-parent-id').value = '';
+                document.getElementById('sf-parent-hint').style.display = 'none';
+                document.getElementById('sf-name-input').placeholder = @json(__('shared-folder.category_name_ph'));
+                document.getElementById('sf-submit-label').textContent = @json(__('shared-folder.category_add'));
+            }
+            </script>
         </div>
 
         {{-- ── 메인 ── --}}

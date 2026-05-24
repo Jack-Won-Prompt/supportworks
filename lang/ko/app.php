@@ -119,6 +119,8 @@ return [
     'mail_send_failed'       => '발송 실패',
     'mail_send_done'         => '발송 완료',
     'mail_attachments'       => '첨부파일',
+    'mail_send_to_self'      => '나에게 보내기',
+    'mail_self_already_added' => '이미 본인이 수신자에 포함되어 있습니다.',
 
     // ── 메모
     'memo_add'               => '메모 추가',

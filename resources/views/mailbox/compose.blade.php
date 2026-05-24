@@ -104,7 +104,7 @@
             {{-- 프로젝트 파일 picker 모달 --}}
             <div id="mbc-pf-overlay" onclick="if(event.target===this)mbcClosePfPicker()"
                  style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:11000;align-items:center;justify-content:center;">
-                <div onclick="event.stopPropagation()" style="background:#fff;border-radius:14px;width:680px;max-width:calc(100vw - 32px);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+                <div onclick="event.stopPropagation()" style="background:#fff;border-radius:14px;width:880px;max-width:calc(100vw - 32px);max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
                     <div style="padding:14px 18px;border-bottom:1px solid var(--color-border-default);display:flex;align-items:center;justify-content:space-between;">
                         <h3 style="font-size:14px;font-weight:700;color:#1e1b2e;margin:0;">프로젝트 파일에서 첨부</h3>
                         <button type="button" onclick="mbcClosePfPicker()" style="background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;">&times;</button>
@@ -393,11 +393,15 @@
             list.innerHTML = '<div style="padding:30px 18px;text-align:center;color:#9ca3af;font-size:12.5px;">파일이 없습니다.</div>';
         } else {
             list.innerHTML = _pfFiles.map(f => `
-                <label style="display:flex;align-items:center;gap:10px;padding:8px 18px;font-size:12.5px;color:#374151;cursor:pointer;border-bottom:1px solid #f5f5f5;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
-                    <input type="checkbox" data-pfid="${f.id}" ${_pfSelected.has(f.id) ? 'checked' : ''} onchange="mbcPfToggle(this)" style="accent-color:var(--t600);">
-                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><b>${escHtml(f.name)}</b></span>
-                    <span style="color:#94a3b8;font-size:11px;">${escHtml(f.project || '')}</span>
-                    <span style="color:#94a3b8;font-size:11px;">${escHtml(f.size_text)}</span>
+                <label title="${escHtml(f.name)}" style="display:flex;align-items:flex-start;gap:10px;padding:9px 18px;font-size:12.5px;color:#374151;cursor:pointer;border-bottom:1px solid #f5f5f5;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
+                    <input type="checkbox" data-pfid="${f.id}" ${_pfSelected.has(f.id) ? 'checked' : ''} onchange="mbcPfToggle(this)" style="accent-color:var(--t600);margin-top:3px;flex-shrink:0;">
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+                        <span style="font-weight:600;color:#1e1b2e;word-break:break-all;line-height:1.45;">${escHtml(f.name)}</span>
+                        <span style="color:#94a3b8;font-size:11px;display:flex;gap:8px;flex-wrap:wrap;">
+                            ${f.project ? `<span>📁 ${escHtml(f.project)}</span>` : ''}
+                            <span>${escHtml(f.size_text)}</span>
+                        </span>
+                    </span>
                 </label>
             `).join('');
         }

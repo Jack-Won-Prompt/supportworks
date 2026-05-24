@@ -119,6 +119,8 @@ return [
     'mail_send_failed'       => 'Failed to send',
     'mail_send_done'         => 'Sent successfully',
     'mail_attachments'       => 'Attachments',
+    'mail_send_to_self'      => 'Send to me',
+    'mail_self_already_added' => 'You are already a recipient.',
 
     // ── Memos
     'memo_add'               => 'Add memo',
