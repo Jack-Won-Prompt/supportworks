@@ -40,7 +40,7 @@
         @elseif($myRecip && $myRecip->folder === 'trash')
             <div style="margin-left:auto;display:flex;gap:6px;">
                 <button type="button" onclick="mbRestoreOne({{ $message->id }})" style="padding:7px 12px;background:#fff;border:1px solid var(--t300);color:var(--t700);border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;">복원</button>
-                <button type="button" data-confirm="이 메일을 영구 삭제합니다. 되돌릴 수 없습니다." onclick="mbDestroyOne({{ $message->id }})" style="padding:7px 12px;background:#fff;border:1px solid #fecaca;color:#dc2626;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;">영구 삭제</button>
+                <button type="button" onclick="mbDestroyOne({{ $message->id }})" style="padding:7px 12px;background:#fff;border:1px solid #fecaca;color:#dc2626;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;">영구 삭제</button>
             </div>
         @endif
     </div>
@@ -116,21 +116,58 @@ async function mbToggleRead(id, asRead) {
     });
     if (res.ok) location.reload();
 }
-async function mbAction(url, id) {
+// 액션 호출 — 응답 받아 후속 처리 결정. kind ∈ 'trash' | 'restore' | 'destroy'
+async function mbAction(url, id, kind) {
     const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': MB_SHOW_CSRF },
         body: JSON.stringify({ ids: [id] }),
     });
     if (!res.ok) { alert('작업 실패'); return; }
-    // 현재 페이지가 embed(iframe) 모드면 다음 화면(받은편지함)도 embed 유지하여
-    // iframe 안에 전체 layouts.app 이 들어가 "supportworks 메인이 보이는" 현상을 방지
-    const isEmbed = new URLSearchParams(location.search).get('embed') === '1';
-    location.href = '{{ route("mailbox.inbox") }}' + (isEmbed ? '?embed=1' : '');
+    const data = await res.json().catch(() => ({}));
+
+    const isEmbed = window.parent && window.parent !== window;
+    // 복원 — 응답의 folders[0] 기준으로 대상 폴더(받은/보낸) 로 이동
+    if (kind === 'restore') {
+        const folder = (data.folders && data.folders[0]) || 'inbox';
+        const target = folder === 'sent'
+            ? '{{ route("mailbox.sent") }}'
+            : '{{ route("mailbox.inbox") }}';
+        if (isEmbed) {
+            window.parent.location.href = target;
+        } else {
+            location.href = target;
+        }
+        return;
+    }
+
+    // 휴지통 이동 / 영구삭제 — embed 면 부모 모달 닫고 리스트 새로고침, 단독이면 받은편지함
+    if (isEmbed) {
+        if (window.parent.mbCloseModal) window.parent.mbCloseModal();
+        window.parent.location.reload();
+        return;
+    }
+    location.href = '{{ route("mailbox.inbox") }}';
 }
-function mbTrashOne(id)   { mbAction('{{ route("mailbox.trash.move") }}', id); }
-function mbRestoreOne(id) { mbAction('{{ route("mailbox.trash.restore") }}', id); }
-function mbDestroyOne(id) { mbAction('{{ route("mailbox.destroy-forever") }}', id); }
+
+// 커스텀 다이얼로그 (__confirm) — 부모/현재 어느 쪽이든 사용 가능한 쪽으로 선택
+function _mbConfirm(msg) {
+    const fn = (window.parent && window.parent !== window && typeof window.parent.__confirm === 'function')
+        ? window.parent.__confirm
+        : (typeof __confirm === 'function' ? __confirm : null);
+    if (!fn) return Promise.resolve(window.confirm(msg));
+    return fn(msg);
+}
+
+async function mbTrashOne(id) {
+    if (!await _mbConfirm('이 메일을 휴지통으로 이동할까요?')) return;
+    mbAction('{{ route("mailbox.trash.move") }}', id, 'trash');
+}
+function mbRestoreOne(id) { mbAction('{{ route("mailbox.trash.restore") }}', id, 'restore'); }
+async function mbDestroyOne(id) {
+    if (!await _mbConfirm('이 메일을 영구 삭제합니다. 되돌릴 수 없습니다.')) return;
+    mbAction('{{ route("mailbox.destroy-forever") }}', id, 'destroy');
+}
 
 // iframe(embed) 모드 — 부모 모달로 답장/전달 화면 전환
 function mbReply(id)   { if (window.parent && window.parent.mbOpenCompose) window.parent.mbOpenCompose('reply_to=' + id); }

@@ -100,7 +100,7 @@
                    style="display:flex;align-items:center;gap:10px;padding:11px 20px;border-bottom:1px solid #f5f5f5;text-decoration:none;color:inherit;background:{{ $isUnread ? '#faf5ff' : '#fff' }};transition:background .12s;"
                    onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='{{ $isUnread ? '#faf5ff' : '#fff' }}'">
                     <input type="checkbox" class="mb-chk" value="{{ $m->id }}"
-                           onclick="event.stopPropagation();event.preventDefault();this.checked=!this.checked;mbBulkRefresh();" style="accent-color:var(--t600);cursor:pointer;flex-shrink:0;">
+                           onclick="event.stopPropagation();" onchange="mbBulkRefresh();" style="accent-color:var(--t600);cursor:pointer;flex-shrink:0;">
                     <div style="width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:{{ $isUnread ? '700' : '500' }};color:{{ $isUnread ? '#1e1b2e' : '#52525b' }};">
                         {{ $folder === 'sent'
                             ? '받는이: ' . optional($m->recipients->where('user_id', '!=', auth()->id())->first())->name

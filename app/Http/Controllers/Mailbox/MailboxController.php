@@ -233,11 +233,13 @@ class MailboxController extends Controller
         $userId = (int) Auth::id();
         // 보낸 사람(=본인)이면 sent 로, 받은 사람이면 inbox 로
         $rows = Recipient::whereIn('message_id', $ids)->where('user_id', $userId)->with('message')->get();
+        $folders = [];
         foreach ($rows as $r) {
             $r->folder = ((int) $r->message->sender_id === $userId) ? 'sent' : 'inbox';
             $r->save();
+            $folders[] = $r->folder;
         }
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true, 'folders' => $folders]);
     }
 
     public function destroyForever(Request $request): JsonResponse
