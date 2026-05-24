@@ -19,7 +19,7 @@ class ScheduleService
             ->orderBy('display_order')
             ->with([
                 'taskGroups' => fn($q) => $q->orderBy('display_order'),
-                'taskGroups.subTasks' => fn($q) => $q->orderBy('display_order')->with(['assignee', 'files']),
+                'taskGroups.subTasks' => fn($q) => $q->orderBy('display_order')->with(['assignee', 'assignees:id,name', 'files']),
             ])
             ->get();
 
@@ -41,7 +41,7 @@ class ScheduleService
             ->whereNull('milestone_id')
             ->orderBy('display_order')
             ->with([
-                'subTasks' => fn($q) => $q->orderBy('display_order')->with(['assignee', 'files']),
+                'subTasks' => fn($q) => $q->orderBy('display_order')->with(['assignee', 'assignees:id,name', 'files']),
             ])
             ->whereNotIn('id', $groupedIds)
             ->get();
@@ -55,7 +55,7 @@ class ScheduleService
         return SubTask::where('project_id', $projectId)
             ->whereNull('task_group_id')
             ->orderBy('display_order')
-            ->with(['assignee', 'files'])
+            ->with(['assignee', 'assignees:id,name', 'files'])
             ->get();
     }
 

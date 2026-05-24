@@ -199,38 +199,54 @@
          data-step="{{ $stepNo }}"
          data-field-key="{{ $tblFieldKey }}"
          data-init-md="{{ e($tblInitMd) }}">
-        {{-- 툴바 --}}
-        <div class="dlv-tbl-toolbar">
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddRow(this)" title="{{ __('deliverables.tw_tbl_add_row') }}">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> {{ __('deliverables.tw_row') }}
-            </button>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddCol(this)" title="{{ __('deliverables.tw_tbl_add_col') }}">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> {{ __('deliverables.tw_col') }}
-            </button>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelRow(this)" title="{{ __('deliverables.tw_tbl_del_row') }}">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> {{ __('deliverables.tw_row') }}
-            </button>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelCol(this)" title="{{ __('deliverables.tw_tbl_del_col') }}">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> {{ __('deliverables.tw_col') }}
-            </button>
-            <span class="dlv-tbl-sep"></span>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAiGen(this)" style="color:var(--t600);border-color:var(--t300);">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> {{ __('deliverables.tw_ai_gen') }}
-            </button>
-            <span class="dlv-tbl-sep"></span>
-            <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblExcel(this)" style="color:#16a34a;border-color:#86efac;" title="{{ __('deliverables.tw_excel_dl') }}">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Excel
-            </button>
+        {{-- 탭 (편집 / 변경내용) --}}
+        <div class="md-tabs">
+            <button type="button" class="md-tab is-active" onclick="tblSwitchTab(this,'edit')">{{ __('deliverables.tab_edit') }}</button>
+            <button type="button" class="md-tab" onclick="tblSwitchTab(this,'changes')">{{ __('deliverables.tab_changes') }}</button>
         </div>
-        {{-- 테이블 편집 영역 --}}
-        <div class="dlv-tbl-scroll">
-            <table class="dlv-tbl-edit"></table>
+        <div class="dlv-tbl-edit-pane">
+            {{-- 툴바 --}}
+            <div class="dlv-tbl-toolbar">
+                <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddRow(this)" title="{{ __('deliverables.tw_tbl_add_row') }}">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> {{ __('deliverables.tw_row') }}
+                </button>
+                <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAddCol(this)" title="{{ __('deliverables.tw_tbl_add_col') }}">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> {{ __('deliverables.tw_col') }}
+                </button>
+                <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelRow(this)" title="{{ __('deliverables.tw_tbl_del_row') }}">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> {{ __('deliverables.tw_row') }}
+                </button>
+                <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblDelCol(this)" title="{{ __('deliverables.tw_tbl_del_col') }}">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg> {{ __('deliverables.tw_col') }}
+                </button>
+                <span class="dlv-tbl-sep"></span>
+                <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblAiGen(this)" style="color:var(--t600);border-color:var(--t300);">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> {{ __('deliverables.tw_ai_gen') }}
+                </button>
+                <span class="dlv-tbl-sep"></span>
+                <button type="button" class="dlv-btn dlv-btn-outline dlv-tbl-btn" onclick="tblExcel(this)" style="color:#16a34a;border-color:#86efac;" title="{{ __('deliverables.tw_excel_dl') }}">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Excel
+                </button>
+            </div>
+            {{-- 테이블 편집 영역 --}}
+            <div class="dlv-tbl-scroll">
+                <table class="dlv-tbl-edit"></table>
+            </div>
+            {{-- 저장 버튼 --}}
+            <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+                <button type="button" class="dlv-btn dlv-btn-primary dlv-tbl-btn" style="font-size:11px;padding:4px 12px;" onclick="tblSave(this)">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('deliverables.tw_save') }}
+                </button>
+            </div>
         </div>
-        {{-- 저장 버튼 --}}
-        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
-            <button type="button" class="dlv-btn dlv-btn-primary dlv-tbl-btn" style="font-size:11px;padding:4px 12px;" onclick="tblSave(this)">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('deliverables.tw_save') }}
-            </button>
+        {{-- 변경내용 패널 --}}
+        <div class="md-changes-pane" style="display:none;">
+            <div class="md-changes-bar">
+                <span class="md-changes-info"></span>
+                <button type="button" class="md-changes-btn md-changes-accept" onclick="tblAcceptChanges(this)">{{ __('deliverables.changes_accept') }}</button>
+                <button type="button" class="md-changes-btn md-changes-reject" onclick="tblRejectChanges(this)">{{ __('deliverables.changes_reject') }}</button>
+            </div>
+            <div class="md-changes-body" style="min-height:200px;"></div>
         </div>
     </div>
 

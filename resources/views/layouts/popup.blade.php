@@ -19,11 +19,7 @@
     @endphp
     <script>window.KOREAN_HOLIDAYS = @json($__holidays);</script>
     <style>
-        :root {
-            --t50:#f5f3ff; --t100:#ede9fe; --t200:#ddd6fe; --t300:#c4b5fd;
-            --t400:#a78bfa; --t500:#8b5cf6; --t600:#7c3aed; --t700:#6d28d9;
-            --tText:#6d5ce7; --tBg:#f5f3ff;
-        }
+        /* --t* / --tBg 는 app.css 의 data-accent 기반 동적 정의를 사용 (하드코딩 제거) */
         * { box-sizing: border-box; }
         html, body { margin:0; padding:0; height:100%; background:var(--tBg); font-family:'Figtree',sans-serif; }
 
@@ -79,6 +75,8 @@
     </div>
     @yield('scripts')
     @stack('scripts')
+    {{-- Quill 표준: 이미지 paste + 8 방향 리사이즈 (SR 요청 상세 기준) --}}
+    @include('partials._quill-image-resize')
     <script>
     // Phase 1 — data-accent 기반 액센트 적용 (--t* 변수는 app.css 가 디자인 토큰으로 브릿지)
     (function() {

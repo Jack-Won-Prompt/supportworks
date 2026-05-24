@@ -51,11 +51,15 @@
             </div>
             @endforeach
             {{-- 폴더 추가 --}}
-            <form method="POST" action="{{ route('shared-folder.categories.store') }}" style="display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--color-bg-muted);">
+            <form method="POST" action="{{ route('shared-folder.categories.store') }}" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--color-bg-muted);">
                 @csrf
                 <input type="text" name="name" maxlength="80" required placeholder="{{ __('shared-folder.category_name_ph') }}"
-                       style="flex:1;min-width:0;padding:5px 8px;border:1px solid var(--color-border-default);border-radius:6px;font-size:12px;outline:none;">
-                <button type="submit" style="flex-shrink:0;padding:5px 9px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">+</button>
+                       style="width:100%;padding:6px 9px;border:1px solid var(--color-border-default);border-radius:6px;font-size:12px;outline:none;box-sizing:border-box;">
+                <button type="submit" style="width:100%;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 9px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:background .12s;"
+                        onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    {{ __('shared-folder.category_add') }}
+                </button>
             </form>
         </div>
 

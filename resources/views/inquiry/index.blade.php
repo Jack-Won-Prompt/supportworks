@@ -162,10 +162,17 @@ const inqQuill = new Quill('#inq-editor', {
         toolbar: [
             ['bold', 'italic', 'underline'],
             [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'clean'],
+            ['link', 'image', 'clean'],
         ],
     },
 });
+// SR 표준: Copy & Paste + 8 방향 리사이즈
+if (window.installQuillImageResize) {
+    window.installQuillImageResize(inqQuill, {
+        uploadUrl: '{{ route('inquiry.upload-image') }}',
+        csrfToken: '{{ csrf_token() }}',
+    });
+}
 
 const inqWrap = document.getElementById('inq-editor-wrap');
 inqQuill.on('selection-change', range => {

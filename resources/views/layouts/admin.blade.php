@@ -299,6 +299,8 @@
 
 @yield('scripts')
 @stack('scripts')
+{{-- Quill 표준: 이미지 paste + 8 방향 리사이즈 (SR 요청 상세 기준) --}}
+@include('partials._quill-image-resize')
 
 <script>
 const ADMIN_STR = {

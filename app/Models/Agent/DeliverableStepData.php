@@ -16,6 +16,11 @@ class DeliverableStepData extends Model
         'value',
         'en_value',
         'en_hash',
+        'image_map',
+    ];
+
+    protected $casts = [
+        'image_map' => 'array',
     ];
 
     public function deliverable(): BelongsTo

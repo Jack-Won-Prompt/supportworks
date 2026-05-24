@@ -354,6 +354,17 @@ class WeeklyReportController extends Controller
         return response()->json($names);
     }
 
+    /**
+     * 주간 보고서 요약 Quill 에디터의 이미지 업로드 (paste / 툴바).
+     */
+    public function uploadImage(Request $request, Project $project): JsonResponse
+    {
+        $this->authorizeProject($project);
+        $request->validate(['image' => 'required|image|max:5120']);  // 5MB
+        $path = $request->file('image')->store('weekly-reports/images', 'public');
+        return response()->json(['url' => asset('storage/' . $path)]);
+    }
+
     // ─── 내부 헬퍼 ───────────────────────────────────────────────────
 
     private function buildReportData(Project $project, $user, Carbon $weekStart, array $validated, string $status): array

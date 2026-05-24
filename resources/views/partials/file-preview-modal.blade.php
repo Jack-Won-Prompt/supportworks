@@ -270,7 +270,9 @@
         </button>
 
         {{-- 의견 패널 좌측 리사이즈 핸들 --}}
-        <div class="cmt-resize-handle" data-target="comment-panel" title="{{ __('viewer.resize_comment_panel') }}"></div>
+        <div class="cmt-resize-handle" data-target="comment-panel" title="{{ __('viewer.resize_comment_panel') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M4 12h16"/></svg>
+        </div>
 
         {{-- 의견 패널 --}}
         <div id="comment-panel" style="width:340px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
@@ -434,7 +436,9 @@
         </div>
 
         {{-- 의견 패널 좌측 리사이즈 핸들 --}}
-        <div class="cmt-resize-handle" data-target="url-comment-panel" title="{{ __('viewer.resize_comment_panel') }}"></div>
+        <div class="cmt-resize-handle" data-target="url-comment-panel" title="{{ __('viewer.resize_comment_panel') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M4 12h16"/></svg>
+        </div>
 
         {{-- 의견 패널 --}}
         <div id="url-comment-panel" style="width:340px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;">
@@ -631,42 +635,33 @@
 .is-fullscreen .preview-fs-btn .preview-fs-icon-off { display:none; }
 .is-fullscreen .preview-fs-btn .preview-fs-icon-on  { display:inline; }
 
-/* 의견 패널 좌측 리사이즈 핸들 — 항상 보이는 그립 아이콘 */
+/* 의견 패널 좌측 리사이즈 핸들 — 표준 ↔ 폭 조절 아이콘 (테마 적응형) */
 .cmt-resize-handle {
-    width: 6px;
+    width: 14px;
     flex-shrink: 0;
     cursor: col-resize;
-    background: rgba(255,255,255,.06);
+    background: var(--t100, #f5f3ff);
     transition: background .15s;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
 }
-.cmt-resize-handle::before {
-    /* 6개의 그립 점 (2열 × 3행) */
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 2px; height: 2px;
-    background: transparent;
-    border-radius: 50%;
-    box-shadow:
-        -3px -9px 0 1px #c4b5fd,
-         3px -9px 0 1px #c4b5fd,
-        -3px  0   0 1px #c4b5fd,
-         3px  0   0 1px #c4b5fd,
-        -3px  9px 0 1px #c4b5fd,
-         3px  9px 0 1px #c4b5fd;
-    opacity: .7;
-    transition: opacity .15s;
+.cmt-resize-handle svg {
+    width: 12px;
+    height: 12px;
+    color: var(--t500, #8b5cf6);
+    opacity: .65;
+    transition: opacity .15s, color .15s;
     pointer-events: none;
+    flex-shrink: 0;
+    display: block;
 }
-.cmt-resize-handle:hover, .cmt-resize-handle.is-dragging { background: rgba(196,181,253,.45); }
-.cmt-resize-handle:hover::before, .cmt-resize-handle.is-dragging::before {
+.cmt-resize-handle:hover, .cmt-resize-handle.is-dragging { background: var(--t300, #c4b5fd); }
+.cmt-resize-handle:hover svg, .cmt-resize-handle.is-dragging svg {
+    color: #fff;
     opacity: 1;
-    box-shadow:
-        -3px -9px 0 1px #fff,  3px -9px 0 1px #fff,
-        -3px  0   0 1px #fff,  3px  0   0 1px #fff,
-        -3px  9px 0 1px #fff,  3px  9px 0 1px #fff;
 }
 body.cmt-resizing { cursor: col-resize !important; user-select: none !important; }
 body.cmt-resizing iframe { pointer-events: none; }

@@ -7,6 +7,7 @@ use App\Models\Requirement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubTask extends Model
@@ -53,6 +54,15 @@ class SubTask extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    /**
+     * 다중 담당자 (피벗 — 2026-05 추가). 기존 assignee 는 '대표' 단일 유지.
+     */
+    public function assignees(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'sub_task_assignees', 'sub_task_id', 'user_id')
+            ->withTimestamps();
     }
 
     public function sourcePlan(): BelongsTo

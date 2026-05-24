@@ -442,48 +442,12 @@ class MaintRequestController extends Controller
                 ]);
             };
 
-            // 대리점 (colo) MaintUser 확보 — 같은 이름의 회사 User 가 있으면 user_id 도 매핑.
-            $resolveAgency = function () use (&$userCache, $companyGroupId): int {
-                $key = "colo:대리점:{$companyGroupId}";
-                if (isset($userCache[$key])) return $userCache[$key];
-
-                $existing = DB::table('maint_users')
-                    ->where('team', 'colo')
-                    ->where('name', '대리점')
-                    ->where('company_group_id', $companyGroupId)
-                    ->first(['id', 'user_id']);
-
-                $agencyUserId = $companyGroupId
-                    ? DB::table('users')->where('company_group_id', $companyGroupId)->where('name', '대리점')->value('id')
-                    : null;
-
-                if ($existing) {
-                    if ($agencyUserId && empty($existing->user_id)) {
-                        DB::table('maint_users')->where('id', $existing->id)->update([
-                            'user_id'    => $agencyUserId,
-                            'updated_at' => now(),
-                        ]);
-                    }
-                    return $userCache[$key] = (int) $existing->id;
-                }
-
-                return $userCache[$key] = DB::table('maint_users')->insertGetId([
-                    'name'             => '대리점',
-                    'team'             => 'colo',
-                    'user_id'          => $agencyUserId,
-                    'company_group_id' => $companyGroupId,
-                    'is_active'        => 1,
-                    'created_at'       => now(),
-                    'updated_at'       => now(),
-                ]);
-            };
-
-            $resolveUser = function (?string $name, string $team) use (&$userCache, $norm, &$stats, $companyGroupId, $resolveAgency): ?int {
+            $resolveUser = function (?string $name, string $team) use (&$userCache, $norm, &$stats, $companyGroupId): ?int {
                 $clean = $name ? $norm($name) : '';
 
-                // 요청자(colo)는 5단계: 빈값 → 대리점 / User 매칭 → 정상 MaintUser / User 미매칭 → 대리점
+                // 요청자(colo): 빈값/회사 User 미매칭 → NULL(선택 안함), 매칭되면 MaintUser 확보
                 if ($team === 'colo') {
-                    if ($clean === '') return $resolveAgency();
+                    if ($clean === '') return null;
 
                     $matchUserId = $companyGroupId
                         ? DB::table('users')
@@ -492,8 +456,7 @@ class MaintRequestController extends Controller
                             ->value('id')
                         : null;
 
-                    // 회사에 동명 User 가 없으면 대리점으로 폴백
-                    if (!$matchUserId) return $resolveAgency();
+                    if (!$matchUserId) return null;
 
                     $key = "colo:{$clean}:{$companyGroupId}";
                     if (isset($userCache[$key])) return $userCache[$key];
@@ -573,7 +536,7 @@ class MaintRequestController extends Controller
                 }
 
                 $menuId = $resolveMenu($menuName);
-                // colo_user 는 빈값이면 대리점, 이름은 있지만 회사 User 와 매칭 안되면 대리점으로 폴백
+                // colo_user 는 빈값이거나 회사 User 와 매칭 안되면 NULL(선택 안함)
                 $coloUserId = $resolveUser($row['colo_user'], 'colo');
 
                 $assigneeId  = null;

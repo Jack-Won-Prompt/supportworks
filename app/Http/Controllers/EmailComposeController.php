@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\ComposeMail;
 use App\Models\User;
-use App\Services\SmsService;
+use App\Services\Mailbox\MailDispatchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 class EmailComposeController extends Controller
 {
@@ -55,88 +53,55 @@ class EmailComposeController extends Controller
 
     /**
      * 이메일 발송 — multipart 폼 (HTML 본문 + 첨부파일).
-     *   - 발송 후 휴대폰 번호가 있는 수신자에게 SMS 알림 동반 전송.
+     *   Mailbox 시스템으로 일원화 — MailDispatchService 가 적재·SMTP·SMS 모두 처리.
      */
-    public function send(Request $request): JsonResponse
+    public function send(Request $request, MailDispatchService $dispatcher): JsonResponse
     {
         $sender = Auth::user();
         abort_unless($sender, 401);
 
         $request->validate([
-            'subject'        => 'required|string|max:200',
-            'body'           => 'required|string|max:1000000',  // HTML 이라 max 크게
+            'subject'        => 'required|string|max:300',
+            'body'           => 'required|string|max:1000000',
             'recipients'     => 'required|array|min:1',
             'recipients.*'   => 'string|max:300',
             'attachments'    => 'nullable|array|max:10',
-            'attachments.*'  => 'file|max:20480',  // 파일당 20MB
+            'attachments.*'  => 'file|max:20480',
         ]);
 
-        // 입력 정규화: "이름 <email>" / "email" 모두 허용.
+        // 입력 정규화: "이름 <email>" / "email" / "name|email|phone" 형태 허용
         $entries = collect($request->input('recipients', []))
             ->map(fn($raw) => $this->parseRecipient(trim((string) $raw)))
             ->filter(fn($e) => $e && filter_var($e['email'], FILTER_VALIDATE_EMAIL))
             ->unique('email')
-            ->values();
+            ->values()
+            ->all();
 
-        if ($entries->isEmpty()) {
+        if (empty($entries)) {
             return response()->json(['ok' => false, 'message' => '유효한 수신 이메일이 없습니다.'], 422);
         }
 
-        // 첨부파일 임시 저장 (메일 발송 후 정리)
-        $attachments = [];
-        foreach ((array) $request->file('attachments', []) as $file) {
-            if (!$file) continue;
-            $path = $file->store('email-compose/attachments/' . date('Ymd'), 'local');
-            $attachments[] = [
-                'path' => storage_path('app/private/' . $path),
-                'name' => $file->getClientOriginalName(),
-                'mime' => $file->getMimeType(),
-            ];
-        }
-
-        // 동일 회사 구성원 매핑 (id 또는 email 기준) — 휴대폰 번호 조회용.
-        $companyUsers = User::query()
-            ->when($sender->company_group_id, fn($q) => $q->where('company_group_id', $sender->company_group_id))
-            ->get(['id', 'name', 'email', 'phone'])
-            ->keyBy(fn($u) => mb_strtolower((string) $u->email));
-
-        $subject = trim($request->subject);
-        $body    = (string) $request->body;
-        $sent    = 0;
-        $errors  = [];
-
-        foreach ($entries as $e) {
-            $email = $e['email'];
-            $name  = $e['name'] ?: ($companyUsers[mb_strtolower($email)]->name ?? null);
-            try {
-                Mail::to($email, $name)->send(new ComposeMail($sender, $subject, $body, $name, $attachments));
-                $sent++;
-            } catch (\Throwable $ex) {
-                \App\Models\SystemErrorLog::record($ex, 'warning');
-                $errors[] = $email;
-                continue;
-            }
-
-            // SMS — 회사 구성원으로 매칭되고 phone 이 있으면 발송, 또는 입력 자체에 phone 이 있으면 발송
-            $phone = $e['phone'] ?: ($companyUsers[mb_strtolower($email)]->phone ?? null);
-            if (!empty($phone)) {
-                $smsMsg = "[SupportWorks] {$sender->name}님이 이메일을 보냈습니다: " . mb_strimwidth($subject, 0, 50, '...', 'UTF-8');
-                try { SmsService::send($phone, $smsMsg, $name); } catch (\Throwable) {}
-            }
-        }
-
-        // 임시 첨부파일 정리
-        foreach ($attachments as $att) {
-            @unlink($att['path']);
+        try {
+            $msg = $dispatcher->send(
+                sender: $sender,
+                subject: trim((string) $request->input('subject')),
+                bodyHtml: (string) $request->input('body'),
+                recipients: array_map(fn ($e) => [
+                    'email' => $e['email'],
+                    'name'  => $e['name'] ?? null,
+                    'type'  => 'to',
+                ], $entries),
+                files: array_values(array_filter((array) $request->file('attachments', []))),
+            );
+        } catch (\Throwable $ex) {
+            \App\Models\SystemErrorLog::record($ex, 'warning');
+            return response()->json(['ok' => false, 'message' => '발송에 실패했습니다.'], 500);
         }
 
         return response()->json([
-            'ok'      => $sent > 0,
-            'sent'    => $sent,
-            'errors'  => $errors,
-            'message' => $sent > 0
-                ? "{$sent}건 발송 완료" . ($errors ? ' (' . count($errors) . '건 실패)' : '')
-                : '발송에 실패했습니다.',
+            'ok'      => true,
+            'sent'    => $msg->recipient_count,
+            'message' => "{$msg->recipient_count}건 발송 완료",
         ]);
     }
 

@@ -84,6 +84,45 @@ class Deliverable extends Model
         return ['en_value' => $enValue, 'valid' => $valid];
     }
 
+    /**
+     * 해당 STEP·필드의 이미지 토큰 → URL 매핑.
+     */
+    public function getStepImageMap(int $step, string $fieldKey): array
+    {
+        $row = $this->stepData->where('step_order', $step)->where('field_key', $fieldKey)->first();
+        $m   = $row?->image_map;
+        return is_array($m) ? $m : [];
+    }
+
+    /**
+     * "[[img:N w=600]]" 토큰을 <img> 인라인 HTML 로 확장.
+     * - $map 누락 항목은 빈 문자열로 치환 (텍스트 본문에서 흔적 제거)
+     * - w 생략 시 600 기본
+     */
+    public static function expandImageTokensWithMap(?string $value, array $map): string
+    {
+        $value = (string) ($value ?? '');
+        if ($value === '' || empty($map)) {
+            return preg_replace('/\[\[img:\d+(?:\s+w=\d+)?\]\]/', '', $value);
+        }
+        return (string) preg_replace_callback('/\[\[img:(\d+)(?:\s+w=(\d+))?\]\]/', function ($m) use ($map) {
+            $id  = $m[1];
+            $w   = (int) ($m[2] ?? 600);
+            $url = $map[$id] ?? $map[(int) $id] ?? null;
+            if (!$url) return '';
+            $url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+            return '<img src="' . $url . '" style="width:' . $w . 'px">';
+        }, $value);
+    }
+
+    /**
+     * "[[img:N w=600]]" 토큰을 "[이미지 N]" 텍스트 플레이스홀더로 치환 (AI 프롬프트용 — URL 비공개).
+     */
+    public static function stripImageTokensForAi(?string $value): string
+    {
+        return (string) preg_replace('/\[\[img:(\d+)(?:\s+w=\d+)?\]\]/', '[이미지 $1]', (string) $value);
+    }
+
     public function getToolResult(int $step, string $toolId): mixed
     {
         $raw = $this->toolResults

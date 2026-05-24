@@ -377,6 +377,26 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/email-compose',              [\App\Http\Controllers\EmailComposeController::class, 'send'])->name('email-compose.send');
     Route::post('/email-compose/upload-image', [\App\Http\Controllers\EmailComposeController::class, 'uploadImage'])->name('email-compose.upload-image');
 
+    // Mailbox (사용자간 메일 시스템)
+    Route::prefix('mailbox')->name('mailbox.')->group(function () {
+        Route::get('/',                          [\App\Http\Controllers\Mailbox\MailboxController::class, 'inbox'])->name('inbox');
+        Route::get('/sent',                      [\App\Http\Controllers\Mailbox\MailboxController::class, 'sent'])->name('sent');
+        Route::get('/trash',                     [\App\Http\Controllers\Mailbox\MailboxController::class, 'trash'])->name('trash');
+        Route::get('/compose',                   [\App\Http\Controllers\Mailbox\MailboxController::class, 'create'])->name('compose');
+        Route::post('/send',                     [\App\Http\Controllers\Mailbox\MailboxController::class, 'send'])->name('send');
+        Route::get('/recipients',                [\App\Http\Controllers\Mailbox\MailboxController::class, 'recipients'])->name('recipients');
+        Route::get('/project-files',             [\App\Http\Controllers\Mailbox\MailboxController::class, 'projectFiles'])->name('project-files');
+        Route::get('/messages/{message}',        [\App\Http\Controllers\Mailbox\MailboxController::class, 'show'])->name('show');
+        Route::post('/messages/{message}/read',  [\App\Http\Controllers\Mailbox\MailboxController::class, 'markRead'])->name('read');
+        Route::post('/trash/move',               [\App\Http\Controllers\Mailbox\MailboxController::class, 'trashMove'])->name('trash.move');
+        Route::post('/trash/restore',            [\App\Http\Controllers\Mailbox\MailboxController::class, 'trashRestore'])->name('trash.restore');
+        Route::post('/destroy-forever',          [\App\Http\Controllers\Mailbox\MailboxController::class, 'destroyForever'])->name('destroy-forever');
+        Route::get('/attachments/{attachment}',  [\App\Http\Controllers\Mailbox\MailboxController::class, 'downloadAttachment'])->name('attachment');
+    });
+
+    // 투어 visited 기록 (온보딩)
+    Route::post('/tour/{key}/visited', [\App\Http\Controllers\TourController::class, 'markVisited'])->name('tour.visited');
+
     // 메시지
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
@@ -419,6 +439,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get   ('/previous-tasks',          [\App\Http\Controllers\WeeklyReportController::class, 'previousTasks'])  ->name('previous-tasks');
         Route::get   ('/check-concurrent',        [\App\Http\Controllers\WeeklyReportController::class, 'checkConcurrent'])->name('check-concurrent');
         Route::get   ('/team-names',              [\App\Http\Controllers\WeeklyReportController::class, 'teamNames'])      ->name('team-names');
+        Route::post  ('/upload-image',            [\App\Http\Controllers\WeeklyReportController::class, 'uploadImage'])    ->name('upload-image');
         Route::get   ('/manager-summary',          [\App\Http\Controllers\ManagerWeeklySummaryController::class, 'index'])   ->name('manager-summary');
         Route::post  ('/manager-summary/download', [\App\Http\Controllers\ManagerWeeklySummaryController::class, 'download']) ->name('manager-summary.download');
         Route::get   ('/ai-summary',               [\App\Http\Controllers\WeeklyAiSummaryController::class, 'show'])          ->name('ai-summary');
@@ -799,6 +820,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/{typeId}/toggle-share',      [DeliverableController::class, 'toggleShare'])->name('toggle-share');
                 // Word 내보내기
                 Route::get ('/{typeId}/export-word',       [DeliverableController::class, 'exportWord'])->name('export-word');
+                // STEP 본문 이미지 paste 업로드
+                Route::post('/{typeId}/upload-image',      [DeliverableController::class, 'uploadImage'])->name('upload-image');
                 // STEP 버전 이력
                 Route::get ('/{typeId}/versions',                       [DeliverableController::class, 'versionIndex'])  ->name('versions.index');
                 Route::get ('/{typeId}/versions/{versionId}',           [DeliverableController::class, 'versionShow'])   ->name('versions.show');

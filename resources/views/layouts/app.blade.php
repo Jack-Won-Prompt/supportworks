@@ -352,6 +352,19 @@
                             </svg>
                             <span class="gsb-hide">{{ __('plan-do-acts.nav') }}</span>
                         </a>
+                        @php
+                            $__mbUnread = \App\Models\Mailbox\Recipient::where('user_id', auth()->id())
+                                ->where('folder', 'inbox')->where('is_read', false)->count();
+                        @endphp
+                        <a href="{{ route('mailbox.inbox') }}" class="sidebar-item {{ request()->routeIs('mailbox.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="gsb-hide">메일</span>
+                            @if($__mbUnread > 0)
+                                <span class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;">{{ $__mbUnread > 99 ? '99+' : $__mbUnread }}</span>
+                            @endif
+                        </a>
                         @if(auth()->user()->hasCompany())
                         <a href="{{ route('shared-folder.index') }}" class="sidebar-item {{ request()->routeIs('shared-folder.*') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -733,6 +746,74 @@
                             </div>
                         </div>
 
+                        {{-- 프로젝트 스위처 아이콘 --}}
+                        @php
+                            $__pswProjects = auth()->user()->isAdmin()
+                                ? \App\Models\Project::orderBy('name')->get(['id','name'])
+                                : auth()->user()->projects()->orderBy('name')->get(['projects.id','projects.name']);
+                            $__pswColors = ['#a394f9','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'];
+                        @endphp
+                        <div style="position:relative;" id="psw-wrap">
+                            <button id="psw-btn" type="button" onclick="pswToggle()" title="{{ __('app.nav_my_projects') }}"
+                                style="position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#a1a1aa;transition:background .12s,color .12s;"
+                                onmouseover="this.style.background='var(--t50)';this.style.color='var(--tText)'"
+                                onmouseout="this.style.background='transparent';this.style.color='#a1a1aa'">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                                    <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                                </svg>
+                            </button>
+                            {{-- 1단: 프로젝트 리스트 --}}
+                            <div id="psw-pop" style="display:none;position:absolute;top:42px;right:0;background:#fff;border:1px solid var(--t200,#ddd6fe);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:9999;width:320px;max-height:480px;flex-direction:column;overflow:hidden;">
+                                <div style="padding:12px 14px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                                    <span style="display:flex;align-items:center;gap:8px;">
+                                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                                        {{ __('app.nav_my_projects') }}
+                                    </span>
+                                    <button type="button" onclick="pswClose()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;padding:2px 4px;">&times;</button>
+                                </div>
+                                <div style="padding:10px 12px;border-bottom:1px solid #f4f4f5;flex-shrink:0;">
+                                    <input id="psw-search" type="text" autocomplete="off" placeholder="{{ __('app.nav_search') }}"
+                                        oninput="pswFilter()"
+                                        style="width:100%;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12.5px;background:#fff;color:#374151;box-sizing:border-box;outline:none;">
+                                </div>
+                                <div id="psw-list" style="overflow-y:auto;flex:1;padding:6px 6px;">
+                                    @forelse($__pswProjects as $idx => $__pswP)
+                                        @php $__pswC = $__pswColors[$idx % count($__pswColors)]; @endphp
+                                        <button type="button" class="psw-item"
+                                            data-name="{{ mb_strtolower($__pswP->name) }}"
+                                            data-psw-id="{{ $__pswP->id }}"
+                                            data-psw-pname="{{ $__pswP->name }}"
+                                            data-psw-color="{{ $__pswC }}"
+                                            style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px;background:transparent;border:none;border-radius:8px;cursor:pointer;text-align:left;transition:background .1s;"
+                                            onmouseover="this.style.background='var(--t50,#f5f3ff)'"
+                                            onmouseout="this.style.background='transparent'">
+                                            <span style="width:8px;height:8px;border-radius:3px;background:{{ $__pswC }};flex-shrink:0;"></span>
+                                            <span style="flex:1;min-width:0;font-size:13px;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $__pswP->name }}</span>
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="color:#9ca3af;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                        </button>
+                                    @empty
+                                        <div style="padding:24px 16px;text-align:center;color:#9ca3af;font-size:12.5px;">{{ __('app.nav_no_projects') }}</div>
+                                    @endforelse
+                                </div>
+                            </div>
+                            {{-- 2단: 프로젝트 메뉴 --}}
+                            <div id="psw-menu-pop" style="display:none;position:absolute;top:42px;right:336px;background:#fff;border:1px solid var(--t200,#ddd6fe);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:9999;width:260px;max-height:480px;flex-direction:column;overflow:hidden;">
+                                <div style="padding:12px 14px;border-bottom:1px solid #f4f4f5;font-size:13px;font-weight:700;color:#18181b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;">
+                                    <span style="display:flex;align-items:center;gap:8px;min-width:0;">
+                                        <span id="psw-menu-dot" style="width:8px;height:8px;border-radius:3px;flex-shrink:0;background:#a394f9;"></span>
+                                        <span id="psw-menu-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                                    </span>
+                                    <button type="button" onclick="pswCloseMenu()" title="{{ __('common.back') ?? '뒤로' }}" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:14px;line-height:1;padding:2px 4px;">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+                                </div>
+                                <div id="psw-menu-list" style="overflow-y:auto;flex:1;padding:6px;"></div>
+                            </div>
+                        </div>
+
                         {{-- 이메일 보내기 (팝오버) --}}
                         <div style="position:relative;" id="mail-compose-wrap">
                             <button id="mail-compose-btn" type="button" onclick="mailComposeToggle()" title="{{ __('app.mail_send') }}"
@@ -811,30 +892,7 @@
                             #mail-quill-wrap .ql-container { border:none; font-family:inherit; }
                             #mail-quill-wrap .ql-editor { min-height:160px; max-height:280px; overflow-y:auto; padding:10px 12px; font-size:13px; color:#374151; line-height:1.65; }
                             #mail-quill-wrap .ql-editor img { max-width:100%; height:auto; border-radius:4px; cursor:pointer; }
-                            #mail-quill-wrap .ql-editor img.mail-img-selected { outline:2px solid #7c3aed; outline-offset:1px; }
-                            /* 이미지 리사이즈 오버레이 (페이지 전역) */
-                            #mail-img-overlay { position:fixed; pointer-events:none; z-index:20; display:none; }
-                            #mail-img-overlay.is-active { display:block; }
-                            .mail-img-handle { position:absolute; width:10px; height:10px; background:#7c3aed; border:1.5px solid #fff; border-radius:2px; pointer-events:auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
-                            .mail-img-handle.h-tl { top:-5px; left:-5px; cursor:nwse-resize; }
-                            .mail-img-handle.h-tm { top:-5px; left:50%; margin-left:-5px; cursor:ns-resize; }
-                            .mail-img-handle.h-tr { top:-5px; right:-5px; cursor:nesw-resize; }
-                            .mail-img-handle.h-ml { top:50%; margin-top:-5px; left:-5px; cursor:ew-resize; }
-                            .mail-img-handle.h-mr { top:50%; margin-top:-5px; right:-5px; cursor:ew-resize; }
-                            .mail-img-handle.h-bl { bottom:-5px; left:-5px; cursor:nesw-resize; }
-                            .mail-img-handle.h-bm { bottom:-5px; left:50%; margin-left:-5px; cursor:ns-resize; }
-                            .mail-img-handle.h-br { bottom:-5px; right:-5px; cursor:nwse-resize; }
                         </style>
-                        <div id="mail-img-overlay">
-                            <span class="mail-img-handle h-tl" data-dir="tl"></span>
-                            <span class="mail-img-handle h-tm" data-dir="tm"></span>
-                            <span class="mail-img-handle h-tr" data-dir="tr"></span>
-                            <span class="mail-img-handle h-ml" data-dir="ml"></span>
-                            <span class="mail-img-handle h-mr" data-dir="mr"></span>
-                            <span class="mail-img-handle h-bl" data-dir="bl"></span>
-                            <span class="mail-img-handle h-bm" data-dir="bm"></span>
-                            <span class="mail-img-handle h-br" data-dir="br"></span>
-                        </div>
                         <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
                         <script>
                             (function() {
@@ -842,33 +900,10 @@
                                 let _mcAllUsers   = [];   // 수신 가능 사용자 전체
                                 let _mcAttachments = [];  // 첨부 File 객체
                                 let _mcQuill = null;      // Quill 인스턴스 (lazy init)
-
-                                // Quill StyledImage blot — 리사이즈 style 보존
-                                function registerMailStyledImage() {
-                                    if (window.__mailStyledImageRegistered || !window.Quill) return;
-                                    window.__mailStyledImageRegistered = true;
-                                    const ImageBlot = Quill.import('formats/image');
-                                    const PRESERVED = ['alt', 'height', 'width', 'style'];
-                                    class StyledImage extends ImageBlot {
-                                        static formats(domNode) {
-                                            return PRESERVED.reduce((acc, attr) => {
-                                                if (domNode.hasAttribute(attr)) acc[attr] = domNode.getAttribute(attr);
-                                                return acc;
-                                            }, {});
-                                        }
-                                        format(name, value) {
-                                            if (PRESERVED.indexOf(name) > -1) {
-                                                if (value) this.domNode.setAttribute(name, value);
-                                                else this.domNode.removeAttribute(name);
-                                            } else { super.format(name, value); }
-                                        }
-                                    }
-                                    Quill.register(StyledImage, true);
-                                }
+                                let _mcImgCtl = null;     // installQuillImageResize() 컨트롤러
 
                                 function initMailQuill() {
                                     if (_mcQuill || !window.Quill) return;
-                                    registerMailStyledImage();
                                     const editorEl = document.getElementById('mail-quill-editor');
                                     if (!editorEl) return;
                                     _mcQuill = new Quill(editorEl, {
@@ -885,105 +920,13 @@
                                             ],
                                         },
                                     });
-                                    // 이미지 업로드 (toolbar 버튼)
-                                    _mcQuill.getModule('toolbar').addHandler('image', () => {
-                                        const inp = document.createElement('input');
-                                        inp.type = 'file'; inp.accept = 'image/*';
-                                        inp.onchange = () => { if (inp.files[0]) mailComposeUploadImage(inp.files[0]); };
-                                        inp.click();
-                                    });
-                                    // 클립보드 paste 이미지
-                                    _mcQuill.root.addEventListener('paste', e => {
-                                        const it = [...(e.clipboardData?.items || [])].find(x => x.type.startsWith('image/'));
-                                        if (!it) return;
-                                        e.preventDefault();
-                                        mailComposeUploadImage(it.getAsFile());
-                                    });
-                                    // 이미지 클릭 → 리사이즈 핸들 표시
-                                    _mcQuill.root.addEventListener('click', e => {
-                                        if (e.target.tagName === 'IMG') { e.preventDefault(); mcSelectImage(e.target); }
-                                        else { mcSelectImage(null); }
-                                    });
-                                    // 스크롤/리사이즈 시 핸들 재배치
-                                    window.addEventListener('scroll', mcPositionOverlay, true);
-                                    window.addEventListener('resize', mcPositionOverlay);
-                                    // 리사이즈 핸들 드래그
-                                    document.querySelectorAll('#mail-img-overlay .mail-img-handle').forEach(h => {
-                                        h.addEventListener('mousedown', mcResizeStart);
-                                    });
-                                }
-
-                                function mailComposeUploadImage(file) {
-                                    if (!file || !_mcQuill) return;
-                                    const fd = new FormData(); fd.append('image', file);
-                                    fetch('{{ route('email-compose.upload-image') }}', {
-                                        method: 'POST',
-                                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept':'application/json' },
-                                        credentials: 'same-origin',
-                                        body: fd,
-                                    }).then(r => r.ok ? r.json() : Promise.reject(r.status))
-                                      .then(d => {
-                                          if (!d.url) return;
-                                          const range = _mcQuill.getSelection(true) || { index: _mcQuill.getLength() };
-                                          _mcQuill.insertEmbed(range.index, 'image', d.url);
-                                          _mcQuill.setSelection(range.index + 1);
-                                      })
-                                      .catch(err => alert('이미지 업로드 실패: ' + err));
-                                }
-
-                                // ── 이미지 리사이즈 핸들 ──
-                                let _mcSelectedImg = null;
-                                let _mcResizeState = null;
-                                function mcSelectImage(img) {
-                                    if (_mcSelectedImg) _mcSelectedImg.classList.remove('mail-img-selected');
-                                    _mcSelectedImg = img;
-                                    if (img) { img.classList.add('mail-img-selected'); mcPositionOverlay(); }
-                                    else { document.getElementById('mail-img-overlay')?.classList.remove('is-active'); }
-                                }
-                                function mcPositionOverlay() {
-                                    const ov = document.getElementById('mail-img-overlay');
-                                    if (!ov || !_mcSelectedImg) { ov?.classList.remove('is-active'); return; }
-                                    const r = _mcSelectedImg.getBoundingClientRect();
-                                    ov.style.left = r.left + 'px';
-                                    ov.style.top  = r.top + 'px';
-                                    ov.style.width  = r.width + 'px';
-                                    ov.style.height = r.height + 'px';
-                                    ov.classList.add('is-active');
-                                }
-                                function mcResizeStart(e) {
-                                    if (!_mcSelectedImg) return;
-                                    e.preventDefault();
-                                    const rect = _mcSelectedImg.getBoundingClientRect();
-                                    _mcResizeState = { dir: e.currentTarget.dataset.dir, startX: e.clientX, startY: e.clientY, origW: rect.width, origH: rect.height, aspect: rect.width / rect.height };
-                                    document.body.style.userSelect = 'none';
-                                    document.addEventListener('mousemove', mcResizeMove);
-                                    document.addEventListener('mouseup', mcResizeEnd, { once: true });
-                                }
-                                function mcResizeMove(e) {
-                                    if (!_mcResizeState || !_mcSelectedImg) return;
-                                    const dx = e.clientX - _mcResizeState.startX;
-                                    const dy = e.clientY - _mcResizeState.startY;
-                                    const dir = _mcResizeState.dir;
-                                    let nw = _mcResizeState.origW, nh = _mcResizeState.origH;
-                                    if (dir.includes('r')) nw = Math.max(40, _mcResizeState.origW + dx);
-                                    if (dir.includes('l')) nw = Math.max(40, _mcResizeState.origW - dx);
-                                    if (dir.includes('b')) nh = Math.max(40, _mcResizeState.origH + dy);
-                                    if (dir.includes('t')) nh = Math.max(40, _mcResizeState.origH - dy);
-                                    const isCorner = dir.length === 2;
-                                    if (isCorner) {
-                                        const wRatio = nw / _mcResizeState.origW, hRatio = nh / _mcResizeState.origH;
-                                        const ratio = Math.abs(wRatio - 1) > Math.abs(hRatio - 1) ? wRatio : hRatio;
-                                        nw = Math.max(40, _mcResizeState.origW * ratio);
-                                        nh = nw / _mcResizeState.aspect;
+                                    // SR 표준: Copy & Paste + 8 방향 리사이즈
+                                    if (window.installQuillImageResize) {
+                                        _mcImgCtl = window.installQuillImageResize(_mcQuill, {
+                                            uploadUrl: '{{ route('email-compose.upload-image') }}',
+                                            csrfToken: '{{ csrf_token() }}',
+                                        });
                                     }
-                                    _mcSelectedImg.style.width = Math.round(nw) + 'px';
-                                    _mcSelectedImg.style.height = isCorner ? '' : Math.round(nh) + 'px';
-                                    mcPositionOverlay();
-                                }
-                                function mcResizeEnd() {
-                                    document.body.style.userSelect = '';
-                                    document.removeEventListener('mousemove', mcResizeMove);
-                                    _mcResizeState = null;
                                 }
 
                                 // ── 첨부파일 ──
@@ -1023,20 +966,19 @@
                                         mailComposeLoadRecipients();   // 매 오픈마다 재조회
                                         setTimeout(initMailQuill, 50); // Quill 지연 초기화
                                     } else {
-                                        mcSelectImage(null);
+                                        _mcImgCtl?.deselect();
                                     }
                                 };
                                 window.mailComposeClose = function() {
                                     const pop = document.getElementById('mail-compose-pop');
                                     if (pop) pop.style.display = 'none';
-                                    mcSelectImage(null);
+                                    _mcImgCtl?.deselect();
                                 };
                                 document.addEventListener('click', function(e) {
                                     const wrap = document.getElementById('mail-compose-wrap');
                                     if (!wrap) return;
-                                    // 이미지 리사이즈 오버레이(팝오버 바깥)는 무시
-                                    const ov = document.getElementById('mail-img-overlay');
-                                    if (ov && ov.contains(e.target)) return;
+                                    // 이미지 리사이즈 오버레이(팝오버 바깥 클릭으로 인한 close 방지)
+                                    if (e.target.closest && e.target.closest('.stdq-img-overlay')) return;
                                     if (!wrap.contains(e.target)) { mailComposeClose(); return; }
                                     const search = document.getElementById('mail-compose-search');
                                     const dd = document.getElementById('mail-compose-dropdown');
@@ -2252,6 +2194,8 @@
 
         @yield('scripts')
         @stack('scripts')
+        {{-- Quill 표준: 이미지 paste + 8 방향 리사이즈 (SR 요청 상세 기준) — 모든 페이지 공유 --}}
+        @include('partials._quill-image-resize')
         <script>
         (async function() {
             var ANN_KEY = 'sw_ann_dismissed';
@@ -3667,5 +3611,207 @@
         <style>@keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }</style>
 
     @include('partials.custom-dialog')
+
+    {{-- ========== 프로젝트 스위처: 메뉴 라우트 데이터 & 팝오버 모달 ========== --}}
+    @php
+        $__pswRoutes = [
+            ['key'=>'overview',     'label'=>__('projects.nav_overview'),       'feature'=>null,            'url'=>'projects.show'],
+            ['key'=>'planning',     'label'=>__('projects.planning'),           'feature'=>'planning',      'url'=>'projects.planning.index'],
+            ['key'=>'requirements', 'label'=>__('projects.nav_requirements'),   'feature'=>'requirements',  'url'=>'projects.requirements.index'],
+            ['key'=>'discussions',  'label'=>__('projects.nav_discussions'),    'feature'=>null,            'url'=>'projects.discussions.index'],
+            ['key'=>'plan-do-acts', 'label'=>__('plan-do-acts.nav'),            'feature'=>null,            'url'=>'plan-do-acts.index',                  'query'=>true],
+            ['key'=>'deliverables', 'label'=>__('projects.nav_deliverables'),   'feature'=>null,            'url'=>'ai-agent.projects.deliverables.index'],
+            ['key'=>'schedules',    'label'=>__('projects.schedule'),           'feature'=>'schedules',     'url'=>'projects.schedules.index'],
+            ['key'=>'gantt',        'label'=>__('projects.gantt'),              'feature'=>'gantt',         'url'=>'projects.gantt'],
+            ['key'=>'qa',           'label'=>__('projects.qa'),                 'feature'=>'qa',            'url'=>'projects.questions.index'],
+            ['key'=>'issues',       'label'=>__('projects.nav_issues'),         'feature'=>'issues',        'url'=>'projects.issues.index'],
+            ['key'=>'files',        'label'=>__('projects.files'),              'feature'=>'files',         'url'=>'projects.files.index'],
+            ['key'=>'members',      'label'=>__('projects.members_btn'),        'feature'=>null,            'url'=>'projects.members.index'],
+            ['key'=>'weekly',       'label'=>__('projects.nav_weekly_reports'), 'feature'=>'weekly_reports','url'=>'projects.weekly-reports.index'],
+            ['key'=>'leaves',       'label'=>__('projects.leave_days'),         'feature'=>'leaves',        'url'=>'projects.leaves.index'],
+        ];
+        $__pswUser = auth()->user();
+        $__pswMenuJs = [];
+        foreach ($__pswRoutes as $r) {
+            if ($r['feature'] !== null && !$__pswUser->hasFeature($r['feature'])) continue;
+            $__pswMenuJs[] = ['key'=>$r['key'], 'label'=>$r['label'], 'route'=>$r['url'], 'query'=>$r['query'] ?? false];
+        }
+    @endphp
+
+    <div id="psw-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,15,25,.55);z-index:10500;backdrop-filter:blur(2px);" onclick="pswModalClose()"></div>
+    <div id="psw-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:95vw;height:95vh;max-width:1500px;max-height:950px;background:#fff;border-radius:14px;box-shadow:0 20px 80px rgba(0,0,0,.3);z-index:10501;flex-direction:column;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #f0f0f0;background:#fafafa;flex-shrink:0;">
+            <span id="psw-modal-dot" style="width:9px;height:9px;border-radius:3px;background:#a394f9;flex-shrink:0;"></span>
+            <span id="psw-modal-project" style="font-size:13px;font-weight:700;color:#111827;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+            <span style="color:#d1d5db;font-size:12px;">›</span>
+            <span id="psw-modal-menu" style="font-size:13px;font-weight:600;color:#4b5563;"></span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
+                <a id="psw-modal-newtab" href="#" target="_blank" rel="noopener" title="{{ __('common.open_in_new_tab') ?? '새 탭으로 열기' }}"
+                    style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;color:#6b7280;text-decoration:none;transition:background .12s,color .12s;"
+                    onmouseover="this.style.background='#f3f4f6';this.style.color='#111827'"
+                    onmouseout="this.style.background='transparent';this.style.color='#6b7280'">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+                <button type="button" onclick="pswModalClose()" title="{{ __('common.close') }}"
+                    style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;border:none;background:transparent;cursor:pointer;color:#6b7280;transition:background .12s,color .12s;"
+                    onmouseover="this.style.background='#fee2e2';this.style.color='#dc2626'"
+                    onmouseout="this.style.background='transparent';this.style.color='#6b7280'">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+        <iframe id="psw-modal-iframe" src="about:blank" style="flex:1;width:100%;border:none;background:#fff;"></iframe>
+    </div>
+
+    <script>
+    (function() {
+        const PSW_MENU = @json($__pswMenuJs);
+        // 라우트 키 → URL 템플릿 (Laravel route() 헬퍼로 생성, __PID__ 자리표시자 치환)
+        const PSW_ROUTE_TEMPLATES = {
+            'projects.show':                        @json(route('projects.show',                      ['project' => '__PID__'])),
+            'projects.planning.index':              @json(route('projects.planning.index',            ['project' => '__PID__'])),
+            'projects.requirements.index':          @json(route('projects.requirements.index',        ['project' => '__PID__'])),
+            'projects.discussions.index':           @json(route('projects.discussions.index',         ['project' => '__PID__'])),
+            'plan-do-acts.index':                   @json(route('plan-do-acts.index',                 ['project' => '__PID__'])),
+            'ai-agent.projects.deliverables.index': @json(route('ai-agent.projects.deliverables.index', ['project' => '__PID__'])),
+            'projects.schedules.index':             @json(route('projects.schedules.index',           ['project' => '__PID__'])),
+            'projects.gantt':                       @json(route('projects.gantt',                     ['project' => '__PID__'])),
+            'projects.questions.index':             @json(route('projects.questions.index',           ['project' => '__PID__'])),
+            'projects.issues.index':                @json(route('projects.issues.index',              ['project' => '__PID__'])),
+            'projects.files.index':                 @json(route('projects.files.index',               ['project' => '__PID__'])),
+            'projects.members.index':               @json(route('projects.members.index',             ['project' => '__PID__'])),
+            'projects.weekly-reports.index':        @json(route('projects.weekly-reports.index',      ['project' => '__PID__'])),
+            'projects.leaves.index':                @json(route('projects.leaves.index',              ['project' => '__PID__'])),
+        };
+        const PSW_BUILD_URL = (routeKey, pid) => {
+            const tpl = PSW_ROUTE_TEMPLATES[routeKey];
+            if (!tpl) return null;
+            return tpl.replace('__PID__', String(pid));
+        };
+
+        let pswCurrent = { id: null, name: '', color: '#a394f9' };
+
+        function pswEl(id) { return document.getElementById(id); }
+
+        window.pswToggle = function() {
+            const pop = pswEl('psw-pop');
+            if (!pop) return;
+            const opening = pop.style.display !== 'flex';
+            if (opening) {
+                pop.style.display = 'flex';
+            } else {
+                pswClose();
+            }
+        };
+
+        window.pswClose = function() {
+            const pop = pswEl('psw-pop');
+            const menuPop = pswEl('psw-menu-pop');
+            if (pop) pop.style.display = 'none';
+            if (menuPop) menuPop.style.display = 'none';
+            const search = pswEl('psw-search');
+            if (search) search.value = '';
+            pswFilter();
+        };
+
+        window.pswCloseMenu = function() {
+            const menuPop = pswEl('psw-menu-pop');
+            if (menuPop) menuPop.style.display = 'none';
+        };
+
+        window.pswFilter = function() {
+            const q = (pswEl('psw-search')?.value || '').trim().toLowerCase();
+            document.querySelectorAll('#psw-list .psw-item').forEach(el => {
+                const name = el.getAttribute('data-name') || '';
+                el.style.display = (!q || name.includes(q)) ? 'flex' : 'none';
+            });
+        };
+
+        window.pswSelectProject = function(projectId, projectName, color) {
+            pswCurrent = { id: projectId, name: projectName, color: color };
+            const titleEl = pswEl('psw-menu-title');
+            const dotEl = pswEl('psw-menu-dot');
+            if (titleEl) titleEl.textContent = projectName;
+            if (dotEl) dotEl.style.background = color;
+
+            const listEl = pswEl('psw-menu-list');
+            if (listEl) {
+                const escapeHtml = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+                listEl.innerHTML = PSW_MENU.map((m, i) => `
+                    <button type="button" data-psw-idx="${i}"
+                        style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;background:transparent;border:none;border-radius:8px;cursor:pointer;text-align:left;transition:background .1s;font-size:13px;color:#374151;"
+                        onmouseover="this.style.background='var(--t50,#f5f3ff)';this.style.color='var(--t700,#6d28d9)'"
+                        onmouseout="this.style.background='transparent';this.style.color='#374151'">
+                        <span style="flex:1;">${escapeHtml(m.label)}</span>
+                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="color:#9ca3af;"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7-7 7M3 12h17"/></svg>
+                    </button>
+                `).join('');
+                listEl.querySelectorAll('button[data-psw-idx]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const idx = parseInt(btn.getAttribute('data-psw-idx'), 10);
+                        const m = PSW_MENU[idx];
+                        if (m) pswOpenMenu(m.route, m.label);
+                    });
+                });
+            }
+            const menuPop = pswEl('psw-menu-pop');
+            if (menuPop) menuPop.style.display = 'flex';
+        };
+
+        window.pswOpenMenu = function(routeKey, menuLabel) {
+            const baseUrl = PSW_BUILD_URL(routeKey, pswCurrent.id);
+            if (!baseUrl || !pswCurrent.id) return;
+            const iframeUrl = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'embed=1';
+
+            pswEl('psw-modal-project').textContent = pswCurrent.name;
+            pswEl('psw-modal-menu').textContent = menuLabel;
+            pswEl('psw-modal-dot').style.background = pswCurrent.color;
+            const newtab = pswEl('psw-modal-newtab');
+            if (newtab) newtab.href = baseUrl;
+            pswEl('psw-modal-iframe').src = iframeUrl;
+            pswEl('psw-modal-overlay').style.display = 'block';
+            pswEl('psw-modal').style.display = 'flex';
+
+            pswClose();
+        };
+
+        window.pswModalClose = function() {
+            pswEl('psw-modal-overlay').style.display = 'none';
+            pswEl('psw-modal').style.display = 'none';
+            pswEl('psw-modal-iframe').src = 'about:blank';
+        };
+
+        // 외부 클릭으로 닫기
+        document.addEventListener('click', function(e) {
+            const wrap = pswEl('psw-wrap');
+            const pop = pswEl('psw-pop');
+            const menuPop = pswEl('psw-menu-pop');
+            if (!wrap || !pop) return;
+            if (pop.style.display !== 'flex' && (!menuPop || menuPop.style.display !== 'flex')) return;
+            if (!wrap.contains(e.target) && (!menuPop || !menuPop.contains(e.target))) {
+                pswClose();
+            }
+        });
+
+        // ESC로 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Escape') return;
+            const modal = pswEl('psw-modal');
+            if (modal && modal.style.display === 'flex') { pswModalClose(); return; }
+            const pop = pswEl('psw-pop');
+            if (pop && pop.style.display === 'flex') { pswClose(); }
+        });
+
+        // 1단 프로젝트 리스트 버튼 클릭 바인딩 (data-* 속성 기반)
+        document.querySelectorAll('#psw-list .psw-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pid = parseInt(btn.getAttribute('data-psw-id'), 10);
+                const pname = btn.getAttribute('data-psw-pname') || '';
+                const pcolor = btn.getAttribute('data-psw-color') || '#a394f9';
+                pswSelectProject(pid, pname, pcolor);
+            });
+        });
+    })();
+    </script>
     </body>
 </html>

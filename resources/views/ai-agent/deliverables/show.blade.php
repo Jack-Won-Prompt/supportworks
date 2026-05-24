@@ -468,6 +468,7 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                                         <div class="md-tabs">
                                             <button type="button" class="md-tab is-active" onclick="mdSwitchTab(this,'preview')">{{ __('deliverables.tab_preview') }}</button>
                                             <button type="button" class="md-tab" onclick="mdSwitchTab(this,'edit')">{{ __('deliverables.tab_edit') }}</button>
+                                            <button type="button" class="md-tab" onclick="mdSwitchTab(this,'changes')">{{ __('deliverables.tab_changes') }}</button>
                                             <button type="button" class="md-tab-tr" onclick="mdTranslate(this)" title="{{ __('deliverables.tab_translate_title') }}">🌐 {{ __('deliverables.tab_translate') }}</button>
                                         </div>
                                         <div class="md-edit-pane" style="display:none;">
@@ -480,6 +481,14 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                                                       placeholder="{!! str_replace(chr(10), '&#10;', e(__('deliverables.table_ph'))) !!}">{{ $deliverable->getStepValue($stepNo, $field['key']) }}</textarea>
                                         </div>
                                         <div class="md-preview-pane" style="height:200px;"></div>
+                                        <div class="md-changes-pane" style="display:none;">
+                                            <div class="md-changes-bar">
+                                                <span class="md-changes-info"></span>
+                                                <button type="button" class="md-changes-btn md-changes-accept" onclick="mdAcceptChanges(this)">{{ __('deliverables.changes_accept') }}</button>
+                                                <button type="button" class="md-changes-btn md-changes-reject" onclick="mdRejectChanges(this)">{{ __('deliverables.changes_reject') }}</button>
+                                            </div>
+                                            <div class="md-changes-body" style="height:200px;"></div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -927,6 +936,35 @@ const TRANSLATE_SAVE_URL = '{{ route("ai-agent.projects.deliverables.save-transl
 const DRAFT_URL         = '{{ route("ai-agent.projects.deliverables.generate-draft",        [$project, $typeId]) }}';
 const DRAFT_STREAM_BASE = '{{ route("ai-agent.projects.deliverables.generate-draft-stream", [$project, $typeId]) }}';
 const ANALYZE_URL       = '{{ route("ai-agent.projects.deliverables.analyze-step",          [$project, $typeId]) }}';
+const UPLOAD_IMAGE_URL  = '{{ route("ai-agent.projects.deliverables.upload-image",          [$project, $typeId]) }}';
+{{-- 현재 STEP 의 [[img:N]] 토큰 → URL 매핑 (필드별). paste/리사이즈 시 갱신됨. --}}
+@php
+    $__imageMaps = [];
+    foreach ($currentStep['fields'] ?? [] as $__f) {
+        if (in_array($__f['type'] ?? '', ['textarea', 'table'])) {
+            $__imageMaps[$__f['key']] = $deliverable->getStepImageMap($stepNo, $__f['key']);
+        }
+    }
+@endphp
+const IMAGE_MAPS = {!! json_encode((object) $__imageMaps, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
+
+// 본문 마크다운의 [[img:N w=N]] 토큰을 <img> 인라인 HTML 로 확장.
+// 누락된 토큰(매핑 없음)은 빈 문자열로 치환.
+window.dlvExpandTokens = function(raw, fieldKey) {
+    if (!raw) return '';
+    const map = (IMAGE_MAPS && IMAGE_MAPS[fieldKey]) || {};
+    return String(raw).replace(/\[\[img:(\d+)(?:\s+w=(\d+))?\]\]/g, function(_, id, w) {
+        const url = map[id];
+        if (!url) return '';
+        const ww = w || '600';
+        const e = url.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return '<img src="' + e + '" style="width:' + ww + 'px">';
+    });
+};
+// AI 프롬프트용: 토큰을 [이미지 N] 플레이스홀더로 치환 (URL 노출 방지)
+window.dlvStripTokensForAi = function(raw) {
+    return String(raw || '').replace(/\[\[img:(\d+)(?:\s+w=\d+)?\]\]/g, '[이미지 $1]');
+};
 const SAVE_TOOL_URL       = '{{ route("ai-agent.projects.deliverables.save-tool",             [$project, $typeId]) }}';
 const ALL_STEP_FIELDS_URL = '{{ route("ai-agent.projects.deliverables.all-step-fields",       [$project, $typeId]) }}';
 const TRANSLATE_URL       = '{{ route("translate") }}';
@@ -1095,7 +1133,7 @@ async function mdInitPreviews() {
         if (!textarea || !editPane || !previewPane) return;
         const raw = textarea.value.trim();
         previewPane.innerHTML = raw
-            ? marked.parse(raw)
+            ? marked.parse(window.dlvExpandTokens(raw, textarea.dataset.fieldKey || ''))
             : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
         editPane.style.display    = 'none';
         previewPane.style.display = 'block';
@@ -1104,6 +1142,225 @@ async function mdInitPreviews() {
 // 단일 줄바꿈(Shift+Enter)도 <br> 로 렌더링되도록 — marked 기본값은 줄바꿈 무시
 if (typeof marked !== 'undefined') marked.setOptions({ breaks: true, gfm: true });
 mdInitPreviews();
+
+/* ── STEP 본문 이미지 paste & 리사이즈 (토큰 기반) ──────────────────
+   - textarea(.dlv-textarea) 에 paste → 업로드 → IMAGE_MAPS[fieldKey] 에 등록
+     → 커서 위치에 [[img:N w=600]] 토큰 삽입
+   - 프리뷰(.md-preview-pane) 의 이미지 클릭 → 8 방향 핸들 → 드래그 종료 시
+     textarea 의 같은 토큰의 w= 숫자만 갱신
+   - 저장 시 image_maps 가 saveStep 페이로드에 함께 전송됨 (getFormData 후크) */
+(function() {
+    function csrf() { return document.querySelector('meta[name=csrf-token]')?.content || ''; }
+
+    function nextTokenId(fieldKey) {
+        const map = (IMAGE_MAPS[fieldKey] ||= {});
+        let max = 0;
+        for (const k of Object.keys(map)) {
+            const n = parseInt(k, 10);
+            if (!isNaN(n) && n > max) max = n;
+        }
+        return max + 1;
+    }
+
+    function insertAtCursor(ta, text) {
+        const s = ta.selectionStart ?? ta.value.length;
+        const e = ta.selectionEnd   ?? ta.value.length;
+        ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+        ta.selectionStart = ta.selectionEnd = s + text.length;
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function refreshPreviewIfVisible(ta, fieldKey) {
+        const editor = ta.closest('.md-editor');
+        if (!editor || typeof marked === 'undefined') return;
+        const previewPane = editor.querySelector('.md-preview-pane');
+        if (!previewPane || previewPane.style.display === 'none') return;
+        const raw = (ta.value || '').trim();
+        previewPane.innerHTML = raw
+            ? marked.parse(window.dlvExpandTokens(raw, fieldKey))
+            : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
+    }
+
+    async function uploadImage(file) {
+        if (!file) return null;
+        const fd = new FormData();
+        fd.append('image', file);
+        const res = await fetch(UPLOAD_IMAGE_URL, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf(), 'Accept': 'application/json' },
+            credentials: 'same-origin',
+            body: fd,
+        });
+        if (!res.ok) return null;
+        const d = await res.json().catch(() => ({}));
+        return d.url || null;
+    }
+
+    // ── paste 핸들러 (이벤트 위임) ──
+    document.addEventListener('paste', async function(e) {
+        const ta = e.target?.closest?.('.dlv-textarea');
+        if (!ta) return;
+        const fieldKey = ta.dataset.fieldKey || '';
+        if (!fieldKey) return;
+        const item = [...(e.clipboardData?.items || [])].find(x => x.type.startsWith('image/'));
+        if (!item) return;
+        e.preventDefault();
+        const url = await uploadImage(item.getAsFile());
+        if (!url) { alert('이미지 업로드 실패'); return; }
+        const id = nextTokenId(fieldKey);
+        (IMAGE_MAPS[fieldKey] ||= {})[id] = url;
+        insertAtCursor(ta, `\n[[img:${id} w=600]]\n`);
+        refreshPreviewIfVisible(ta, fieldKey);
+    });
+
+    // ── 리사이즈 오버레이 (페이지당 1 개) ──
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;pointer-events:none;z-index:50;display:none';
+    const handles = ['tl','tm','tr','ml','mr','bl','bm','br'];
+    const pos = {
+        tl:'top:-5px;left:-5px;cursor:nwse-resize',
+        tm:'top:-5px;left:50%;margin-left:-5px;cursor:ns-resize',
+        tr:'top:-5px;right:-5px;cursor:nesw-resize',
+        ml:'top:50%;margin-top:-5px;left:-5px;cursor:ew-resize',
+        mr:'top:50%;margin-top:-5px;right:-5px;cursor:ew-resize',
+        bl:'bottom:-5px;left:-5px;cursor:nesw-resize',
+        bm:'bottom:-5px;left:50%;margin-left:-5px;cursor:ns-resize',
+        br:'bottom:-5px;right:-5px;cursor:nwse-resize',
+    };
+    handles.forEach(dir => {
+        const h = document.createElement('span');
+        h.dataset.dir = dir;
+        h.style.cssText = 'position:absolute;width:10px;height:10px;background:var(--t500,#7c3aed);border:1.5px solid #fff;border-radius:2px;pointer-events:auto;box-shadow:0 0 0 1px rgba(0,0,0,.15);' + pos[dir];
+        overlay.appendChild(h);
+    });
+    document.body.appendChild(overlay);
+
+    let selImg = null, selTa = null, selFieldKey = '', selTokenId = null, prevOutline = '';
+    function place() {
+        if (!selImg || !document.contains(selImg)) {
+            if (selImg) selImg.style.outline = prevOutline;
+            selImg = null; selTa = null; selFieldKey = ''; selTokenId = null;
+            overlay.style.display = 'none';
+            return;
+        }
+        const r = selImg.getBoundingClientRect();
+        overlay.style.left = r.left + 'px';
+        overlay.style.top = r.top + 'px';
+        overlay.style.width = r.width + 'px';
+        overlay.style.height = r.height + 'px';
+        overlay.style.display = 'block';
+
+        // 프리뷰 pane(overflow:auto) 의 가시 영역 밖으로 새는 핸들 숨김
+        const pane = selImg.closest('.md-preview-pane');
+        if (pane) {
+            const pr = pane.getBoundingClientRect();
+            // 이미지가 pane 가시 영역 밖으로 완전히 스크롤됨 → overlay 전체 숨김
+            if (r.bottom < pr.top || r.top > pr.bottom || r.right < pr.left || r.left > pr.right) {
+                overlay.style.display = 'none';
+                return;
+            }
+            overlay.querySelectorAll('span').forEach(h => {
+                const hr = h.getBoundingClientRect();
+                const cx = hr.left + hr.width / 2;
+                const cy = hr.top  + hr.height / 2;
+                const inside = cx >= pr.left && cx <= pr.right && cy >= pr.top && cy <= pr.bottom;
+                h.style.visibility = inside ? '' : 'hidden';
+            });
+        } else {
+            overlay.querySelectorAll('span').forEach(h => { h.style.visibility = ''; });
+        }
+    }
+
+    // 프리뷰 안의 <img> 요소 → 그 src 에 해당하는 토큰 ID 찾기
+    function findTokenIdForImg(img, fieldKey) {
+        const map = IMAGE_MAPS[fieldKey] || {};
+        const src = img.getAttribute('src') || '';
+        for (const [id, url] of Object.entries(map)) {
+            if (url === src) return id;
+        }
+        return null;
+    }
+
+    function select(img, ta, fieldKey, tokenId) {
+        if (selImg) selImg.style.outline = prevOutline;
+        selImg = img; selTa = ta; selFieldKey = fieldKey || ''; selTokenId = tokenId;
+        if (img) {
+            prevOutline = img.style.outline;
+            img.style.outline = '2px solid var(--t500,#7c3aed)';
+            img.style.outlineOffset = '1px';
+            place();
+        } else {
+            overlay.style.display = 'none';
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const img = e.target?.closest?.('.md-preview-pane img');
+        if (img) {
+            e.preventDefault();
+            const editor = img.closest('.md-editor');
+            const ta = editor ? editor.querySelector('.dlv-textarea') : null;
+            const fieldKey = ta?.dataset?.fieldKey || '';
+            const tokenId = ta ? findTokenIdForImg(img, fieldKey) : null;
+            select(img, ta, fieldKey, tokenId);
+            return;
+        }
+        if (selImg && !overlay.contains(e.target)) select(null, null, '', null);
+    });
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && selImg) select(null, null, '', null); });
+
+    // ── 8 방향 드래그 ──
+    let st = null;
+    overlay.querySelectorAll('span').forEach(h => {
+        h.addEventListener('mousedown', e => {
+            if (!selImg) return;
+            e.preventDefault();
+            const r = selImg.getBoundingClientRect();
+            st = {
+                dir: h.dataset.dir,
+                startX: e.clientX, startY: e.clientY,
+                origW: r.width, origH: r.height,
+                aspect: r.width / r.height,
+            };
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp, { once: true });
+        });
+    });
+    function onMove(e) {
+        if (!st || !selImg) return;
+        const dx = e.clientX - st.startX, dy = e.clientY - st.startY, dir = st.dir;
+        let nw = st.origW, nh = st.origH;
+        if (dir.includes('r')) nw = Math.max(40, st.origW + dx);
+        if (dir.includes('l')) nw = Math.max(40, st.origW - dx);
+        if (dir.includes('b')) nh = Math.max(40, st.origH + dy);
+        if (dir.includes('t')) nh = Math.max(40, st.origH - dy);
+        const isCorner = dir.length === 2;
+        if (isCorner) {
+            const wRatio = nw / st.origW, hRatio = nh / st.origH;
+            const ratio = Math.abs(wRatio - 1) > Math.abs(hRatio - 1) ? wRatio : hRatio;
+            nw = Math.max(40, st.origW * ratio);
+            nh = nw / st.aspect;
+        }
+        selImg.style.width = Math.round(nw) + 'px';
+        selImg.style.height = isCorner ? '' : Math.round(nh) + 'px';
+        place();
+    }
+    function onUp() {
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        if (selImg && selTa && selTokenId !== null) {
+            const newW = Math.round(selImg.getBoundingClientRect().width);
+            // textarea 안의 [[img:N ...]] 토큰에서 w= 값만 갱신 (없으면 추가)
+            const re = new RegExp('\\[\\[img:' + selTokenId + '(?:\\s+w=\\d+)?\\]\\]', 'g');
+            selTa.value = selTa.value.replace(re, '[[img:' + selTokenId + ' w=' + newW + ']]');
+            selTa.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        st = null;
+    }
+})();
 
 /* 단일 textarea의 미리보기(보기) 패널 갱신 — 웍스 초안 생성 등 프로그램적 값 변경 시 호출 */
 function mdRefreshPreview(textarea) {
@@ -1114,7 +1371,7 @@ function mdRefreshPreview(textarea) {
     if (!previewPane) return;
     const raw = (textarea.value || '').trim();
     previewPane.innerHTML = raw
-        ? marked.parse(raw)
+        ? marked.parse(window.dlvExpandTokens(raw, textarea.dataset.fieldKey || ''))
         : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
 }
 
@@ -1142,6 +1399,8 @@ function getFormData() {
         const m = k.match(/^fields\[(.+)\]$/);
         if (m) data.fields[m[1]] = v;
     });
+    // 본문 이미지 토큰 매핑도 함께 전송 (서버 GC: 본문에 없는 항목은 자동 제거)
+    data.image_maps = (typeof IMAGE_MAPS !== 'undefined' && IMAGE_MAPS) ? IMAGE_MAPS : {};
     return data;
 }
 
@@ -1174,8 +1433,22 @@ async function _dlvSyncBuildersBeforeSave() {
         const ta      = fieldKey ? form.querySelector(`textarea[data-field-key="${CSS.escape(fieldKey)}"]`) : null;
         const taValue = ta ? (ta.value || '') : '';
 
-        // 빌더가 실제로 변경되었는지 (페이지 로드 시점 대비)
-        const builderChanged = builderMd.trim() !== initMd.trim();
+        // Source of truth: textarea defaultValue. 빌더가 안전한 콘텐츠는 *순수 표* 만.
+        // 헤더/문단/리스트 등 비-표 라인이 섞여 있으면 (prose/혼합) textarea 보호 최우선.
+        const fieldDef     = ta?.defaultValue || '';
+        const nonBlankNonTable = fieldDef.split('\n').map(l => l.trim()).filter(l => l !== '' && !l.startsWith('|'));
+        const fieldIsTableOnly = nonBlankNonTable.length === 0 && fieldDef.split('\n').some(l => l.trim().startsWith('|'));
+        const fieldNeedsProtection = fieldDef.trim() !== '' && !fieldIsTableOnly;
+        // 빌더 셀에 사용자가 실제로 내용을 채웠는지
+        const builderHasUserContent = Array.from(b.querySelectorAll('.dlv-tbl-cell'))
+            .some(c => c.value && c.value.trim());
+
+        // 빌더가 실제로 변경되었는지:
+        // - prose/혼합 콘텐츠는 빌더 셀에 사용자 입력이 있어야만 변경 (보호 우선)
+        // - 그 외(순수 표 또는 빈 필드): 빌더 마크다운이 baseline 과 다르면 변경
+        const builderChanged = fieldNeedsProtection
+            ? builderHasUserContent
+            : builderMd.trim() !== initMd.trim();
         // 사용자가 textarea 만 직접 수정했는지
         const textareaChanged = ta && taValue.trim() !== initMd.trim();
 
@@ -1363,7 +1636,7 @@ async function dlvOpenVersions(btn) {
 }
 
 async function dlvRestoreVersion(id, vno) {
-    if (!confirm(LANG.restore_confirm.replace(':vno', vno))) return;
+    if (!await __confirm(LANG.restore_confirm.replace(':vno', vno))) return;
     const url = VERSIONS_RESTORE_URL.replace('__ID__', id);
     try {
         const res = await fetch(url, {
@@ -1818,7 +2091,7 @@ async function analyzeAction(action) {
     const fields = {};
     document.querySelectorAll('#step-form [name^="fields["]').forEach(el => {
         const m = el.name.match(/^fields\[(.+)\]$/);
-        if (m) fields[m[1]] = el.value;
+        if (m) fields[m[1]] = window.dlvStripTokensForAi(el.value);
     });
 
     try {
@@ -2106,7 +2379,7 @@ async function sendAiMessage() {
     const fields = {};
     document.querySelectorAll('#step-form [name^="fields["]').forEach(el => {
         const m = el.name.match(/^fields\[(.+)\]$/);
-        if (m) fields[m[1]] = el.value;
+        if (m) fields[m[1]] = window.dlvStripTokensForAi(el.value);
     });
 
     try {
@@ -2177,7 +2450,7 @@ async function mdSwitchTab(btn, mode) {
     } else if (mode === 'preview') {
         const raw = textarea.value.trim();
         previewPane.innerHTML = raw
-            ? marked.parse(raw)
+            ? marked.parse(window.dlvExpandTokens(raw, textarea.dataset.fieldKey || ''))
             : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
         previewPane.style.height    = textarea.offsetHeight + 'px';
         previewPane.style.overflowY = 'auto';
@@ -2210,16 +2483,20 @@ function mdGetBaseline(ta) {
     return ta._trackBaseline !== undefined ? ta._trackBaseline : ta.defaultValue;
 }
 // 단어 단위 LCS diff — [{t:'eq'|'del'|'ins', v}]
+// - 작은 문서: 워드 단위 LCS 직접 (가장 정밀)
+// - 큰 문서(2000+ 토큰): 라인 단위로 1차 diff → 변경된 라인 안에서만 워드 단위 LCS
 function mdWordDiff(oldStr, newStr) {
     const a = mdTokenize(oldStr), b = mdTokenize(newStr);
-    const m = a.length, n = b.length;
-    // 과도하게 크면 통째 교체로 폴백 (안전장치)
-    if (m * n > 2500000) {
-        const out = [];
-        a.forEach(v => out.push({ t:'del', v }));
-        b.forEach(v => out.push({ t:'ins', v }));
-        return out;
+    if (a.length * b.length <= 16_000_000) {
+        return _mdLcsTokens(a, b);
     }
+    return _mdLineLevelDiff(oldStr, newStr);
+}
+
+// 워드 토큰 배열의 LCS diff
+function _mdLcsTokens(a, b) {
+    const m = a.length, n = b.length;
+    if (m === 0 && n === 0) return [];
     const dp = [];
     for (let i = 0; i <= m; i++) dp.push(new Uint16Array(n + 1));
     for (let i = m - 1; i >= 0; i--)
@@ -2235,13 +2512,73 @@ function mdWordDiff(oldStr, newStr) {
     while (j < n) out.push({ t:'ins', v:b[j++] });
     return out;
 }
+
+// 큰 문서용: 라인 LCS → 변경 라인 블록만 워드 단위 재diff
+function _mdLineLevelDiff(oldStr, newStr) {
+    const aL = String(oldStr).split('\n'), bL = String(newStr).split('\n');
+    const m = aL.length, n = bL.length;
+    const dp = [];
+    for (let i = 0; i <= m; i++) dp.push(new Uint32Array(n + 1));
+    for (let i = m - 1; i >= 0; i--)
+        for (let j = n - 1; j >= 0; j--)
+            dp[i][j] = aL[i] === bL[j] ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+
+    // 1차: 라인 단위 ops
+    const lineOps = []; let i = 0, j = 0;
+    while (i < m && j < n) {
+        if (aL[i] === bL[j])                 { lineOps.push({ t:'eq',  line:aL[i] }); i++; j++; }
+        else if (dp[i+1][j] >= dp[i][j+1])   { lineOps.push({ t:'del', line:aL[i] }); i++; }
+        else                                  { lineOps.push({ t:'ins', line:bL[j] }); j++; }
+    }
+    while (i < m) lineOps.push({ t:'del', line:aL[i++] });
+    while (j < n) lineOps.push({ t:'ins', line:bL[j++] });
+
+    // 2차: 인접 del+ins 블록을 모아 워드 단위 LCS 로 정밀화 (한 블록당 곱이 임계 이하일 때만)
+    const out = [];
+    for (let k = 0; k < lineOps.length; k++) {
+        const op = lineOps[k];
+        if (op.t === 'eq') {
+            mdTokenize(op.line).forEach(v => out.push({ t:'eq', v }));
+        } else {
+            // 같은 t 가 아닌 del/ins 가 인접한 블록을 모음
+            const dels = [], inss = [];
+            let kk = k;
+            while (kk < lineOps.length && (lineOps[kk].t === 'del' || lineOps[kk].t === 'ins')) {
+                (lineOps[kk].t === 'del' ? dels : inss).push(lineOps[kk].line);
+                kk++;
+            }
+            const aBlk = mdTokenize(dels.join('\n')), bBlk = mdTokenize(inss.join('\n'));
+            if (aBlk.length * bBlk.length <= 16_000_000 && (aBlk.length || bBlk.length)) {
+                _mdLcsTokens(aBlk, bBlk).forEach(d => out.push(d));
+            } else {
+                aBlk.forEach(v => out.push({ t:'del', v }));
+                bBlk.forEach(v => out.push({ t:'ins', v }));
+            }
+            k = kk - 1;
+        }
+        // 라인 사이 \n — 마지막 라인이 아니면 eq 로 (라인 LCS 에서 일치하는 라인 경계)
+        if (k < lineOps.length - 1) out.push({ t: 'eq', v: '\n' });
+    }
+    return out;
+}
 function mdRenderChangesPane(editor) {
     const ta   = editor.querySelector('textarea');
     const pane = editor.querySelector('.md-changes-pane');
     if (!ta || !pane) return;
     const body = pane.querySelector('.md-changes-body');
     const info = pane.querySelector('.md-changes-info');
-    const baseline = mdGetBaseline(ta), current = ta.value;
+
+    // 변경내용은 텍스트 수정/삭제만 대상 — 이미지 토큰 라인 제거 + 잉여 빈줄/앞뒤 공백 정규화
+    // (baseline/current 동일 함수 적용 → 이미지만 추가/리사이즈한 경우 "변경 없음")
+    const stripImages = s => String(s || '')
+        .split('\n')
+        .filter(line => !/^\s*\[\[img:\d+(?:\s+w=\d+)?\]\]\s*$/.test(line))   // 토큰 단독 라인 제거
+        .map(line => line.replace(/\[\[img:\d+(?:\s+w=\d+)?\]\]/g, ''))        // 인라인 토큰 제거
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')                                            // 3+ 연속 줄바꿈 → 2 (paste 잉여 빈줄 흡수)
+        .replace(/^\s+|\s+$/g, '');                                            // 앞뒤 공백 정규화
+    const baseline = stripImages(mdGetBaseline(ta));
+    const current  = stripImages(ta.value);
 
     if (baseline === current) {
         body.innerHTML = `<span class="md-changes-empty">${LANG.changes_none}</span>`;
@@ -2268,12 +2605,12 @@ function mdAcceptChanges(btn) {
     mdRenderChangesPane(editor);
 }
 // 변경내용 취소 — 이전 기준선으로 되돌림
-function mdRejectChanges(btn) {
+async function mdRejectChanges(btn) {
     const editor = btn.closest('.md-editor');
     const ta = editor.querySelector('textarea');
     if (!ta) return;
     if (ta.value === mdGetBaseline(ta)) return;
-    if (!confirm(LANG.changes_reject_cfm)) return;
+    if (!await __confirm(LANG.changes_reject_cfm)) return;
     ta.value = mdGetBaseline(ta);
     mdRenderChangesPane(editor);
 }
@@ -2286,7 +2623,7 @@ function _mdShowTranslated(editor, textarea, translated) {
     const paneH = previewPane.offsetHeight || textarea.offsetHeight || 200;
     previewPane.innerHTML =
         `<div class="md-tr-badge">🌐 {{ addslashes(__('deliverables.translate_badge')) }}</div>` +
-        marked.parse(translated);
+        marked.parse(window.dlvExpandTokens(translated, textarea.dataset.fieldKey || ''));
     previewPane.style.height    = paneH + 'px';
     previewPane.style.overflowY = 'auto';
     editPane.style.display      = 'none';
@@ -2304,7 +2641,7 @@ function _mdRestoreKorean(editor, textarea) {
     const editPane    = editor.querySelector('.md-edit-pane');
     const paneH = previewPane.offsetHeight || (textarea ? textarea.offsetHeight : 0) || 200;
     const raw = textarea ? textarea.value.trim() : '';
-    previewPane.innerHTML = raw ? marked.parse(raw) : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
+    previewPane.innerHTML = raw ? marked.parse(window.dlvExpandTokens(raw, textarea?.dataset?.fieldKey || '')) : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
     previewPane.style.height    = paneH + 'px';
     previewPane.style.overflowY = 'auto';
     editPane.style.display      = 'none';
@@ -3023,7 +3360,29 @@ function tblInit(builder) {
     const md = builder.dataset.initMd || '';
     const tbl = tblGetTable(builder);
     tbl.innerHTML = '';
-    if (md.trim()) {
+
+    // ── Source of truth: 필드의 textarea.defaultValue (서버가 DB field 값으로 렌더) ──
+    // 빌더가 안전하게 다룰 수 있는 콘텐츠는 *순수 표* (오직 `|...|` 라인과 빈 줄로만 구성).
+    // 헤더(`##`), 문단, 리스트 등 비-표 라인이 하나라도 섞여 있으면 빌더는 textarea 에 손대지 않음.
+    const fieldKey = builder.dataset.fieldKey || '';
+    const fieldTa  = fieldKey ? document.querySelector(`textarea[name="fields[${fieldKey}]"]`) : null;
+    const fieldDef = fieldTa?.defaultValue || '';
+    const nonBlankNonTable = fieldDef.split('\n').map(l => l.trim()).filter(l => l !== '' && !l.startsWith('|'));
+    const fieldIsTableOnly = nonBlankNonTable.length === 0 && fieldDef.split('\n').some(l => l.trim().startsWith('|'));
+    const fieldNeedsProtection = fieldDef.trim() !== '' && !fieldIsTableOnly;
+
+    // 비-표 라인이 섞여 있으면 (prose / 혼합 / 빈 필드는 제외) 빌더는 빈 3×3 만 표시, textarea 보호
+    if (fieldNeedsProtection) {
+        tbl.appendChild(tblMakeRow(3, true));
+        tbl.appendChild(tblMakeRow(3, false));
+        tbl.appendChild(tblMakeRow(3, false));
+        requestAnimationFrame(() => tblResizeAll(builder));
+        return;
+    }
+
+    // 표 baseline (또는 빈 필드) → 기존 로직
+    const hasTable = md.split('\n').some(l => l.trim().startsWith('|'));
+    if (hasTable) {
         const { headers, rows } = tblParseMd(md);
         if (headers.length) {
             const hRow = tblMakeRow(headers.length, true);
@@ -3040,13 +3399,11 @@ function tblInit(builder) {
             });
         }
     } else {
-        // 기본 3×3
         tbl.appendChild(tblMakeRow(3, true));
         tbl.appendChild(tblMakeRow(3, false));
         tbl.appendChild(tblMakeRow(3, false));
     }
-    tblSync(builder);
-    // 모든 셀 높이를 내용에 맞게 조정 (스크롤 없이)
+    if (hasTable) tblSync(builder);
     requestAnimationFrame(() => tblResizeAll(builder));
 }
 
@@ -3138,7 +3495,7 @@ async function tblSave(btn) {
                 const previewPane = editor?.querySelector('.md-preview-pane');
                 if (previewPane && typeof marked !== 'undefined') {
                     previewPane.innerHTML = md.trim()
-                        ? marked.parse(md)
+                        ? marked.parse(window.dlvExpandTokens(md, ta.dataset.fieldKey || ''))
                         : `<span class="md-preview-empty">${LANG.md_empty}</span>`;
                 }
             }
@@ -3149,12 +3506,78 @@ async function tblSave(btn) {
             });
         }
 
+        // 저장 성공 → baseline(data-init-md) 갱신: 변경내용 탭은 다음 편집부터 다시 추적
+        b.dataset.initMd = md;
+
         btn.innerHTML = LANG.saved;
         setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1500);
     } catch (e) {
         alert(LANG.save_error.replace(':message', e.message));
         btn.innerHTML = origHtml; btn.disabled = false;
     }
+}
+
+// ── TABLE-DATA 변경내용 탭 ─────────────────────────────────
+function tblSwitchTab(btn, mode) {
+    const builder = btn.closest('.dlv-tbl-builder');
+    if (!builder) return;
+    const editPane    = builder.querySelector('.dlv-tbl-edit-pane');
+    const changesPane = builder.querySelector('.md-changes-pane');
+    builder.querySelectorAll('.md-tab').forEach(t => t.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    if (mode === 'changes') {
+        if (editPane)    editPane.style.display    = 'none';
+        if (changesPane) changesPane.style.display = 'block';
+        tblRenderChangesPane(builder);
+    } else {
+        if (editPane)    editPane.style.display    = '';
+        if (changesPane) changesPane.style.display = 'none';
+    }
+}
+
+function tblRenderChangesPane(builder) {
+    const pane = builder.querySelector('.md-changes-pane');
+    if (!pane) return;
+    const body = pane.querySelector('.md-changes-body');
+    const info = pane.querySelector('.md-changes-info');
+    const baseline = builder.dataset.initMd || '';
+    const current  = tblToMarkdown(builder);
+    // baseline 이 실제 표 마크다운이 아니면 (prose 등) 빌더는 추적 불가 → "변경 없음"
+    // (이 경우 본문 변경 추적은 같은 필드의 [편집] 탭 변경내용에서 수행)
+    const baselineIsTable = baseline.split('\n').some(l => l.trim().startsWith('|'));
+    if (!baselineIsTable || baseline === current) {
+        body.innerHTML = `<span class="md-changes-empty">${LANG.changes_none}</span>`;
+        info.textContent = '';
+        return;
+    }
+    const diff = mdWordDiff(baseline, current);
+    let insN = 0, delN = 0, html = '';
+    diff.forEach(d => {
+        const v = mdTrackEsc(d.v);
+        if (d.t === 'eq')       { html += v; }
+        else if (d.t === 'del') { html += `<del>${v}</del>`; if (d.v.trim()) delN++; }
+        else                    { html += `<ins>${v}</ins>`; if (d.v.trim()) insN++; }
+    });
+    body.innerHTML = html;
+    info.textContent = LANG.changes_summary.replace(':ins', insN).replace(':del', delN);
+}
+
+// 변경내용 적용 — 현재 빌더 상태를 새 baseline 으로 (DB 저장은 별도 [저장] 버튼)
+function tblAcceptChanges(btn) {
+    const builder = btn.closest('.dlv-tbl-builder');
+    if (!builder) return;
+    builder.dataset.initMd = tblToMarkdown(builder);
+    tblRenderChangesPane(builder);
+}
+
+// 변경내용 취소 — baseline 으로 빌더 복원
+async function tblRejectChanges(btn) {
+    const builder = btn.closest('.dlv-tbl-builder');
+    if (!builder) return;
+    if (tblToMarkdown(builder) === (builder.dataset.initMd || '')) return;
+    if (!await __confirm(LANG.changes_reject_cfm)) return;
+    tblInit(builder); // data-init-md 로 다시 그리기
+    tblRenderChangesPane(builder);
 }
 
 async function tblAiGen(btn) {
@@ -3465,9 +3888,9 @@ function qaAddSection(btn) {
     sec.querySelector('.dlv-qa-sec-title').focus();
 }
 
-function qaRemoveSection(btn) {
+async function qaRemoveSection(btn) {
     const sec = btn.closest('.dlv-qa-section');
-    if (!confirm(LANG.qa_section_delete_confirm)) return;
+    if (!await __confirm(LANG.qa_section_delete_confirm)) return;
     sec.remove();
     _qaRenumber(btn.closest('.dlv-qa-builder'));
 }
@@ -4530,7 +4953,7 @@ document.querySelectorAll('.dlv-dgr-builder').forEach(b => {
         const editor = ta.closest('.md-editor');
         const previewPane = editor?.querySelector('.md-preview-pane');
         if (previewPane && previewPane.style.display !== 'none' && typeof marked !== 'undefined') {
-            previewPane.innerHTML = marked.parse(ta.value.trim());
+            previewPane.innerHTML = marked.parse(window.dlvExpandTokens(ta.value.trim(), ta.dataset.fieldKey || ''));
         }
     }
 

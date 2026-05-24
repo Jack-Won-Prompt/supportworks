@@ -1060,11 +1060,13 @@ window.addEventListener('resize', () => { if (_dbFcOpen) dbFcPositionPop(); });
 window.addEventListener('scroll', () => { if (_dbFcOpen) dbFcPositionPop(); }, true);
 </script>
 
-{{-- ─── 대시보드 온보딩 투어 (처음 접속 시 자동 1회) ─── --}}
+{{-- ─── 대시보드 온보딩 투어 (사용자별 처음 1회, DB 기록) ─── --}}
+@php $__dashTourSeen = \App\Models\UserTourVisit::hasVisited((int) auth()->id(), 'dashboard'); @endphp
+@if(!$__dashTourSeen)
 <script>
 (function () {
-    const TOUR_KEY = 'sw_dashboard_tour_v1_{{ auth()->id() }}';
-    if (localStorage.getItem(TOUR_KEY)) return;   // 이미 본 사용자는 건너뜀
+    const TOUR_VISITED_URL = @json(route('tour.visited', ['key' => 'dashboard']));
+    const TOUR_CSRF        = @json(csrf_token());
 
     const STEPS = [
         { sel: null, title: '대시보드에 오신 것을 환영합니다 👋',
@@ -1124,7 +1126,14 @@ window.addEventListener('scroll', () => { if (_dbFcOpen) dbFcPositionPop(); }, t
     function onKey(e) { if (e.key === 'Escape') end(); }
 
     function end() {
-        try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+        // DB 에 visited 기록 (멱등) — 다음 방문부터 표시 안 됨
+        try {
+            fetch(TOUR_VISITED_URL, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': TOUR_CSRF, 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            }).catch(() => {});
+        } catch (e) {}
         window.removeEventListener('keydown', onKey);
         window.removeEventListener('resize', render);
         [block, hole, pop].forEach(el => el && el.remove());
@@ -1181,5 +1190,6 @@ window.addEventListener('scroll', () => { if (_dbFcOpen) dbFcPositionPop(); }, t
     else window.addEventListener('load', () => setTimeout(start, 700));
 })();
 </script>
+@endif
 
 @endsection

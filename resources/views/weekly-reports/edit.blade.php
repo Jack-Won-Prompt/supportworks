@@ -674,12 +674,19 @@ document.addEventListener('DOMContentLoaded', function () {
             toolbar: [
                 ['bold', 'italic', 'underline'],
                 [{ list: 'ordered' }, { list: 'bullet' }],
-                ['clean']
+                ['link', 'image', 'clean'],
             ]
         }
     });
     if (INITIAL.summary) {
         quill.root.innerHTML = INITIAL.summary;
+    }
+    // SR 표준: Copy & Paste + 8 방향 리사이즈
+    if (window.installQuillImageResize) {
+        window.installQuillImageResize(quill, {
+            uploadUrl: @json(route('projects.weekly-reports.upload-image', $project)),
+            csrfToken: '{{ csrf_token() }}',
+        });
     }
 
     // 기존 tasks 로드

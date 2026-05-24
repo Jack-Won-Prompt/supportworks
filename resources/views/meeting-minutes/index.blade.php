@@ -162,7 +162,7 @@
 <div id="meeting-modal-overlay"
      style="display:none;position:fixed;inset:0;background:rgba(15,10,40,.55);z-index:1000;padding:32px 16px;align-items:flex-start;justify-content:center;overflow-y:auto;"
      onclick="if(event.target===this)closeMeetingModal()">
-    <div style="background:#fff;border-radius:16px;max-width:1080px;width:100%;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.2);display:flex;flex-direction:column;max-height:calc(100vh - 64px);">
+    <div style="background:var(--tBg);border-radius:16px;max-width:1080px;width:100%;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.2);display:flex;flex-direction:column;max-height:calc(100vh - 64px);">
 
         {{-- 헤더 --}}
         <div style="padding:20px 24px;border-bottom:1px solid var(--color-border-default);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">

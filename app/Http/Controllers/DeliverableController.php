@@ -220,6 +220,18 @@ class DeliverableController extends Controller
     }
 
     // 단계 데이터 저장
+    /**
+     * STEP 본문 textarea 의 이미지 paste 업로드 (마크다운에 <img> 인라인 HTML 로 삽입).
+     */
+    public function uploadImage(Project $project, string $typeId, Request $request): JsonResponse
+    {
+        $this->authorizeProject($project);
+        abort_if(!isset($this->config['deliverables'][$typeId]), 404);
+        $request->validate(['image' => 'required|image|max:5120']);  // 5MB
+        $path = $request->file('image')->store('deliverables/images/' . date('Ymd'), 'public');
+        return response()->json(['url' => asset('storage/' . $path)]);
+    }
+
     public function saveStep(Project $project, string $typeId, Request $request): JsonResponse
     {
         $this->authorizeProject($project);
@@ -234,14 +246,27 @@ class DeliverableController extends Controller
 
         $stepNo      = (int) $request->input('step', 1);
         $fields      = $request->input('fields', []);
+        $imageMaps   = $request->input('image_maps', []); // {fieldKey: {id: url}}
         $versionMode = (string) $request->input('version_mode', 'auto'); // new | overwrite | auto | none
         $changeNote  = (string) ($request->input('change_note') ?? '');
 
-        // 작업본 (deliverable_step_data) 갱신
+        // 작업본 (deliverable_step_data) 갱신 — 본문 + 이미지 매핑 동시 저장
         foreach ($fields as $key => $value) {
+            $strValue = is_array($value) ? json_encode($value) : (string) $value;
+
+            // GC: 본문에 남아있는 토큰만 매핑 유지 (사용자가 토큰을 지우면 해당 매핑도 제거)
+            $rawMap = is_array($imageMaps[$key] ?? null) ? $imageMaps[$key] : [];
+            preg_match_all('/\[\[img:(\d+)(?:\s+w=\d+)?\]\]/', $strValue, $tokenMatches);
+            $usedIds = array_unique($tokenMatches[1] ?? []);
+            $cleanMap = [];
+            foreach ($usedIds as $id) {
+                if (isset($rawMap[$id]))                $cleanMap[$id] = $rawMap[$id];
+                elseif (isset($rawMap[(int) $id]))      $cleanMap[$id] = $rawMap[(int) $id];
+            }
+
             DeliverableStepData::updateOrCreate(
                 ['deliverable_id' => $deliverable->id, 'step_order' => $stepNo, 'field_key' => $key],
-                ['value' => is_array($value) ? json_encode($value) : $value]
+                ['value' => $strValue, 'image_map' => $cleanMap ?: null]
             );
         }
 
@@ -280,9 +305,10 @@ class DeliverableController extends Controller
         $fieldsSnap = [];
         foreach ($deliverable->stepData->where('step_order', $stepNo) as $row) {
             $fieldsSnap[$row->field_key] = [
-                'value'    => $row->value,
-                'en_value' => $row->en_value ?? '',
-                'en_hash'  => $row->en_hash ?? '',
+                'value'     => $row->value,
+                'en_value'  => $row->en_value ?? '',
+                'en_hash'   => $row->en_hash ?? '',
+                'image_map' => is_array($row->image_map) ? $row->image_map : [],
             ];
         }
         $toolsSnap = [];
@@ -681,7 +707,9 @@ class DeliverableController extends Controller
                 $prevContext .= "\n### {$sOrder}단계: " . ($stepDef['title'] ?? '') . "\n";
                 foreach ($items as $item) {
                     $fd          = collect($stepDef['fields'] ?? [])->firstWhere('key', $item->field_key);
-                    $prevContext .= '- ' . ($fd['label'] ?? $item->field_key) . ': ' . mb_substr($item->value, 0, 300) . "\n";
+                    // 이미지 토큰은 [이미지 N] 플레이스홀더로 — URL 노출 방지 + 토큰 문법 학습 차단
+                    $valForAi    = Deliverable::stripImageTokensForAi($item->value);
+                    $prevContext .= '- ' . ($fd['label'] ?? $item->field_key) . ': ' . mb_substr($valForAi, 0, 300) . "\n";
                 }
             }
         }
@@ -1287,6 +1315,7 @@ class DeliverableController extends Controller
         $versionSnapshots = $this->buildVersionSnapshots($deliverable);
         $stepValueGetter  = $this->stepValueResolver($deliverable, $versionSnapshots);
         $stepEnGetter     = $this->stepEnResolver($deliverable, $versionSnapshots);
+        $stepImageGetter  = $this->stepImageMapResolver($deliverable, $versionSnapshots);
         $toolResultGetter = $this->toolResultResolver($deliverable, $versionSnapshots);
 
         $phpWord = new PhpWord();
@@ -1349,7 +1378,8 @@ class DeliverableController extends Controller
                 // 필드 레이블 번역
                 $label = ($stepEn['fields'][$field['key']] ?? null) ?: $field['label'];
 
-                $stepItems[] = ['type' => 'field', 'label' => $label, 'val' => (string) $val];
+                $imgMap = $stepImageGetter($step['order'], $field['key']);
+                $stepItems[] = ['type' => 'field', 'label' => $label, 'val' => (string) $val, 'imageMap' => $imgMap];
             }
 
             foreach ($step['tools'] ?? [] as $tb) {
@@ -1385,7 +1415,7 @@ class DeliverableController extends Controller
                 $section->addTitle($this->wordEsc($item['label']), 2);
 
                 if ($item['type'] === 'field') {
-                    $this->addMarkdownToWord($section, $item['val'], $font);
+                    $this->addMarkdownToWord($section, $item['val'], $font, $item['imageMap'] ?? []);
                 } else {
                     $section->addImage($item['tmpImg'], [
                         'width'         => 450,
@@ -1502,9 +1532,14 @@ class DeliverableController extends Controller
 
     // ── 마크다운 → PhpWord 네이티브 변환 ─────────────────────────────────
 
-    private function addMarkdownToWord(\PhpOffice\PhpWord\Element\Section $section, string $markdown, string $font = '맑은 고딕'): void
+    private function addMarkdownToWord(\PhpOffice\PhpWord\Element\Section $section, string $markdown, string $font = '맑은 고딕', array $imageMap = []): void
     {
         if (trim($markdown) === '') return;
+
+        // 이미지 토큰 → <img> 인라인 HTML 확장 (이후 <img> 분기에서 처리됨)
+        if ($imageMap || str_contains($markdown, '[[img:')) {
+            $markdown = Deliverable::expandImageTokensWithMap($markdown, $imageMap);
+        }
 
         $lines = explode("\n", str_replace("\r\n", "\n", $markdown));
         $i = 0;
@@ -1528,6 +1563,14 @@ class DeliverableController extends Controller
             // 가로선
             if (preg_match('/^[-*_]{3,}\s*$/', $line)) {
                 $section->addTextBreak(1);
+                $i++;
+                continue;
+            }
+
+            // 이미지 — 인라인 HTML <img> 또는 마크다운 ![alt](url)
+            // 한 줄에 이미지 태그/마크다운만 있을 때 (앞뒤 공백/텍스트 허용)
+            if (preg_match('/^\s*(<img\s[^>]*>|!\[[^\]]*\]\([^)]+\))\s*$/i', $line, $m)) {
+                $this->addWordImage($section, $m[1]);
                 $i++;
                 continue;
             }
@@ -1669,6 +1712,48 @@ class DeliverableController extends Controller
         $section->addTextBreak(1);
     }
 
+    /**
+     * 마크다운 본문의 이미지(<img ...> 또는 ![alt](url))를 PhpWord 에 임베드.
+     * src 가 동일 호스트의 storage/* URL 이면 로컬 파일로 변환, 아니면 스킵.
+     */
+    private function addWordImage(\PhpOffice\PhpWord\Element\Section $section, string $token): void
+    {
+        $src = null; $width = null;
+
+        if (preg_match('/<img\s[^>]*>/i', $token)) {
+            if (preg_match('/\bsrc\s*=\s*"([^"]+)"/i', $token, $m)) $src = $m[1];
+            elseif (preg_match("/\\bsrc\\s*=\\s*'([^']+)'/i", $token, $m)) $src = $m[1];
+            // 폭: style="width:NNNpx" → width 속성 → 그 외
+            if (preg_match('/style\s*=\s*"[^"]*\bwidth\s*:\s*(\d+)px/i', $token, $m)) $width = (int) $m[1];
+            elseif (preg_match('/\bwidth\s*=\s*"?(\d+)"?/i', $token, $m))             $width = (int) $m[1];
+        } elseif (preg_match('/!\[[^\]]*\]\(([^)]+)\)/', $token, $m)) {
+            $src = trim($m[1]);
+            // ![alt](url "title") 형태 → 따옴표 앞까지
+            if (preg_match('/^(\S+)/', $src, $mm)) $src = $mm[1];
+        }
+        if (!$src) return;
+
+        $localPath = $this->resolveStorageUrlToPath($src);
+        if (!$localPath || !is_file($localPath)) return;
+
+        $section->addImage($localPath, [
+            'width'         => $width ?: 450,
+            'wrappingStyle' => 'inline',
+        ]);
+    }
+
+    /**
+     * asset('storage/...') URL → 로컬 파일 경로. public 디스크에 한정.
+     */
+    private function resolveStorageUrlToPath(string $url): ?string
+    {
+        $url = html_entity_decode($url);
+        if (preg_match('#/storage/(.+)$#', $url, $m)) {
+            return storage_path('app/public/' . urldecode($m[1]));
+        }
+        return null;
+    }
+
     private function stripInlineMd(string $text): string
     {
         $text = preg_replace('/\*\*(.+?)\*\*/', '$1', $text);
@@ -1726,6 +1811,18 @@ class DeliverableController extends Controller
                 return ['en_value' => $en, 'valid' => $valid];
             }
             return $deliverable->getStepEnData($step, $key);
+        };
+    }
+
+    // 이미지 토큰 매핑: 버전 스냅샷 우선 → 작업본
+    private function stepImageMapResolver(Deliverable $deliverable, array $snapshots): \Closure
+    {
+        return function (int $step, string $key) use ($deliverable, $snapshots) {
+            if (isset($snapshots[$step]['fields'][$key]) && is_array($snapshots[$step]['fields'][$key])) {
+                $m = $snapshots[$step]['fields'][$key]['image_map'] ?? [];
+                return is_array($m) ? $m : [];
+            }
+            return $deliverable->getStepImageMap($step, $key);
         };
     }
 

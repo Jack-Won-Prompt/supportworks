@@ -990,46 +990,10 @@ document.addEventListener('keydown', function(e){
         });
     }
 
-    function uploadImage(file) {
-        if (!file) return;
-        const fd = new FormData();
-        fd.append('image', file);
-        fetch(UPLOAD_URL, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body: fd,
-            credentials: 'same-origin',
-        })
-        .then(r => r.ok ? r.json() : Promise.reject(r.status))
-        .then(data => {
-            if (!data.url) return;
-            const range = quill.getSelection(true) || { index: quill.getLength() };
-            quill.insertEmbed(range.index, 'image', data.url);
-            quill.setSelection(range.index + 1);
-        })
-        .catch(err => alert('이미지 업로드 실패: ' + err));
+    // SR 표준: Copy & Paste + 8 방향 리사이즈 (이미지 클릭 → 핸들)
+    if (window.installQuillImageResize) {
+        window.installQuillImageResize(quill, { uploadUrl: UPLOAD_URL, csrfToken: CSRF });
     }
-
-    quill.getModule('toolbar').addHandler('image', () => {
-        const inp = document.createElement('input');
-        inp.type = 'file'; inp.accept = 'image/*';
-        inp.onchange = () => { if (inp.files[0]) uploadImage(inp.files[0]); };
-        inp.click();
-    });
-    quill.root.addEventListener('paste', e => {
-        const imgItem = [...(e.clipboardData?.items || [])].find(it => it.type.startsWith('image/'));
-        if (!imgItem) return;
-        e.preventDefault();
-        uploadImage(imgItem.getAsFile());
-    });
-
-    // 이미지 클릭 → 라이트박스로 큰 화면 보기 (전체 창 · 다운로드 기능)
-    quill.root.addEventListener('click', (e) => {
-        if (e.target.tagName === 'IMG') {
-            e.preventDefault();
-            if (window.openSrImageLightbox) window.openSrImageLightbox(e.target.src, e.target.alt || '');
-        }
-    });
 })();
 </script>
 @endsection

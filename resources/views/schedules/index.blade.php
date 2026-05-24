@@ -112,7 +112,7 @@ $_gc = [
                     $sl = \App\Models\SubTask::STATUS_LABELS[$task->status] ?? $task->status;
                 @endphp
                 <span class="w-2 h-2 rounded-full bg-{{ $sc }}-400 flex-shrink-0"></span>
-                <div class="flex-1 min-w-0 flex items-center gap-1.5">
+                <div class="w-[480px] shrink-0 min-w-0 flex items-center gap-1.5">
                     <span class="text-sm text-gray-800">{{ $task->title }}</span>
                     @if($task->files->count() > 0)
                     <span onclick="event.stopPropagation();openListFileChip({{ $task->id }}, event)"
@@ -123,17 +123,29 @@ $_gc = [
                     </span>
                     @endif
                 </div>
-                <span class="text-xs text-gray-400 flex-shrink-0">{{ $task->start_date?->format('m/d') ?? '-' }} ~ {{ $task->end_date?->format('m/d') ?? '-' }}</span>
-                <div class="w-20 bg-gray-100 rounded-full h-1.5 flex-shrink-0">
+                <span class="text-xs text-gray-400 flex-shrink-0 w-32 text-center ml-auto">{{ $task->start_date?->format('m/d') ?? '-' }} ~ {{ $task->end_date?->format('m/d') ?? '-' }}</span>
+                <div class="w-40 bg-gray-100 rounded-full h-1.5 flex-shrink-0">
                     <div class="h-1.5 rounded-full" style="width:{{ $task->progress }}%;background:{{ $gc['dot'] }};"></div>
                 </div>
-                <span class="text-xs text-gray-500 w-8 text-right flex-shrink-0">{{ $task->progress }}%</span>
-                <span class="px-2 py-0.5 text-xs rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700 flex-shrink-0">{{ $sl }}</span>
-                @if($task->assignee)
-                    <span class="text-xs text-gray-500 flex-shrink-0">{{ $task->assignee->name }}</span>
-                @else
-                    <span class="text-xs text-gray-300 flex-shrink-0">{{ __('projects.unassigned') }}</span>
-                @endif
+                <span class="text-xs text-gray-500 w-12 text-right flex-shrink-0">{{ $task->progress }}%</span>
+                @php
+                    $taskAssigneeIds = $task->assignees->pluck('id')->all();
+                    $taskAssigneeName = $task->assignees->isNotEmpty()
+                        ? $task->assignees->pluck('name')->implode(', ')
+                        : ($task->assignee?->name ?? '');
+                @endphp
+                <span class="sch-status-badge px-2 py-0.5 text-xs rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700 flex-shrink-0 w-24 text-center cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-indigo-200"
+                      data-task-id="{{ $task->id }}" data-status="{{ $task->status }}"
+                      onclick="event.stopPropagation();openSchedStatus(event,{{ $task->id }})">{{ $sl }}</span>
+                <span class="sch-assignee-pill text-xs w-36 text-center truncate shrink-0 cursor-pointer px-2 py-0.5 rounded-full hover:bg-indigo-50"
+                      data-task-id="{{ $task->id }}" data-aids="{{ json_encode($taskAssigneeIds) }}"
+                      onclick="event.stopPropagation();openSchedAssignee(event,{{ $task->id }})">
+                    @if($taskAssigneeName)
+                        <span class="text-gray-600">{{ $taskAssigneeName }}</span>
+                    @else
+                        <span class="text-gray-300">{{ __('projects.unassigned') }}</span>
+                    @endif
+                </span>
                 <div class="flex items-center gap-1 flex-shrink-0">
                     <button onclick="openEditTask({{ $task->id }}, {{ $group->id }}, {{ $milestone->id }})"
                             class="p-1 text-gray-300 hover:text-gray-600 rounded">
@@ -199,7 +211,7 @@ $_gc = [
             <div class="flex items-center gap-3 px-5 py-2.5 border-t border-gray-50 hover:bg-gray-50">
                 @php $sc = \App\Models\SubTask::STATUS_COLORS[$task->status] ?? 'gray'; $sl = \App\Models\SubTask::STATUS_LABELS[$task->status] ?? $task->status; @endphp
                 <span class="w-2 h-2 rounded-full bg-{{ $sc }}-400 flex-shrink-0"></span>
-                <div class="flex-1 min-w-0 flex items-center gap-1.5">
+                <div class="w-[480px] shrink-0 min-w-0 flex items-center gap-1.5">
                     <span class="text-sm text-gray-800">{{ $task->title }}</span>
                     @if($task->files->count() > 0)
                     <span onclick="event.stopPropagation();openListFileChip({{ $task->id }}, event)"
@@ -210,8 +222,25 @@ $_gc = [
                     </span>
                     @endif
                 </div>
-                <span class="text-xs text-gray-400">{{ $task->start_date?->format('m/d') ?? '-' }} ~ {{ $task->end_date?->format('m/d') ?? '-' }}</span>
-                <span class="px-2 py-0.5 text-xs rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700">{{ $sl }}</span>
+                <span class="text-xs text-gray-400 flex-shrink-0 w-32 text-center ml-auto">{{ $task->start_date?->format('m/d') ?? '-' }} ~ {{ $task->end_date?->format('m/d') ?? '-' }}</span>
+                @php
+                    $taskAssigneeIds2 = $task->assignees->pluck('id')->all();
+                    $taskAssigneeName2 = $task->assignees->isNotEmpty()
+                        ? $task->assignees->pluck('name')->implode(', ')
+                        : ($task->assignee?->name ?? '');
+                @endphp
+                <span class="sch-status-badge px-2 py-0.5 text-xs rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700 flex-shrink-0 w-24 text-center cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-indigo-200"
+                      data-task-id="{{ $task->id }}" data-status="{{ $task->status }}"
+                      onclick="event.stopPropagation();openSchedStatus(event,{{ $task->id }})">{{ $sl }}</span>
+                <span class="sch-assignee-pill text-xs w-36 text-center truncate shrink-0 cursor-pointer px-2 py-0.5 rounded-full hover:bg-indigo-50"
+                      data-task-id="{{ $task->id }}" data-aids="{{ json_encode($taskAssigneeIds2) }}"
+                      onclick="event.stopPropagation();openSchedAssignee(event,{{ $task->id }})">
+                    @if($taskAssigneeName2)
+                        <span class="text-gray-600">{{ $taskAssigneeName2 }}</span>
+                    @else
+                        <span class="text-gray-300">{{ __('projects.unassigned') }}</span>
+                    @endif
+                </span>
                 <div class="flex gap-1">
                     <button onclick="openEditTask({{ $task->id }}, {{ $group->id }}, null)" class="p-1 text-gray-300 hover:text-gray-600 rounded">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -239,7 +268,7 @@ $_gc = [
     @php $sc = \App\Models\SubTask::STATUS_COLORS[$task->status] ?? 'gray'; $sl = \App\Models\SubTask::STATUS_LABELS[$task->status] ?? $task->status; @endphp
     <div class="flex items-center gap-3 px-5 py-2.5 border-t border-gray-50 hover:bg-gray-50">
         <span class="w-2 h-2 rounded-full bg-{{ $sc }}-400 flex-shrink-0"></span>
-        <div class="flex-1 min-w-0 flex items-center gap-1.5">
+        <div class="w-[480px] shrink-0 min-w-0 flex items-center gap-1.5">
             <span class="text-sm text-gray-800">{{ $task->title }}</span>
             @if($task->files->count() > 0)
             <span onclick="openListFileChip({{ $task->id }}, event)"
@@ -250,11 +279,25 @@ $_gc = [
             </span>
             @endif
         </div>
-        <span class="text-xs text-gray-400">{{ $task->start_date?->format('m/d') ?? '-' }} ~ {{ $task->end_date?->format('m/d') ?? '-' }}</span>
-        <span class="px-2 py-0.5 text-xs rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700">{{ $sl }}</span>
-        @if($task->assignee)
-            <span class="text-xs text-gray-500 flex-shrink-0">{{ $task->assignee->name }}</span>
-        @endif
+        <span class="text-xs text-gray-400 flex-shrink-0 w-32 text-center ml-auto">{{ $task->start_date?->format('m/d') ?? '-' }} ~ {{ $task->end_date?->format('m/d') ?? '-' }}</span>
+        @php
+            $taskAssigneeIds3 = $task->assignees->pluck('id')->all();
+            $taskAssigneeName3 = $task->assignees->isNotEmpty()
+                ? $task->assignees->pluck('name')->implode(', ')
+                : ($task->assignee?->name ?? '');
+        @endphp
+        <span class="sch-status-badge px-2 py-0.5 text-xs rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700 flex-shrink-0 w-24 text-center cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-indigo-200"
+              data-task-id="{{ $task->id }}" data-status="{{ $task->status }}"
+              onclick="event.stopPropagation();openSchedStatus(event,{{ $task->id }})">{{ $sl }}</span>
+        <span class="sch-assignee-pill text-xs w-36 text-center truncate shrink-0 cursor-pointer px-2 py-0.5 rounded-full hover:bg-indigo-50"
+              data-task-id="{{ $task->id }}" data-aids="{{ json_encode($taskAssigneeIds3) }}"
+              onclick="event.stopPropagation();openSchedAssignee(event,{{ $task->id }})">
+            @if($taskAssigneeName3)
+                <span class="text-gray-600">{{ $taskAssigneeName3 }}</span>
+            @else
+                <span class="text-gray-300">{{ __('projects.unassigned') }}</span>
+            @endif
+        </span>
         <div class="flex gap-1">
             <button onclick="deleteTask({{ $task->id }})" class="p-1 text-gray-300 hover:text-red-500 rounded">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -405,6 +448,47 @@ $_gc = [
 <div id="lf-picker-overlay" style="display:none;position:fixed;inset:0;z-index:10199;" onclick="closeListFilePicker()"></div>
 
 @include('partials.file-preview-modal')
+
+{{-- ─── 상태 dropdown (간트와 동일 5종) ─── --}}
+<div id="sch-sd" style="display:none;position:fixed;z-index:10201;background:#fff;border:1px solid #e4e4e7;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.12);min-width:160px;padding:4px;">
+    <div class="sch-sd-opt" data-val="not_started" style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">
+        <span style="width:10px;height:10px;border-radius:50%;background:#9ca3af;"></span><span style="color:#6b7280;">{{ __('projects.gantt_status_not_started') }}</span>
+    </div>
+    <div class="sch-sd-opt" data-val="in_progress" style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">
+        <span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;"></span><span style="color:#1d4ed8;">{{ __('projects.gantt_status_in_progress') }}</span>
+    </div>
+    <div class="sch-sd-opt" data-val="completed" style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">
+        <span style="width:10px;height:10px;border-radius:50%;background:#22c55e;"></span><span style="color:#15803d;">{{ __('projects.gantt_status_completed') }}</span>
+    </div>
+    <div class="sch-sd-opt" data-val="blocked" style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">
+        <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;"></span><span style="color:#b91c1c;">{{ __('projects.gantt_status_blocked') }}</span>
+    </div>
+    <div class="sch-sd-opt" data-val="on_hold" style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;" onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background=''">
+        <span style="width:10px;height:10px;border-radius:50%;background:#eab308;"></span><span style="color:#a16207;">{{ __('projects.gantt_status_on_hold') }}</span>
+    </div>
+</div>
+<div id="sch-sd-overlay" style="display:none;position:fixed;inset:0;z-index:10200;" onclick="closeSchedStatus()"></div>
+
+{{-- ─── 담당자 멀티 dropdown ─── --}}
+<div id="sch-ad" style="display:none;position:fixed;z-index:10201;background:#fff;border:1px solid #e4e4e7;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.12);min-width:220px;max-width:280px;padding:6px;"></div>
+<div id="sch-ad-overlay" style="display:none;position:fixed;inset:0;z-index:10200;" onclick="closeSchedAssignee()"></div>
+
+{{-- ─── 상태 변경 이유 팝오버 (제외/보류 전용) ─── --}}
+<div id="sch-reason-pop" style="display:none;position:fixed;z-index:10203;background:#fff;border:1.5px solid var(--t300);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.25);width:340px;padding:14px 14px 12px;top:50%;left:50%;transform:translate(-50%,-50%);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;color:#1e1b2e;">상태 변경 이유</div>
+        <button type="button" onclick="closeSchedReasonPop()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;line-height:1;padding:2px 4px;">&times;</button>
+    </div>
+    <div id="sch-reason-summary" style="font-size:11.5px;color:#64748b;margin-bottom:8px;line-height:1.45;"></div>
+    <textarea id="sch-reason-text" rows="3" maxlength="1000" placeholder="변경 이유를 입력하세요 (필수)"
+              style="width:100%;border:1.5px solid #e4e4e7;border-radius:8px;padding:7px 10px;font-size:12.5px;color:#1f2937;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;line-height:1.5;"
+              onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
+    <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:9px;">
+        <button type="button" onclick="closeSchedReasonPop()" style="padding:6px 12px;background:#f4f4f5;color:#52525b;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">취소</button>
+        <button type="button" onclick="submitSchedReason()" style="padding:6px 14px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">변경</button>
+    </div>
+</div>
+<div id="sch-reason-overlay" style="display:none;position:fixed;inset:0;z-index:10202;background:rgba(15,10,40,.18);" onclick="closeSchedReasonPop()"></div>
 
 @endsection
 
@@ -714,5 +798,190 @@ async function openListFilePreview(fileId) {
 function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ─── 상태·담당자 인라인 변경 (간트와 동일 UX) ────────────────────────────
+const SCH_MEMBERS  = @json($members->map(fn($m) => ['id' => (int) $m->id, 'name' => $m->name])->values());
+const SCH_UPDATE_URL = '{{ route("projects.gantt.update", ["project" => $project->id, "subTask" => "__TID__"]) }}';
+const SCH_CSRF = '{{ csrf_token() }}';
+const SCH_STATUS_META = {
+    not_started: { label:'{{ __("projects.gantt_status_not_started") }}', cls:'gray',   bar:'#9ca3af' },
+    in_progress: { label:'{{ __("projects.gantt_status_in_progress") }}', cls:'blue',   bar:'#3b82f6' },
+    completed:   { label:'{{ __("projects.gantt_status_completed") }}',   cls:'green',  bar:'#22c55e' },
+    blocked:     { label:'{{ __("projects.gantt_status_blocked") }}',     cls:'red',    bar:'#ef4444' },
+    on_hold:     { label:'{{ __("projects.gantt_status_on_hold") }}',     cls:'yellow', bar:'#eab308' },
+};
+const SCH_STATUS_NEEDS_REASON = new Set(['blocked', 'on_hold']);
+
+// 상태 dropdown
+let _schStatusTid = null, _schStatusAnchor = null;
+window.openSchedStatus = function(ev, tid) {
+    ev.stopPropagation();
+    _schStatusTid = tid;
+    _schStatusAnchor = ev.currentTarget;
+    const sd = document.getElementById('sch-sd');
+    const r = ev.currentTarget.getBoundingClientRect();
+    sd.style.left = Math.min(r.left, window.innerWidth - 180) + 'px';
+    sd.style.top  = (r.bottom + 4) + 'px';
+    sd.style.display = 'block';
+    document.getElementById('sch-sd-overlay').style.display = 'block';
+};
+window.closeSchedStatus = function() {
+    document.getElementById('sch-sd').style.display = 'none';
+    document.getElementById('sch-sd-overlay').style.display = 'none';
+    _schStatusTid = null;
+    _schStatusAnchor = null;
+};
+document.querySelectorAll('.sch-sd-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+        const newStatus = opt.dataset.val;
+        const tid = _schStatusTid;
+        const anchor = _schStatusAnchor;
+        if (!tid || !newStatus) return;
+        const oldStatus = anchor?.dataset.status;
+        closeSchedStatus();
+        if (oldStatus === newStatus) return;
+        // 완료된 일정은 상태 변경 불가
+        if (oldStatus === 'completed') {
+            alert('완료된 일정은 상태를 변경할 수 없습니다.');
+            return;
+        }
+        if (SCH_STATUS_NEEDS_REASON.has(newStatus)) {
+            openSchedReasonPop(tid, newStatus, oldStatus, anchor);
+        } else {
+            applySchedStatus(tid, newStatus, null, anchor);
+        }
+    });
+});
+
+// 상태 이유 팝오버
+let _schReasonTid = null, _schReasonNew = null, _schReasonAnchor = null;
+function openSchedReasonPop(tid, newStatus, oldStatus, anchor) {
+    _schReasonTid = tid;
+    _schReasonNew = newStatus;
+    _schReasonAnchor = anchor;
+    const oldLabel = SCH_STATUS_META[oldStatus]?.label || oldStatus || '';
+    const newLabel = SCH_STATUS_META[newStatus]?.label || newStatus;
+    document.getElementById('sch-reason-summary').innerHTML =
+        escHtml(oldLabel) + ' → <b style="color:var(--t700);">' + escHtml(newLabel) + '</b>';
+    document.getElementById('sch-reason-text').value = '';
+    document.getElementById('sch-reason-pop').style.display = 'block';
+    document.getElementById('sch-reason-overlay').style.display = 'block';
+    setTimeout(() => document.getElementById('sch-reason-text').focus(), 50);
+}
+window.closeSchedReasonPop = function() {
+    document.getElementById('sch-reason-pop').style.display = 'none';
+    document.getElementById('sch-reason-overlay').style.display = 'none';
+    _schReasonTid = null; _schReasonNew = null; _schReasonAnchor = null;
+};
+window.submitSchedReason = function() {
+    const reason = document.getElementById('sch-reason-text').value.trim();
+    if (!reason) { alert('변경 이유를 입력해주세요.'); document.getElementById('sch-reason-text').focus(); return; }
+    const tid = _schReasonTid, newStatus = _schReasonNew, anchor = _schReasonAnchor;
+    closeSchedReasonPop();
+    if (tid && newStatus) applySchedStatus(tid, newStatus, reason, anchor);
+};
+
+function applySchedStatus(tid, newStatus, reason, anchor) {
+    fetch(SCH_UPDATE_URL.replace('__TID__', tid), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': SCH_CSRF },
+        body: JSON.stringify({ status: newStatus, reason: reason || null }),
+    })
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(() => {
+        // 배지 시각 갱신
+        const meta = SCH_STATUS_META[newStatus];
+        document.querySelectorAll('.sch-status-badge[data-task-id="'+tid+'"]').forEach(badge => {
+            badge.className = badge.className.replace(/bg-\w+-100/g, 'bg-'+meta.cls+'-100').replace(/text-\w+-700/g, 'text-'+meta.cls+'-700');
+            badge.dataset.status = newStatus;
+            badge.textContent = meta.label;
+        });
+        // 좌측 작은 점 색도 변경 (인접 형제 .w-2)
+        document.querySelectorAll('.sch-status-badge[data-task-id="'+tid+'"]').forEach(badge => {
+            const row = badge.closest('.flex.items-center');
+            const dot = row?.querySelector('.w-2.h-2.rounded-full');
+            if (dot) dot.className = dot.className.replace(/bg-\w+-400/g, 'bg-'+meta.cls+'-400');
+        });
+    })
+    .catch(() => alert('상태 변경에 실패했습니다.'));
+}
+
+// 담당자 dropdown (멀티)
+let _schAdTid = null, _schAdPending = null;
+window.openSchedAssignee = function(ev, tid) {
+    ev.stopPropagation();
+    _schAdTid = tid;
+    const anchor = ev.currentTarget;
+    const cur = new Set();
+    try { (JSON.parse(anchor.dataset.aids || '[]')).forEach(id => cur.add(Number(id))); } catch (e) {}
+    _schAdPending = cur;
+
+    const ad = document.getElementById('sch-ad');
+    ad.innerHTML = `
+        <div style="display:flex;gap:4px;padding:5px 6px 7px;border-bottom:1px solid #f3f4f6;margin-bottom:4px;">
+            <button type="button" onclick="schAdSetAll(true)" style="flex:1;padding:4px 6px;background:#f9fafb;border:1px solid #e4e4e7;border-radius:6px;font-size:11px;color:#6b7280;cursor:pointer;">전체</button>
+            <button type="button" onclick="schAdSetAll(false)" style="flex:1;padding:4px 6px;background:#f9fafb;border:1px solid #e4e4e7;border-radius:6px;font-size:11px;color:#6b7280;cursor:pointer;">해제</button>
+        </div>
+        <div id="sch-ad-list" style="max-height:220px;overflow-y:auto;"></div>
+        <div style="display:flex;justify-content:flex-end;gap:6px;padding:7px 4px 2px;border-top:1px solid #f3f4f6;margin-top:4px;">
+            <button type="button" onclick="closeSchedAssignee()" style="padding:5px 10px;background:#f4f4f5;color:#52525b;border:none;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">취소</button>
+            <button type="button" onclick="submitSchedAssignees()" style="padding:5px 12px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;">적용</button>
+        </div>
+    `;
+    schAdRender();
+    const r = anchor.getBoundingClientRect();
+    ad.style.left = Math.min(r.left, window.innerWidth - 240) + 'px';
+    ad.style.top  = (r.bottom + 4) + 'px';
+    ad.style.display = 'block';
+    document.getElementById('sch-ad-overlay').style.display = 'block';
+};
+function schAdRender() {
+    const list = document.getElementById('sch-ad-list');
+    if (!list) return;
+    list.innerHTML = SCH_MEMBERS.map(m => {
+        const checked = _schAdPending.has(Number(m.id)) ? 'checked' : '';
+        return `<label style="display:flex;align-items:center;gap:7px;padding:5px 8px;font-size:12.5px;color:#374151;border-radius:5px;cursor:pointer;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
+            <input type="checkbox" data-aid="${m.id}" ${checked} onchange="schAdToggle(this)" style="accent-color:#7c3aed;">
+            <span>${escHtml(m.name)}</span>
+        </label>`;
+    }).join('');
+}
+window.schAdToggle = function(cb) {
+    const id = Number(cb.dataset.aid);
+    if (cb.checked) _schAdPending.add(id);
+    else _schAdPending.delete(id);
+};
+window.schAdSetAll = function(checkAll) {
+    _schAdPending.clear();
+    if (checkAll) SCH_MEMBERS.forEach(m => _schAdPending.add(Number(m.id)));
+    schAdRender();
+};
+window.closeSchedAssignee = function() {
+    document.getElementById('sch-ad').style.display = 'none';
+    document.getElementById('sch-ad-overlay').style.display = 'none';
+    _schAdTid = null; _schAdPending = null;
+};
+window.submitSchedAssignees = function() {
+    const tid = _schAdTid;
+    const ids = Array.from(_schAdPending || []).map(Number);
+    closeSchedAssignee();
+    const names = SCH_MEMBERS.filter(m => ids.includes(Number(m.id))).map(m => m.name);
+    const displayName = names.length ? names.join(', ') : '{{ __("projects.unassigned") }}';
+
+    fetch(SCH_UPDATE_URL.replace('__TID__', tid), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': SCH_CSRF },
+        body: JSON.stringify({ assignee_ids: ids }),
+    })
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(() => {
+        document.querySelectorAll('.sch-assignee-pill[data-task-id="'+tid+'"]').forEach(pill => {
+            pill.dataset.aids = JSON.stringify(ids);
+            const cls = names.length ? 'text-gray-600' : 'text-gray-300';
+            pill.innerHTML = '<span class="'+cls+'">'+ escHtml(displayName) +'</span>';
+        });
+    })
+    .catch(() => alert('담당자 변경에 실패했습니다.'));
+};
 </script>
 @endpush

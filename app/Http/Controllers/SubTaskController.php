@@ -53,11 +53,20 @@ class SubTaskController extends Controller
             'start_date'     => 'required|date',
             'end_date'       => 'required|date|after_or_equal:start_date',
             'assignee_id'    => 'nullable|exists:users,id',
-            'status'         => 'nullable|in:not_started,in_progress,completed,blocked',
+            'assignee_ids'   => 'nullable|array',
+            'assignee_ids.*' => 'integer|exists:users,id',
+            'status'         => 'nullable|in:not_started,in_progress,completed,blocked,on_hold',
             'progress'       => 'nullable|integer|min:0|max:100',
             'display_order'  => 'nullable|integer',
             'requirement_id' => 'nullable|integer|exists:requirements,id',
         ]);
+        // 다중 담당자 처리 — 대표(assignee_id) 자동 동기화
+        $assigneeIdsForSync = null;
+        if ($request->has('assignee_ids')) {
+            $assigneeIdsForSync = array_values(array_unique(array_map('intval', (array) $request->input('assignee_ids', []))));
+            $data['assignee_id'] = $assigneeIdsForSync[0] ?? null;
+            unset($data['assignee_ids']);
+        }
 
         // 같은 요구사항이 이미 간트에 등록된 경우 거부
         if (!empty($data['requirement_id'])) {
@@ -78,6 +87,19 @@ class SubTaskController extends Controller
         }
 
         $subTask = SubTask::create($data);
+
+        $newlyAssignedIds = [];
+        if ($assigneeIdsForSync !== null) {
+            $subTask->assignees()->sync($assigneeIdsForSync);
+            $newlyAssignedIds = $assigneeIdsForSync;
+        } elseif (!empty($data['assignee_id'])) {
+            // 단일 assignee_id 만 보낸 경우 피벗도 동기화
+            $subTask->assignees()->sync([$data['assignee_id']]);
+            $newlyAssignedIds = [(int) $data['assignee_id']];
+        }
+        if (!empty($newlyAssignedIds)) {
+            $this->notifyAssignedUsers($newlyAssignedIds, $project, $subTask);
+        }
 
         // 연결된 요구사항 상태를 '확정'으로 즉시 변경
         if (!empty($data['requirement_id'])) {
@@ -114,19 +136,67 @@ class SubTaskController extends Controller
         abort_unless($subTask->project_id === $project->id, 404);
 
         $data = $request->validate([
-            'title'         => 'sometimes|string|max:255',
-            'description'   => 'nullable|string',
-            'start_date'    => 'sometimes|date',
-            'end_date'      => 'sometimes|date|after_or_equal:start_date',
-            'assignee_id'   => 'nullable|exists:users,id',
-            'status'        => 'nullable|in:not_started,in_progress,completed,blocked',
-            'progress'      => 'nullable|integer|min:0|max:100',
-            'display_order' => 'nullable|integer',
+            'title'          => 'sometimes|string|max:255',
+            'description'    => 'nullable|string',
+            'start_date'     => 'sometimes|date',
+            'end_date'       => 'sometimes|date|after_or_equal:start_date',
+            'assignee_id'    => 'nullable|exists:users,id',
+            'assignee_ids'   => 'nullable|array',
+            'assignee_ids.*' => 'integer|exists:users,id',
+            'status'         => 'nullable|in:not_started,in_progress,completed,blocked,on_hold',
+            'progress'       => 'nullable|integer|min:0|max:100',
+            'display_order'  => 'nullable|integer',
         ]);
+        $newlyAssignedIdsUpdate = [];
+        if ($request->has('assignee_ids')) {
+            $ids = array_values(array_unique(array_map('intval', (array) $request->input('assignee_ids', []))));
+            $before = $subTask->assignees()->pluck('users.id')->map(fn ($v) => (int) $v)->all();
+            $newlyAssignedIdsUpdate = array_values(array_diff($ids, $before));
+            $subTask->assignees()->sync($ids);
+            $data['assignee_id'] = $ids[0] ?? null;
+            unset($data['assignee_ids']);
+        }
 
         $subTask->update($data);
 
-        return response()->json($subTask->load('assignee'));
+        if (!empty($newlyAssignedIdsUpdate)) {
+            $this->notifyAssignedUsers($newlyAssignedIdsUpdate, $project, $subTask->refresh());
+        }
+
+        return response()->json($subTask->load(['assignee', 'assignees']));
+    }
+
+    /**
+     * 일정 담당자 지정 알림 — 이메일 + SMS.
+     * @param  array<int,int>  $userIds
+     */
+    private function notifyAssignedUsers(array $userIds, \App\Models\Project $project, SubTask $subTask): void
+    {
+        if (empty($userIds)) return;
+        $assigner    = Auth::user();
+        $statusLabel = [
+            'not_started' => '미시작', 'in_progress' => '진행중',
+            'completed'   => '완료',   'blocked'     => '제외', 'on_hold' => '보류',
+        ][$subTask->status] ?? (string) $subTask->status;
+
+        $recipients = \App\Models\User::whereIn('id', $userIds)->get();
+        foreach ($recipients as $user) {
+            if ($assigner && (int) $user->id === (int) $assigner->id) continue;
+            if (filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email, $user->name)
+                        ->send(new \App\Mail\SubTaskAssignedMail($user, $project, $subTask, $assigner, $statusLabel));
+                } catch (\Throwable $e) {
+                    \App\Models\SystemErrorLog::record($e, 'warning');
+                }
+            }
+            if (!empty($user->phone)) {
+                $msg = sprintf("[SupportWorks] %s님이 [%s] 일정 '%s'(%s)의 담당자로 지정했습니다.",
+                    $assigner?->name ?: '시스템', $project->name,
+                    mb_strimwidth($subTask->title, 0, 24, '...', 'UTF-8'), $statusLabel);
+                try { \App\Services\SmsService::send($user->phone, $msg, $user->name); } catch (\Throwable) {}
+            }
+        }
     }
 
     public function destroy(Project $project, SubTask $subTask)

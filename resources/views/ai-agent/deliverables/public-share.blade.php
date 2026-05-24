@@ -164,7 +164,10 @@ body {
             @else
                 @foreach($step['fields'] as $field)
                 @php
-                    $val = $deliverable->getStepValue($step['order'], $field['key']);
+                    $val    = $deliverable->getStepValue($step['order'], $field['key']);
+                    $imgMap = $deliverable->getStepImageMap($step['order'], $field['key']);
+                    // 토큰 [[img:N]] → <img> 인라인 HTML 로 서버사이드 확장 (marked 가 통과시킴)
+                    $val    = $val ? \App\Models\Agent\Deliverable::expandImageTokensWithMap((string) $val, $imgMap) : $val;
                 @endphp
                 <div class="ps-field">
                     <div class="ps-field-label">{{ $field['label'] }}</div>

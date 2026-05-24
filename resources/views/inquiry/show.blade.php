@@ -235,42 +235,10 @@ const replyQuill = new Quill('#reply-editor', {
     },
 });
 
-// ── 이미지 업로드 (툴바 버튼 + 붙여넣기) ─────────────────────────
+// ── SR 표준: Copy & Paste + 8 방향 리사이즈 ───────────────────────
 const form = document.getElementById('reply-form');
-setupQuillImageUpload(replyQuill, form.dataset.uploadUrl);
-
-async function setupQuillImageUpload(quill, uploadUrl) {
-    quill.getModule('toolbar').addHandler('image', () => {
-        const inp = document.createElement('input');
-        inp.type = 'file'; inp.accept = 'image/*';
-        inp.onchange = () => { if (inp.files[0]) _uploadToQuill(inp.files[0], quill, uploadUrl); };
-        inp.click();
-    });
-    quill.root.addEventListener('paste', e => {
-        const imgItem = [...(e.clipboardData?.items || [])].find(it => it.type.startsWith('image/'));
-        if (!imgItem) return;
-        e.preventDefault();
-        _uploadToQuill(imgItem.getAsFile(), quill, uploadUrl);
-    });
-}
-
-async function _uploadToQuill(file, quill, uploadUrl) {
-    if (!file) return;
-    const fd = new FormData();
-    fd.append('image', file);
-    fetch(uploadUrl, {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-        body: fd,
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (!data.url) return;
-        const range = quill.getSelection(true) || { index: quill.getLength() };
-        quill.insertEmbed(range.index, 'image', data.url);
-        quill.setSelection(range.index + 1);
-    })
-    .catch(() => alert('{{ __("messages.image_upload_fail") }}'));
+if (window.installQuillImageResize) {
+    window.installQuillImageResize(replyQuill, { uploadUrl: form.dataset.uploadUrl, csrfToken: CSRF });
 }
 
 // ── 파일 첨부 ─────────────────────────────────────────────────────

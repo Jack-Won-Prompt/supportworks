@@ -306,13 +306,14 @@
                 <tbody id="file-table-body">
                     @forelse($files as $file)
                     <tr style="border-bottom:1px solid #f9fafb;transition:background .12s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
-                        <td style="padding:12px 20px;">
-                            <div style="display:flex;align-items:center;gap:8px;">
+                        <td style="padding:12px 20px;max-width:0;width:24%;">
+                            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
                                 <span style="font-size:20px;flex-shrink:0;">{{ $file->icon }}</span>
-                                <div style="min-width:0;">
+                                <div style="min-width:0;flex:1;overflow:hidden;">
                                     @if($file->isUrlType())
                                     <button onclick="openUrlViewer({{ $file->id }}, {{ $project->id }}, '{{ addslashes($file->original_name) }}', '{{ addslashes($file->getEmbedUrl()) }}', '{{ addslashes($file->source_url) }}')"
-                                            style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;text-align:left;padding:0;display:block;word-break:break-all;transition:color .12s;"
+                                            title="{{ $file->original_name }}"
+                                            style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;text-align:left;padding:0;display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .12s;"
                                             onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                     </button>
@@ -355,7 +356,8 @@
                                     @endif
                                     @elseif($file->previewType())
                                     <button onclick="openPreview({{ $file->id }}, {{ $project->id }})"
-                                            style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;text-align:left;padding:0;display:block;word-break:break-all;transition:color .12s;"
+                                            title="{{ $file->original_name }}"
+                                            style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;text-align:left;padding:0;display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .12s;"
                                             onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                         @if(($file->versions_count ?? 0) >= 2)
@@ -404,7 +406,8 @@
                                     @endif
                                     @else
                                     <a href="{{ route('projects.files.download', [$project, $file]) }}"
-                                       style="font-size:13px;font-weight:600;color:#111827;text-decoration:none;display:block;word-break:break-all;transition:color .12s;"
+                                       title="{{ $file->original_name }}"
+                                       style="font-size:13px;font-weight:600;color:#111827;text-decoration:none;display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .12s;"
                                        onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
                                         {{ $file->original_name }}
                                         @if(($file->versions_count ?? 0) >= 2)
@@ -466,13 +469,16 @@
                                 @endif
                             </div>
                         </td>
-                        <td style="padding:12px;color:#6b7280;font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;"
-                            @if($file->description) onmouseenter="showDescTooltip(event,'{{ addslashes($file->description) }}')" onmouseleave="hideDescTooltip()" @endif>{{ $file->description ?? '—' }}</td>
+                        <td style="padding:12px;max-width:0;width:12%;">
+                            <div style="color:#6b7280;font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;"
+                                @if($file->description) onmouseenter="showDescTooltip(event,'{{ addslashes($file->description) }}')" onmouseleave="hideDescTooltip()" @endif
+                                title="{{ $file->description ?? '' }}">{{ $file->description ?? '—' }}</div>
+                        </td>
                         <td style="padding:12px;color:#6b7280;font-size:12px;white-space:nowrap;">{{ $file->formatted_size }}</td>
                         <td style="padding:12px;color:#6b7280;font-size:12px;">{{ $file->uploader->name }}</td>
                         <td style="padding:12px;color:#6b7280;font-size:12px;white-space:nowrap;">{{ $file->created_at->format('Y.m.d') }}</td>
-                        <td style="padding:12px;">
-                            <div style="display:flex;align-items:center;gap:12px;">
+                        <td style="padding:12px;white-space:nowrap;">
+                            <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;">
                                 @if($file->isUrlType())
                                 <button onclick="logFileAction({{ $file->id }},'view');openUrlViewer({{ $file->id }}, {{ $project->id }}, '{{ addslashes($file->original_name) }}', '{{ addslashes($file->getEmbedUrl()) }}', '{{ addslashes($file->source_url) }}')"
                                         style="font-size:12px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"

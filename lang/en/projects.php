@@ -290,6 +290,7 @@ return [
     'gantt_status_in_progress'  => 'In Progress',
     'gantt_status_completed'    => 'Completed',
     'gantt_status_blocked'      => 'Blocked',
+    'gantt_status_on_hold'      => 'On Hold',
     'gantt_progress_percent'    => 'Progress (%)',
     'change_color'              => 'Change color',
     'excel_download'            => 'Download Excel',

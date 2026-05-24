@@ -105,30 +105,20 @@ $isEmbed        = $isEmbed        ?? false;
         /* Comment panel */
         #comment-panel { width:260px;flex-shrink:0;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;min-width:200px;max-width:720px; }
 
-        /* Comment panel resizer (가로 드래그) — 항상 보이는 6점 그립 아이콘 */
+        /* Comment panel resizer — 표준 ↔ 폭 조절 아이콘 (테마 적응형) */
         #cp-resizer {
-            width:6px; flex-shrink:0; background:#e5e7eb; cursor:col-resize;
-            transition:background .12s; position:relative;
+            width:14px; flex-shrink:0; background:var(--t100, #f5f3ff); cursor:col-resize;
+            transition:background .15s; position:relative;
+            display:flex; align-items:center; justify-content:center; overflow:visible;
         }
-        #cp-resizer::before {
-            content:''; position:absolute; top:50%; left:50%;
-            transform:translate(-50%, -50%);
-            width:2px; height:2px; background:transparent; border-radius:50%;
-            box-shadow:
-                -3px -9px 0 1px #6b7280,  3px -9px 0 1px #6b7280,
-                -3px  0   0 1px #6b7280,  3px  0   0 1px #6b7280,
-                -3px  9px 0 1px #6b7280,  3px  9px 0 1px #6b7280;
-            opacity:.7;
-            transition:opacity .15s;
-            pointer-events:none;
+        #cp-resizer svg {
+            width:12px; height:12px; color:var(--t500, #8b5cf6);
+            opacity:.65; transition:opacity .15s, color .15s;
+            pointer-events:none; flex-shrink:0; display:block;
         }
-        #cp-resizer:hover, #cp-resizer.dragging { background:#a78bfa; }
-        #cp-resizer:hover::before, #cp-resizer.dragging::before {
-            opacity:1;
-            box-shadow:
-                -3px -9px 0 1px #fff,  3px -9px 0 1px #fff,
-                -3px  0   0 1px #fff,  3px  0   0 1px #fff,
-                -3px  9px 0 1px #fff,  3px  9px 0 1px #fff;
+        #cp-resizer:hover, #cp-resizer.dragging { background:var(--t300, #c4b5fd); }
+        #cp-resizer:hover svg, #cp-resizer.dragging svg {
+            color:#fff; opacity:1;
         }
         body.cp-resizing { cursor:col-resize !important; user-select:none !important; }
         body.cp-resizing iframe { pointer-events:none !important; }   /* 드래그 중 iframe 이벤트 가로채기 방지 */
@@ -407,7 +397,9 @@ $isEmbed        = $isEmbed        ?? false;
     </button>
 
     {{-- 가로 리사이저 (의견 영역 폭 조절) --}}
-    <div id="cp-resizer" title="{{ __('files.resize_comment_panel') }}"></div>
+    <div id="cp-resizer" title="{{ __('files.resize_comment_panel') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M4 12h16"/></svg>
+    </div>
 
     <div id="comment-panel">
         <div class="cp-header">

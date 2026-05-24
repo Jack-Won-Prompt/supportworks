@@ -105,6 +105,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
 .s-review_completed .sbadge { background:#f3e8ff; color:#7e22ce; }
 .s-not_started .sbadge      { background:#f3f4f6; color:#6b7280; }
 .s-blocked .sbadge          { background:#fee2e2; color:#b91c1c; }
+.s-on_hold .sbadge          { background:#fef3c7; color:#a16207; }
 
 /* Status dropdown */
 #sd { display:none; position:fixed; z-index:10001; background:#fff; border:1px solid #e4e4e7; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.12); overflow:hidden; min-width:140px; padding:4px; }
@@ -150,6 +151,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
 .g-bar.s-review_completed { background:#a855f7; }
 .g-bar.s-not_started      { background:#9ca3af; }
 .g-bar.s-blocked          { background:#ef4444; }
+.g-bar.s-on_hold          { background:#eab308; }
 .g-bar-prog { position:absolute; left:0; top:0; height:100%; opacity:.3; background:#000; border-radius:5px; pointer-events:none; }
 .g-bar-label { position:relative; z-index:1; padding:0 8px; font-size:11.5px; font-weight:500; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
 .g-bar.s-cancelled .g-bar-label, .g-bar.s-not_started .g-bar-label { color:#fff; }
@@ -232,6 +234,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
         <span class="legend-btn" id="legend-in_progress"  data-status="in_progress"  style="--dot:#3b82f6;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('in_progress',event)"></span><span class="legend-label" onclick="toggleStatusFilter('in_progress')">{{ __('projects.gantt_status_in_progress') }}</span></span>
         <span class="legend-btn" id="legend-completed"    data-status="completed"    style="--dot:#22c55e;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('completed',event)"></span><span class="legend-label" onclick="toggleStatusFilter('completed')">{{ __('projects.gantt_status_completed') }}</span></span>
         <span class="legend-btn" id="legend-blocked"      data-status="blocked"      style="--dot:#ef4444;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('blocked',event)"></span><span class="legend-label" onclick="toggleStatusFilter('blocked')">{{ __('projects.gantt_status_blocked') }}</span></span>
+        <span class="legend-btn" id="legend-on_hold"      data-status="on_hold"      style="--dot:#eab308;"><span class="legend-color-dot" title="{{ __('projects.change_color') }}" onclick="openColorPicker('on_hold',event)"></span><span class="legend-label" onclick="toggleStatusFilter('on_hold')">{{ __('projects.gantt_status_on_hold') }}</span></span>
         <input type="color" id="g-color-picker" style="position:fixed;opacity:0;pointer-events:none;width:0;height:0;">
         <style id="g-dyn-colors"></style>
         <div style="width:1px;height:18px;background:#e4e4e7;margin:0 2px;flex-shrink:0;"></div>
@@ -313,8 +316,29 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
         <span class="sd-dot" style="background:#ef4444;"></span>
         <span style="color:#b91c1c;">{{ __('projects.gantt_status_blocked') }}</span>
     </div>
+    <div class="sd-opt" data-val="on_hold">
+        <span class="sd-dot" style="background:#eab308;"></span>
+        <span style="color:#a16207;">{{ __('projects.gantt_status_on_hold') }}</span>
+    </div>
 </div>
 <div id="sd-overlay" style="display:none;position:fixed;inset:0;z-index:10000;" onclick="closeStatusDropdown()"></div>
+
+{{-- 상태 변경 이유 입력 팝오버 --}}
+<div id="status-reason-pop" style="display:none;position:fixed;z-index:10003;background:#fff;border:1.5px solid var(--t300);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.25);width:340px;padding:14px 14px 12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;color:#1e1b2e;">상태 변경 이유</div>
+        <button type="button" onclick="closeStatusReasonPop()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;line-height:1;padding:2px 4px;">&times;</button>
+    </div>
+    <div id="status-reason-summary" style="font-size:11.5px;color:#64748b;margin-bottom:8px;line-height:1.45;"></div>
+    <textarea id="status-reason-text" rows="3" maxlength="1000" placeholder="변경 이유를 입력하세요 (필수)"
+              style="width:100%;border:1.5px solid #e4e4e7;border-radius:8px;padding:7px 10px;font-size:12.5px;color:#1f2937;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;line-height:1.5;"
+              onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
+    <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:9px;">
+        <button type="button" onclick="closeStatusReasonPop()" style="padding:6px 12px;background:#f4f4f5;color:#52525b;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">취소</button>
+        <button type="button" onclick="submitStatusReason()" style="padding:6px 14px;background:var(--t600);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">변경</button>
+    </div>
+</div>
+<div id="status-reason-overlay" style="display:none;position:fixed;inset:0;z-index:10002;background:rgba(15,10,40,.18);" onclick="closeStatusReasonPop()"></div>
 
 {{-- 담당자 드롭다운 --}}
 <div id="ad" style="display:none;position:fixed;z-index:10001;background:#fff;border:1px solid #e4e4e7;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.12);overflow:hidden;min-width:150px;max-height:220px;overflow-y:auto;padding:4px;"></div>
@@ -409,6 +433,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
                     <option value="in_progress">{{ __('projects.gantt_status_in_progress') }}</option>
                     <option value="completed">{{ __('projects.gantt_status_completed') }}</option>
                     <option value="blocked">{{ __('projects.gantt_status_blocked') }}</option>
+                    <option value="on_hold">{{ __('projects.gantt_status_on_hold') }}</option>
                 </select>
             </div>
             <div>
@@ -537,6 +562,7 @@ main > nav { flex-shrink: 0; }  /* breadcrumb */
                     <option value="in_progress">{{ __('projects.gantt_status_in_progress') }}</option>
                     <option value="completed">{{ __('projects.gantt_status_completed') }}</option>
                     <option value="blocked">{{ __('projects.gantt_status_blocked') }}</option>
+                    <option value="on_hold">{{ __('projects.gantt_status_on_hold') }}</option>
                 </select>
             </div>
             <div>
@@ -607,6 +633,7 @@ $_gnStatusLabels = [
     'in_progress' => __('projects.gantt_status_in_progress'),
     'completed'   => __('projects.gantt_status_completed'),
     'blocked'     => __('projects.gantt_status_blocked'),
+    'on_hold'     => __('projects.gantt_status_on_hold'),
 ];
 $_gnExcelCols = [
     __('projects.excel_col_no'),
@@ -703,6 +730,7 @@ const DEFAULT_STATUS_COLORS = {
     in_progress: '#3b82f6',
     completed:   '#22c55e',
     blocked:     '#ef4444',
+    on_hold:     '#eab308',
 };
 const STATUS_COLORS = Object.assign(
     {...DEFAULT_STATUS_COLORS},
@@ -1232,68 +1260,102 @@ const STATUS_META = {
     in_progress: { label:GANTT_STR.statusLabels.in_progress, bg:'#dbeafe', color:'#1d4ed8', bar:'#3b82f6' },
     completed:   { label:GANTT_STR.statusLabels.completed,   bg:'#dcfce7', color:'#15803d', bar:'#22c55e' },
     blocked:     { label:GANTT_STR.statusLabels.blocked,     bg:'#fee2e2', color:'#b91c1c', bar:'#ef4444' },
+    on_hold:     { label:GANTT_STR.statusLabels.on_hold,     bg:'#fef3c7', color:'#a16207', bar:'#eab308' },
 };
 
 // ─── Members ─────────────────────────────────────────────────────────────────
 const MEMBERS = @json($members->map(fn($m) => ['id' => $m->id, 'name' => $m->name]));
 
-// ─── Assignee dropdown ────────────────────────────────────────────────────────
+// ─── Assignee dropdown (multi-select) ────────────────────────────────────────
 let adCurrentTid = null;
+let adPendingIds = null;
 
 async function openAssigneeDropdown(event, tid) {
     event.stopPropagation();
     adCurrentTid = tid;
     const task = ALL_TASKS.find(t => t.id === String(tid));
-    const ad = document.getElementById('ad');
+    if (!task) return;
 
-    let html = `<div class="sd-opt" onclick="selectAssignee(null)"><span class="sd-dot" style="background:#d1d5db;"></span><span style="color:#9ca3af;">{{ __("projects.unassigned") }}</span></div>`;
-    MEMBERS.forEach(m => {
-        const active = task._assignee_id === m.id;
-        html += `<div class="sd-opt" onclick="selectAssignee(${m.id})">
-            <span class="sd-dot" style="background:${active ? 'var(--t500)' : '#d1d5db'};"></span>
-            <span style="color:#18181b;${active ? 'font-weight:600;' : ''}">${esc(m.name)}</span>
-        </div>`;
-    });
+    const cur = new Set(((task._assignee_ids || []).map(Number)));
+    adPendingIds = cur;
+
+    const ad = document.getElementById('ad');
+    let html = `
+        <div style="display:flex;gap:4px;padding:5px 6px 7px;border-bottom:1px solid #f3f4f6;margin-bottom:4px;">
+            <button type="button" onclick="adSetAll(true)" style="flex:1;padding:4px 6px;background:#f9fafb;border:1px solid #e4e4e7;border-radius:6px;font-size:11px;color:#6b7280;cursor:pointer;">전체</button>
+            <button type="button" onclick="adSetAll(false)" style="flex:1;padding:4px 6px;background:#f9fafb;border:1px solid #e4e4e7;border-radius:6px;font-size:11px;color:#6b7280;cursor:pointer;">해제</button>
+        </div>
+        <div id="ad-list" style="max-height:200px;overflow-y:auto;"></div>
+        <div style="display:flex;justify-content:flex-end;gap:6px;padding:7px 4px 2px;border-top:1px solid #f3f4f6;margin-top:4px;">
+            <button type="button" onclick="closeAssigneeDropdown()" style="padding:5px 10px;background:#f4f4f5;color:#52525b;border:none;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;">취소</button>
+            <button type="button" onclick="submitAssignees()" style="padding:5px 12px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;">적용</button>
+        </div>
+    `;
     ad.innerHTML = html;
+    adRenderList();
 
     const rect = event.currentTarget.getBoundingClientRect();
-    ad.style.left = Math.min(rect.left, window.innerWidth - 170) + 'px';
+    ad.style.left = Math.min(rect.left, window.innerWidth - 220) + 'px';
     ad.style.top  = (rect.bottom + 4) + 'px';
+    ad.style.minWidth = '200px';
     ad.style.display = 'block';
     document.getElementById('ad-overlay').style.display = 'block';
 }
-
+function adRenderList() {
+    const list = document.getElementById('ad-list');
+    if (!list) return;
+    list.innerHTML = MEMBERS.map(m => {
+        const checked = adPendingIds.has(Number(m.id)) ? 'checked' : '';
+        return `<label style="display:flex;align-items:center;gap:7px;padding:5px 8px;font-size:12.5px;color:#374151;border-radius:5px;cursor:pointer;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
+            <input type="checkbox" data-aid="${m.id}" ${checked} onchange="adToggle(this)" style="accent-color:#7c3aed;">
+            <span>${esc(m.name)}</span>
+        </label>`;
+    }).join('');
+}
+window.adToggle = function(cb) {
+    const id = Number(cb.dataset.aid);
+    if (cb.checked) adPendingIds.add(id);
+    else adPendingIds.delete(id);
+};
+window.adSetAll = function(checkAll) {
+    adPendingIds.clear();
+    if (checkAll) MEMBERS.forEach(m => adPendingIds.add(Number(m.id)));
+    adRenderList();
+};
 async function closeAssigneeDropdown() {
     document.getElementById('ad').style.display = 'none';
     document.getElementById('ad-overlay').style.display = 'none';
     adCurrentTid = null;
+    adPendingIds = null;
 }
-
-async function selectAssignee(memberId) {
+window.closeAssigneeDropdown = closeAssigneeDropdown;
+window.submitAssignees = async function() {
     const tid = adCurrentTid;
+    const ids = Array.from(adPendingIds || []).map(Number);
     closeAssigneeDropdown();
     const task = ALL_TASKS.find(t => t.id === String(tid));
     if (!task) return;
 
-    const member = memberId ? MEMBERS.find(m => m.id === memberId) : null;
-    const name = member ? member.name : '{{ __("projects.unassigned") }}';
+    const names = MEMBERS.filter(m => ids.includes(Number(m.id))).map(m => m.name);
+    const displayName = names.length ? names.join(', ') : '{{ __("projects.unassigned") }}';
 
     fetch(`${UPDATE_URL}/${tid}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
-        body: JSON.stringify({ assignee_id: memberId }),
+        body: JSON.stringify({ assignee_ids: ids }),
     })
     .then(r => { if (!r.ok) throw new Error(); return r.json(); })
     .then(() => {
-        task._assignee = name;
-        task._assignee_id = memberId;
+        task._assignee = displayName;
+        task._assignee_id = ids[0] || null;
+        task._assignee_ids = ids;
         const lr = leftBody.querySelector(`[data-tid="${tid}"]`);
-        if (lr) lr.querySelector('.lc-assignee').textContent = name;
+        if (lr) lr.querySelector('.lc-assignee').textContent = displayName;
         const msg = document.getElementById('g-save-msg');
         msg.style.display = 'inline'; setTimeout(() => msg.style.display = 'none', 2500);
     })
     .catch(() => alert('{{ __("projects.assignee_save_failed") }}'));
-}
+};
 
 // ─── Date popup ───────────────────────────────────────────────────────────────
 let dpCurrentTid = null, dpCurrentField = null;
@@ -1390,21 +1452,84 @@ async function closeStatusDropdown() {
     sdCurrentTid = null;
 }
 
+// 이유 입력 팝오버를 띄울 상태 (그 외는 즉시 변경)
+const STATUS_NEEDS_REASON = new Set(['blocked', 'on_hold']);
+
 document.querySelectorAll('.sd-opt').forEach(opt => {
     opt.addEventListener('click', () => {
         const newStatus = opt.dataset.val;
         const tid = sdCurrentTid;
         if (!tid || !newStatus) return;
+        const task = ALL_TASKS.find(t => t.id === String(tid));
+        const oldStatus = task ? task._status : null;
         closeStatusDropdown();
-        applyStatusChange(tid, newStatus);
+        // 같은 상태 선택 시는 변경 없음
+        if (oldStatus === newStatus) return;
+        // 완료된 일정은 상태 변경 불가
+        if (oldStatus === 'completed') {
+            alert('완료된 일정은 상태를 변경할 수 없습니다.');
+            return;
+        }
+        // '제외/보류'로 변경 시에만 이유 팝오버 — 그 외는 즉시 적용
+        if (STATUS_NEEDS_REASON.has(newStatus)) {
+            openStatusReasonPop(tid, newStatus, oldStatus);
+        } else {
+            applyStatusChange(tid, newStatus, null);
+        }
     });
 });
 
-async function applyStatusChange(tid, newStatus) {
+// ─── 상태 변경 이유 팝오버 ──────────────────────────────────────────────────
+let _stReasonTid = null, _stReasonNewStatus = null;
+function openStatusReasonPop(tid, newStatus, oldStatus) {
+    _stReasonTid = tid;
+    _stReasonNewStatus = newStatus;
+    const task = ALL_TASKS.find(t => t.id === String(tid));
+    const taskName = task ? task.name : '#' + tid;
+    const oldLabel = oldStatus && STATUS_META[oldStatus] ? STATUS_META[oldStatus].label : (oldStatus || '');
+    const newLabel = STATUS_META[newStatus] ? STATUS_META[newStatus].label : newStatus;
+    document.getElementById('status-reason-summary').innerHTML =
+        '<b>' + escHtml(taskName) + '</b><br>' +
+        escHtml(oldLabel) + ' → <b style="color:var(--t700);">' + escHtml(newLabel) + '</b>';
+    document.getElementById('status-reason-text').value = '';
+    // 화면 중앙 표시
+    const pop = document.getElementById('status-reason-pop');
+    pop.style.top = '50%'; pop.style.left = '50%';
+    pop.style.transform = 'translate(-50%, -50%)';
+    pop.style.display = 'block';
+    document.getElementById('status-reason-overlay').style.display = 'block';
+    setTimeout(() => document.getElementById('status-reason-text').focus(), 50);
+}
+function closeStatusReasonPop() {
+    document.getElementById('status-reason-pop').style.display = 'none';
+    document.getElementById('status-reason-overlay').style.display = 'none';
+    _stReasonTid = null;
+    _stReasonNewStatus = null;
+}
+function submitStatusReason() {
+    const reason = document.getElementById('status-reason-text').value.trim();
+    if (!reason) {
+        alert('변경 이유를 입력해주세요.');
+        document.getElementById('status-reason-text').focus();
+        return;
+    }
+    const tid = _stReasonTid, newStatus = _stReasonNewStatus;
+    closeStatusReasonPop();
+    if (tid && newStatus) applyStatusChange(tid, newStatus, reason);
+}
+window.openStatusReasonPop = openStatusReasonPop;
+window.closeStatusReasonPop = closeStatusReasonPop;
+window.submitStatusReason = submitStatusReason;
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && _stReasonTid != null) closeStatusReasonPop();
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && _stReasonTid != null) submitStatusReason();
+});
+
+async function applyStatusChange(tid, newStatus, reason) {
     fetch(`${UPDATE_URL}/${tid}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, reason: reason || null }),
     })
     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
     .then(() => {
@@ -2190,8 +2315,8 @@ async function downloadGanttExcel(e) {
         COL_W.forEach((w, i) => ws.getColumn(i + 1).width = w);
 
         const STATUS_KO = GANTT_STR.statusLabels;
-        const STATUS_BG = { not_started:'FFF3F4F6', in_progress:'FFDBEAFE', completed:'FFD1FAE5', blocked:'FFFEE2E2' };
-        const STATUS_FG = { not_started:'FF6B7280', in_progress:'FF1D4ED8', completed:'FF065F46', blocked:'FF991B1B' };
+        const STATUS_BG = { not_started:'FFF3F4F6', in_progress:'FFDBEAFE', completed:'FFD1FAE5', blocked:'FFFEE2E2', on_hold:'FFFEF3C7' };
+        const STATUS_FG = { not_started:'FF6B7280', in_progress:'FF1D4ED8', completed:'FF065F46', blocked:'FF991B1B', on_hold:'FFA16207' };
 
         async function setCell(cell, val, font, fill, align, border) {
             cell.value = val ?? '';
