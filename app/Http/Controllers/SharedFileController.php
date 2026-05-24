@@ -16,13 +16,20 @@ class SharedFileController extends Controller
         $cgId   = $this->companyGroupId();
         $userId = (int) auth()->id();
 
+        // 회사 공유 카테고리 + 본인 개인 카테고리 모두 로드
         $categories = SharedFileCategory::where('company_group_id', $cgId)
+            ->where(function ($w) use ($userId) {
+                $w->whereNull('user_id')->orWhere('user_id', $userId);
+            })
             ->withCount(['files' => fn ($q) => $this->applyVisibility($q, $userId)])
             ->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')
             ->get();
 
-        // 트리 구조 빌드 (parent_id로 묶고 depth 계산)
-        $tree = $this->buildCategoryTree($categories);
+        // 트리 구조 빌드 — 공유(user_id null) / 개인(user_id 본인) 분리
+        $sharedCats   = $categories->whereNull('user_id');
+        $personalCats = $categories->where('user_id', $userId);
+        $tree         = $this->buildCategoryTree($sharedCats);
+        $personalTree = $this->buildCategoryTree($personalCats);
 
         $categoryId = $request->query('category');
         $q          = trim((string) $request->query('q', ''));
@@ -58,7 +65,7 @@ class SharedFileController extends Controller
         $uncategorizedCount = $this->applyVisibility((clone $base()), $userId)->whereNull('category_id')->count();
 
         return view('shared-folder.index', compact(
-            'categories', 'tree', 'files', 'categoryId', 'q', 'scope',
+            'categories', 'tree', 'personalTree', 'files', 'categoryId', 'q', 'scope',
             'totalCount', 'sharedCount', 'myPersonalCount', 'uncategorizedCount'
         ));
     }
@@ -210,15 +217,20 @@ class SharedFileController extends Controller
     /** 카테고리(폴더) 추가 — 최대 3단계 깊이 */
     public function storeCategory(Request $request)
     {
-        $cgId = $this->companyGroupId();
+        $cgId   = $this->companyGroupId();
+        $userId = (int) auth()->id();
 
         $data = $request->validate([
-            'name'      => 'required|string|max:80',
-            'color'     => 'nullable|string|max:7',
-            'parent_id' => 'nullable|integer',
+            'name'        => 'required|string|max:80',
+            'color'       => 'nullable|string|max:7',
+            'parent_id'   => 'nullable|integer',
+            'is_personal' => 'nullable|boolean',
         ]);
 
-        $parentId = $data['parent_id'] ?? null;
+        $parentId   = $data['parent_id'] ?? null;
+        $isPersonal = (bool) ($data['is_personal'] ?? false);
+        $ownerId    = null;
+
         if ($parentId) {
             $parent = SharedFileCategory::where('id', $parentId)
                 ->where('company_group_id', $cgId)
@@ -226,14 +238,29 @@ class SharedFileController extends Controller
             if (!$parent) {
                 return back()->with('error', __('shared-folder.invalid_parent'));
             }
+            // 부모가 개인 폴더면 본인 소유 검증 + 자식도 개인으로 설정
+            if ($parent->user_id !== null) {
+                if ((int) $parent->user_id !== $userId) {
+                    return back()->with('error', __('shared-folder.invalid_parent'));
+                }
+                $isPersonal = true;
+            } else {
+                // 부모가 공유 폴더면 자식도 공유 폴더 (is_personal 무시)
+                $isPersonal = false;
+            }
             if ($parent->depth() >= SharedFileCategory::MAX_DEPTH) {
                 return back()->with('error', __('shared-folder.max_depth_reached', ['max' => SharedFileCategory::MAX_DEPTH]));
             }
         }
 
+        if ($isPersonal) {
+            $ownerId = $userId;
+        }
+
         SharedFileCategory::create([
             'company_group_id' => $cgId,
             'parent_id'        => $parentId,
+            'user_id'          => $ownerId,
             'name'             => $data['name'],
             'color'            => ($data['color'] ?? null) ?: '#6366f1',
             'sort_order'       => (int) SharedFileCategory::where('company_group_id', $cgId)
@@ -247,6 +274,11 @@ class SharedFileController extends Controller
     public function destroyCategory(SharedFileCategory $sharedFileCategory)
     {
         abort_unless($sharedFileCategory->company_group_id === $this->companyGroupId(), 403);
+        // 개인 폴더는 본인만 삭제 가능
+        abort_unless(
+            $sharedFileCategory->user_id === null || $sharedFileCategory->user_id === (int) auth()->id(),
+            403
+        );
 
         if ($sharedFileCategory->children()->exists()) {
             return back()->with('error', __('shared-folder.category_has_children'));

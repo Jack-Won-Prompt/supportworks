@@ -193,6 +193,7 @@ return [
     'js_applying'               => '적용 중...',
     'js_registering'            => '등록 중...',
     'js_saving'                 => '저장 중...',
+    'js_validating'             => 'AI로 범위·중복 검증 중...',
     'js_deleting'               => '삭제 중...',
     'js_analyzing'              => '분석 중...',
     'js_save_failed'            => '저장에 실패했습니다.',
@@ -341,4 +342,17 @@ return [
     'pri_high'                  => '높음',
     'pri_medium'                => '보통',
     'pri_low'                   => '낮음',
+
+    // ── AI 검증 (범위/중복)
+    'filter_out_of_scope'       => '범위 벗어남',
+    'filter_duplicate'          => '중복',
+    'badge_out_of_scope'        => '범위 벗어남',
+    'badge_duplicate'           => '중복',
+    'badge_pop_scope_head'      => '⚠ 프로젝트 범위를 벗어났을 가능성',
+    'badge_pop_dup_head'        => '⚠ 기존 요구사항 :id 과(와) 중복 가능',
+    'validate_modal_title'      => '요구사항 검토 결과',
+    'validate_modal_intro'      => 'AI가 프로젝트의 기획서·URS·FRS와 기존 요구사항을 기반으로 검토한 결과입니다. 그래도 등록을 원하시면 진행할 수 있으며, 등록 후 목록과 상세에 안내 뱃지가 표시됩니다.',
+    'validate_no_reason'        => '(상세 사유 없음)',
+    'validate_back_edit'        => '내용 수정',
+    'validate_register_anyway'  => '그래도 등록',
 ];

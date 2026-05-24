@@ -16,23 +16,7 @@
     .sr-quill .ql-editor img { max-width:100%; height:auto; border-radius:6px; margin:6px 0; cursor:pointer; }
     .sr-quill .ql-editor img.sr-img-selected { outline:2px solid var(--t500); outline-offset:1px; }
 
-    /* 이미지 리사이즈/뷰어 오버레이 */
-    /* z-index: sticky 저장바(30) 보다 아래로 내려, 스크롤 시 저장바에 가려지도록 */
-    #sr-img-overlay { position:absolute; pointer-events:none; z-index:20; display:none; }
-    #sr-img-overlay.is-active { display:block; }
-    .sr-img-handle { position:absolute; width:10px; height:10px; background:var(--t500); border:1.5px solid #fff; border-radius:2px; pointer-events:auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
-    .sr-img-handle.h-tl { top:-5px; left:-5px; cursor:nwse-resize; }
-    .sr-img-handle.h-tm { top:-5px; left:50%; margin-left:-5px; cursor:ns-resize; }
-    .sr-img-handle.h-tr { top:-5px; right:-5px; cursor:nesw-resize; }
-    .sr-img-handle.h-ml { top:50%; margin-top:-5px; left:-5px; cursor:ew-resize; }
-    .sr-img-handle.h-mr { top:50%; margin-top:-5px; right:-5px; cursor:ew-resize; }
-    .sr-img-handle.h-bl { bottom:-5px; left:-5px; cursor:nesw-resize; }
-    .sr-img-handle.h-bm { bottom:-5px; left:50%; margin-left:-5px; cursor:ns-resize; }
-    .sr-img-handle.h-br { bottom:-5px; right:-5px; cursor:nwse-resize; }
-    /* [이미지 뷰어] 버튼 — 이미지 상단 바깥, 리사이즈 핸들과 겹치지 않도록 충분히 위에 배치 */
-    .sr-img-viewer-btn { position:absolute; top:-34px; right:0; height:26px; padding:0 11px 0 8px; border-radius:13px; background:var(--t600); color:#fff; border:1px solid rgba(255,255,255,.85); box-shadow:0 4px 12px rgba(0,0,0,.22); display:inline-flex; align-items:center; gap:5px; cursor:pointer; pointer-events:auto; font-size:11.5px; font-weight:600; line-height:1; white-space:nowrap; transition:background .12s, transform .08s; z-index:21; }
-    .sr-img-viewer-btn:hover { background:var(--t700); transform:translateY(-1px); }
-    .sr-img-viewer-btn svg { width:13px; height:13px; }
+    /* 이미지 리사이즈/뷰어/이미지 주석은 표준 partial(_quill-image-resize)이 담당 */
 
     /* 이미지 라이트박스 */
     #sr-img-lightbox { display:none; position:fixed; inset:0; z-index:10500; background:rgba(0,0,0,.86); backdrop-filter:blur(3px); align-items:center; justify-content:center; padding:40px; }
@@ -449,21 +433,7 @@
     @include('maint-requests._image-lightbox')
 @endif
 
-{{-- 이미지 리사이즈/뷰어 오버레이 (절대 위치, JS에서 selected 이미지 위에 배치) --}}
-<div id="sr-img-overlay">
-    <button type="button" class="sr-img-viewer-btn" title="큰 화면 뷰어로 열기 (주석·댓글)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h6m0 0v6m0-6L14 10M9 21H3m0 0v-6m0 6l7-7"/></svg>
-        이미지 뷰어
-    </button>
-    <span class="sr-img-handle h-tl" data-dir="tl"></span>
-    <span class="sr-img-handle h-tm" data-dir="tm"></span>
-    <span class="sr-img-handle h-tr" data-dir="tr"></span>
-    <span class="sr-img-handle h-ml" data-dir="ml"></span>
-    <span class="sr-img-handle h-mr" data-dir="mr"></span>
-    <span class="sr-img-handle h-bl" data-dir="bl"></span>
-    <span class="sr-img-handle h-bm" data-dir="bm"></span>
-    <span class="sr-img-handle h-br" data-dir="br"></span>
-</div>
+{{-- 이미지 리사이즈/뷰어/이미지 주석 오버레이는 표준 partial 이 자체 생성 --}}
 
 @include('maint-requests._summary-js')
 
@@ -524,31 +494,7 @@ window.paidDevForm = function(init) {
     const CSRF = document.querySelector('meta[name=csrf-token]')?.content
               || @json(csrf_token());
 
-    // 이미지 blot 확장: 리사이즈로 설정된 style/width/height 속성을 저장/복원 시 유지
-    (function registerStyledImage() {
-        if (window.__srStyledImageRegistered) return;
-        window.__srStyledImageRegistered = true;
-        const ImageBlot = Quill.import('formats/image');
-        const PRESERVED = ['alt', 'height', 'width', 'style'];
-        class StyledImage extends ImageBlot {
-            static formats(domNode) {
-                return PRESERVED.reduce((acc, attr) => {
-                    if (domNode.hasAttribute(attr)) acc[attr] = domNode.getAttribute(attr);
-                    return acc;
-                }, {});
-            }
-            format(name, value) {
-                if (PRESERVED.indexOf(name) > -1) {
-                    if (value) this.domNode.setAttribute(name, value);
-                    else this.domNode.removeAttribute(name);
-                } else {
-                    super.format(name, value);
-                }
-            }
-        }
-        Quill.register(StyledImage, true);
-    })();
-
+    // StyledImage blot 등록 + paste/upload/8핸들 리사이즈/이미지 주석 모두 표준 partial 이 일괄 처리
     const quill = new Quill(editorEl, {
         theme: 'snow',
         placeholder: '상세 내용을 입력하세요. 이미지는 복사·붙여넣기(Ctrl+V) 또는 툴바 아이콘으로 첨부됩니다.',
@@ -589,169 +535,15 @@ window.paidDevForm = function(init) {
         });
     }
 
-    // 이미지 업로드 — 툴바 + 클립보드 paste
-    function uploadImage(file) {
-        if (!file) return;
-        const fd = new FormData();
-        fd.append('image', file);
-        fetch(UPLOAD_URL, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body: fd,
-            credentials: 'same-origin',
-        })
-        .then(r => r.ok ? r.json() : Promise.reject(r.status))
-        .then(data => {
-            if (!data.url) return;
-            const range = quill.getSelection(true) || { index: quill.getLength() };
-            quill.insertEmbed(range.index, 'image', data.url);
-            quill.setSelection(range.index + 1);
-        })
-        .catch(err => {
-            alert('이미지 업로드에 실패했습니다. (' + err + ')');
+    // ────────────────────────────────────────────────────────────
+    // SR 표준: Copy & Paste + 8 방향 리사이즈 + 이미지 주석 (이미지 뷰어 버튼 제거됨)
+    // ────────────────────────────────────────────────────────────
+    if (window.installQuillImageResize) {
+        window.installQuillImageResize(quill, {
+            uploadUrl: UPLOAD_URL,
+            csrfToken: CSRF,
+            enableAnnotate: true,
         });
     }
-
-    quill.getModule('toolbar').addHandler('image', () => {
-        const inp = document.createElement('input');
-        inp.type = 'file'; inp.accept = 'image/*';
-        inp.onchange = () => { if (inp.files[0]) uploadImage(inp.files[0]); };
-        inp.click();
-    });
-    quill.root.addEventListener('paste', e => {
-        const imgItem = [...(e.clipboardData?.items || [])].find(it => it.type.startsWith('image/'));
-        if (!imgItem) return;
-        e.preventDefault();
-        uploadImage(imgItem.getAsFile());
-    });
-
-    // ────────────────────────────────────────────────────────────
-    // 이미지 선택 → 8개 핸들 리사이즈 + 우상단 뷰어 버튼
-    // ────────────────────────────────────────────────────────────
-    const overlay = document.getElementById('sr-img-overlay');
-    const viewerBtn = overlay.querySelector('.sr-img-viewer-btn');
-    let selectedImg = null;
-
-    function positionOverlay() {
-        if (!selectedImg) { overlay.classList.remove('is-active'); return; }
-        const r = selectedImg.getBoundingClientRect();
-        // overlay 는 fixed 가 아닌 absolute (스크롤 시 위치 계산이 까다로워 위치를 매번 갱신)
-        overlay.style.position = 'fixed';
-        overlay.style.left = r.left + 'px';
-        overlay.style.top = r.top + 'px';
-        overlay.style.width = r.width + 'px';
-        overlay.style.height = r.height + 'px';
-        overlay.classList.add('is-active');
-    }
-
-    function selectImage(img) {
-        if (selectedImg) selectedImg.classList.remove('sr-img-selected');
-        selectedImg = img;
-        if (img) {
-            img.classList.add('sr-img-selected');
-            positionOverlay();
-        } else {
-            overlay.classList.remove('is-active');
-        }
-    }
-
-    quill.root.addEventListener('click', (e) => {
-        if (e.target.tagName === 'IMG') {
-            e.preventDefault();
-            selectImage(e.target);
-        } else if (overlay && !overlay.contains(e.target)) {
-            selectImage(null);
-        }
-    });
-    document.addEventListener('click', (e) => {
-        if (!selectedImg) return;
-        if (e.target === selectedImg || overlay.contains(e.target)) return;
-        // 클릭이 에디터 안 다른 곳이면 선택 해제
-        if (quill.root.contains(e.target)) selectImage(null);
-    }, true);
-    window.addEventListener('resize', positionOverlay);
-    quill.root.addEventListener('scroll', positionOverlay);
-    window.addEventListener('scroll', positionOverlay, true);
-
-    // 리사이즈 핸들 드래그
-    let resizeState = null;
-    overlay.querySelectorAll('.sr-img-handle').forEach(h => {
-        h.addEventListener('mousedown', (e) => {
-            if (!selectedImg) return;
-            e.preventDefault();
-            const rect = selectedImg.getBoundingClientRect();
-            resizeState = {
-                dir: h.dataset.dir,
-                startX: e.clientX, startY: e.clientY,
-                origW: rect.width, origH: rect.height,
-                aspect: rect.width / rect.height,
-                // shift 안 누르면 비율 유지 (직관)
-            };
-            document.body.style.userSelect = 'none';
-            document.addEventListener('mousemove', onResizeMove);
-            document.addEventListener('mouseup', onResizeEnd, { once: true });
-        });
-    });
-    function onResizeMove(e) {
-        if (!resizeState || !selectedImg) return;
-        const dx = e.clientX - resizeState.startX;
-        const dy = e.clientY - resizeState.startY;
-        const dir = resizeState.dir;
-        let nw = resizeState.origW, nh = resizeState.origH;
-        // 가로 변경 (l/r 포함)
-        if (dir.includes('r')) nw = Math.max(40, resizeState.origW + dx);
-        if (dir.includes('l')) nw = Math.max(40, resizeState.origW - dx);
-        // 세로 변경 (t/b 포함)
-        if (dir.includes('b')) nh = Math.max(40, resizeState.origH + dy);
-        if (dir.includes('t')) nh = Math.max(40, resizeState.origH - dy);
-        // 모서리(2글자) 핸들은 비율 유지, 가장자리(1글자=중간) 핸들은 자유 변형
-        const isCorner = dir.length === 2;
-        if (isCorner) {
-            // 비율 유지: 가장 큰 변화량 기준
-            const wRatio = nw / resizeState.origW;
-            const hRatio = nh / resizeState.origH;
-            const ratio = Math.abs(wRatio - 1) > Math.abs(hRatio - 1) ? wRatio : hRatio;
-            nw = Math.max(40, resizeState.origW * ratio);
-            nh = nw / resizeState.aspect;
-        }
-        selectedImg.style.width = Math.round(nw) + 'px';
-        selectedImg.style.height = isCorner ? '' : Math.round(nh) + 'px';
-        positionOverlay();
-    }
-    function onResizeEnd() {
-        document.body.style.userSelect = '';
-        document.removeEventListener('mousemove', onResizeMove);
-        resizeState = null;
-        // 변경된 HTML 을 hidden 으로 즉시 sync
-        hiddenEl.value = quill.root.innerHTML;
-    }
-
-    // 뷰어 버튼 — iframe(상세 모달) 안이면 부모 창 라이트박스, 아니면 로컬 라이트박스
-    const SR_ID = {{ (int) $r->id }};
-    function openLightbox(src, alt) {
-        try {
-            const inIframe = window.parent && window.parent !== window;
-            if (inIframe && typeof window.parent.openSrImageLightbox === 'function') {
-                window.parent.openSrImageLightbox(src, alt, SR_ID);
-                return;
-            }
-        } catch (_) { /* cross-origin: 무시하고 로컬 사용 */ }
-        if (typeof window.openSrImageLightbox === 'function') {
-            window.openSrImageLightbox(src, alt, SR_ID);
-        }
-    }
-    viewerBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!selectedImg) return;
-        openLightbox(selectedImg.src, selectedImg.alt || '');
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            if (selectedImg) {
-                selectImage(null);
-            }
-        }
-    });
 })();
 </script>

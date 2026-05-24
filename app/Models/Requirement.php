@@ -18,10 +18,12 @@ class Requirement extends Model
         'approved_by_id', 'approved_at',
         'source_type', 'source_session_id', 'ai_confidence',
         'applied_to_plan', 'applied_to_plan_at', 'applied_to_plan_id',
+        'out_of_scope', 'scope_reason', 'duplicate_of_id', 'duplicate_reason',
     ];
 
     protected $casts = [
         'applied_to_plan'   => 'boolean',
+        'out_of_scope'      => 'boolean',
         'approved_at'       => 'datetime',
         'applied_to_plan_at'=> 'datetime',
     ];
@@ -204,6 +206,12 @@ class Requirement extends Model
     public function linkedIssues()
     {
         return $this->hasMany(Issue::class, 'linked_requirement_id');
+    }
+
+    /** 이 요구사항이 중복으로 판정된 원본 요구사항 */
+    public function duplicateOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'duplicate_of_id');
     }
 
     public function isWatchedBy(int $userId): bool

@@ -36,7 +36,15 @@
 
             {{-- 받는 사람 (태그 인라인 입력 + 자동완성) --}}
             <div>
-                <label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;letter-spacing:.03em;">받는 사람</label>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <label style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.03em;margin:0;">받는 사람</label>
+                    <button type="button" onclick="mbcAddSelf()" title="{{ __('app.mail_send_to_self') }}"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--t50,#f5f3ff);border:1px solid var(--t200,#ddd6fe);color:var(--t700,#6d28d9);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:background .12s;"
+                        onmouseover="this.style.background='var(--t100,#ede9fe)'" onmouseout="this.style.background='var(--t50,#f5f3ff)'">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        {{ __('app.mail_send_to_self') }}
+                    </button>
+                </div>
                 <div class="mb-taginput" data-field="to" tabindex="-1" onclick="this.querySelector('input').focus()">
                     <div class="mb-tag-chips" id="mbc-chips-to"></div>
                     <input class="mb-tag-input" type="text" autocomplete="off" placeholder="이름·이메일로 검색하거나, 직접 입력 후 Enter">
@@ -203,6 +211,7 @@
             window.installQuillImageResize(quill, {
                 uploadUrl: '{{ route('email-compose.upload-image') }}',
                 csrfToken: '{{ csrf_token() }}',
+                enableAnnotate: true,
             });
         }
     })();
@@ -237,6 +246,20 @@
         const list = tagList(field);
         list.splice(idx, 1);
         renderTagChips(field);
+    };
+
+    // 나에게 메일 보내기 — 본인을 받는 사람 chip 으로 추가
+    window.mbcAddSelf = function() {
+        const name  = @json(auth()->user()?->name ?? '');
+        const email = @json(auth()->user()?->email ?? '');
+        if (!email) return;
+        if (_to.some(r => (r.email || '').toLowerCase() === email.toLowerCase())) {
+            if (window.appToast) window.appToast(@json(__('app.mail_self_already_added')), 'info');
+            else if (window.__alert) window.__alert(@json(__('app.mail_self_already_added')));
+            return;
+        }
+        _to.push({ name, email });
+        renderTagChips('to');
     };
 
     // 각 태그 입력 와이어링
@@ -424,12 +447,13 @@
         mbcClosePfPicker();
     };
 
-    // iframe 안일 때 cancel — 부모 모달 닫기, 아니면 inbox 로
+    // iframe 안일 때 cancel — 부모 모달 닫기, 아니면 inbox 로 (embed 유지)
     window.mbcCancel = function() {
         if (window.parent && window.parent.mbCloseModal && window.parent !== window) {
             window.parent.mbCloseModal();
         } else {
-            location.href = '{{ route("mailbox.inbox") }}';
+            const isEmbed = new URLSearchParams(location.search).get('embed') === '1';
+            location.href = '{{ route("mailbox.inbox") }}' + (isEmbed ? '?embed=1' : '');
         }
     };
 
@@ -481,11 +505,12 @@
         fetch(this.action, { method: 'POST', headers: { 'Accept':'application/json,text/html', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: fd })
             .then(r => {
                 if (!r.ok) return Promise.reject(r);
-                // iframe(embed) 안이면 부모 모달 닫고 새로고침
+                // iframe(embed) 안이면 부모 모달 닫고 새로고침, 아니면 보낸편지함 (embed 유지)
                 if (window.parent && window.parent.mbModalReload) {
                     window.parent.mbModalReload({ reload: true });
                 } else {
-                    location.href = '{{ route("mailbox.sent") }}';
+                    const isEmbed = new URLSearchParams(location.search).get('embed') === '1';
+                    location.href = '{{ route("mailbox.sent") }}' + (isEmbed ? '?embed=1' : '');
                 }
             })
             .catch(async r => {

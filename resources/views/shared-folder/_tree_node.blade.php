@@ -4,6 +4,7 @@
     $hasChildren = !empty($node['children']);
     $isActive = (string)$categoryId === (string)$cat->id;
     $indent = ($depth - 1) * 12;
+    $isPersonal = $isPersonal ?? ($cat->user_id !== null);
 @endphp
 <div data-cat-id="{{ $cat->id }}" data-cat-depth="{{ $depth }}" style="display:flex;align-items:center;gap:2px;padding-left:{{ $indent }}px;">
     <a href="{{ $catBase }}?category={{ $cat->id }}" class="sf-cat {{ $isActive ? 'active' : '' }}" style="flex:1;min-width:0;">
@@ -18,7 +19,7 @@
     </a>
     @if($depth < \App\Models\SharedFileCategory::MAX_DEPTH)
     <button type="button"
-            onclick="sfShowSubAdd({{ $cat->id }}, {{ json_encode($cat->name) }})"
+            onclick="sfShowSubAdd({{ $cat->id }}, {{ json_encode($cat->name) }}, {{ $isPersonal ? 'true' : 'false' }})"
             title="{{ __('shared-folder.add_subfolder') }}"
             style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:14px;padding:2px 4px;line-height:1;display:flex;align-items:center;justify-content:center;"
             onmouseover="this.style.color='var(--t600)'" onmouseout="this.style.color='#d1d5db'">
@@ -36,5 +37,5 @@
     @endif
 </div>
 @foreach($node['children'] as $child)
-    @include('shared-folder._tree_node', ['node' => $child, 'catBase' => $catBase, 'categoryId' => $categoryId])
+    @include('shared-folder._tree_node', ['node' => $child, 'catBase' => $catBase, 'categoryId' => $categoryId, 'isPersonal' => $isPersonal])
 @endforeach

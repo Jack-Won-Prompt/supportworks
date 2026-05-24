@@ -75,10 +75,20 @@
     </select>
     @endif
 
+    {{-- AI 검증 필터 (체크박스) --}}
+    <label style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1.5px solid {{ request()->boolean('out_of_scope') ? '#fed7aa' : '#e4e4e7' }};border-radius:7px;font-size:12.5px;cursor:pointer;background:{{ request()->boolean('out_of_scope') ? '#fff7ed' : '#fff' }};color:{{ request()->boolean('out_of_scope') ? '#9a3412' : '#374151' }};">
+        <input type="checkbox" name="out_of_scope" value="1" onchange="this.form.submit()" {{ request()->boolean('out_of_scope') ? 'checked' : '' }} style="accent-color:#c2410c;">
+        {{ __('requirements.filter_out_of_scope') }}
+    </label>
+    <label style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1.5px solid {{ request()->boolean('has_duplicate') ? '#bfdbfe' : '#e4e4e7' }};border-radius:7px;font-size:12.5px;cursor:pointer;background:{{ request()->boolean('has_duplicate') ? '#eff6ff' : '#fff' }};color:{{ request()->boolean('has_duplicate') ? '#1e3a8a' : '#374151' }};">
+        <input type="checkbox" name="has_duplicate" value="1" onchange="this.form.submit()" {{ request()->boolean('has_duplicate') ? 'checked' : '' }} style="accent-color:#1d4ed8;">
+        {{ __('requirements.filter_duplicate') }}
+    </label>
+
     <button type="submit"
             style="padding:6px 14px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:13px;background:#fff;cursor:pointer;color:#374151;"
             onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('common.search') }}</button>
-    @if(request()->anyFilled(['search','status','priority','category','assignee','approval_status']))
+    @if(request()->anyFilled(['search','status','priority','category','assignee','approval_status','out_of_scope','has_duplicate']))
     <a href="{{ route('projects.requirements.index', $project) }}"
        style="padding:6px 10px;font-size:12px;color:#6b7280;text-decoration:none;">{{ __('requirements.filter_reset') }}</a>
     @endif
@@ -166,10 +176,30 @@
 
         {{-- 제목 --}}
         <div style="min-width:0;">
-            <a href="#" class="req-list-title" data-req-id="{{ $req->id }}"
-               onclick="openReqDetail({{ $req->id }}, '{{ route('projects.requirements.show', [$project, $req]) }}'); return false;"
-               style="font-size:13px;font-weight:600;color:#18181b;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-               onmouseover="this.style.color='var(--t500)'" onmouseout="this.style.color='#18181b'">{{ $req->title }}</a>
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+                <a href="#" class="req-list-title" data-req-id="{{ $req->id }}"
+                   onclick="openReqDetail({{ $req->id }}, '{{ route('projects.requirements.show', [$project, $req]) }}'); return false;"
+                   style="font-size:13px;font-weight:600;color:#18181b;text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                   onmouseover="this.style.color='var(--t500)'" onmouseout="this.style.color='#18181b'">{{ $req->title }}</a>
+                @if($req->out_of_scope)
+                    <span class="req-badge-popover" data-reason="{{ $req->scope_reason }}" data-kind="scope"
+                          style="position:relative;display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;color:#9a3412;font-size:10px;font-weight:700;cursor:help;flex-shrink:0;">
+                        <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z"/></svg>
+                        {{ __('requirements.badge_out_of_scope') }}
+                    </span>
+                @endif
+                @if($req->duplicate_of_id)
+                    <span class="req-badge-popover"
+                          data-reason="{{ $req->duplicate_reason }}"
+                          data-dup-id="{{ $req->duplicate_of_id }}"
+                          data-dup-title="{{ $req->duplicateOf?->title }}"
+                          data-kind="duplicate"
+                          style="position:relative;display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;color:#1e3a8a;font-size:10px;font-weight:700;cursor:help;flex-shrink:0;">
+                        <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+                        {{ __('requirements.badge_duplicate') }} #{{ $req->duplicate_of_id }}
+                    </span>
+                @endif
+            </div>
             <div style="font-size:11px;color:#a1a1aa;margin-top:2px;">
                 @if($req->source_type === 'ai_analyzed')
                     <span style="display:inline-block;padding:0 5px;background:#ede9fe;color:#6d28d9;border-radius:3px;font-size:10px;font-weight:600;margin-right:4px;">{{ __('requirements.source_ai') }}</span>
@@ -380,6 +410,11 @@
 
     <form id="req-form" style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;">
         @csrf
+        {{-- AI 검증 결과 hidden 필드 (사용자가 "그래도 등록" 선택 시 함께 전송) --}}
+        <input type="hidden" name="out_of_scope" id="req-out-of-scope" value="">
+        <input type="hidden" name="scope_reason" id="req-scope-reason" value="">
+        <input type="hidden" name="duplicate_of_id" id="req-dup-id" value="">
+        <input type="hidden" name="duplicate_reason" id="req-dup-reason" value="">
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.title') }} <span style="color:#ef4444;">*</span></label>
             <input type="text" name="title" required placeholder="{{ __('requirements.req_title_placeholder') }}"
@@ -479,6 +514,53 @@
         </div>
     </form>
 </div>
+
+{{-- AI 범위/중복 검증 결과 모달 --}}
+<div id="req-validate-overlay" onclick="closeReqValidateModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10200;"></div>
+<div id="req-validate-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10201;background:#fff;border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.2);width:520px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;">
+    <div style="padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="width:36px;height:36px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="18" height="18" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+            </span>
+            <h3 style="font-size:15px;font-weight:700;color:#18181b;margin:0;">{{ __('requirements.validate_modal_title') }}</h3>
+        </div>
+        <button onclick="closeReqValidateModal()" style="background:none;border:none;cursor:pointer;color:#a1a1aa;font-size:22px;line-height:1;padding:0;">&times;</button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+        <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">{{ __('requirements.validate_modal_intro') }}</p>
+
+        {{-- 범위 벗어남 섹션 --}}
+        <div id="req-validate-scope" style="display:none;padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <svg width="14" height="14" fill="none" stroke="#c2410c" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z"/></svg>
+                <span style="font-size:12.5px;font-weight:700;color:#9a3412;">{{ __('requirements.badge_out_of_scope') }}</span>
+            </div>
+            <p id="req-validate-scope-reason" style="font-size:12.5px;color:#7c2d12;line-height:1.6;margin:0;white-space:pre-wrap;"></p>
+        </div>
+
+        {{-- 중복 섹션 --}}
+        <div id="req-validate-dup" style="display:none;padding:12px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <svg width="14" height="14" fill="none" stroke="#1d4ed8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+                <span style="font-size:12.5px;font-weight:700;color:#1e3a8a;">{{ __('requirements.badge_duplicate') }}</span>
+                <span id="req-validate-dup-ref" style="font-size:11.5px;color:#1d4ed8;font-weight:600;"></span>
+            </div>
+            <p id="req-validate-dup-reason" style="font-size:12.5px;color:#1e40af;line-height:1.6;margin:0;white-space:pre-wrap;"></p>
+        </div>
+
+        <div id="req-validate-error" style="display:none;padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12.5px;color:#dc2626;"></div>
+    </div>
+    <div style="display:flex;gap:8px;padding:0 22px 20px;">
+        <button type="button" onclick="closeReqValidateModal()"
+                style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#52525b;background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;cursor:pointer;"
+                onmouseover="this.style.background='#f4f4f5'" onmouseout="this.style.background='#fff'">{{ __('requirements.validate_back_edit') }}</button>
+        <button type="button" onclick="proceedRegisterAnyway()"
+                style="flex:1;padding:9px;font-size:13px;font-weight:600;color:#fff;background:#d97706;border:none;border-radius:9px;cursor:pointer;"
+                onmouseover="this.style.background='#b45309'" onmouseout="this.style.background='#d97706'">{{ __('requirements.validate_register_anyway') }}</button>
+    </div>
+</div>
+
 {{-- 웍스 분석 모달 (멀티스텝) --}}
 <div id="ai-overlay" onclick="closeAiModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10100;"></div>
 <div id="ai-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10101;background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.18);width:560px;max-width:calc(100vw - 32px);max-height:92vh;overflow-y:auto;transition:width .2s;">
@@ -906,6 +988,7 @@
 <script>
 const CSRF            = document.querySelector('meta[name="csrf-token"]').content;
 const STORE_URL       = '{{ route('projects.requirements.store', $project) }}';
+const VALIDATE_URL    = '{{ route('projects.requirements.validate', $project) }}';
 const AI_STORE_URL    = '{{ route('projects.requirements.analysis.store', $project) }}';
 const PLANS_URL       = '{{ route('projects.plan-applications.plans', $project) }}';
 const PREVIEW_URL     = '{{ route('projects.plan-applications.preview', $project) }}';
@@ -1841,15 +1924,53 @@ document.getElementById('req-form').addEventListener('submit', async function(e)
     e.preventDefault();
     const btn   = document.getElementById('req-submit');
     const errEl = document.getElementById('req-error');
+    const form  = this;
+
+    // 강제 등록 모드(검증 결과 확인 후) 또는 기존 hidden 필드값이 있는 경우는 검증 건너뛰고 바로 저장
+    if (form.dataset.forceRegister === '1') {
+        await reqDoStore(form, btn, errEl);
+        return;
+    }
+
+    const titleVal = form.querySelector('input[name="title"]').value.trim();
+    const descVal  = form.querySelector('textarea[name="description"]').value.trim();
+
+    btn.disabled = true; btn.textContent = @json(__('requirements.js_validating'));
+    errEl.style.display = 'none';
+
+    let validateData = null;
+    try {
+        const vres = await fetch(VALIDATE_URL, {
+            method:  'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ title: titleVal, description: descVal }),
+        });
+        validateData = await vres.json().catch(() => null);
+    } catch {
+        validateData = null;
+    }
+
+    // 검증 실패 또는 깨끗하면 바로 등록 (검증 실패 시 등록 자체는 막지 않음)
+    if (!validateData || !validateData.ok || (!validateData.out_of_scope && !validateData.duplicate_of_id)) {
+        await reqDoStore(form, btn, errEl);
+        return;
+    }
+
+    // 검증 결과 모달 표시
+    btn.disabled = false; btn.textContent = @json(__('common.register'));
+    openReqValidateModal(validateData);
+});
+
+async function reqDoStore(form, btn, errEl) {
     btn.disabled = true; btn.textContent = @json(__('requirements.js_saving'));
     errEl.style.display = 'none';
     try {
         const res = await fetch(STORE_URL, {
             method:  'POST',
             headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body:    new FormData(this),
+            body:    new FormData(form),
         });
-        if (res.ok) { closeReqModal(); location.reload(); }
+        if (res.ok) { closeReqModal(); closeReqValidateModal(); location.reload(); }
         else {
             const data = await res.json().catch(() => ({}));
             const msgs = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || @json(__('requirements.js_save_failed')));
@@ -1859,8 +1980,59 @@ document.getElementById('req-form').addEventListener('submit', async function(e)
         errEl.textContent = @json(__('requirements.js_network_error')); errEl.style.display = 'block';
     } finally {
         btn.disabled = false; btn.textContent = @json(__('common.register'));
+        form.dataset.forceRegister = ''; // 다음 등록을 위해 리셋
     }
-});
+}
+
+function openReqValidateModal(data) {
+    const scopeBox = document.getElementById('req-validate-scope');
+    const scopeReason = document.getElementById('req-validate-scope-reason');
+    const dupBox = document.getElementById('req-validate-dup');
+    const dupRef = document.getElementById('req-validate-dup-ref');
+    const dupReason = document.getElementById('req-validate-dup-reason');
+
+    if (data.out_of_scope) {
+        scopeBox.style.display = 'block';
+        scopeReason.textContent = data.scope_reason || @json(__('requirements.validate_no_reason'));
+    } else {
+        scopeBox.style.display = 'none';
+    }
+
+    if (data.duplicate_of_id) {
+        dupBox.style.display = 'block';
+        const refText = `#${data.duplicate_of_id}` + (data.duplicate_of_title ? ` · ${data.duplicate_of_title}` : '');
+        dupRef.textContent = refText;
+        dupReason.textContent = data.duplicate_reason || @json(__('requirements.validate_no_reason'));
+    } else {
+        dupBox.style.display = 'none';
+    }
+
+    // 검증 결과를 hidden 필드에 미리 채워둠 (사용자가 "그래도 등록" 누르면 함께 POST)
+    document.getElementById('req-out-of-scope').value = data.out_of_scope ? '1' : '';
+    document.getElementById('req-scope-reason').value = data.scope_reason || '';
+    document.getElementById('req-dup-id').value       = data.duplicate_of_id || '';
+    document.getElementById('req-dup-reason').value   = data.duplicate_reason || '';
+
+    document.getElementById('req-validate-overlay').style.display = 'block';
+    document.getElementById('req-validate-modal').style.display = 'block';
+}
+
+function closeReqValidateModal() {
+    document.getElementById('req-validate-overlay').style.display = 'none';
+    document.getElementById('req-validate-modal').style.display = 'none';
+    // 사용자가 "수정" 선택 시 hidden 필드 비움
+    document.getElementById('req-out-of-scope').value = '';
+    document.getElementById('req-scope-reason').value = '';
+    document.getElementById('req-dup-id').value       = '';
+    document.getElementById('req-dup-reason').value   = '';
+}
+
+function proceedRegisterAnyway() {
+    // 모달은 그대로 두고 form submit 트리거 (forceRegister 플래그)
+    const form = document.getElementById('req-form');
+    form.dataset.forceRegister = '1';
+    form.requestSubmit();
+}
 
 // ── 웍스 분석 모달 (멀티스텝) ───────────────────────────────────
 let _aiApproveUrl  = null;
@@ -2541,6 +2713,58 @@ async function submitGanttModal() {
     alert(@json(__('requirements.js_gantt_done')).replace(':success', success) + (fail ? @json(__('requirements.js_gantt_done_fail')).replace(':n', fail) : ''));
     clearSelection();
 }
+
+// ── AI 검증 뱃지 호버 팝오버 ───────────────────────────────────
+(function() {
+    const POP_ID = 'req-badge-popover';
+    function ensurePop() {
+        let el = document.getElementById(POP_ID);
+        if (!el) {
+            el = document.createElement('div');
+            el.id = POP_ID;
+            el.style.cssText = 'display:none;position:absolute;z-index:10300;background:#1f2937;color:#fff;padding:10px 13px;border-radius:8px;font-size:12px;line-height:1.55;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:340px;pointer-events:none;white-space:pre-wrap;';
+            document.body.appendChild(el);
+        }
+        return el;
+    }
+    function badgeText(badge) {
+        const kind = badge.dataset.kind;
+        const reason = (badge.dataset.reason || '').trim();
+        if (kind === 'duplicate') {
+            const dupId    = badge.dataset.dupId || '';
+            const dupTitle = badge.dataset.dupTitle || '';
+            const head = @json(__('requirements.badge_pop_dup_head')).replace(':id', '#' + dupId) + (dupTitle ? ' · ' + dupTitle : '');
+            return head + '\n\n' + (reason || @json(__('requirements.validate_no_reason')));
+        }
+        return @json(__('requirements.badge_pop_scope_head')) + '\n\n' + (reason || @json(__('requirements.validate_no_reason')));
+    }
+    document.addEventListener('mouseover', function(e) {
+        const badge = e.target.closest && e.target.closest('.req-badge-popover');
+        if (!badge) return;
+        const pop = ensurePop();
+        pop.textContent = badgeText(badge);
+        const r = badge.getBoundingClientRect();
+        pop.style.display = 'block';
+        // 일단 표시 후 위치 보정
+        const pw = pop.offsetWidth, ph = pop.offsetHeight;
+        let left = r.left + window.scrollX + (r.width / 2) - (pw / 2);
+        let top  = r.bottom + window.scrollY + 6;
+        if (left < 8) left = 8;
+        if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+        // 아래로 넘치면 위로
+        if (top + ph > window.scrollY + window.innerHeight - 8) {
+            top = r.top + window.scrollY - ph - 6;
+        }
+        pop.style.left = left + 'px';
+        pop.style.top  = top  + 'px';
+    });
+    document.addEventListener('mouseout', function(e) {
+        const badge = e.target.closest && e.target.closest('.req-badge-popover');
+        if (!badge) return;
+        const pop = document.getElementById(POP_ID);
+        if (pop) pop.style.display = 'none';
+    });
+})();
 </script>
 {{-- Office 문서 파싱 라이브러리 --}}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>

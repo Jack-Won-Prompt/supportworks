@@ -511,6 +511,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('projects/{project}/requirements')->name('projects.requirements.')->group(function () {
         Route::get   ('/',                              [\App\Http\Controllers\RequirementController::class, 'index'])         ->name('index');
         Route::post  ('/',                              [\App\Http\Controllers\RequirementController::class, 'store'])         ->name('store');
+        Route::post  ('/validate',                      [\App\Http\Controllers\RequirementController::class, 'validateBeforeStore'])->name('validate');
         Route::get   ('/export',                        [\App\Http\Controllers\RequirementController::class, 'export'])        ->name('export');
         Route::post  ('/bulk-destroy',                  [\App\Http\Controllers\RequirementController::class, 'bulkDestroy'])   ->name('bulk-destroy');
         Route::get   ('/{requirement}',                 [\App\Http\Controllers\RequirementController::class, 'show'])          ->name('show');

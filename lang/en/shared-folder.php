@@ -34,6 +34,9 @@ return [
     'add_subfolder'       => 'Add subfolder',
     'subfolder_name_ph'   => 'Subfolder name',
     'subfolder_of'        => 'Add under :parent',
+    'personal_folder_add'      => 'Add personal folder',
+    'personal_folder_name_ph'  => 'Personal folder name',
+    'personal_root_hint'       => '🔒 Add inside My Personal',
 
     // List
     'file_list'           => 'Files',

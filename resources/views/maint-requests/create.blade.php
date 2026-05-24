@@ -54,8 +54,11 @@
                     <span x-show="loading" x-cloak>생성 중...</span>
                 </button>
             </div>
-            <textarea name="content" rows="8" placeholder="요청 사항 상세"
-                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ old('content') }}</textarea>
+            {{-- Quill 리치 에디터 (이미지 paste + 8핸들 리사이즈 + 이미지 주석 표준) --}}
+            <input type="hidden" name="content" id="sr-create-content-input" value="{{ old('content') }}">
+            <div id="sr-create-quill-wrap" class="sr-quill border border-gray-200 rounded-lg overflow-hidden bg-white">
+                <div id="sr-create-quill-editor" style="min-height:200px;"></div>
+            </div>
 
             {{-- 웍스 요약 결과 --}}
             <div x-show="summary" x-cloak class="mt-3 bg-indigo-50/40 border border-indigo-200 rounded-xl p-4">
@@ -142,4 +145,65 @@
     </form>
 </div>
 @include('maint-requests._summary-js')
+
+{{-- Quill 에디터 — 표준 partial(installQuillImageResize) 사용 --}}
+<link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css">
+<style>
+    #sr-create-quill-wrap .ql-toolbar { border:none; border-bottom:1px solid #e5e7eb; padding:5px 8px; background:#fafafa; }
+    #sr-create-quill-wrap .ql-container { border:none; font-family:inherit; }
+    #sr-create-quill-wrap .ql-editor { min-height:200px; padding:10px 12px; font-size:13.5px; color:#374151; line-height:1.65; }
+    #sr-create-quill-wrap .ql-editor img { max-width:100%; height:auto; border-radius:4px; cursor:pointer; }
+</style>
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+(function() {
+    const editorEl = document.getElementById('sr-create-quill-editor');
+    const wrapEl   = document.getElementById('sr-create-quill-wrap');
+    const hiddenEl = document.getElementById('sr-create-content-input');
+    if (!editorEl || !hiddenEl) return;
+
+    const UPLOAD_URL = @json(route('maint-requests.upload-image'));
+    const CSRF = document.querySelector('meta[name=csrf-token]')?.content || @json(csrf_token());
+
+    const quill = new Quill(editorEl, {
+        theme: 'snow',
+        placeholder: '요청 사항 상세. 이미지는 복사·붙여넣기(Ctrl+V) 또는 툴바 아이콘으로 첨부됩니다.',
+        modules: {
+            toolbar: [
+                [{ header: [false, 1, 2, 3] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ color: [] }, { background: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['blockquote', 'code-block'],
+                ['link', 'image'],
+                ['clean'],
+            ],
+        },
+    });
+
+    // 초기값(old) 로드
+    const initial = (hiddenEl.value || '').trim();
+    if (initial) {
+        if (/<\w+[\s\S]*?>/.test(initial)) {
+            quill.root.innerHTML = initial;
+            quill.update();
+        } else {
+            quill.setText(initial);
+        }
+    }
+
+    // form submit 전 HTML sync
+    const form = editorEl.closest('form');
+    if (form) {
+        form.addEventListener('submit', () => {
+            hiddenEl.value = quill.getLength() <= 1 ? '' : quill.root.innerHTML;
+        });
+    }
+
+    // SR 표준: Copy & Paste + 8 방향 리사이즈 + 이미지 주석
+    if (window.installQuillImageResize) {
+        window.installQuillImageResize(quill, { uploadUrl: UPLOAD_URL, csrfToken: CSRF, enableAnnotate: true });
+    }
+})();
+</script>
 @endsection

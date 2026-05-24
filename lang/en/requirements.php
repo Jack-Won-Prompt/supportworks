@@ -193,6 +193,7 @@ return [
     'js_applying'               => 'Applying...',
     'js_registering'            => 'Registering...',
     'js_saving'                 => 'Saving...',
+    'js_validating'             => 'Validating scope & duplicates with AI...',
     'js_deleting'               => 'Deleting...',
     'js_analyzing'              => 'Analyzing...',
     'js_save_failed'            => 'Failed to save.',
@@ -341,4 +342,17 @@ return [
     'pri_high'                  => 'High',
     'pri_medium'                => 'Medium',
     'pri_low'                   => 'Low',
+
+    // ── AI validation (scope/duplicate)
+    'filter_out_of_scope'       => 'Out of scope',
+    'filter_duplicate'          => 'Duplicate',
+    'badge_out_of_scope'        => 'Out of scope',
+    'badge_duplicate'           => 'Duplicate',
+    'badge_pop_scope_head'      => '⚠ Possibly out of project scope',
+    'badge_pop_dup_head'        => '⚠ Possibly duplicate of requirement :id',
+    'validate_modal_title'      => 'Requirement review',
+    'validate_modal_intro'      => 'AI reviewed this requirement against the project plan, URS, FRS, and existing requirements. You can register it anyway — badges will be shown on the list and detail views.',
+    'validate_no_reason'        => '(no detailed reason)',
+    'validate_back_edit'        => 'Edit',
+    'validate_register_anyway'  => 'Register anyway',
 ];

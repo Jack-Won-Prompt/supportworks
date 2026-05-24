@@ -34,6 +34,9 @@ return [
     'add_subfolder'       => '하위 폴더 추가',
     'subfolder_name_ph'   => '하위 폴더 이름',
     'subfolder_of'        => ':parent 안에 추가',
+    'personal_folder_add'      => '개인 폴더 추가',
+    'personal_folder_name_ph'  => '개인 폴더 이름',
+    'personal_root_hint'       => '🔒 내 개인자료 안에 추가',
 
     // 목록
     'file_list'           => '파일 목록',

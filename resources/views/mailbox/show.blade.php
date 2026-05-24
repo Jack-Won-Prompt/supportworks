@@ -122,7 +122,11 @@ async function mbAction(url, id) {
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': MB_SHOW_CSRF },
         body: JSON.stringify({ ids: [id] }),
     });
-    if (res.ok) location.href = '{{ route("mailbox.inbox") }}';
+    if (!res.ok) { alert('작업 실패'); return; }
+    // 현재 페이지가 embed(iframe) 모드면 다음 화면(받은편지함)도 embed 유지하여
+    // iframe 안에 전체 layouts.app 이 들어가 "supportworks 메인이 보이는" 현상을 방지
+    const isEmbed = new URLSearchParams(location.search).get('embed') === '1';
+    location.href = '{{ route("mailbox.inbox") }}' + (isEmbed ? '?embed=1' : '');
 }
 function mbTrashOne(id)   { mbAction('{{ route("mailbox.trash.move") }}', id); }
 function mbRestoreOne(id) { mbAction('{{ route("mailbox.trash.restore") }}', id); }

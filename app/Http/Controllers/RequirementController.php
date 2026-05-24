@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\ProjectFeatureSuggestion;
 use App\Models\Requirement;
 use App\Models\SubTask;
+use App\Services\Analysis\RequirementValidationService;
 use App\Services\PlanApplication\MarkdownInserter;
 use App\Services\PlanApplication\PlanApplicationService;
 use App\Services\PlanApplication\Templates\TemplateRegistry;
@@ -25,7 +26,7 @@ class RequirementController extends Controller
     {
         $this->authorizeProject($project);
 
-        $query = $project->requirements()->with(['assignee', 'reporter'])->withCount('attachments')->latest();
+        $query = $project->requirements()->with(['assignee', 'reporter', 'duplicateOf'])->withCount('attachments')->latest();
 
         if ($v = $request->get('status'))           $query->where('status', $v);
         if ($v = $request->get('priority'))         $query->where('priority', $v);
@@ -34,6 +35,8 @@ class RequirementController extends Controller
         if ($v = $request->get('requirement_type')) $query->where('requirement_type', $v);
         if ($v = $request->get('approval_status'))  $query->where('approval_status', $v);
         if ($v = $request->get('search'))           $query->where('title', 'like', "%{$v}%");
+        if ($request->boolean('out_of_scope'))      $query->where('out_of_scope', true);
+        if ($request->boolean('has_duplicate'))     $query->whereNotNull('duplicate_of_id');
 
         $requirements = $query->paginate(25)->withQueryString();
         $members      = $project->members()->get();
@@ -48,6 +51,26 @@ class RequirementController extends Controller
                             ->all();
 
         return view('requirements.index', compact('project', 'requirements', 'members', 'ganttReqIds', 'ganttBlockedReqIds'));
+    }
+
+    /**
+     * 신규 요구사항 등록 전 AI 범위/중복 검증 (AJAX).
+     * 클라이언트는 결과를 사용자에게 보여주고, 사용자가 "그래도 등록" 선택 시
+     * 결과 필드(out_of_scope, scope_reason, duplicate_of_id, duplicate_reason)를
+     * hidden field로 store에 함께 POST한다.
+     */
+    public function validateBeforeStore(Request $request, Project $project, RequirementValidationService $service): JsonResponse
+    {
+        $this->authorizeProject($project);
+
+        $data = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $result = $service->validate($project, $data['title'], (string) ($data['description'] ?? ''));
+
+        return response()->json($result);
     }
 
     public function store(Request $request, Project $project)
@@ -66,6 +89,11 @@ class RequirementController extends Controller
             'source_ref'       => 'nullable|string|max:255',
             'attachments'      => 'nullable|array',
             'attachments.*'    => 'file|max:10240',
+            // AI 검증 결과 (사용자가 "그래도 등록" 시 함께 전달)
+            'out_of_scope'     => 'nullable|boolean',
+            'scope_reason'     => 'nullable|string|max:800',
+            'duplicate_of_id'  => 'nullable|integer',
+            'duplicate_reason' => 'nullable|string|max:800',
         ]);
 
         // 태그: 쉼표 구분 문자열 → 배열
@@ -73,6 +101,15 @@ class RequirementController extends Controller
         $tags = $tagInput
             ? array_values(array_filter(array_map('trim', explode(',', $tagInput))))
             : null;
+
+        // 중복 ID가 같은 프로젝트의 유효한 요구사항인지 확인 (위조 방지)
+        $duplicateOfId = $validated['duplicate_of_id'] ?? null;
+        if ($duplicateOfId) {
+            $valid = Requirement::where('id', $duplicateOfId)
+                ->where('project_id', $project->id)
+                ->exists();
+            if (!$valid) $duplicateOfId = null;
+        }
 
         $req = $project->requirements()->create([
             'title'            => $validated['title'],
@@ -86,6 +123,10 @@ class RequirementController extends Controller
             'source_ref'       => $validated['source_ref'] ?? null,
             'reporter_id'      => auth()->id(),
             'status'           => 'draft',
+            'out_of_scope'     => (bool) ($validated['out_of_scope'] ?? false),
+            'scope_reason'     => ($validated['out_of_scope'] ?? false) ? ($validated['scope_reason'] ?? null) : null,
+            'duplicate_of_id'  => $duplicateOfId,
+            'duplicate_reason' => $duplicateOfId ? ($validated['duplicate_reason'] ?? null) : null,
         ]);
 
         if ($request->hasFile('attachments')) {

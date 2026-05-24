@@ -28,13 +28,25 @@
             <a href="{{ $catBase }}" class="sf-cat {{ !$categoryId && !($scope ?? null) ? 'active' : '' }}">
                 <span>📁 {{ __('shared-folder.category_all') }}</span><span class="sf-cat-n">{{ $totalCount }}</span>
             </a>
-            <a href="{{ $catBase }}?scope=mine_personal" class="sf-cat {{ ($scope ?? null) === 'mine_personal' ? 'active' : '' }}">
-                <span>🔒 {{ __('shared-folder.my_personal') }}</span><span class="sf-cat-n">{{ $myPersonalCount }}</span>
-            </a>
+            <div style="display:flex;align-items:center;gap:2px;">
+                <a href="{{ $catBase }}?scope=mine_personal" class="sf-cat {{ ($scope ?? null) === 'mine_personal' ? 'active' : '' }}" style="flex:1;min-width:0;">
+                    <span>🔒 {{ __('shared-folder.my_personal') }}</span><span class="sf-cat-n">{{ $myPersonalCount }}</span>
+                </a>
+                <button type="button" onclick="sfShowSubAdd('', '', true)" title="{{ __('shared-folder.add_subfolder') }}"
+                        style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:14px;padding:2px 4px;line-height:1;display:flex;align-items:center;justify-content:center;"
+                        onmouseover="this.style.color='var(--t600)'" onmouseout="this.style.color='#d1d5db'">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                </button>
+            </div>
+            {{-- 내 개인자료 하위 폴더 트리 --}}
+            @foreach($personalTree ?? [] as $node)
+                @include('shared-folder._tree_node', ['node' => $node, 'catBase' => $catBase, 'categoryId' => $categoryId, 'isPersonal' => true])
+            @endforeach
+
             <a href="{{ $catBase }}?category=none" class="sf-cat {{ $categoryId === 'none' ? 'active' : '' }}">
                 <span>🗂️ {{ __('shared-folder.category_none') }}</span><span class="sf-cat-n">{{ $uncategorizedCount }}</span>
             </a>
-            {{-- 트리 구조 렌더 (최대 3단계) — 재귀 partial --}}
+            {{-- 회사 공유 폴더 트리 (최대 3단계) — 재귀 partial --}}
             @foreach($tree as $node)
                 @include('shared-folder._tree_node', ['node' => $node, 'catBase' => $catBase, 'categoryId' => $categoryId])
             @endforeach
@@ -42,34 +54,52 @@
             {{-- 폴더 추가 (루트 또는 선택된 상위 폴더 안에) --}}
             <form method="POST" action="{{ route('shared-folder.categories.store') }}" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--color-bg-muted);">
                 @csrf
-                <input type="hidden" id="sf-parent-id" name="parent_id" value="">
+                <input type="hidden" id="sf-parent-id"   name="parent_id"   value="">
+                <input type="hidden" id="sf-is-personal" name="is_personal" value="{{ ($scope ?? null) === 'mine_personal' ? '1' : '0' }}">
                 <div id="sf-parent-hint" style="display:none;font-size:11px;color:var(--t700);background:var(--t50);padding:4px 8px;border-radius:6px;display:none;align-items:center;justify-content:space-between;gap:6px;">
                     <span id="sf-parent-hint-text"></span>
                     <button type="button" onclick="sfClearSubAdd()" title="{{ __('common.cancel') }}" style="background:none;border:none;cursor:pointer;color:var(--t600);font-size:14px;line-height:1;padding:0 2px;">&times;</button>
                 </div>
-                <input type="text" id="sf-name-input" name="name" maxlength="80" required placeholder="{{ __('shared-folder.category_name_ph') }}"
+                <input type="text" id="sf-name-input" name="name" maxlength="80" required placeholder="{{ ($scope ?? null) === 'mine_personal' ? __('shared-folder.personal_folder_name_ph') : __('shared-folder.category_name_ph') }}"
                        style="width:100%;padding:6px 9px;border:1px solid var(--color-border-default);border-radius:6px;font-size:12px;outline:none;box-sizing:border-box;">
                 <button type="submit" id="sf-submit-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 9px;background:var(--t600);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:background .12s;"
                         onmouseover="this.style.background='var(--t700)'" onmouseout="this.style.background='var(--t600)'">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span id="sf-submit-label">{{ __('shared-folder.category_add') }}</span>
+                    <span id="sf-submit-label">{{ ($scope ?? null) === 'mine_personal' ? __('shared-folder.personal_folder_add') : __('shared-folder.category_add') }}</span>
                 </button>
             </form>
             <script>
-            function sfShowSubAdd(parentId, parentName) {
-                document.getElementById('sf-parent-id').value = parentId;
-                document.getElementById('sf-parent-hint').style.display = 'flex';
-                document.getElementById('sf-parent-hint-text').textContent =
-                    @json(__('shared-folder.subfolder_of', ['parent' => ':PARENT:'])).replace(':PARENT:', parentName);
-                document.getElementById('sf-name-input').placeholder = @json(__('shared-folder.subfolder_name_ph'));
-                document.getElementById('sf-submit-label').textContent = @json(__('shared-folder.add_subfolder'));
+            const SF_DEFAULT_PERSONAL = @json(($scope ?? null) === 'mine_personal');
+            // parentId='' + isPersonal=true  → 개인 폴더 루트로 새 폴더 추가
+            // parentId=N  + isPersonal=true  → 개인 폴더의 하위 폴더 (서버에서 부모 검증)
+            // parentId=N  + isPersonal=false → 공유 폴더의 하위 폴더
+            function sfShowSubAdd(parentId, parentName, isPersonal) {
+                document.getElementById('sf-parent-id').value = parentId || '';
+                document.getElementById('sf-is-personal').value = isPersonal ? '1' : '0';
+                if (parentId) {
+                    document.getElementById('sf-parent-hint').style.display = 'flex';
+                    document.getElementById('sf-parent-hint-text').textContent =
+                        @json(__('shared-folder.subfolder_of', ['parent' => ':PARENT:'])).replace(':PARENT:', parentName);
+                    document.getElementById('sf-name-input').placeholder = @json(__('shared-folder.subfolder_name_ph'));
+                    document.getElementById('sf-submit-label').textContent = @json(__('shared-folder.add_subfolder'));
+                } else if (isPersonal) {
+                    document.getElementById('sf-parent-hint').style.display = 'flex';
+                    document.getElementById('sf-parent-hint-text').textContent = @json(__('shared-folder.personal_root_hint'));
+                    document.getElementById('sf-name-input').placeholder = @json(__('shared-folder.personal_folder_name_ph'));
+                    document.getElementById('sf-submit-label').textContent = @json(__('shared-folder.personal_folder_add'));
+                }
                 document.getElementById('sf-name-input').focus();
             }
             function sfClearSubAdd() {
                 document.getElementById('sf-parent-id').value = '';
+                document.getElementById('sf-is-personal').value = SF_DEFAULT_PERSONAL ? '1' : '0';
                 document.getElementById('sf-parent-hint').style.display = 'none';
-                document.getElementById('sf-name-input').placeholder = @json(__('shared-folder.category_name_ph'));
-                document.getElementById('sf-submit-label').textContent = @json(__('shared-folder.category_add'));
+                document.getElementById('sf-name-input').placeholder = SF_DEFAULT_PERSONAL
+                    ? @json(__('shared-folder.personal_folder_name_ph'))
+                    : @json(__('shared-folder.category_name_ph'));
+                document.getElementById('sf-submit-label').textContent = SF_DEFAULT_PERSONAL
+                    ? @json(__('shared-folder.personal_folder_add'))
+                    : @json(__('shared-folder.category_add'));
             }
             </script>
         </div>

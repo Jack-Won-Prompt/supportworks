@@ -990,9 +990,9 @@ document.addEventListener('keydown', function(e){
         });
     }
 
-    // SR 표준: Copy & Paste + 8 방향 리사이즈 (이미지 클릭 → 핸들)
+    // SR 표준: Copy & Paste + 8 방향 리사이즈 + 이미지 주석 (이미지 클릭 → 핸들 + 이미지 주석 진입)
     if (window.installQuillImageResize) {
-        window.installQuillImageResize(quill, { uploadUrl: UPLOAD_URL, csrfToken: CSRF });
+        window.installQuillImageResize(quill, { uploadUrl: UPLOAD_URL, csrfToken: CSRF, enableAnnotate: true });
     }
 })();
 </script>

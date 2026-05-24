@@ -14,6 +14,11 @@
     </style>
 </head>
 <body>
+    {{-- Quill 표준 이미지 모듈 + 이미지 주석 + 커스텀 다이얼로그 — _form 안의 즉시실행 스크립트보다 먼저 정의되도록 body 최상단에 위치 --}}
+    @include('partials._quill-image-resize')
+    @include('partials._mail-image-annotator')
+    @include('partials.custom-dialog')
+
     <div class="embed-wrap">
         @include('maint-requests._form', ['isEmbed' => true])
     </div>

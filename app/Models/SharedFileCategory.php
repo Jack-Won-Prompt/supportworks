@@ -11,8 +11,14 @@ class SharedFileCategory extends Model
     public const MAX_DEPTH = 3;
 
     protected $fillable = [
-        'company_group_id', 'parent_id', 'name', 'color', 'sort_order',
+        'company_group_id', 'parent_id', 'user_id', 'name', 'color', 'sort_order',
     ];
+
+    /** 개인 폴더 여부 (user_id 가 설정되어 있으면 해당 사용자의 개인 폴더) */
+    public function isPersonal(): bool
+    {
+        return $this->user_id !== null;
+    }
 
     public function companyGroup(): BelongsTo
     {

@@ -167,6 +167,10 @@
         </style>
     </head>
     <body class="font-sans antialiased" style="background:var(--tBg);">
+        {{-- Quill 표준 이미지 모듈: 본문 어떤 곳에서든 IIFE/즉시실행 스크립트가 먼저 호출하더라도 정의되도록 body 최상단에 위치 --}}
+        @include('partials._quill-image-resize')
+        {{-- 메일 본문 이미지 주석 (네모/동그라미/화살표/텍스트 → burn-in 합성 후 재업로드) --}}
+        @include('partials._mail-image-annotator')
 
         @if(session('impersonating') && !request()->boolean('embed'))
         <div id="impersonate-bar" style="position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#b45309,#92400e);color:#fff;padding:8px 18px;font-size:12.5px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.25);">
@@ -930,11 +934,12 @@
                                             ],
                                         },
                                     });
-                                    // SR 표준: Copy & Paste + 8 방향 리사이즈
+                                    // SR 표준: Copy & Paste + 8 방향 리사이즈 + 이미지 주석
                                     if (window.installQuillImageResize) {
                                         _mcImgCtl = window.installQuillImageResize(_mcQuill, {
                                             uploadUrl: '{{ route('email-compose.upload-image') }}',
                                             csrfToken: '{{ csrf_token() }}',
+                                            enableAnnotate: true,
                                         });
                                     }
                                 }
@@ -987,8 +992,13 @@
                                 document.addEventListener('click', function(e) {
                                     const wrap = document.getElementById('mail-compose-wrap');
                                     if (!wrap) return;
-                                    // 이미지 리사이즈 오버레이(팝오버 바깥 클릭으로 인한 close 방지)
-                                    if (e.target.closest && e.target.closest('.stdq-img-overlay')) return;
+                                    // 이미지 리사이즈 관련 클릭(오버레이/핸들/Quill 에디터 내부/선택된 이미지)은 외부 클릭으로 간주하지 않음
+                                    if (e.target.closest && (
+                                        e.target.closest('.stdq-img-overlay') ||
+                                        e.target.closest('.stdq-img-handle') ||
+                                        e.target.closest('.ql-editor') ||
+                                        e.target.classList?.contains('stdq-img-selected')
+                                    )) return;
                                     if (!wrap.contains(e.target)) { mailComposeClose(); return; }
                                     const search = document.getElementById('mail-compose-search');
                                     const dd = document.getElementById('mail-compose-dropdown');
@@ -2232,8 +2242,6 @@
 
         @yield('scripts')
         @stack('scripts')
-        {{-- Quill 표준: 이미지 paste + 8 방향 리사이즈 (SR 요청 상세 기준) — 모든 페이지 공유 --}}
-        @include('partials._quill-image-resize')
         <script>
         (async function() {
             var ANN_KEY = 'sw_ann_dismissed';
