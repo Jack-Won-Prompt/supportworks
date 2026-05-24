@@ -463,6 +463,24 @@
     font-size:12px;color:#7c3aed;
 }
 
+/* 최상단 담당자 SR·Git 막대 차트 */
+#ai-content .top-chart{
+    background:#fff;border:1px solid #e2e8f0;border-radius:10px;
+    padding:12px 14px;margin:0 0 14px;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+#ai-content .top-chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+#ai-content .top-chart-head h3{margin:0;font-size:13.5px;font-weight:700;color:#0f172a;}
+#ai-content .top-chart-legend{display:flex;gap:12px;font-size:11.5px;color:#64748b;}
+#ai-content .top-chart-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle;}
+#ai-content .top-chart-rows{display:flex;flex-direction:column;gap:6px;}
+#ai-content .top-chart-row{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center;}
+#ai-content .top-chart-name{font-size:12.5px;font-weight:600;color:#0f172a;}
+#ai-content .top-chart-bars{display:flex;flex-direction:column;gap:3px;}
+#ai-content .top-chart-bar-row{display:flex;align-items:center;gap:6px;}
+#ai-content .top-chart-bar{height:13px;border-radius:3px;min-width:2px;transition:width .4s ease;}
+#ai-content .top-chart-bar-row > span{font-size:11px;color:#475569;font-weight:600;min-width:24px;font-variant-numeric:tabular-nums;}
+
 /* 주요 이슈 / 해결 방안 — 항목별 가로 카드 그리드 */
 #ai-content .issue-grid{
     display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;
@@ -819,7 +837,7 @@ function loadStoredSummary() {
         .then(r => r.json())
         .then(data => {
             if (data.summary) {
-                renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by);
+                renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by, data.summary.metrics);
                 renderCommitDetails(data.summary.commit_details, data.summary.common_commit_details);
                 document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
                 // 캐시가 7일 이상 낡으면 자동 재생성 (Git 최신화 + AI 재분석)
@@ -867,7 +885,7 @@ function viewStoredSummary() {
         .then(r => r.json())
         .then(data => {
             if (data.summary) {
-                renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by);
+                renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by, data.summary.metrics);
                 renderCommitDetails(data.summary.commit_details, data.summary.common_commit_details);
                 document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
                 if (data.summary.is_stale && window.appToast) {
@@ -924,7 +942,7 @@ function generateSummary() {
         if (data.error) {
             showError(data.error);
         } else {
-            renderContent(data.content, data.generated_at, data.generated_by);
+            renderContent(data.content, data.generated_at, data.generated_by, data.metrics);
             renderCommitDetails(data.commit_details, data.common_commit_details);
             document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
         }
@@ -1030,7 +1048,7 @@ function showError(msg) {
     document.getElementById('ai-error').style.display      = 'block';
     document.getElementById('ai-content').style.display    = 'none';
 }
-function renderContent(content, generatedAt, generatedBy) {
+function renderContent(content, generatedAt, generatedBy, metrics) {
     document.getElementById('ai-empty').style.display   = 'none';
     document.getElementById('ai-loading').style.display = 'none';
     document.getElementById('ai-error').style.display   = 'none';
@@ -1039,26 +1057,80 @@ function renderContent(content, generatedAt, generatedBy) {
     box.innerHTML = mdToHtml(content);
     document.getElementById('ai-meta').textContent = generatedAt + '  ' + generatedBy + MW_I18N.generated_by_suffix;
 
+    // 0) 최상단 — 담당자별 SR/Git 차트 (metrics 배열 또는 {project, common} 받음)
+    renderTopChart(box, metrics);
     // 1) 담당자 정량 지표 표 → 가로 카드 그리드
     transformAssigneeTables(box);
     // 2) 담당자별 업무 평가 (### 이름) → 가로 카드 그리드
     transformAssigneeEvalSection(box);
-    // 3) 난이도 분석 섹션 숨김 (사용자 요청)
+    // 3) 난이도 분석 섹션 숨김
     hideSectionByTitle(box, '난이도 분석');
     // 4) 주요 이슈 / 해결 방안 — 항목별 가로 카드
     transformListSectionToCards(box, '주요 이슈');
     transformListSectionToCards(box, '해결 방안');
-    // 5) 민감 키워드 필터 — 증빙·부재·실패 = 모두 숨김 / 불일치 = 관리자만
+    // 5) 민감 키워드 필터
     applySensitiveKeywordFilters(box);
 
     const wordBtn = document.getElementById('ai-word-btn');
     if (wordBtn) wordBtn.style.display = 'inline-flex';
 }
 
+// ── 최상단 담당자별 SR/Git 막대 차트 ─────────────────────────────────
+function renderTopChart(box, metrics) {
+    // metrics 가 {project:[...], common:[...]} 이면 project 사용. 배열이면 그대로.
+    let rows = [];
+    if (Array.isArray(metrics)) rows = metrics;
+    else if (metrics && Array.isArray(metrics.project)) rows = metrics.project;
+    if (!rows.length) return;
+
+    const data = rows
+        .map(m => ({
+            name: m.name || '—',
+            sr:  Number(m.sr_completed || 0),
+            git: Number(m.commits || 0),
+        }))
+        .filter(d => d.sr + d.git > 0);
+    if (!data.length) return;
+
+    const maxSr  = Math.max(1, ...data.map(d => d.sr));
+    const maxGit = Math.max(1, ...data.map(d => d.git));
+
+    const chart = document.createElement('div');
+    chart.className = 'top-chart';
+    chart.innerHTML =
+        `<div class="top-chart-head">` +
+            `<h3>📊 담당자별 SR·Git 활동</h3>` +
+            `<div class="top-chart-legend">` +
+                `<span><i style="background:#3b82f6"></i>SR 처리</span>` +
+                `<span><i style="background:#7c3aed"></i>Git 반영</span>` +
+            `</div>` +
+        `</div>` +
+        `<div class="top-chart-rows">` +
+            data.map(d =>
+                `<div class="top-chart-row">` +
+                    `<div class="top-chart-name">${escapeHtml(d.name)}</div>` +
+                    `<div class="top-chart-bars">` +
+                        `<div class="top-chart-bar-row">` +
+                            `<div class="top-chart-bar" style="width:${(d.sr/maxSr)*100}%;background:#3b82f6"></div>` +
+                            `<span>${d.sr}</span>` +
+                        `</div>` +
+                        `<div class="top-chart-bar-row">` +
+                            `<div class="top-chart-bar" style="width:${(d.git/maxGit)*100}%;background:#7c3aed"></div>` +
+                            `<span>${d.git}</span>` +
+                        `</div>` +
+                    `</div>` +
+                `</div>`
+            ).join('') +
+        `</div>`;
+
+    box.insertBefore(chart, box.firstChild);
+}
+
 // 민감 키워드가 포함된 요소(li/p/카드) 권한별 필터링
 function applySensitiveKeywordFilters(root) {
-    const hideForAll   = ['증빙', '부재', '실패'];                 // 모두 숨김
-    const hideForNonAdmin = ['불일치'];                            // 관리자 외 숨김
+    const hideForAll       = ['증빙', '부재', '실패'];        // 모두 숨김
+    const hideForNonAdmin  = ['불일치'];                      // 관리자 외 숨김
+    const hideForNonManager = ['기한 재설정'];                // 매니저(관리자 포함) 외 숨김
 
     const candidates = root.querySelectorAll('li, p, .issue-card, .eval-card, .eval-card-body > *');
     candidates.forEach(el => {
@@ -1068,6 +1140,10 @@ function applySensitiveKeywordFilters(root) {
             return;
         }
         if (!IS_ADMIN_USER && hideForNonAdmin.some(kw => txt.includes(kw))) {
+            el.style.display = 'none';
+            return;
+        }
+        if (!CAN_SEE_EVAL_BADGE && hideForNonManager.some(kw => txt.includes(kw))) {
             el.style.display = 'none';
         }
     });
