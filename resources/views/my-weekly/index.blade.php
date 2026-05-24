@@ -244,14 +244,18 @@
                 </select>
             </div>
 
-            {{-- 서머리 타입 토글 — 전체(지난 달) / 주차 --}}
+            {{-- 서머리 타입 토글 — 지난 달 / 이번 달 / 주차 --}}
             <div style="display:flex;background:var(--color-bg-muted);border-radius:8px;padding:3px;gap:4px;">
                 <button id="type-full-btn" onclick="setType('full')"
-                    style="padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.07);">
+                    style="padding:6px 14px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.07);">
                     전체 서머리 (지난 달)
                 </button>
+                <button id="type-this-month-btn" onclick="setType('this_month')"
+                    style="padding:6px 14px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:var(--color-text-secondary);">
+                    전체 서머리 (이번 달)
+                </button>
                 <button id="type-weekly-btn" onclick="setType('weekly')"
-                    style="padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:var(--color-text-secondary);">
+                    style="padding:6px 14px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:var(--color-text-secondary);">
                     {{ __('myweekly.summary_type_weekly') }}
                 </button>
             </div>
@@ -266,13 +270,18 @@
             @endif
         </div>
 
-        {{-- 2행: 주차 선택 (weekly 타입일 때만) --}}
-        <div id="week-row" style="display:none;align-items:center;gap:8px;">
+        {{-- 2행: 주차 선택 (weekly 타입일 때만) — From(월) ~ To(금, 자동) --}}
+        <div id="week-row" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;">
             <label style="font-size:12.5px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;">{{ __('myweekly.label_week') }}</label>
-            <select id="ai-week-sel" onchange="loadStoredSummary()"
-                style="flex:1;max-width:320px;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:#1f2937;background:#fff;outline:none;cursor:pointer;">
-                <option value="">{{ __('myweekly.week_select_project_first') }}</option>
-            </select>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <input type="date" id="ai-week-from"
+                       onchange="onWeekFromChange()" title="월요일만 선택 가능"
+                       style="padding:7px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:#1f2937;background:#fff;outline:none;cursor:pointer;">
+                <span style="font-size:12.5px;color:var(--color-text-tertiary);">~</span>
+                <input type="date" id="ai-week-to" readonly tabindex="-1"
+                       style="padding:7px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:#475569;background:#f8fafc;outline:none;cursor:not-allowed;">
+                <span id="ai-week-hint" style="font-size:11.5px;color:#94a3b8;margin-left:4px;">월요일 선택 시 금요일까지 자동</span>
+            </div>
         </div>
 
         {{-- SR 회사 멀티선택 (체크박스 그룹) — 선택된 회사 SR 만 서머리에 포함 --}}
@@ -295,12 +304,18 @@
 
         {{-- 3행: 생성 버튼 --}}
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <div id="ai-meta" style="font-size:12px;color:var(--color-text-tertiary);"></div>
+            <div id="ai-meta" style="display:none;font-size:12px;color:var(--color-text-tertiary);"></div>
             <div style="display:flex;gap:8px;">
                 <button id="ai-word-btn" onclick="downloadAiWord()" style="display:none;align-items:center;gap:4px;padding:8px 14px;border:1.5px solid var(--t300);border-radius:8px;font-size:12.5px;font-weight:600;color:var(--t700);background:#faf5ff;cursor:pointer;transition:all .15s;"
                     onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#faf5ff'">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     {{ __('myweekly.word_download') }}
+                </button>
+                <button id="ai-view-btn" onclick="viewStoredSummary()" title="저장된 서머리가 있으면 다시 불러옵니다"
+                    style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12.5px;font-weight:600;color:#475569;cursor:pointer;transition:all .15s;"
+                    onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';" onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    서머리 조회
                 </button>
                 <button id="ai-gen-btn" onclick="generateSummary()"
                     style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:#4f46e5;border:none;border-radius:8px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:opacity .15s;"
@@ -381,13 +396,153 @@
     display:flex;flex-direction:column;overflow:hidden;
     box-shadow:0 24px 60px rgba(0,0,0,.22);transition:opacity .2s,transform .2s;
 }
-#ai-content h1,#ai-content h2,#ai-content h3{font-weight:700;color:#1f2937;margin:18px 0 6px;}
-#ai-content h1{font-size:16px;}#ai-content h2{font-size:14.5px;}#ai-content h3{font-size:13.5px;}
-#ai-content ul,#ai-content ol{padding-left:22px;margin:6px 0;}
-#ai-content li{margin:3px 0;}
-#ai-content strong{font-weight:700;color:#1f2937;}
-#ai-content hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0;}
-#ai-content p{margin:6px 0;}
+/* ─── 웍스 서머리 본문 — 카드형 세련된 레이아웃 ─── */
+#ai-content{font-size:13.5px;line-height:1.75;color:#334155;}
+#ai-content > h1:first-child,#ai-content > h2:first-child{margin-top:0;}
+
+/* 섹션 헤딩 (## 헤딩이 섹션 카드의 헤더) */
+#ai-content h2{
+    font-size:15px;font-weight:700;color:#0f172a;
+    margin:24px 0 12px;padding:10px 14px;
+    background:linear-gradient(90deg,#eef2ff 0%,#faf5ff 100%);
+    border-left:4px solid #7c3aed;border-radius:7px;
+    display:flex;align-items:center;gap:8px;letter-spacing:-.01em;
+}
+#ai-content h2:first-child{margin-top:4px;}
+#ai-content h1{font-size:16.5px;font-weight:800;color:#1e293b;margin:20px 0 10px;}
+#ai-content h3{font-size:13.5px;font-weight:700;color:#475569;margin:14px 0 6px;}
+
+/* 본문 */
+#ai-content p{margin:8px 0;}
+#ai-content strong{font-weight:700;color:#1e293b;}
+#ai-content hr{border:none;border-top:1px dashed #e2e8f0;margin:20px 0;}
+
+/* 리스트 — 컬러 마커 */
+#ai-content ul,#ai-content ol{padding-left:6px;margin:8px 0;list-style:none;}
+#ai-content li{margin:6px 0;padding-left:20px;position:relative;}
+#ai-content li::before{
+    content:'';position:absolute;left:6px;top:9px;
+    width:6px;height:6px;border-radius:50%;background:#a78bfa;
+}
+#ai-content ul ul li::before{background:#cbd5e1;}
+
+/* 마크다운 테이블 → 데이터 표 */
+#ai-content table{
+    width:100%;border-collapse:separate;border-spacing:0;
+    margin:10px 0 14px;font-size:12.5px;
+    border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;
+}
+#ai-content thead th{
+    background:#f8fafc;color:#475569;font-weight:700;text-align:left;
+    padding:9px 12px;border-bottom:1px solid #e2e8f0;font-size:11.5px;
+    text-transform:uppercase;letter-spacing:.03em;
+}
+#ai-content tbody td{padding:9px 12px;border-bottom:1px solid #f1f5f9;color:#334155;}
+#ai-content tbody tr:last-child td{border-bottom:none;}
+#ai-content tbody tr:hover td{background:#fafbfc;}
+#ai-content tbody td:first-child{font-weight:600;color:#0f172a;}
+
+/* 평가 라벨 / 난이도 라벨 인라인 배지 */
+#ai-content .ai-badge{
+    display:inline-flex;align-items:center;padding:1px 8px;border-radius:11px;
+    font-size:11px;font-weight:700;margin:0 2px;letter-spacing:-.01em;
+}
+#ai-content .ai-badge-good{background:#dcfce7;color:#15803d;}
+#ai-content .ai-badge-ok{background:#dbeafe;color:#1e40af;}
+#ai-content .ai-badge-warn{background:#fef3c7;color:#a16207;}
+#ai-content .ai-badge-bad{background:#fee2e2;color:#b91c1c;}
+#ai-content .ai-badge-easy{background:#ecfeff;color:#0e7490;}
+#ai-content .ai-badge-medium{background:#eef2ff;color:#4338ca;}
+#ai-content .ai-badge-hard{background:#fef3c7;color:#a16207;}
+#ai-content .ai-badge-critical{background:#fee2e2;color:#b91c1c;}
+
+/* 코드 인라인 */
+#ai-content code{
+    background:#f1f5f9;padding:1px 6px;border-radius:4px;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    font-size:12px;color:#7c3aed;
+}
+
+/* 주요 이슈 / 해결 방안 — 항목별 가로 카드 그리드 */
+#ai-content .issue-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;
+    margin:8px 0 18px;align-items:start;
+}
+#ai-content .issue-card{
+    background:#fff;border:1px solid #e2e8f0;border-radius:9px;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);padding:10px 14px;
+    font-size:12.5px;line-height:1.65;color:#334155;min-width:0;
+    border-left:3px solid #c4b5fd;
+}
+#ai-content .issue-card:hover{border-left-color:#7c3aed;}
+#ai-content .issue-card strong{display:inline-block;color:#0f172a;font-weight:700;}
+#ai-content .issue-card ul{margin:4px 0;padding-left:2px;}
+#ai-content .issue-card li{margin:3px 0;padding-left:14px;font-size:12px;}
+#ai-content .issue-card li::before{top:6px;left:2px;width:4px;height:4px;background:#94a3b8;}
+/* 카드 내부 작은 그리드(eval/assignee)는 그리드 자식이 single 컬럼이 되도록 */
+#ai-content .section-card .eval-grid,
+#ai-content .section-card .assignee-grid{
+    grid-template-columns:1fr;
+}
+
+/* 담당자 카드 그리드 (정량 지표 표 → 카드) — 컴팩트 */
+#ai-content .assignee-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;
+    margin:8px 0 14px;
+}
+#ai-content .assignee-card{
+    background:#fff;border:1px solid #e2e8f0;border-radius:10px;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);overflow:hidden;
+}
+#ai-content .assignee-card-head{
+    display:flex;align-items:center;gap:8px;padding:10px 12px;
+    background:linear-gradient(135deg,#eef2ff 0%,#faf5ff 100%);
+    border-bottom:1px solid #e9e7fb;
+}
+#ai-content .assignee-avatar{
+    width:28px;height:28px;border-radius:50%;
+    background:#7c3aed;color:#fff;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;flex-shrink:0;
+}
+#ai-content .assignee-name{font-size:13.5px;font-weight:700;color:#0f172a;}
+#ai-content .assignee-card-body{padding:8px 12px 10px;}
+#ai-content .assignee-metric{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:4px 0;border-bottom:1px dashed #f1f5f9;font-size:12px;
+}
+#ai-content .assignee-metric:last-child{border-bottom:none;}
+#ai-content .assignee-metric-key{color:#64748b;font-weight:500;}
+#ai-content .assignee-metric-val{color:#0f172a;font-weight:600;font-variant-numeric:tabular-nums;}
+
+/* 담당자별 업무 평가 카드 그리드 (### 이름 → 카드) — 컴팩트 */
+#ai-content .eval-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;
+    margin:6px 0 14px;
+}
+#ai-content .eval-card{
+    background:#fff;border:1px solid #e2e8f0;border-radius:10px;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);overflow:hidden;
+    display:flex;flex-direction:column;
+}
+#ai-content .eval-card-head{
+    display:flex;align-items:center;gap:8px;padding:10px 13px;
+    background:linear-gradient(135deg,#fafbff 0%,#fff 100%);
+    border-bottom:1px solid #f1f5f9;
+}
+#ai-content .eval-avatar{
+    width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:13.5px;font-weight:700;flex-shrink:0;
+}
+#ai-content .eval-name{font-size:14px;font-weight:700;color:#0f172a;}
+#ai-content .eval-card-body{padding:8px 13px 12px;font-size:12.5px;line-height:1.7;}
+#ai-content .eval-card-body ul{padding-left:2px;margin:4px 0;}
+#ai-content .eval-card-body li{margin:4px 0;padding-left:18px;}
+#ai-content .eval-card-body li::before{top:8px;left:4px;}
+#ai-content .eval-card-body p{margin:4px 0;}
+#ai-content .eval-card-body strong{color:#475569;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;}
 </style>
 
 <div id="mw-popup-backdrop" onclick="if(event.target===this) closeWeeklyPopup()">
@@ -402,6 +557,8 @@
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const SR_GEN_URL  = @json(route('weekly-reports.sr-summary.generate'));
 const SR_SHOW_URL = @json(route('weekly-reports.sr-summary.show'));
+const CAN_SEE_EVAL_BADGE = @json((bool) ($canSyncGit ?? false));  // 평가 라벨 배지 노출 권한 (관리자/매니저)
+const IS_ADMIN_USER      = @json((bool) (auth()->user()?->isAdmin() ?? false));  // 관리자 전용 콘텐츠 노출
 const PROJECT_WEEKS = @json($projectWeeksMap ?? []);
 
 // 번역 문자열
@@ -507,19 +664,8 @@ function onProjectChange() {
         syncBtn.style.display = (pid && linked) ? 'inline-flex' : 'none';
     }
 
-    // 주차 목록 업데이트
-    const weekSel = document.getElementById('ai-week-sel');
-    if (weekSel) {
-        weekSel.innerHTML = '<option value=""></option>';
-        weekSel.options[0].textContent = MW_I18N.week_select;
-        const weeks = PROJECT_WEEKS[pid] ?? [];
-        weeks.forEach(w => {
-            const o = document.createElement('option');
-            o.value = w.date;
-            o.textContent = w.label;
-            weekSel.appendChild(o);
-        });
-    }
+    // 주차 목록 업데이트 — 최근 12주 자동 생성 (보고서 유무 무관)
+    populateWeekOptions();
 
     resetResult();
     if (pid) loadStoredSummary();
@@ -529,20 +675,23 @@ function onProjectChange() {
 let currentType = 'full';
 function setType(type) {
     currentType = type;
-    const fullBtn   = document.getElementById('type-full-btn');
-    const weeklyBtn = document.getElementById('type-weekly-btn');
-    const weekRow   = document.getElementById('week-row');
+    const fullBtn      = document.getElementById('type-full-btn');
+    const thisMonthBtn = document.getElementById('type-this-month-btn');
+    const weeklyBtn    = document.getElementById('type-weekly-btn');
+    const weekRow      = document.getElementById('week-row');
 
-    const activeStyle  = 'padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.07);';
-    const passiveStyle = 'padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:#6b7280;';
+    const activeStyle  = 'padding:6px 14px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.07);';
+    const passiveStyle = 'padding:6px 14px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:#6b7280;';
 
-    fullBtn.style.cssText   = type === 'full'   ? activeStyle : passiveStyle;
-    weeklyBtn.style.cssText = type === 'weekly' ? activeStyle : passiveStyle;
-    weekRow.style.display   = type === 'weekly' ? 'flex' : 'none';
+    fullBtn.style.cssText      = type === 'full'       ? activeStyle : passiveStyle;
+    thisMonthBtn.style.cssText = type === 'this_month' ? activeStyle : passiveStyle;
+    weeklyBtn.style.cssText    = type === 'weekly'     ? activeStyle : passiveStyle;
+    weekRow.style.display      = type === 'weekly'     ? 'flex' : 'none';
 
     resetResult();
     const pid = document.getElementById('ai-project-sel').value;
-    if (pid) loadStoredSummary();
+    const srAny = document.querySelectorAll('.ai-sr-company:checked').length > 0;
+    if (pid || srAny) loadStoredSummary();
 }
 
 // ── WITHWORKS Git 동기화 ─────────────────────────────────────────────
@@ -575,6 +724,74 @@ async function syncWithWorksGit() {
     }
 }
 
+// ── 주차 선택 (From=월요일, To=금요일 자동) ──────────────────────────
+function fmtDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+}
+function thisMonday() {
+    const t = new Date();
+    const dow = t.getDay();
+    const off = dow === 0 ? -6 : 1 - dow;
+    return new Date(t.getFullYear(), t.getMonth(), t.getDate() + off);
+}
+
+// 페이지 로드 시 From input 초기 설정
+document.addEventListener('DOMContentLoaded', () => {
+    const fromInput = document.getElementById('ai-week-from');
+    if (!fromInput) return;
+    const mon = thisMonday();
+    fromInput.max = fmtDate(mon);          // 미래 주(이번주 월요일 이후) 선택 불가
+    // 기본값은 비워둠 — 사용자가 선택하도록
+});
+
+// From 변경 시: 월요일 검증 + 미래 검증 + To 자동 설정 + 캐시 조회
+function onWeekFromChange() {
+    const fromInput = document.getElementById('ai-week-from');
+    const toInput   = document.getElementById('ai-week-to');
+    const hint      = document.getElementById('ai-week-hint');
+    if (!fromInput.value) {
+        toInput.value = '';
+        if (hint) hint.textContent = '월요일 선택 시 금요일까지 자동';
+        return;
+    }
+    const d = new Date(fromInput.value + 'T00:00:00');
+    const dow = d.getDay(); // 0=일, 1=월
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    // 미래 검증
+    if (d > today) {
+        if (hint) { hint.textContent = '미래 날짜는 선택할 수 없습니다.'; hint.style.color = '#dc2626'; }
+        fromInput.value = '';
+        toInput.value = '';
+        return;
+    }
+    // 월요일이 아니면 가장 가까운 이전 월요일로 보정
+    if (dow !== 1) {
+        const off = dow === 0 ? -6 : 1 - dow;
+        const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + off);
+        fromInput.value = fmtDate(mon);
+        if (hint) { hint.textContent = `월요일이 아니라서 ${fmtDate(mon)} 로 보정됨`; hint.style.color = '#a16207'; }
+    } else {
+        if (hint) { hint.textContent = '월~금 5일'; hint.style.color = '#16a34a'; }
+    }
+    // To = From + 4일 (금요일)
+    const start = new Date(fromInput.value + 'T00:00:00');
+    const end = new Date(start);
+    end.setDate(start.getDate() + 4);
+    toInput.value = fmtDate(end);
+
+    loadStoredSummary();
+}
+
+// 기존 ai-week-sel 참조 호환 — From input 값을 폼 제출용으로 노출
+function getCurrentWeekDate() {
+    const f = document.getElementById('ai-week-from');
+    return f && f.value ? f.value : '';
+}
+
 // ── 저장된 서머리 불러오기 ─────────────────────────────────────────
 function loadStoredSummary() {
     const pid  = document.getElementById('ai-project-sel').value;
@@ -582,7 +799,7 @@ function loadStoredSummary() {
         .map(cb => parseInt(cb.value, 10)).filter(Number.isFinite);
     if (!pid && srCompanyIds.length === 0) { resetResult(); return; }
 
-    const weekDate = currentType === 'weekly' ? (document.getElementById('ai-week-sel')?.value ?? '') : '';
+    const weekDate = currentType === 'weekly' ? getCurrentWeekDate() : '';
     if (currentType === 'weekly' && !weekDate) { resetResult(); return; }
 
     // 프로젝트 있으면 프로젝트 라우트, 없으면 SR 전용 라우트
@@ -617,6 +834,57 @@ function loadStoredSummary() {
         .catch(() => resetResult());
 }
 
+// ── 저장된 서머리 명시적 조회 (버튼 클릭) ─────────────────────────────
+function viewStoredSummary() {
+    const pid = document.getElementById('ai-project-sel').value;
+    const srCompanyIds = Array.from(document.querySelectorAll('.ai-sr-company:checked'))
+        .map(cb => parseInt(cb.value, 10)).filter(Number.isFinite);
+    if (!pid && srCompanyIds.length === 0) {
+        alert('프로젝트 또는 SR 회사를 먼저 선택하세요.');
+        return;
+    }
+    const weekDate = currentType === 'weekly' ? getCurrentWeekDate() : '';
+    if (currentType === 'weekly' && !weekDate) {
+        alert(MW_I18N.alert_select_week);
+        return;
+    }
+
+    // 명시적 조회 모드 — 캐시 없으면 안내. is_stale 이어도 자동 재생성 안 함 (조회만).
+    let apiUrl;
+    const params = new URLSearchParams({ type: currentType });
+    if (weekDate) params.set('week', weekDate);
+    if (pid) {
+        const opt = document.getElementById('ai-project-sel').options[document.getElementById('ai-project-sel').selectedIndex];
+        apiUrl = opt?.dataset?.aiUrl;
+    } else {
+        apiUrl = SR_SHOW_URL;
+        srCompanyIds.forEach(id => params.append('sr_company_ids[]', id));
+    }
+    if (!apiUrl) return;
+
+    showLoading();
+    fetch(`${apiUrl}?${params}`, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } })
+        .then(r => r.json())
+        .then(data => {
+            if (data.summary) {
+                renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by);
+                renderCommitDetails(data.summary.commit_details, data.summary.common_commit_details);
+                document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
+                if (data.summary.is_stale && window.appToast) {
+                    window.appToast('info', `저장된 서머리(${data.summary.stale_days}일 전). 갱신은 [생성] 버튼.`, 4000);
+                }
+            } else {
+                resetResult();
+                if (window.appToast) window.appToast('warn', '저장된 서머리가 없습니다. [생성] 버튼으로 만드세요.', 3500);
+                else alert('저장된 서머리가 없습니다.');
+            }
+        })
+        .catch(() => {
+            resetResult();
+            alert('조회 실패');
+        });
+}
+
 // ── 웍스 서머리 생성 ──────────────────────────────────────────────────
 function generateSummary() {
     const pid = document.getElementById('ai-project-sel').value;
@@ -626,7 +894,7 @@ function generateSummary() {
     // 프로젝트 또는 SR 회사 둘 중 하나는 있어야 함
     if (!pid && srCompanyIds.length === 0) { alert(MW_I18N.alert_select_project); return; }
 
-    const weekDate = currentType === 'weekly' ? (document.getElementById('ai-week-sel')?.value ?? '') : '';
+    const weekDate = currentType === 'weekly' ? getCurrentWeekDate() : '';
     if (currentType === 'weekly' && !weekDate) { alert(MW_I18N.alert_select_week); return; }
 
     showLoading();
@@ -766,12 +1034,221 @@ function renderContent(content, generatedAt, generatedBy) {
     document.getElementById('ai-empty').style.display   = 'none';
     document.getElementById('ai-loading').style.display = 'none';
     document.getElementById('ai-error').style.display   = 'none';
-    document.getElementById('ai-content').style.display = 'block';
-    document.getElementById('ai-content').innerHTML     = mdToHtml(content);
-    document.getElementById('ai-meta').textContent      = generatedAt + '  ' + generatedBy + MW_I18N.generated_by_suffix;
+    const box = document.getElementById('ai-content');
+    box.style.display = 'block';
+    box.innerHTML = mdToHtml(content);
+    document.getElementById('ai-meta').textContent = generatedAt + '  ' + generatedBy + MW_I18N.generated_by_suffix;
+
+    // 1) 담당자 정량 지표 표 → 가로 카드 그리드
+    transformAssigneeTables(box);
+    // 2) 담당자별 업무 평가 (### 이름) → 가로 카드 그리드
+    transformAssigneeEvalSection(box);
+    // 3) 난이도 분석 섹션 숨김 (사용자 요청)
+    hideSectionByTitle(box, '난이도 분석');
+    // 4) 주요 이슈 / 해결 방안 — 항목별 가로 카드
+    transformListSectionToCards(box, '주요 이슈');
+    transformListSectionToCards(box, '해결 방안');
+    // 5) 민감 키워드 필터 — 증빙·부재·실패 = 모두 숨김 / 불일치 = 관리자만
+    applySensitiveKeywordFilters(box);
 
     const wordBtn = document.getElementById('ai-word-btn');
     if (wordBtn) wordBtn.style.display = 'inline-flex';
+}
+
+// 민감 키워드가 포함된 요소(li/p/카드) 권한별 필터링
+function applySensitiveKeywordFilters(root) {
+    const hideForAll   = ['증빙', '부재', '실패'];                 // 모두 숨김
+    const hideForNonAdmin = ['불일치'];                            // 관리자 외 숨김
+
+    const candidates = root.querySelectorAll('li, p, .issue-card, .eval-card, .eval-card-body > *');
+    candidates.forEach(el => {
+        const txt = el.textContent || '';
+        if (hideForAll.some(kw => txt.includes(kw))) {
+            el.style.display = 'none';
+            return;
+        }
+        if (!IS_ADMIN_USER && hideForNonAdmin.some(kw => txt.includes(kw))) {
+            el.style.display = 'none';
+        }
+    });
+}
+
+// 특정 ## 섹션(헤딩 텍스트로 매칭)을 헤딩 + 다음 h2 전 sibling 들과 함께 숨김
+function hideSectionByTitle(root, title) {
+    const h2 = Array.from(root.querySelectorAll('h2')).find(h => h.textContent.trim().includes(title));
+    if (!h2) return;
+    h2.style.display = 'none';
+    let n = h2.nextSibling;
+    while (n) {
+        const next = n.nextSibling;
+        if (n.nodeType === 1) {
+            if (n.tagName === 'H2') break;
+            n.style.display = 'none';
+        }
+        n = next;
+    }
+}
+
+// 특정 ## 섹션 안의 첫 <ul> 항목들을 가로 카드 그리드로 변환
+function transformListSectionToCards(root, title) {
+    const h2 = Array.from(root.querySelectorAll('h2')).find(h => h.textContent.trim().includes(title));
+    if (!h2) return;
+    // 다음 ul 찾기 (다음 h2 전에)
+    let n = h2.nextElementSibling, ul = null;
+    while (n && n.tagName !== 'H2') {
+        if (n.tagName === 'UL') { ul = n; break; }
+        n = n.nextElementSibling;
+    }
+    if (!ul) return;
+
+    const items = Array.from(ul.children).filter(c => c.tagName === 'LI');
+    if (items.length === 0) return;
+
+    const grid = document.createElement('div');
+    grid.className = 'issue-grid';
+    items.forEach(li => {
+        const card = document.createElement('div');
+        card.className = 'issue-card';
+        card.innerHTML = li.innerHTML;
+        grid.appendChild(card);
+    });
+    ul.replaceWith(grid);
+}
+
+// 모든 ## H2 섹션을 카드로 wrap 한 뒤 가로 그리드로 배치
+function transformSectionsToGrid(root) {
+    const headings = Array.from(root.querySelectorAll('h2'));
+    if (headings.length === 0) return;
+
+    const grid = document.createElement('div');
+    grid.className = 'section-grid';
+    headings[0].parentNode.insertBefore(grid, headings[0]);
+
+    headings.forEach(h => {
+        // ⚠ h2 를 카드로 옮기기 전에 sibling 들을 먼저 수집 (옮긴 뒤엔 참조 불가)
+        const siblings = [];
+        let n = h.nextSibling;
+        while (n) {
+            if (n.nodeType === 1 && n.tagName === 'H2') break;
+            siblings.push(n);
+            n = n.nextSibling;
+        }
+
+        const card = document.createElement('section');
+        card.className = 'section-card';
+        card.appendChild(h);
+        siblings.forEach(s => card.appendChild(s));
+        grid.appendChild(card);
+    });
+
+    grid.querySelectorAll('p').forEach(p => {
+        if (!p.textContent.trim() && p.children.length === 0) p.remove();
+    });
+}
+
+// '## 담당자별 업무 평가' 다음의 '### 이름' 헤딩 단위를 가로 카드로 묶음
+function transformAssigneeEvalSection(root) {
+    const headings = Array.from(root.querySelectorAll('h2'));
+    const target = headings.find(h => h.textContent.trim().includes('담당자별 업무 평가'));
+    if (!target) return;
+
+    // 다음 h2 를 만날 때까지의 요소들을 모음
+    const collected = [];
+    let n = target.nextElementSibling;
+    while (n && n.tagName !== 'H2') {
+        collected.push(n);
+        n = n.nextElementSibling;
+    }
+    // h3 단위로 그룹화
+    const groups = [];
+    let cur = null;
+    collected.forEach(el => {
+        if (el.tagName === 'H3') {
+            cur = { head: el, body: [] };
+            groups.push(cur);
+        } else if (cur) {
+            cur.body.push(el);
+        }
+    });
+    if (groups.length === 0) return;
+
+    // 그리드 컨테이너 생성
+    const grid = document.createElement('div');
+    grid.className = 'eval-grid';
+
+    groups.forEach(g => {
+        const card = document.createElement('div');
+        card.className = 'eval-card';
+
+        // 라벨 자동 추출 (첫 li 안의 우수/양호/개선 필요/위험)
+        const text = g.body.map(b => b.outerHTML).join('');
+        let badgeClass = '';
+        let labelText = '';
+        const m = text.match(/<span class="ai-badge ai-badge-(good|ok|warn|bad)">([^<]+)<\/span>/);
+        if (m) { badgeClass = m[1]; labelText = m[2]; }
+
+        const name = g.head.textContent.trim();
+        const head = document.createElement('div');
+        head.className = 'eval-card-head';
+        head.innerHTML =
+            `<span class="eval-avatar">${escapeHtml(name).slice(0,1)}</span>` +
+            `<span class="eval-name">${escapeHtml(name)}</span>` +
+            (labelText && CAN_SEE_EVAL_BADGE ? `<span class="ai-badge ai-badge-${badgeClass}" style="margin-left:auto;">${escapeHtml(labelText)}</span>` : '');
+        card.appendChild(head);
+
+        const body = document.createElement('div');
+        body.className = 'eval-card-body';
+        g.body.forEach(el => body.appendChild(el.cloneNode(true)));
+        card.appendChild(body);
+
+        grid.appendChild(card);
+    });
+
+    // 원본 헤딩(들)·내용 제거 후 그리드로 교체
+    target.insertAdjacentElement('afterend', grid);
+    [...collected, ...groups.map(g => g.head)].forEach(el => el.remove());
+}
+
+// 첫 컬럼이 '담당자' 인 표를 가로 카드 그리드로 변환
+function transformAssigneeTables(root) {
+    const tables = root.querySelectorAll('table');
+    tables.forEach(tbl => {
+        const headers = Array.from(tbl.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        if (headers.length === 0 || headers[0] !== '담당자') return;
+
+        const rows = Array.from(tbl.querySelectorAll('tbody tr'));
+        if (rows.length === 0) return;
+
+        const grid = document.createElement('div');
+        grid.className = 'assignee-grid';
+
+        rows.forEach(tr => {
+            const cells = Array.from(tr.querySelectorAll('td')).map(td => td.innerHTML.trim());
+            const name = cells[0] || '—';
+            const card = document.createElement('div');
+            card.className = 'assignee-card';
+
+            // 헤더 (담당자명)
+            const head = document.createElement('div');
+            head.className = 'assignee-card-head';
+            head.innerHTML = `<span class="assignee-avatar">${escapeHtml(name).slice(0,1)}</span><span class="assignee-name">${escapeHtml(name)}</span>`;
+            card.appendChild(head);
+
+            // 메트릭 행들 (1~N 컬럼)
+            const body = document.createElement('div');
+            body.className = 'assignee-card-body';
+            for (let i = 1; i < headers.length; i++) {
+                const row = document.createElement('div');
+                row.className = 'assignee-metric';
+                row.innerHTML = `<span class="assignee-metric-key">${escapeHtml(headers[i])}</span><span class="assignee-metric-val">${cells[i] ?? '—'}</span>`;
+                body.appendChild(row);
+            }
+            card.appendChild(body);
+            grid.appendChild(card);
+        });
+
+        tbl.replaceWith(grid);
+    });
 }
 
 function downloadAiWord() {
@@ -780,27 +1257,75 @@ function downloadAiWord() {
     const baseUrl = opt?.dataset?.wordUrl;
     if (!baseUrl) return;
 
-    const weekDate = currentType === 'weekly' ? (document.getElementById('ai-week-sel')?.value ?? '') : '';
+    const weekDate = currentType === 'weekly' ? getCurrentWeekDate() : '';
     const params   = new URLSearchParams({ type: currentType });
     if (weekDate) params.append('week', weekDate);
 
     window.location.href = baseUrl + '?' + params.toString();
 }
 
-// ── 마크다운 → HTML 변환 ────────────────────────────────────────────
+// ── 마크다운 → HTML 변환 (테이블·코드·라벨 배지 포함) ──────────────────
 function mdToHtml(text) {
-    return text
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/^#### (.+)$/gm,'<h3>$1</h3>')
-        .replace(/^### (.+)$/gm,'<h3>$1</h3>')
-        .replace(/^## (.+)$/gm,'<h2>$1</h2>')
-        .replace(/^# (.+)$/gm,'<h1>$1</h1>')
-        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-        .replace(/^\s*[-*•]\s+(.+)$/gm,'<li>$1</li>')
-        .replace(/(<li>[\s\S]+?<\/li>)/g,'<ul>$1</ul>')
-        .replace(/^---$/gm,'<hr>')
-        .replace(/\n\n/g,'<p></p>')
-        .replace(/\n/g,'<br>');
+    // 1) HTML 이스케이프 먼저
+    let s = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // 2) 마크다운 테이블 파싱 — | col | col | 형태 연속 라인
+    s = s.replace(/((?:^\|.+\|\n?)+)/gm, (block) => {
+        const lines = block.trim().split('\n').filter(l => l.startsWith('|'));
+        if (lines.length < 2) return block;
+        // 두번째 줄이 separator (--- 형태) 인지
+        const isSep = /^\|[\s:|-]+\|$/.test(lines[1].trim());
+        if (!isSep) return block;
+        const head = lines[0].split('|').slice(1, -1).map(c => c.trim());
+        const body = lines.slice(2).map(r => r.split('|').slice(1, -1).map(c => c.trim()));
+        const thead = '<thead><tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
+        const tbody = '<tbody>' + body.map(r => '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>').join('') + '</tbody>';
+        return `<table>${thead}${tbody}</table>`;
+    });
+
+    // 3) 헤딩
+    s = s.replace(/^#### (.+)$/gm,'<h3>$1</h3>')
+         .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+         .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+         .replace(/^# (.+)$/gm,'<h1>$1</h1>');
+
+    // 4) 강조 / 코드 / hr
+    s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+         .replace(/`([^`]+)`/g,'<code>$1</code>')
+         .replace(/^---$/gm,'<hr>');
+
+    // 5) 불릿 리스트 (연속된 -/* 라인을 하나의 <ul> 로)
+    s = s.replace(/(?:^[ \t]*[-*•] .+(?:\n|$))+/gm, (block) => {
+        const items = block.split('\n')
+            .filter(l => /^[ \t]*[-*•] /.test(l))
+            .map(l => l.replace(/^[ \t]*[-*•] /, ''))
+            .map(l => `<li>${l}</li>`)
+            .join('');
+        return `<ul>${items}</ul>`;
+    });
+
+    // 6) 단락 / 줄바꿈 — 테이블 내부는 손대지 않게 보호
+    const protect = [];
+    s = s.replace(/<(table|ul|h[1-3]|hr|pre)[\s\S]*?<\/\1>|<hr>/g, (m) => {
+        protect.push(m); return `${protect.length - 1}`;
+    });
+    s = s.split(/\n{2,}/).map(p => p.trim() ? `<p>${p.replace(/\n/g,'<br>')}</p>` : '').join('');
+    s = s.replace(/(\d+)/g, (_, i) => protect[Number(i)]);
+
+    // 7) 평가 라벨 — 관리자/매니저만 컬러 배지. 그 외 사용자는 일반 텍스트로 노출.
+    if (CAN_SEE_EVAL_BADGE) {
+        s = s.replace(/(?:^|\s|>|\()(우수|양호|개선 ?필요|위험)(?=\s|<|\)|,|\.|$)/g, (m, w) => {
+            const cls = w === '우수' ? 'good' : w === '양호' ? 'ok' : (w.replace(' ','') === '개선필요' ? 'warn' : 'bad');
+            return m.replace(w, `<span class="ai-badge ai-badge-${cls}">${w}</span>`);
+        });
+    }
+    s = s.replace(/(?:^|\s|>|\()(쉬움|보통-쉬움|보통|어려움|매우 ?어려움)(?=\s|<|\)|,|\.|$)/g, (m, w) => {
+        const k = w.replace(' ','');
+        const cls = k === '쉬움' ? 'easy' : (k === '보통-쉬움' || k === '보통') ? 'medium' : (k === '어려움' ? 'hard' : 'critical');
+        return m.replace(w, `<span class="ai-badge ai-badge-${cls}">${w}</span>`);
+    });
+
+    return s;
 }
 
 // ── 보고서 작성 팝업 ─────────────────────────────────────────────────

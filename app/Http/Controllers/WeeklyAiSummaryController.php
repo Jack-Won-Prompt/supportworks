@@ -105,7 +105,7 @@ class WeeklyAiSummaryController extends Controller
         @ini_set('memory_limit', '512M');
 
         $request->validate([
-            'type'              => 'required|in:full,weekly',
+            'type'              => 'required|in:full,this_month,weekly',
             'week'              => 'nullable|date',
             'sr_company_ids'    => 'nullable|array',
             'sr_company_ids.*'  => 'integer',
@@ -206,30 +206,44 @@ class WeeklyAiSummaryController extends Controller
             : '전체 기간';
 
         $systemPrompt = <<<PROMPT
-당신은 프로젝트 관리 전문가입니다. 아래 데이터를 바탕으로 관리자(SR 담당자 포함)에게 필요한 종합 분석을 제공합니다.
+당신은 엄정한 엔지니어링 매니저입니다. 아래 데이터를 **논리적이고 냉정하게** 평가합니다.
+모든 판단에는 **데이터 근거(어느 커밋·어느 파일·어떤 수치)** 가 함께 제시돼야 합니다.
+"열심히 했다"는 인상이 아닌 **Git 커밋 제목·파일 경로·난이도·SR 처리·위클리 보고 사실** 만 근거로 사용합니다. 추측·온정주의·격려성 표현을 거부합니다.
 
-반드시 다음 구성으로 작성하세요. 각 섹션은 마크다운 헤딩(##)으로 구분합니다:
+다음 구성으로 작성하세요. 각 섹션은 마크다운 헤딩(##)으로 구분:
 
 ## 담당자별 업무 평가
-각 담당자가 *얼마나 일했는지·얼마나 안 했는지* 를 정량 지표(SR 처리, 커밋, 위클리 보고)와 함께 평가합니다. **위클리 보고에 기록된 내용과 실제 SR/커밋 활동이 일치하는지**, 일치하지 않는다면 무엇이 누락/과장되었는지 명시합니다. 우수/양호/개선 필요 레이블을 부여합니다.
+각 담당자를 **반드시 `### 이름` 헤딩으로 구분**하세요. 그 아래에 다음 4개 불릿을 순서대로 작성:
+- **라벨**: 우수 / 양호 / 개선 필요 / 위험 중 하나 (남용 금지)
+- **주요 작업**: 어느 커밋·어느 파일·어떤 기능 (커밋 제목 인용 2~3개)
+- **보고-실적**: 위클리 보고 내용과 실제 Git/SR 활동 일치 여부. 불일치는 명시적 지적
+- **약점·우려**: 단순 변경 위주, 보고 누락, 책임 회피 등
+
+라벨 기준 — **데이터로 입증된 경우에만**:
+- **우수**: 난이도 평균 3.0+ + 커밋·SR 모두 활발 + 보고 일치
+- **양호**: 일반적 수준 (난이도 평균 2.0~3.0)
+- **개선 필요**: 활동 미미 또는 단순 변경(typo·docs·lint) 위주 또는 보고-실적 불일치
+- **위험**: 활동 거의 없음 + 보고 누락 + 책임 회피
 
 ## 난이도 분석
-각 담당자의 커밋 난이도 분포(쉬움/보통/어려움/매우 어려움) 와 평균 난이도를 활용해 *작업의 무게감* 을 평가합니다. 단순 양뿐 아니라 어려운 작업을 얼마나 처리했는지, 또는 쉬운 작업만 반복하는지 분석합니다. 난이도 점수는 시스템이 휴리스틱(LOC + 파일 수 + 키워드)으로 산출한 값입니다.
+- 단순 커밋 수가 아닌 **무게감**으로 판단. 쉬운 변경만 반복한 사람은 칭찬 대상이 아님.
+- 평균 난이도가 낮고 쉬움 비율이 높은 담당자는 명시적으로 지적.
+- 난이도 라벨: 쉬움(1.0-1.5) / 보통-쉬움(1.5-2.5) / 보통(2.5-3.5) / 어려움(3.5-4.5) / 매우 어려움(4.5-5.0)
 
 ## 주요 이슈
-지연·미완료·반복 보고된 문제, 보고와 실적의 불일치, 무책임한 영역.
+- 지연, 반복 실패, 보고-실적 불일치, 무책임한 영역. 담당자 이름과 함께 구체적으로.
 
 ## 해결 방안
-각 이슈에 대한 구체적 실행 방안.
+각 이슈에 대해 관리자가 즉시 취할 조치 (담당자 면담·재배치·교육·기한 재설정 등).
 
 ## 종합 의견
-관리자가 즉시 조치할 항목 우선순위 + 향후 주의사항.
+이번 기간의 핵심 문제 + 즉시 조치 우선순위.
 
 규칙:
-- 한국어 작성, 불릿 포인트 사용
-- 추측이 아닌 데이터 기반으로만 평가 (지표가 0인 항목은 "활동 없음" 으로 명시)
-- 담당자 이름은 그대로 표기
-- 난이도 라벨: 쉬움(1.0-1.5) / 보통-쉬움(1.5-2.5) / 보통(2.5-3.5) / 어려움(3.5-4.5) / 매우 어려움(4.5-5.0)
+- 한국어, 불릿. 짧고 단호하게.
+- **추측·미사여구·격려성 표현 금지**. 데이터로 입증 안 되면 평가하지 마세요.
+- 활동 0건은 "활동 없음 — 보고 내용 검증 필요" 로 명시.
+- 담당자 이름은 그대로 표기.
 PROMPT;
 
         $userPrompt = "기간: {$rangeLabel}\n"
@@ -321,9 +335,16 @@ PROMPT;
     private function resolveRange(string $type, Project $project, ?string $week, ?string $rs, ?string $re): array
     {
         if ($type === 'weekly' && $week) {
+            // weekly = 월~금 (5일)
             $start = Carbon::parse($week)->startOfDay();
-            $end   = $start->copy()->addDays(7)->subSecond();
+            $end   = $start->copy()->addDays(5)->subSecond();
             return [$start, $end, '주차', $week, $week, null];
+        }
+        if ($type === 'this_month') {
+            // 이번 달 1일 ~ 오늘
+            $start = now()->startOfMonth();
+            $end   = now()->endOfDay();
+            return [$start, $end, '이번 달 (' . $start->format('Y-m-d') . ' ~ ' . $end->format('Y-m-d') . ')', null, null, null];
         }
         // full = 이전 달력 월
         $start = now()->subMonthNoOverflow()->startOfMonth();
@@ -597,7 +618,7 @@ PROMPT;
     public function srShow(Request $request): JsonResponse
     {
         $request->validate([
-            'type'             => 'required|in:full,weekly',
+            'type'             => 'required|in:full,this_month,weekly',
             'week'             => 'nullable|date',
             'sr_company_ids'   => 'required|array|min:1',
             'sr_company_ids.*' => 'integer',
@@ -643,7 +664,7 @@ PROMPT;
         @ini_set('memory_limit', '512M');
 
         $request->validate([
-            'type'             => 'required|in:full,weekly',
+            'type'             => 'required|in:full,this_month,weekly',
             'week'             => 'nullable|date',
             'sr_company_ids'   => 'required|array|min:1',
             'sr_company_ids.*' => 'integer',
@@ -726,7 +747,28 @@ PROMPT;
         $commitSection      = $this->renderCommitsForAi($commits);
         $commonCommitSection = $this->renderCommitsForAi($commonCommits);
 
-        $systemPrompt = '당신은 프로젝트 관리 전문가입니다. 아래 데이터로 관리자에게 종합 분석을 제공합니다. 마크다운 헤딩(##)으로 섹션 구분, 한국어, 불릿. 섹션: 담당자별 업무 평가, 난이도 분석, 주요 이슈, 해결 방안, 종합 의견.';
+        $systemPrompt = <<<PROMPT
+당신은 엄정한 엔지니어링 매니저입니다. 아래 데이터를 **논리적이고 냉정하게** 평가합니다.
+모든 판단에는 **데이터 근거(어느 커밋·어느 파일·어떤 수치)** 가 함께 제시돼야 합니다.
+추측·온정주의·격려성 표현 거부.
+
+마크다운 헤딩(##)으로 섹션 구분, 한국어, 불릿, 짧고 단호하게.
+
+## 담당자별 업무 평가
+각 담당자를 **반드시 `### 이름` 헤딩으로 구분**하세요. 아래 4개 불릿 순서대로 — **라벨**(우수/양호/개선 필요/위험, 남용 금지) / **주요 작업**(커밋 제목 2~3개 인용) / **보고-실적**(일치 여부 명시) / **약점·우려**.
+
+## 난이도 분석
+쉬운 변경만 반복한 사람 명시적 지적. 난이도 라벨: 쉬움(1.0-1.5)/보통-쉬움(1.5-2.5)/보통(2.5-3.5)/어려움(3.5-4.5)/매우 어려움(4.5-5.0).
+
+## 주요 이슈
+지연·반복 실패·보고-실적 불일치를 담당자 이름과 함께 구체적으로.
+
+## 해결 방안
+관리자가 즉시 취할 조치 (면담·재배치·교육·기한 재설정).
+
+## 종합 의견
+핵심 문제 + 즉시 조치 우선순위.
+PROMPT;
         $companyNames = $companies->pluck('name')->implode(', ');
         $userPrompt = "기간: {$rangeLabel}\nSR 회사: {$companyNames}\n\n"
             . "### 담당자별 정량 지표 — 회사 영역\n{$metricsTable}\n\n"
@@ -765,6 +807,14 @@ PROMPT;
                 'metrics'        => ['project' => $metrics, 'common' => $commonMetrics],
             ]);
 
+            // weekly + SR 회사 선택 시 — 담당자별 위클리 초안 자동 생성
+            $autoCreated = 0;
+            if ($type === 'weekly' && $weekDate) {
+                $autoCreated = $this->autoGenerateSrAssigneeWeeklies(
+                    $weekDate, $srCompanyIds, $commits, $maintRequests
+                );
+            }
+
             return response()->json([
                 'content'           => $content,
                 'generated_at'      => now()->format('Y.m.d H:i'),
@@ -773,6 +823,7 @@ PROMPT;
                 'common_metrics'    => $commonMetrics,
                 'commit_details'    => $this->serializeCommitsForUi($commits),
                 'common_commit_details' => $this->serializeCommitsForUi($commonCommits),
+                'weekly_auto_created' => $autoCreated,
             ]);
         } catch (\Throwable $e) {
             SystemErrorLog::record($e);
@@ -780,13 +831,112 @@ PROMPT;
         }
     }
 
+    /**
+     * SR 전용 모드 위클리 자동 생성.
+     * 멤버 사용자의 (회사) 첫 프로젝트를 default project_id 로. 그것도 없으면 스킵.
+     */
+    private function autoGenerateSrAssigneeWeeklies(
+        string $weekDate, array $srCompanyIds, $commits, $maintRequests
+    ): int
+    {
+        $memberUsers = User::whereIn('company_group_id', $srCompanyIds)
+            ->whereNotNull('email')
+            ->get(['id', 'name', 'email', 'company_group_id']);
+
+        // 회사별 default 프로젝트 (회사 소속 프로젝트 중 첫번째)
+        $companyDefaultProject = \App\Models\Project::whereIn('company_group_id', $srCompanyIds)
+            ->orderBy('id')
+            ->get(['id', 'company_group_id'])
+            ->groupBy('company_group_id')
+            ->map(fn($g) => $g->first()->id);
+
+        $byUser = [];
+        foreach ($memberUsers as $u) $byUser[$u->id] = ['commits' => [], 'srs' => []];
+
+        foreach ($commits as $c) {
+            if ($c->user_id && isset($byUser[$c->user_id])) {
+                $byUser[$c->user_id]['commits'][] = $c;
+            }
+        }
+        foreach ($maintRequests as $sr) {
+            $u = $sr->assignee?->user;
+            if ($u && isset($byUser[$u->id])) {
+                $byUser[$u->id]['srs'][] = $sr;
+            }
+        }
+
+        $created = 0;
+        $weekStart  = Carbon::parse($weekDate);
+        $year       = (int) $weekStart->isoFormat('GGGG');
+        $weekNumber = (int) $weekStart->isoFormat('W');
+
+        foreach ($memberUsers as $u) {
+            $data = $byUser[$u->id];
+            if (empty($data['commits']) && empty($data['srs'])) continue;
+
+            $projectId = $companyDefaultProject[$u->company_group_id] ?? null;
+            if (!$projectId) continue;   // 회사 default 프로젝트 없으면 스킵
+
+            $exists = WeeklyReport::where('project_id', $projectId)
+                ->where('user_id', $u->id)
+                ->where('week_start_date', $weekStart->toDateString())
+                ->exists();
+            if ($exists) continue;
+
+            $summary = $this->buildAutoReportSummary($data['commits'], $data['srs']);
+
+            $report = WeeklyReport::create([
+                'project_id'       => $projectId,
+                'user_id'          => $u->id,
+                'company_group_id' => $u->company_group_id,
+                'team_name'        => null,
+                'author_name'      => $u->name,
+                'manager_name'     => null,
+                'report_date'      => $weekStart->copy()->addDays(6),
+                'year'             => $year,
+                'week_number'      => $weekNumber,
+                'week_start_date'  => $weekStart->toDateString(),
+                'status'           => 'draft',
+                'summary'          => $summary,
+                'special_notes'    => null,
+            ]);
+
+            $sortOrder = 0;
+            foreach ($data['commits'] as $c) {
+                \App\Models\WeeklyReportTask::create([
+                    'weekly_report_id' => $report->id,
+                    'section'          => 'current_week',
+                    'task_name'        => '[Git] ' . mb_strimwidth((string) $c->subject, 0, 200, '…'),
+                    'status'           => 'completed',
+                    'sort_order'       => ++$sortOrder,
+                ]);
+            }
+            foreach ($data['srs'] as $sr) {
+                $status = ($sr->status === 'completed' || $sr->completed_at) ? 'completed' : 'in_progress';
+                \App\Models\WeeklyReportTask::create([
+                    'weekly_report_id' => $report->id,
+                    'section'          => 'current_week',
+                    'task_name'        => '[SR] ' . mb_strimwidth((string) $sr->summary, 0, 200, '…'),
+                    'status'           => $status,
+                    'sort_order'       => ++$sortOrder,
+                ]);
+            }
+            $created++;
+        }
+
+        return $created;
+    }
+
     /** SR 전용 기간 helper — full=이전 달력 월, weekly=선택 주차. 이번 달은 포함 안 됨. */
     private function resolveSrRange(string $type, ?string $week): array
     {
         if ($type === 'weekly' && $week) {
             $start = Carbon::parse($week)->startOfDay();
-            $end   = $start->copy()->addDays(7)->subSecond();
+            $end   = $start->copy()->addDays(5)->subSecond();
             return [$start, $end];
+        }
+        if ($type === 'this_month') {
+            return [now()->startOfMonth(), now()->endOfDay()];
         }
         return [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()];
     }
