@@ -23,7 +23,7 @@
             style="padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.08);">
             {{ __('myweekly.tab_list') }}
         </button>
-        @if($isManager && $managerProjects->isNotEmpty())
+        @if(!empty($canViewAiSummary) && $aiProjects->isNotEmpty())
         <button id="tab-ai-btn" onclick="switchTab('ai')"
             style="padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:var(--color-text-secondary);">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px;margin-top:-2px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -219,7 +219,7 @@
 </div>{{-- #tab-list --}}
 
 {{-- ══════════════════════ 웍스 서머리 탭 ══════════════════════ --}}
-@if($isManager && $managerProjects->isNotEmpty())
+@if(!empty($canViewAiSummary) && $aiProjects->isNotEmpty())
 <div id="tab-ai" style="display:none;">
 
     {{-- 컨트롤 패널 --}}
@@ -232,28 +232,38 @@
                 <select id="ai-project-sel" onchange="onProjectChange()"
                     style="flex:1;padding:8px 10px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:13px;color:#1f2937;background:#fff;outline:none;cursor:pointer;">
                     <option value="">{{ __('myweekly.placeholder_choose') }}</option>
-                    @foreach($managerProjects as $mp)
+                    @foreach($aiProjects as $mp)
                     <option value="{{ $mp->id }}" data-name="{{ $mp->name }}"
                         data-ai-url="{{ route('projects.weekly-reports.ai-summary', $mp) }}"
                         data-gen-url="{{ route('projects.weekly-reports.ai-summary.generate', $mp) }}"
-                        data-word-url="{{ route('projects.weekly-reports.ai-summary.download', $mp) }}">
-                        {{ $mp->name }}
+                        data-word-url="{{ route('projects.weekly-reports.ai-summary.download', $mp) }}"
+                        data-ww-linked="{{ $mp->withworks_linked ? '1' : '0' }}">
+                        {{ $mp->name }}{{ $mp->withworks_linked ? ' 🔗' : '' }}
                     </option>
                     @endforeach
                 </select>
             </div>
 
-            {{-- 서머리 타입 토글 --}}
+            {{-- 서머리 타입 토글 — 전체(지난 달) / 주차 --}}
             <div style="display:flex;background:var(--color-bg-muted);border-radius:8px;padding:3px;gap:4px;">
                 <button id="type-full-btn" onclick="setType('full')"
                     style="padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.07);">
-                    {{ __('myweekly.summary_type_full') }}
+                    전체 서머리 (지난 달)
                 </button>
                 <button id="type-weekly-btn" onclick="setType('weekly')"
                     style="padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:var(--color-text-secondary);">
                     {{ __('myweekly.summary_type_weekly') }}
                 </button>
             </div>
+
+            {{-- WITHWORKS Git 동기화 버튼 — 관리자/매니저만 노출 + 연결된 프로젝트 선택 시에만 표시 --}}
+            @if(!empty($canSyncGit))
+            <button type="button" onclick="syncWithWorksGit()" id="ww-sync-btn" title="WITHWORKS 의 최근 30일 커밋을 가져옵니다"
+                style="display:none;align-items:center;gap:5px;padding:7px 12px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:12px;font-weight:600;color:#374151;background:#fff;cursor:pointer;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5 9a9 9 0 0114-3l1 1M19 15a9 9 0 01-14 3l-1-1"/></svg>
+                <span id="ww-sync-label">Git 동기화</span>
+            </button>
+            @endif
         </div>
 
         {{-- 2행: 주차 선택 (weekly 타입일 때만) --}}
@@ -264,6 +274,24 @@
                 <option value="">{{ __('myweekly.week_select_project_first') }}</option>
             </select>
         </div>
+
+        {{-- SR 회사 멀티선택 (체크박스 그룹) — 선택된 회사 SR 만 서머리에 포함 --}}
+        @if(!empty($srCompaniesForFilter) && $srCompaniesForFilter->count() > 0)
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+            <label style="font-size:12.5px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;padding-top:6px;">SR 회사
+                <span style="font-size:11px;color:var(--color-text-tertiary);font-weight:500;">(다중 선택)</span>
+            </label>
+            <div id="ai-sr-companies" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;">
+                @foreach($srCompaniesForFilter as $sc)
+                <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:#fff;border:1.5px solid var(--color-border-default);border-radius:7px;font-size:12px;color:#334155;cursor:pointer;user-select:none;">
+                    <input type="checkbox" class="ai-sr-company" value="{{ $sc->id }}" onchange="loadStoredSummary()" style="width:13px;height:13px;accent-color:#7c3aed;">
+                    <span>{{ $sc->name }}</span>
+                </label>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
 
         {{-- 3행: 생성 버튼 --}}
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -312,6 +340,29 @@
 
     </div>
 
+    {{-- ── Git 커밋 내역 (접힌 영역) — 관리자/매니저만 ── --}}
+    @if(!empty($canSyncGit))
+    <details id="ai-commits-wrap" style="display:none;margin-top:12px;background:#fff;border:1px solid #e9e7fb;border-radius:12px;overflow:hidden;">
+        <summary style="cursor:pointer;padding:12px 18px;font-size:13px;font-weight:600;color:#334155;background:#f8fafc;border-bottom:1px solid #e9e7fb;display:flex;align-items:center;gap:8px;list-style:none;user-select:none;">
+            <svg id="ai-commits-chevron" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transition:transform .2s;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            <span>Git 커밋 내역</span>
+            <span id="ai-commits-count" style="font-size:11px;color:#94a3b8;font-weight:500;"></span>
+            <span style="flex:1;"></span>
+            <span style="font-size:11px;color:#94a3b8;font-weight:500;">관리자·매니저 전용</span>
+        </summary>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:18px;">
+            <div id="ai-commits-project">
+                <h4 style="font-size:12.5px;font-weight:700;color:#1e293b;margin:0 0 8px;">📂 프로젝트 영역</h4>
+                <div id="ai-commits-project-body" style="font-size:12px;color:#475569;"></div>
+            </div>
+            <div id="ai-commits-common" style="display:none;">
+                <h4 style="font-size:12.5px;font-weight:700;color:#1e293b;margin:0 0 8px;">📁 공통 영역 <span style="font-size:11px;color:#94a3b8;font-weight:500;">(어느 프로젝트 키워드와도 매칭되지 않음)</span></h4>
+                <div id="ai-commits-common-body" style="font-size:12px;color:#475569;"></div>
+            </div>
+        </div>
+    </details>
+    @endif
+
 </div>{{-- #tab-ai --}}
 @endif
 
@@ -349,6 +400,8 @@
 @push('scripts')
 <script>
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+const SR_GEN_URL  = @json(route('weekly-reports.sr-summary.generate'));
+const SR_SHOW_URL = @json(route('weekly-reports.sr-summary.show'));
 const PROJECT_WEEKS = @json($projectWeeksMap ?? []);
 
 // 번역 문자열
@@ -447,6 +500,13 @@ function onProjectChange() {
     const wordBtn = document.getElementById('ai-word-btn');
     if (wordBtn) wordBtn.style.display = 'none';
 
+    // Git 동기화 버튼: 프로젝트가 withworks 와 연결되어 있을 때만 표시 (권한 게이팅은 서버에서)
+    const syncBtn = document.getElementById('ww-sync-btn');
+    if (syncBtn) {
+        const linked = opt?.dataset?.wwLinked === '1';
+        syncBtn.style.display = (pid && linked) ? 'inline-flex' : 'none';
+    }
+
     // 주차 목록 업데이트
     const weekSel = document.getElementById('ai-week-sel');
     if (weekSel) {
@@ -465,7 +525,7 @@ function onProjectChange() {
     if (pid) loadStoredSummary();
 }
 
-// ── 타입 전환 (전체/주차) ───────────────────────────────────────────
+// ── 타입 전환 (전체 지난 달 / 주차) ──────────────────────────────────
 let currentType = 'full';
 function setType(type) {
     currentType = type;
@@ -476,40 +536,80 @@ function setType(type) {
     const activeStyle  = 'padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:#fff;color:#1f2937;box-shadow:0 1px 2px rgba(0,0,0,.07);';
     const passiveStyle = 'padding:6px 16px;border-radius:6px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;background:transparent;color:#6b7280;';
 
-    if (type === 'full') {
-        fullBtn.style.cssText   = activeStyle;
-        weeklyBtn.style.cssText = passiveStyle;
-        weekRow.style.display   = 'none';
-    } else {
-        weeklyBtn.style.cssText = activeStyle;
-        fullBtn.style.cssText   = passiveStyle;
-        weekRow.style.display   = 'flex';
-    }
+    fullBtn.style.cssText   = type === 'full'   ? activeStyle : passiveStyle;
+    weeklyBtn.style.cssText = type === 'weekly' ? activeStyle : passiveStyle;
+    weekRow.style.display   = type === 'weekly' ? 'flex' : 'none';
 
     resetResult();
     const pid = document.getElementById('ai-project-sel').value;
     if (pid) loadStoredSummary();
 }
 
+// ── WITHWORKS Git 동기화 ─────────────────────────────────────────────
+async function syncWithWorksGit() {
+    const btn   = document.getElementById('ww-sync-btn');
+    const label = document.getElementById('ww-sync-label');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    const orig = label.textContent;
+    label.textContent = '동기화 중...';
+    try {
+        const r = await fetch(@json(route('withworks.sync')), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({ days: 30 }),
+        });
+        const data = await r.json();
+        if (data.ok) {
+            label.textContent = `완료 +${data.inserted}/스킵 ${data.skipped}`;
+            if (window.appToast) window.appToast('success', `WITHWORKS Git 동기화 완료 — ${data.inserted}건 추가, ${data.skipped}건 스킵`, 4000);
+        } else {
+            label.textContent = '실패';
+            if (window.appToast) window.appToast('error', data.error || 'Git 동기화 실패', 4500);
+        }
+    } catch (e) {
+        label.textContent = '실패';
+        if (window.appToast) window.appToast('error', 'Git 동기화 요청 실패: ' + e.message, 4500);
+    } finally {
+        setTimeout(() => { btn.disabled = false; label.textContent = orig; }, 4000);
+    }
+}
+
 // ── 저장된 서머리 불러오기 ─────────────────────────────────────────
 function loadStoredSummary() {
     const pid  = document.getElementById('ai-project-sel').value;
-    if (!pid) return;
-
-    const opt     = document.getElementById('ai-project-sel').options[document.getElementById('ai-project-sel').selectedIndex];
-    const apiUrl  = opt?.dataset?.aiUrl;
-    if (!apiUrl) return;
+    const srCompanyIds = Array.from(document.querySelectorAll('.ai-sr-company:checked'))
+        .map(cb => parseInt(cb.value, 10)).filter(Number.isFinite);
+    if (!pid && srCompanyIds.length === 0) { resetResult(); return; }
 
     const weekDate = currentType === 'weekly' ? (document.getElementById('ai-week-sel')?.value ?? '') : '';
     if (currentType === 'weekly' && !weekDate) { resetResult(); return; }
 
-    const params = new URLSearchParams({ type: currentType, week: weekDate });
+    // 프로젝트 있으면 프로젝트 라우트, 없으면 SR 전용 라우트
+    let apiUrl;
+    const params = new URLSearchParams({ type: currentType });
+    if (weekDate) params.set('week', weekDate);
+    if (pid) {
+        const opt = document.getElementById('ai-project-sel').options[document.getElementById('ai-project-sel').selectedIndex];
+        apiUrl = opt?.dataset?.aiUrl;
+    } else {
+        apiUrl = SR_SHOW_URL;
+        srCompanyIds.forEach(id => params.append('sr_company_ids[]', id));
+    }
+    if (!apiUrl) return;
+
     fetch(`${apiUrl}?${params}`, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } })
         .then(r => r.json())
         .then(data => {
             if (data.summary) {
                 renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by);
+                renderCommitDetails(data.summary.commit_details, data.summary.common_commit_details);
                 document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
+                // 캐시가 7일 이상 낡으면 자동 재생성 (Git 최신화 + AI 재분석)
+                if (data.summary.is_stale) {
+                    if (window.appToast) window.appToast('info', `이전 서머리(${data.summary.stale_days}일 전) — 자동 갱신 중...`, 3500);
+                    setTimeout(() => generateSummary(), 200);
+                }
             } else {
                 resetResult();
             }
@@ -520,11 +620,11 @@ function loadStoredSummary() {
 // ── 웍스 서머리 생성 ──────────────────────────────────────────────────
 function generateSummary() {
     const pid = document.getElementById('ai-project-sel').value;
-    if (!pid) { alert(MW_I18N.alert_select_project); return; }
+    const srCompanyIds = Array.from(document.querySelectorAll('.ai-sr-company:checked'))
+        .map(cb => parseInt(cb.value, 10)).filter(Number.isFinite);
 
-    const opt    = document.getElementById('ai-project-sel').options[document.getElementById('ai-project-sel').selectedIndex];
-    const genUrl = opt?.dataset?.genUrl;
-    if (!genUrl) return;
+    // 프로젝트 또는 SR 회사 둘 중 하나는 있어야 함
+    if (!pid && srCompanyIds.length === 0) { alert(MW_I18N.alert_select_project); return; }
 
     const weekDate = currentType === 'weekly' ? (document.getElementById('ai-week-sel')?.value ?? '') : '';
     if (currentType === 'weekly' && !weekDate) { alert(MW_I18N.alert_select_week); return; }
@@ -533,10 +633,22 @@ function generateSummary() {
     const btn = document.getElementById('ai-gen-btn');
     btn.disabled = true;
 
+    // 프로젝트가 있으면 프로젝트 라우트, 없으면 SR 전용 라우트
+    let genUrl, body;
+    if (pid) {
+        const opt = document.getElementById('ai-project-sel').options[document.getElementById('ai-project-sel').selectedIndex];
+        genUrl = opt?.dataset?.genUrl;
+        body = { type: currentType, week: weekDate, sr_company_ids: srCompanyIds };
+    } else {
+        genUrl = SR_GEN_URL;
+        body = { type: currentType, week: weekDate, sr_company_ids: srCompanyIds };
+    }
+    if (!genUrl) { btn.disabled = false; showError('생성 URL 을 찾을 수 없습니다.'); return; }
+
     fetch(genUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
-        body: JSON.stringify({ type: currentType, week: weekDate }),
+        body: JSON.stringify(body),
     })
     .then(r => r.json())
     .then(data => {
@@ -545,6 +657,7 @@ function generateSummary() {
             showError(data.error);
         } else {
             renderContent(data.content, data.generated_at, data.generated_by);
+            renderCommitDetails(data.commit_details, data.common_commit_details);
             document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
         }
     })
@@ -565,6 +678,76 @@ function resetResult() {
 
     const wordBtn = document.getElementById('ai-word-btn');
     if (wordBtn) wordBtn.style.display = 'none';
+
+    const wrap = document.getElementById('ai-commits-wrap');
+    if (wrap) wrap.style.display = 'none';
+}
+
+// ── Git 커밋 내역 (관리자/매니저 only — wrap 자체가 페이지에 없으면 skip) ──
+function renderCommitDetails(projectList, commonList) {
+    const wrap = document.getElementById('ai-commits-wrap');
+    if (!wrap) return;
+
+    const total = (projectList?.length || 0) + (commonList?.length || 0);
+    if (total === 0) { wrap.style.display = 'none'; return; }
+
+    wrap.style.display = 'block';
+    document.getElementById('ai-commits-count').textContent =
+        `(프로젝트 ${projectList?.length || 0}건 / 공통 ${commonList?.length || 0}건)`;
+
+    document.getElementById('ai-commits-project-body').innerHTML =
+        renderCommitGroup(projectList, '프로젝트 영역');
+    const commonBox = document.getElementById('ai-commits-common');
+    if ((commonList?.length || 0) > 0) {
+        commonBox.style.display = 'block';
+        document.getElementById('ai-commits-common-body').innerHTML =
+            renderCommitGroup(commonList, '공통 영역');
+    } else {
+        commonBox.style.display = 'none';
+    }
+}
+
+function renderCommitGroup(commits, label) {
+    if (!commits || commits.length === 0) return `<div style="color:#94a3b8;font-style:italic;">(${label} 커밋 없음)</div>`;
+    return commits.map(c => {
+        const diff = c.difficulty != null ? `<span style="font-size:11px;color:#7c3aed;font-weight:600;">난이도 ${Number(c.difficulty).toFixed(1)}</span>` : '';
+        const files = (c.files || []).map(f =>
+            `<div style="display:flex;gap:6px;padding:2px 0;font-family:ui-monospace,monospace;font-size:11.5px;">
+                <span style="color:#64748b;width:60px;flex-shrink:0;">${escapeHtml(f.status || '')}</span>
+                <span style="flex:1;word-break:break-all;color:#334155;">${escapeHtml(f.path || '')}</span>
+                <span style="color:#16a34a;flex-shrink:0;">+${f.additions}</span>
+                <span style="color:#dc2626;flex-shrink:0;">-${f.deletions}</span>
+            </div>`
+        ).join('');
+        const moreNote = c.files_count > (c.files?.length || 0)
+            ? `<div style="color:#94a3b8;font-size:11px;padding:2px 0;">… 외 ${c.files_count - c.files.length}건</div>`
+            : '';
+        const branchInfo = (c.first_branch || c.last_branch)
+            ? `<div style="padding:4px 12px;border-top:1px solid #f1f5f9;font-size:11px;color:#64748b;display:flex;gap:10px;flex-wrap:wrap;">
+                ${c.first_branch ? `<span><strong style="color:#0f172a;">최초:</strong> <code style="background:#eef2ff;padding:1px 5px;border-radius:3px;font-size:10.5px;color:#4338ca;">${escapeHtml(c.first_branch)}</code></span>` : ''}
+                ${c.last_branch && c.last_branch !== c.first_branch ? `<span><strong style="color:#0f172a;">최후:</strong> <code style="background:#fef3c7;padding:1px 5px;border-radius:3px;font-size:10.5px;color:#a16207;">${escapeHtml(c.last_branch)}</code></span>` : ''}
+                ${(c.branches && c.branches.length > 1) ? `<span style="color:#94a3b8;">(${c.branches.length}개 브랜치)</span>` : ''}
+            </div>`
+            : '';
+        return `<details style="border:1px solid #e2e8f0;border-radius:6px;margin-bottom:6px;background:#fff;">
+            <summary style="cursor:pointer;padding:8px 10px;font-size:12px;display:flex;gap:8px;align-items:center;list-style:none;">
+                <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:10.5px;color:#475569;">${escapeHtml(c.sha)}</code>
+                <span style="color:#64748b;font-size:11px;">${escapeHtml(c.date || '')}</span>
+                <span style="color:#0f172a;font-weight:600;">${escapeHtml(c.author || '')}</span>
+                <span style="flex:1;color:#334155;font-weight:500;">${escapeHtml(c.subject || '')}</span>
+                <span style="color:#16a34a;font-size:11px;">+${c.add}</span>
+                <span style="color:#dc2626;font-size:11px;">-${c.del}</span>
+                ${diff}
+                <span style="color:#94a3b8;font-size:11px;">${c.files_count}파일</span>
+            </summary>
+            ${branchInfo}
+            <div style="padding:6px 12px 10px;border-top:1px solid #f1f5f9;">${files}${moreNote}</div>
+        </details>`;
+    }).join('');
+}
+
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 function showLoading() {
     document.getElementById('ai-empty').style.display   = 'none';

@@ -159,6 +159,29 @@
                        style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:monospace;outline:none;">
                 <p style="font-size:11px;color:#94a3b8;margin:5px 0 0;">{{ __('admin.aiset_endpoint_hint') }}</p>
             </div>
+
+            {{-- WITHWORKS GitHub PAT --}}
+            <div style="border-top:1px solid #f1f5f9;padding-top:18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="font-size:14px;font-weight:700;color:#1e293b;">WITHWORKS GitHub</span>
+                    @if($setting->withworks_github_token)
+                    <span style="display:inline-flex;align-items:center;gap:3px;background:#dcfce7;color:#16a34a;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;">
+                        <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        등록됨
+                    </span>
+                    @endif
+                </div>
+                <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px;">Personal Access Token (PAT)</label>
+                <input type="password" name="withworks_github_token"
+                       value="{{ $setting->withworks_github_token ? '__MASKED__' : '' }}"
+                       placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                       style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:monospace;outline:none;"
+                       onfocus="if(this.value==='__MASKED__')this.value=''"
+                       onblur="if(this.value==='')this.value='{{ $setting->withworks_github_token ? '__MASKED__' : '' }}'">
+                <p style="font-size:11px;color:#94a3b8;margin:5px 0 0;">
+                    저장소 <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:11px;">dhlogitsticsPlatform/withworks</code> 의 main 브랜치 커밋 조회용 PAT — repo 읽기 권한 필요.
+                </p>
+            </div>
         </div>
 
         <div style="display:flex;justify-content:flex-end;padding-top:4px;">
@@ -169,6 +192,75 @@
         </div>
     </form>
 </div>
+
+{{-- 프로젝트 ↔ WITHWORKS Git 저장소 연결 --}}
+<div class="admin-card" style="max-width:680px;margin-top:16px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <svg width="16" height="16" fill="none" stroke="#475569" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0;">프로젝트 ↔ WITHWORKS Git 연결</h3>
+    </div>
+    <p style="font-size:12px;color:#64748b;margin:0 0 14px;line-height:1.6;">
+        AI 서머리에 WITHWORKS Git 커밋(<code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:11px;">dhlogitsticsPlatform/withworks</code>)을 포함시킬 프로젝트를 체크합니다.
+        <br><strong style="color:#dc2626;">다른 저장소 연결은 절대 허용되지 않습니다.</strong>
+        <br>경로 키워드는 프로젝트가 아닌 <strong>회사 단위</strong>로 관리됩니다 — <a href="{{ route('admin.company-groups.index') }}" style="color:#7c3aed;text-decoration:underline;">회사 그룹 관리</a> 에서 설정하세요.
+    </p>
+
+    @if($allProjects->isEmpty())
+        <p style="font-size:12px;color:#94a3b8;">프로젝트가 없습니다.</p>
+    @else
+        <div style="display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:6px;">
+            @foreach($allProjects as $p)
+                @php $isLinked = in_array($p->id, $linkedProjectIds, true); @endphp
+                <label data-project-id="{{ $p->id }}" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:#334155;transition:background .12s;"
+                       onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                    <input type="checkbox" class="pgl-toggle" data-project-id="{{ $p->id }}"
+                           {{ $isLinked ? 'checked' : '' }}
+                           style="width:15px;height:15px;accent-color:#7c3aed;">
+                    <span style="flex:1;">{{ $p->name }}</span>
+                    <span class="pgl-status" style="font-size:11px;color:{{ $isLinked ? '#16a34a' : '#94a3b8' }};">
+                        {{ $isLinked ? '연결됨' : '연결 안 됨' }}
+                    </span>
+                </label>
+            @endforeach
+        </div>
+        <p style="font-size:11px;color:#94a3b8;margin:10px 0 0;">체크 변경 시 즉시 저장됩니다.</p>
+    @endif
+</div>
+
+<script>
+(function() {
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const TPL  = @json(route('admin.project-git-link.toggle', ['project' => '__PID__']));
+
+    document.querySelectorAll('.pgl-toggle').forEach(cb => {
+        cb.addEventListener('change', async function() {
+            const pid = this.dataset.projectId;
+            const link = this.checked;
+            const url = TPL.replace('__PID__', pid);
+            this.disabled = true;
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+                    body: JSON.stringify({ link: link ? 1 : 0 }),
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const d = await res.json();
+                const label = this.closest('label')?.querySelector('.pgl-status');
+                if (label) {
+                    label.textContent = d.linked ? '연결됨' : '연결 안 됨';
+                    label.style.color = d.linked ? '#16a34a' : '#94a3b8';
+                }
+            } catch (e) {
+                this.checked = !this.checked;
+                alert('연결 변경 실패: ' + e.message);
+            } finally {
+                this.disabled = false;
+            }
+        });
+    });
+})();
+</script>
 
 {{-- 환경변수 안내 --}}
 <div class="admin-card" style="max-width:680px;margin-top:16px;background:#f8fafc;">

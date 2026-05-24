@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AiSetting extends Model
 {
-    protected $fillable = ['anthropic_key', 'openai_key', 'figma_token', 'manus_key', 'manus_endpoint'];
+    protected $fillable = ['anthropic_key', 'openai_key', 'figma_token', 'manus_key', 'manus_endpoint', 'withworks_github_token'];
 
     public static function current(): self
     {
@@ -50,5 +50,10 @@ class AiSetting extends Model
     public function manusEndpoint(): string
     {
         return $this->manus_endpoint ?: (env('MANUS_API_ENDPOINT') ?: 'https://api.manus.ai/v2');
+    }
+
+    public function withWorksGithubToken(): ?string
+    {
+        return $this->safeDecrypt($this->withworks_github_token);
     }
 }

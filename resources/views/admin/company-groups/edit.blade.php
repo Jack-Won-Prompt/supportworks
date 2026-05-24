@@ -48,12 +48,29 @@
                     <label for="is_active" style="font-size:13px;color:#334155;cursor:pointer;">{{ __('admin.active_status') }}</label>
                 </div>
 
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                     <input type="hidden" name="uses_withworks" value="0">
                     <input type="checkbox" name="uses_withworks" id="uses_withworks" value="1"
                         {{ $companyGroup->uses_withworks ? 'checked' : '' }}
                         style="width:16px;height:16px;accent-color:#7c3aed;">
                     <label for="uses_withworks" style="font-size:13px;color:#334155;cursor:pointer;">WITHWORKS 사용 회사 <span style="font-size:11px;color:#94a3b8;">(공지사항·알림 대상 필터)</span></label>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <input type="hidden" name="shows_in_sr_menu" value="0">
+                    <input type="checkbox" name="shows_in_sr_menu" id="shows_in_sr_menu" value="1"
+                        {{ $companyGroup->shows_in_sr_menu ? 'checked' : '' }}
+                        style="width:16px;height:16px;accent-color:#7c3aed;">
+                    <label for="shows_in_sr_menu" style="font-size:13px;color:#334155;cursor:pointer;">SR 관리 <span style="font-size:11px;color:#94a3b8;">(사용자 사이드바 'SR 관리' 아래에 이 회사 노출)</span></label>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <label for="path_prefix" style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:5px;">WITHWORKS 경로 키워드 <span style="font-size:11px;color:#94a3b8;font-weight:400;">(선택)</span></label>
+                    <input type="text" name="path_prefix" id="path_prefix" value="{{ old('path_prefix', $companyGroup->path_prefix) }}"
+                        placeholder="예: medical/standard, factory/lseA, pet/standard"
+                        style="width:100%;padding:8px 11px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;color:#0f172a;font-family:ui-monospace,monospace;outline:none;background:#fff;"
+                        onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+                    <p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">커밋의 파일 경로에 이 키워드가 포함된 변경분이 이 회사 영역으로 분류됩니다. 어느 회사 키워드와도 매칭되지 않는 파일은 '공통' 으로 분류.</p>
                 </div>
 
                 {{-- ?대떦 愿由ъ옄 ?좊떦 --}}
@@ -286,7 +303,7 @@ function buildRoleSelect(userId, role) {
     </select>`;
 }
 
-async function userAssign() {
+function userAssign() {
     return {
         openModal: false,
         searchQ: '',

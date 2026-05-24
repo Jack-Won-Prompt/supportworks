@@ -328,6 +328,9 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     // AI API 키 설정
     Route::get('ai-settings',     [\App\Http\Controllers\Admin\AiSettingController::class, 'index']) ->name('ai-settings.index');
     Route::put('ai-settings',     [\App\Http\Controllers\Admin\AiSettingController::class, 'update'])->name('ai-settings.update');
+    // 프로젝트 ↔ WITHWORKS Git 저장소 연결 토글 + path_prefix 갱신
+    Route::post ('projects/{project}/git-link/toggle', [\App\Http\Controllers\Admin\ProjectGitLinkController::class, 'toggle'])      ->name('project-git-link.toggle');
+    Route::patch('projects/{project}/git-link/prefix', [\App\Http\Controllers\Admin\ProjectGitLinkController::class, 'updatePrefix'])->name('project-git-link.prefix');
 
     // 시스템 유지보수 모드
     Route::get  ('system-maintenance', [\App\Http\Controllers\Admin\SystemMaintenanceController::class, 'index']) ->name('system-maintenance.index');
@@ -429,6 +432,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post ('projects/{project}/join',  [ProjectController::class, 'join'])->name('projects.join');
     Route::delete('projects/{project}/leave', [ProjectController::class, 'leave'])->name('projects.leave');
 
+    // 웍스 서머리 (SR 전용 — 프로젝트 무관)
+    Route::prefix('weekly-reports/sr-summary')->name('weekly-reports.sr-summary.')->group(function () {
+        Route::get ('/',          [\App\Http\Controllers\WeeklyAiSummaryController::class, 'srShow'])     ->name('show');
+        Route::post('/generate',  [\App\Http\Controllers\WeeklyAiSummaryController::class, 'srGenerate']) ->name('generate');
+        Route::get ('/download',  [\App\Http\Controllers\WeeklyAiSummaryController::class, 'srDownload']) ->name('download');
+    });
+
     // 주간 업무 보고
     Route::prefix('projects/{project}/weekly-reports')->name('projects.weekly-reports.')->group(function () {
         Route::get   ('/',                        [\App\Http\Controllers\WeeklyReportController::class, 'index'])          ->name('index');
@@ -440,6 +450,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get   ('/check-concurrent',        [\App\Http\Controllers\WeeklyReportController::class, 'checkConcurrent'])->name('check-concurrent');
         Route::get   ('/team-names',              [\App\Http\Controllers\WeeklyReportController::class, 'teamNames'])      ->name('team-names');
         Route::post  ('/upload-image',            [\App\Http\Controllers\WeeklyReportController::class, 'uploadImage'])    ->name('upload-image');
+        Route::get   ('/{weeklyReport}/import-git-sr', [\App\Http\Controllers\WeeklyReportController::class, 'importGitSr'])->name('import-git-sr');
         Route::get   ('/manager-summary',          [\App\Http\Controllers\ManagerWeeklySummaryController::class, 'index'])   ->name('manager-summary');
         Route::post  ('/manager-summary/download', [\App\Http\Controllers\ManagerWeeklySummaryController::class, 'download']) ->name('manager-summary.download');
         Route::get   ('/ai-summary',               [\App\Http\Controllers\WeeklyAiSummaryController::class, 'show'])          ->name('ai-summary');
@@ -1320,6 +1331,8 @@ Route::middleware(['auth'])->group(function () {
     // 회의록
     // 나의 위클리 (전체 프로젝트)
     Route::get('/my-weekly', [\App\Http\Controllers\MyWeeklyReportController::class, 'index'])->name('my-weekly.index');
+    // WITHWORKS Git 커밋 동기화 — 관리자/SR 담당자만 (컨트롤러에서 권한 체크)
+    Route::post('/withworks/sync-commits', [\App\Http\Controllers\WithWorksGitController::class, 'sync'])->name('withworks.sync');
 
     Route::prefix('meeting-minutes')->name('meeting-minutes.')->group(function () {
         Route::get('/',                      [MeetingMinuteController::class, 'index'])->name('index');

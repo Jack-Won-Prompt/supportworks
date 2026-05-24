@@ -27,19 +27,23 @@ class CompanyGroupWebController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'           => 'required|string|max:100',
-            'code'           => 'required|string|max:50|unique:company_groups,code|regex:/^[A-Za-z0-9_-]+$/',
-            'description'    => 'nullable|string|max:500',
-            'is_active'      => 'boolean',
-            'uses_withworks' => 'boolean',
+            'name'             => 'required|string|max:100',
+            'code'             => 'required|string|max:50|unique:company_groups,code|regex:/^[A-Za-z0-9_-]+$/',
+            'description'      => 'nullable|string|max:500',
+            'is_active'        => 'boolean',
+            'uses_withworks'   => 'boolean',
+            'shows_in_sr_menu' => 'boolean',
+            'path_prefix'      => 'nullable|string|max:200',
         ]);
 
         CompanyGroup::create([
-            'name'           => $request->name,
-            'code'           => strtoupper($request->code),
-            'description'    => $request->description,
-            'is_active'      => $request->boolean('is_active', true),
-            'uses_withworks' => $request->boolean('uses_withworks', false),
+            'name'             => $request->name,
+            'code'             => strtoupper($request->code),
+            'description'      => $request->description,
+            'is_active'        => $request->boolean('is_active', true),
+            'uses_withworks'   => $request->boolean('uses_withworks', false),
+            'shows_in_sr_menu' => $request->boolean('shows_in_sr_menu', false),
+            'path_prefix'      => $this->normalizePathPrefix($request->input('path_prefix')),
         ]);
 
         return redirect()->route('admin.company-groups.index')
@@ -70,10 +74,12 @@ class CompanyGroupWebController extends Controller
     public function update(Request $request, CompanyGroup $companyGroup)
     {
         $request->validate([
-            'name'           => 'required|string|max:100',
-            'description'    => 'nullable|string|max:500',
-            'is_active'      => 'boolean',
-            'uses_withworks' => 'boolean',
+            'name'             => 'required|string|max:100',
+            'description'      => 'nullable|string|max:500',
+            'is_active'        => 'boolean',
+            'uses_withworks'   => 'boolean',
+            'shows_in_sr_menu' => 'boolean',
+            'path_prefix'      => 'nullable|string|max:200',
         ]);
 
         $featureKeys = array_keys(\App\Models\CompanyGroup::FEATURE_KEYS);
@@ -83,11 +89,13 @@ class CompanyGroupWebController extends Controller
         }
 
         $companyGroup->update([
-            'name'           => $request->name,
-            'description'    => $request->description,
-            'is_active'      => $request->boolean('is_active'),
-            'uses_withworks' => $request->boolean('uses_withworks', false),
-            'features'       => $features,
+            'name'             => $request->name,
+            'description'      => $request->description,
+            'is_active'        => $request->boolean('is_active'),
+            'uses_withworks'   => $request->boolean('uses_withworks', false),
+            'shows_in_sr_menu' => $request->boolean('shows_in_sr_menu', false),
+            'path_prefix'      => $this->normalizePathPrefix($request->input('path_prefix')),
+            'features'         => $features,
         ]);
 
         // 관리자 그룹 할당 동기화
@@ -107,6 +115,16 @@ class CompanyGroupWebController extends Controller
 
         return redirect()->route('admin.company-groups.edit', $companyGroup)
             ->with('success', '회사 그룹이 수정되었습니다.');
+    }
+
+    /** path_prefix 정규화 — 양쪽 공백/슬래시 제거, 빈 문자열은 null */
+    private function normalizePathPrefix(?string $prefix): ?string
+    {
+        if ($prefix === null) return null;
+        $p = trim($prefix);
+        $p = ltrim($p, '/\\');
+        $p = rtrim($p, '/\\');
+        return $p === '' ? null : $p;
     }
 
     public function destroy(CompanyGroup $companyGroup)

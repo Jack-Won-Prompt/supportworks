@@ -5,7 +5,7 @@ return [
     // ── 페이지 / 탭
     'page_title'              => '위클리',
     'tab_list'                => '위클리 목록',
-    'tab_summary'             => '웍스 서머리',
+    'tab_summary'             => '웍스 생성',
 
     // ── 헤더
     'select_project'          => '프로젝트 선택',

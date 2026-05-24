@@ -365,6 +365,65 @@ class WeeklyReportController extends Controller
         return response()->json(['url' => asset('storage/' . $path)]);
     }
 
+    /**
+     * Git 커밋 + SR 처리 내역을 해당 보고서의 작성자·해당 주차 기준으로 조회.
+     * 위클리 편집 화면의 "Git/SR 가져오기" 버튼이 호출 — 응답 데이터를 폼에 append.
+     */
+    public function importGitSr(Request $request, Project $project, WeeklyReport $weeklyReport): JsonResponse
+    {
+        $this->authorizeProject($project);
+        abort_if((int) $weeklyReport->project_id !== (int) $project->id, 404);
+
+        // 프로젝트가 withworks 연결 필요 (커밋 기준)
+        $isWithworksLinked = \App\Models\ProjectGitLink::where('project_id', $project->id)
+            ->where('source', 'withworks')->exists();
+
+        $weekStart = $weeklyReport->week_start_date instanceof \Carbon\Carbon
+            ? $weeklyReport->week_start_date->copy()->startOfDay()
+            : \Carbon\Carbon::parse($weeklyReport->week_start_date)->startOfDay();
+        $weekEnd = $weekStart->copy()->addDays(7)->endOfDay();
+
+        $commits = collect();
+        if ($isWithworksLinked && $weeklyReport->user_id) {
+            $commits = \App\Models\GitCommit::where('source', 'withworks')
+                ->where('user_id', $weeklyReport->user_id)
+                ->whereBetween('committed_at', [$weekStart, $weekEnd])
+                ->orderBy('committed_at')
+                ->get(['id', 'subject', 'committed_at', 'insertions', 'deletions', 'difficulty']);
+        }
+
+        // SR — 담당자(maint_user)의 user_id 가 보고서 작성자와 같은 SR
+        $maintUserIds = \App\Models\Maint\MaintUser::where('user_id', $weeklyReport->user_id)->pluck('id');
+        $srs = collect();
+        if ($maintUserIds->isNotEmpty()) {
+            $srs = \App\Models\Maint\MaintRequest::whereIn('assignee_id', $maintUserIds)
+                ->where(function ($q) use ($weekStart, $weekEnd) {
+                    $q->whereBetween('completed_at', [$weekStart, $weekEnd])
+                      ->orWhereBetween('request_date', [$weekStart, $weekEnd]);
+                })
+                ->orderBy('request_date')
+                ->get(['id', 'summary', 'status', 'request_date', 'completed_at']);
+        }
+
+        return response()->json([
+            'ok'       => true,
+            'commits'  => $commits->map(fn($c) => [
+                'subject'      => (string) $c->subject,
+                'committed_at' => optional($c->committed_at)->format('Y-m-d'),
+                'insertions'   => (int) $c->insertions,
+                'deletions'    => (int) $c->deletions,
+                'difficulty'   => $c->difficulty !== null ? (float) $c->difficulty : null,
+            ])->values(),
+            'srs'      => $srs->map(fn($sr) => [
+                'summary'      => (string) $sr->summary,
+                'status'       => (string) $sr->status,
+                'request_date' => optional($sr->request_date)->format('Y-m-d'),
+                'completed_at' => optional($sr->completed_at)->format('Y-m-d'),
+                'completed'    => $sr->status === 'completed' || !empty($sr->completed_at),
+            ])->values(),
+        ]);
+    }
+
     // ─── 내부 헬퍼 ───────────────────────────────────────────────────
 
     private function buildReportData(Project $project, $user, Carbon $weekStart, array $validated, string $status): array

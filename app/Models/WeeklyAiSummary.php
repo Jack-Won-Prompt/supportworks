@@ -8,14 +8,23 @@ class WeeklyAiSummary extends Model
 {
     protected $fillable = [
         'project_id',
+        'sr_company_ids',
+        'scope_key',
         'generated_by',
         'summary_type',
         'week_start_date',
+        'range_start',
+        'range_end',
         'content',
+        'metrics',
     ];
 
     protected $casts = [
+        'sr_company_ids'  => 'array',
         'week_start_date' => 'date',
+        'range_start'     => 'date',
+        'range_end'       => 'date',
+        'metrics'         => 'array',
     ];
 
     public function project()
@@ -26,6 +35,15 @@ class WeeklyAiSummary extends Model
     public function generatedBy()
     {
         return $this->belongsTo(User::class, 'generated_by');
+    }
+
+    /** scope 키 자동 계산: "p:{project_id}" 또는 "sr:{sorted_company_ids}" */
+    public static function buildScopeKey(?int $projectId, array $srCompanyIds): string
+    {
+        if ($projectId) return 'p:' . $projectId;
+        $ids = array_values(array_unique(array_map('intval', $srCompanyIds)));
+        sort($ids);
+        return 'sr:' . implode(',', $ids);
     }
 
     /**

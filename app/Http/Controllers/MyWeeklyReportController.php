@@ -13,9 +13,15 @@ class MyWeeklyReportController extends Controller
     {
         $user = auth()->user();
 
-        // 매니저 권한 = 사이트 어드민 또는 어느 프로젝트에서든 manager 역할
+        // 매니저 권한 = 사이트 어드민 또는 어느 프로젝트에서든 manager 역할 (기존 분석/툴바 기능 용)
         $isManager = $user->isAdmin()
             || $user->projectMembers()->where('role', 'manager')->exists();
+
+        // 웍스 서머리(AI) 권한 = 관리자 또는 SR 담당자만 (요청)
+        $canViewAiSummary = $user->isAdmin() || (bool) ($user->is_sr_agent ?? false);
+
+        // Git 동기화 버튼 권한 = 관리자 또는 매니저 (프로젝트 매니저 포함)
+        $canSyncGit = $isManager;
 
         $query = WeeklyReport::with(['project:id,name', 'user:id,name,avatar'])
             ->withCount(['tasks as current_task_count' => fn($q) => $q->where('section', 'current_week')])
@@ -42,7 +48,7 @@ class MyWeeklyReportController extends Controller
 
         $reports = $query->get();
 
-        // 매니저 전용 데이터
+        // 매니저 전용 데이터 (기존 분석/툴바 — project manager 도 사용)
         $managerProjects = collect();
         $projectWeeksMap = [];  // project_id => [week_start_date list]
 
@@ -54,9 +60,16 @@ class MyWeeklyReportController extends Controller
                     $q->where('user_id', $user->id)->where('role', 'manager');
                 })->orderBy('name')->get(['id', 'name']);
             }
+        }
 
-            // 각 프로젝트의 주차 목록 (웍스 서머리 주차 선택용)
-            foreach ($managerProjects as $mp) {
+        // 웍스 서머리 — 관리자/SR담당자는 전체 프로젝트 접근
+        $aiProjects = collect();
+        // 프로젝트 ↔ withworks 연결 셋 (드롭다운에서 표시 + sync 버튼 게이팅용)
+        $withworksLinkedSet = \App\Models\ProjectGitLink::where('source', 'withworks')->pluck('project_id')->all();
+        if ($canViewAiSummary) {
+            $aiProjects = Project::orderBy('name')->get(['id', 'name']);
+            foreach ($aiProjects as $mp) {
+                $mp->setAttribute('withworks_linked', in_array($mp->id, $withworksLinkedSet, true));
                 $weeks = WeeklyReport::where('project_id', $mp->id)
                     ->selectRaw('week_start_date, year, week_number')
                     ->distinct()
@@ -76,8 +89,18 @@ class MyWeeklyReportController extends Controller
             $q->where('user_id', $user->id);
         })->orderBy('name')->get(['id', 'name']);
 
+        // 웍스 서머리 — SR 회사 멀티선택용 (shows_in_sr_menu=true). 일반 사용자는 자기 회사만 노출.
+        $srCompaniesQ = \App\Models\CompanyGroup::where('shows_in_sr_menu', true)->orderBy('name');
+        if (!$canViewAiSummary) {
+            if ($user->company_group_id) $srCompaniesQ->where('id', $user->company_group_id);
+            else                         $srCompaniesQ->whereRaw('1=0');
+        }
+        $srCompaniesForFilter = $srCompaniesQ->get(['id', 'name']);
+
         return view('my-weekly.index', compact(
-            'reports', 'user', 'isManager', 'managerProjects', 'projectWeeksMap', 'userProjects'
+            'reports', 'user', 'isManager', 'canViewAiSummary', 'canSyncGit',
+            'managerProjects', 'aiProjects', 'projectWeeksMap', 'userProjects',
+            'srCompaniesForFilter'
         ));
     }
 }

@@ -178,6 +178,13 @@
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
                 <span id="prev-load-badge" style="display:none;font-size:11px;background:#ede9fe;color:#7c3aed;border-radius:5px;padding:2px 8px;font-weight:600;"></span>
+                @if($report)
+                <button type="button" id="import-gitsr-btn" onclick="importGitSr()"
+                    style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid #c4b5fd;border-radius:6px;font-size:11.5px;font-weight:600;color:#6d28d9;background:#faf5ff;cursor:pointer;">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5 9a9 9 0 0114-3l1 1M19 15a9 9 0 01-14 3l-1-1"/></svg>
+                    <span id="import-gitsr-label">Git/SR 가져오기</span>
+                </button>
+                @endif
                 <button type="button" class="btn-add-row" onclick="addCurrentTask()">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                     {{ __('weekly.add_task') }}
@@ -533,6 +540,57 @@ function updateCurrentTask(id, field, value) {
     }
     if (field === 'status') renderSectionPreviews();
 }
+
+@if($report)
+async function importGitSr() {
+    const btn   = document.getElementById('import-gitsr-btn');
+    const label = document.getElementById('import-gitsr-label');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    const orig = label.textContent;
+    label.textContent = '불러오는 중...';
+    try {
+        const url = @json(route('projects.weekly-reports.import-git-sr', [$project, $report]));
+        const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || 'fetch failed');
+
+        let added = 0;
+        // Git 커밋 → 완료된 작업으로
+        (d.commits || []).forEach(c => {
+            currentTasks.push({
+                _id: newId(),
+                task_name: '[Git] ' + c.subject,
+                start_date: c.committed_at,
+                end_date: c.committed_at,
+                status: 'completed',
+                original_data: null,
+            });
+            added++;
+        });
+        // SR → 완료 여부 따라 상태 결정
+        (d.srs || []).forEach(sr => {
+            currentTasks.push({
+                _id: newId(),
+                task_name: '[SR] ' + sr.summary,
+                start_date: sr.request_date || '',
+                end_date: sr.completed_at || '',
+                status: sr.completed ? 'completed' : 'in_progress',
+                original_data: null,
+            });
+            added++;
+        });
+        renderCurrentTasks();
+        if (window.appToast) window.appToast('success', `${added}건의 Git/SR 항목을 추가했습니다.`, 3500);
+        label.textContent = `+${added}건 추가`;
+    } catch (e) {
+        label.textContent = '실패';
+        if (window.appToast) window.appToast('error', 'Git/SR 가져오기 실패: ' + e.message, 4500);
+    } finally {
+        setTimeout(() => { btn.disabled = false; label.textContent = orig; }, 4000);
+    }
+}
+@endif
 
 function addCurrentTask() {
     currentTasks.push({ _id: newId(), task_name: '', start_date: '', end_date: '', status: 'pending', original_data: null });

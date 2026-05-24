@@ -5,7 +5,7 @@ return [
     // ── Page / tabs
     'page_title'              => 'Weekly',
     'tab_list'                => 'Weekly List',
-    'tab_summary'             => 'Works Summary',
+    'tab_summary'             => 'Generate Works',
 
     // ── Header
     'select_project'          => 'Select Project',

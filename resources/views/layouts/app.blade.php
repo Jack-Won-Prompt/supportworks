@@ -443,17 +443,18 @@
                         $__u = auth()->user();
                         $__srAll = $__u && ($__u->isAdmin() || (bool) ($__u->is_sr_agent ?? false));
                         $__myCgId = $__u?->company_group_id;
-                        $__srCompanies = \DB::table('company_groups as cg')
-                            ->join('maint_requests as mr', 'mr.company_group_id', '=', 'cg.id')
-                            ->select('cg.id', 'cg.name', \DB::raw('COUNT(*) as sr_count'))
+                        // shows_in_sr_menu=true 인 회사만 사이드바 노출. 일반 사용자는 자기 회사만.
+                        $__srCompaniesQ = \DB::table('company_groups as cg')
+                            ->where('cg.shows_in_sr_menu', true)
+                            ->leftJoin('maint_requests as mr', 'mr.company_group_id', '=', 'cg.id')
+                            ->select('cg.id', 'cg.name', \DB::raw('COUNT(mr.id) as sr_count'))
                             ->groupBy('cg.id', 'cg.name')
-                            ->orderBy('cg.name')
-                            ->get();
+                            ->orderBy('cg.name');
                         if (!$__srAll) {
-                            $__srCompanies = $__myCgId
-                                ? $__srCompanies->where('id', $__myCgId)->values()
-                                : collect();
+                            if ($__myCgId) $__srCompaniesQ->where('cg.id', $__myCgId);
+                            else           $__srCompaniesQ->whereRaw('1=0');
                         }
+                        $__srCompanies = $__srCompaniesQ->get();
                         $__currentCgId = (int) request('company_group_id');
                     @endphp
                     <a href="{{ route('maint-requests.index') }}"

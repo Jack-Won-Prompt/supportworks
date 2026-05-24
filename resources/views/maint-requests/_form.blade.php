@@ -269,11 +269,10 @@
             $__canDeleteSr = $__u && ($__u->isAdmin() || (bool) ($__u->is_sr_agent ?? false));
         @endphp
         @if($__canDeleteSr && $r->status === 'requested')
-            <form method="POST" action="{{ route('maint-requests.destroy', $r) }}" class="mt-3 text-right"
-                  onsubmit="return confirm('정말 삭제하시겠습니까?');">
+            <form method="POST" action="{{ route('maint-requests.destroy', $r) }}" class="mt-3 text-right">
                 @csrf @method('DELETE')
                 @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
-                <button type="submit" class="text-xs text-red-500 hover:text-red-700">요청 삭제</button>
+                <button type="submit" data-confirm="정말 삭제하시겠습니까?" class="text-xs text-red-500 hover:text-red-700">요청 삭제</button>
             </form>
         @endif
     </div>

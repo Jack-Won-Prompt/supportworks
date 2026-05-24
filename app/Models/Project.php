@@ -61,6 +61,12 @@ class Project extends Model
             ->withTimestamps();
     }
 
+    /** WITHWORKS Git 저장소 연결 (현재는 withworks 1개만 허용) */
+    public function gitLink()
+    {
+        return $this->hasOne(ProjectGitLink::class)->where('source', 'withworks');
+    }
+
     /**
      * 이 프로젝트에 참조된 공유폴더 파일들.
      * pivot: project_shared_files (link only, 원본 파일은 shared_files 에 그대로 있음)
