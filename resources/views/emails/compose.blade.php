@@ -28,6 +28,23 @@
         <div style="font-size:14px;color:#27272a;line-height:1.7;word-break:break-word;">{!! $emailBody !!}</div>
       </td>
     </tr>
+    @if(!empty($signupUrl))
+    <tr>
+      <td style="padding:0 36px 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1px solid #ddd6fe;border-radius:12px;">
+          <tr>
+            <td style="padding:20px 22px;">
+              <p style="margin:0 0 14px;font-size:12px;font-weight:700;color:#6d28d9;letter-spacing:.04em;">📩 SupportWorks 초대</p>
+              <a href="{{ $signupUrl }}" target="_blank"
+                 style="display:inline-block;padding:10px 22px;background:#7c3aed;color:#ffffff !important;text-decoration:none;border-radius:8px;font-size:13.5px;font-weight:700;">
+                가입하기
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    @endif
     <tr>
       <td style="padding:14px 36px;background:#f9fafb;border-top:1px solid #f3f4f6;text-align:center;">
         <p style="margin:0;font-size:11px;color:#9ca3af;">SupportWorks · {{ $senderName }}님이 보낸 메일</p>

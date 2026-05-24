@@ -27,17 +27,19 @@ class CompanyGroupWebController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'        => 'required|string|max:100',
-            'code'        => 'required|string|max:50|unique:company_groups,code|regex:/^[A-Za-z0-9_-]+$/',
-            'description' => 'nullable|string|max:500',
-            'is_active'   => 'boolean',
+            'name'           => 'required|string|max:100',
+            'code'           => 'required|string|max:50|unique:company_groups,code|regex:/^[A-Za-z0-9_-]+$/',
+            'description'    => 'nullable|string|max:500',
+            'is_active'      => 'boolean',
+            'uses_withworks' => 'boolean',
         ]);
 
         CompanyGroup::create([
-            'name'        => $request->name,
-            'code'        => strtoupper($request->code),
-            'description' => $request->description,
-            'is_active'   => $request->boolean('is_active', true),
+            'name'           => $request->name,
+            'code'           => strtoupper($request->code),
+            'description'    => $request->description,
+            'is_active'      => $request->boolean('is_active', true),
+            'uses_withworks' => $request->boolean('uses_withworks', false),
         ]);
 
         return redirect()->route('admin.company-groups.index')
@@ -68,9 +70,10 @@ class CompanyGroupWebController extends Controller
     public function update(Request $request, CompanyGroup $companyGroup)
     {
         $request->validate([
-            'name'        => 'required|string|max:100',
-            'description' => 'nullable|string|max:500',
-            'is_active'   => 'boolean',
+            'name'           => 'required|string|max:100',
+            'description'    => 'nullable|string|max:500',
+            'is_active'      => 'boolean',
+            'uses_withworks' => 'boolean',
         ]);
 
         $featureKeys = array_keys(\App\Models\CompanyGroup::FEATURE_KEYS);
@@ -80,10 +83,11 @@ class CompanyGroupWebController extends Controller
         }
 
         $companyGroup->update([
-            'name'        => $request->name,
-            'description' => $request->description,
-            'is_active'   => $request->boolean('is_active'),
-            'features'    => $features,
+            'name'           => $request->name,
+            'description'    => $request->description,
+            'is_active'      => $request->boolean('is_active'),
+            'uses_withworks' => $request->boolean('uses_withworks', false),
+            'features'       => $features,
         ]);
 
         // 관리자 그룹 할당 동기화

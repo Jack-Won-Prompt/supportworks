@@ -124,6 +124,54 @@
                 <input type="checkbox" name="is_active" id="f-active" value="1" checked style="accent-color:#6366f1;width:15px;height:15px;">
                 즉시 활성화
             </label>
+
+            {{-- 수신 대상 --}}
+            <div style="border-top:1px solid #f1f5f9;padding-top:14px;margin-top:4px;">
+                <label style="display:block;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">수신 대상</label>
+                <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#334155;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="radio" name="target_type" id="t-all" value="all" checked style="accent-color:#6366f1;" onchange="toggleTargetCompanies()">
+                        전체 사용자
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="radio" name="target_type" id="t-withworks" value="withworks" style="accent-color:#7c3aed;" onchange="toggleTargetCompanies()">
+                        WITHWORKS 사용 회사 소속만
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="radio" name="target_type" id="t-companies" value="companies" style="accent-color:#0284c7;" onchange="toggleTargetCompanies()">
+                        특정 회사 선택
+                    </label>
+                </div>
+                <div id="target-companies-box" style="display:none;margin-top:8px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;max-height:160px;overflow-y:auto;">
+                    @foreach($companyGroups as $cg)
+                        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#334155;cursor:pointer;padding:3px 2px;">
+                            <input type="checkbox" name="target_company_group_ids[]" value="{{ $cg->id }}" class="f-target-cg" style="accent-color:#0284c7;">
+                            <span>{{ $cg->name }}</span>
+                            @if($cg->uses_withworks)
+                                <span style="font-size:10px;background:#ede9fe;color:#6d28d9;padding:1px 5px;border-radius:4px;">WITHWORKS</span>
+                            @endif
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- 이메일 발송 옵션 --}}
+            <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#334155;cursor:pointer;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;">
+                <input type="checkbox" name="send_email" id="f-send-email" value="1" style="accent-color:#d97706;width:15px;height:15px;margin-top:2px;">
+                <span>
+                    <strong>이메일도 함께 발송</strong>
+                    <span style="display:block;font-size:11.5px;color:#92400e;margin-top:2px;">대상 사용자에게 SMTP 이메일을 백그라운드로 발송합니다. (체크 해제 시 메일함에만 적재)</span>
+                </span>
+            </label>
+
+            {{-- 수정 모드에서만: 재발송 옵션 --}}
+            <label id="resend-row" style="display:none;align-items:flex-start;gap:8px;font-size:13px;color:#334155;cursor:pointer;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:8px 10px;">
+                <input type="checkbox" name="resend" id="f-resend" value="1" style="accent-color:#dc2626;width:15px;height:15px;margin-top:2px;">
+                <span>
+                    <strong>재발송</strong>
+                    <span style="display:block;font-size:11.5px;color:#b91c1c;margin-top:2px;">체크 시 저장 후 대상자에게 다시 발송합니다 (메일함에 새 메시지 추가).</span>
+                </span>
+            </label>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
             <button type="button" onclick="closeModal()" class="btn-secondary">취소</button>
@@ -135,6 +183,25 @@
 <script>
 const BASE_URL = '{{ route('admin.announcements.index') }}';
 
+function toggleTargetCompanies() {
+    const isCompanies = document.getElementById('t-companies').checked;
+    document.getElementById('target-companies-box').style.display = isCompanies ? 'block' : 'none';
+}
+
+function setTargetType(t) {
+    document.getElementById('t-all').checked        = (t === 'all');
+    document.getElementById('t-withworks').checked  = (t === 'withworks');
+    document.getElementById('t-companies').checked  = (t === 'companies');
+    toggleTargetCompanies();
+}
+
+function setTargetCompanyIds(ids) {
+    const set = new Set((ids || []).map(Number));
+    document.querySelectorAll('.f-target-cg').forEach(cb => {
+        cb.checked = set.has(Number(cb.value));
+    });
+}
+
 async function openCreateModal() {
     document.getElementById('modal-title').textContent = '새 공지사항';
     document.getElementById('ann-form').action = BASE_URL;
@@ -145,6 +212,11 @@ async function openCreateModal() {
     document.getElementById('f-starts').value  = '';
     document.getElementById('f-ends').value    = '';
     document.getElementById('f-active').checked = true;
+    document.getElementById('f-send-email').checked = false;
+    setTargetType('all');
+    setTargetCompanyIds([]);
+    document.getElementById('resend-row').style.display = 'none';
+    document.getElementById('f-resend').checked = false;
     showModal();
 }
 
@@ -158,6 +230,11 @@ async function openEditModal(ann) {
     document.getElementById('f-starts').value  = ann.starts_at ? ann.starts_at.replace(' ', 'T').substring(0,16) : '';
     document.getElementById('f-ends').value    = ann.ends_at   ? ann.ends_at.replace(' ', 'T').substring(0,16)   : '';
     document.getElementById('f-active').checked = !!ann.is_active;
+    document.getElementById('f-send-email').checked = !!ann.send_email;
+    setTargetType(ann.target_type || 'all');
+    setTargetCompanyIds(ann.target_company_group_ids || []);
+    document.getElementById('resend-row').style.display = 'flex';
+    document.getElementById('f-resend').checked = false;
     showModal();
 }
 

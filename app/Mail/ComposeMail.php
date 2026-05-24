@@ -21,9 +21,11 @@ class ComposeMail extends Mailable
     public string $emailBody;
     public ?string $recipientName;
     public array $attachmentsInfo;
+    public ?string $signupUrl;
 
     /**
      * @param array<int, array{path:string, name:string, mime?:string}> $attachmentsInfo
+     * @param ?string $signupUrl 미가입 수신자에게 노출할 가입 CTA URL (있으면 메일 하단에 버튼 표시)
      */
     public function __construct(
         User $sender,
@@ -31,6 +33,7 @@ class ComposeMail extends Mailable
         string $body,
         ?string $recipientName = null,
         array $attachmentsInfo = [],
+        ?string $signupUrl = null,
     ) {
         $this->senderName      = $sender->name ?? '';
         $this->senderEmail     = $sender->email ?? '';
@@ -38,6 +41,7 @@ class ComposeMail extends Mailable
         $this->emailBody       = $body;
         $this->recipientName   = $recipientName;
         $this->attachmentsInfo = $attachmentsInfo;
+        $this->signupUrl       = $signupUrl;
     }
 
     public function envelope(): Envelope

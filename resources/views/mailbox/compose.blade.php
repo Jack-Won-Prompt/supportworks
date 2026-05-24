@@ -7,12 +7,14 @@
 @section($embed ? 'embed-content' : 'content')
 <div style="{{ $embed ? 'max-width:none;margin:0;padding:0;' : 'max-width:980px;margin:0 auto;padding:8px 0 24px;' }}">
 
-    <div style="background:#fff;border:1px solid var(--color-border-default);border-radius:14px;overflow:hidden;">
-        {{-- 헤더 --}}
+    <div style="background:#fff;{{ $embed ? '' : 'border:1px solid var(--color-border-default);border-radius:14px;' }}overflow:hidden;">
+        {{-- 헤더 (단독 페이지에서만 — embed 팝업에서는 부모 모달 헤더가 이미 '메일 작성' 표시) --}}
+        @if(!$embed)
         <div style="padding:14px 20px;border-bottom:1px solid var(--color-border-default);display:flex;align-items:center;justify-content:space-between;">
             <h1 style="font-size:16px;font-weight:700;color:var(--color-text-primary);margin:0;">메일 작성</h1>
             <button type="button" onclick="mbcCancel()" style="background:none;border:none;font-size:12.5px;color:var(--color-text-tertiary);cursor:pointer;">취소</button>
         </div>
+        @endif
 
         @if(session('error'))
             <div style="margin:12px 20px;padding:10px 14px;background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:8px;font-size:13px;">{{ session('error') }}</div>
@@ -47,7 +49,7 @@
                 </div>
                 <div class="mb-taginput" data-field="to" tabindex="-1" onclick="this.querySelector('input').focus()">
                     <div class="mb-tag-chips" id="mbc-chips-to"></div>
-                    <input class="mb-tag-input" type="text" autocomplete="off" placeholder="이름·이메일로 검색하거나, 직접 입력 후 Enter">
+                    <input class="mb-tag-input" type="text" autocomplete="off" placeholder="이름으로 검색 후 선택 · 또는 이메일 직접 입력 후 Enter">
                     <div class="mb-tag-dropdown" style="display:none;"></div>
                 </div>
             </div>
@@ -300,6 +302,25 @@
 
         input.addEventListener('focus', refreshDropdown);
         input.addEventListener('input', refreshDropdown);
+        // 직접 입력 / 드롭다운 선택 양쪽 모두 지원
+        // - 완전한 이메일 형식이면 → 직접 추가 우선 (정확 일치 사용자가 있으면 그쪽 사용)
+        // - 부분 텍스트면 → 드롭다운 활성 항목 선택
+        function tryAddTyped() {
+            const v = (input.value || '').trim().replace(/[,;]+$/, '').trim();
+            if (!v) return false;
+            if (!/^.+@.+\..+$/.test(v)) return false;
+            const list = tagList(field);
+            const exact = _allUsers.find(u => (u.email || '').toLowerCase() === v.toLowerCase());
+            const payload = exact ? { email: exact.email, name: exact.name } : { email: v, name: null };
+            if (!list.find(r => (r.email || '').toLowerCase() === payload.email.toLowerCase())) {
+                list.push(payload);
+                renderTagChips(field);
+            }
+            input.value = '';
+            dd.style.display = 'none';
+            return true;
+        }
+
         input.addEventListener('keydown', e => {
             const opts = dd.querySelectorAll('.mb-tag-option');
             if (e.key === 'ArrowDown') {
@@ -313,15 +334,25 @@
                 _activeIdx[field] = Math.max(_activeIdx[field] - 1, 0);
                 opts.forEach((el, i) => el.classList.toggle('is-active', i === _activeIdx[field]));
                 opts[_activeIdx[field]]?.scrollIntoView({ block: 'nearest' });
-            } else if (e.key === 'Enter' || e.key === ',' || e.key === 'Tab') {
+            } else if (e.key === 'Enter' || e.key === ',' || e.key === ';' || e.key === 'Tab') {
+                const v = (input.value || '').trim();
+                const isCompleteEmail = /^.+@.+\..+$/.test(v.replace(/[,;]+$/, '').trim());
+
+                // 1) 완전한 이메일이 입력됐으면 직접 추가 우선 (드롭다운 부분 매칭 무시)
+                if (isCompleteEmail) {
+                    if (e.key === 'Enter' || e.key === ',' || e.key === ';') e.preventDefault();
+                    tryAddTyped();
+                    return;
+                }
+
+                // 2) 부분 텍스트 + 드롭다운 활성 항목 있음 → 사용자 선택
                 const idx = _activeIdx[field];
-                if (opts.length && idx >= 0 && (e.key !== 'Tab' || input.value.trim())) {
+                if (opts.length && idx >= 0 && (e.key !== 'Tab' || v)) {
                     e.preventDefault();
                     const opts2 = dd.querySelectorAll('.mb-tag-option');
                     const userIdx = Number(opts2[idx]?.dataset.idx ?? -1);
-                    // 현재 표시 중인 옵션의 user id 를 다시 계산 — 단순히 매칭한 첫번째 사용자 추가
                     const matched = _allUsers.filter(u => {
-                        const q = input.value.trim().toLowerCase();
+                        const q = v.toLowerCase();
                         const already = new Set(tagList(field).map(r => (r.email||'').toLowerCase()));
                         return u.email && !already.has(u.email.toLowerCase()) &&
                                (!q || `${u.name||''} ${u.email||''}`.toLowerCase().includes(q));
@@ -330,19 +361,11 @@
                     if (picked) mbcAddFromDropdown(field, picked.id);
                     return;
                 }
-                // 직접 입력 (이메일 형식)
-                if (e.key === 'Enter' || e.key === ',') {
+
+                // 3) Enter/, 인데 텍스트는 있지만 이메일 아님 → 경고
+                if ((e.key === 'Enter' || e.key === ',' || e.key === ';') && v) {
                     e.preventDefault();
-                    const v = (input.value || '').trim().replace(/,$/, '').trim();
-                    if (!v) return;
-                    if (!/^.+@.+\..+$/.test(v)) { alert('유효한 이메일 형식이 아닙니다.'); return; }
-                    const list = tagList(field);
-                    if (!list.find(r => (r.email||'').toLowerCase() === v.toLowerCase())) {
-                        list.push({ email: v, name: null });
-                        renderTagChips(field);
-                    }
-                    input.value = '';
-                    dd.style.display = 'none';
+                    alert('유효한 이메일 형식이 아닙니다.');
                 }
             } else if (e.key === 'Backspace' && !input.value) {
                 const list = tagList(field);
@@ -351,9 +374,38 @@
                 dd.style.display = 'none';
             }
         });
+
+        // 붙여넣기 — 쉼표/세미콜론/줄바꿈으로 구분된 이메일 리스트 자동 분할
+        input.addEventListener('paste', e => {
+            const text = (e.clipboardData || window.clipboardData)?.getData('text');
+            if (!text) return;
+            if (!/[,;\n]/.test(text)) return; // 단일 입력은 기본 paste 동작
+            e.preventDefault();
+            const tokens = text.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+            const list = tagList(field);
+            tokens.forEach(t => {
+                // "name <email>" 또는 "email"
+                let name = null, email = t;
+                const m = t.match(/^\s*(.+?)\s*<([^>]+)>\s*$/);
+                if (m) { name = m[1].trim(); email = m[2].trim(); }
+                if (!/^.+@.+\..+$/.test(email)) return;
+                const exact = _allUsers.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
+                const payload = exact ? { email: exact.email, name: exact.name } : { email, name };
+                if (!list.find(r => (r.email || '').toLowerCase() === payload.email.toLowerCase())) {
+                    list.push(payload);
+                }
+            });
+            renderTagChips(field);
+            input.value = '';
+            dd.style.display = 'none';
+        });
+
+        // 포커스 잃을 때 유효한 이메일이 남아 있으면 자동 추가 (사용자가 Enter 안 누르고 다른 곳 클릭한 경우)
         input.addEventListener('blur', () => {
-            // 약간 지연 — onmousedown 처리 시간 확보
-            setTimeout(() => dd.style.display = 'none', 120);
+            setTimeout(() => {
+                tryAddTyped();           // 유효 이메일이면 추가 (아니면 조용히 무시)
+                dd.style.display = 'none';
+            }, 120);
         });
     });
 

@@ -3,6 +3,7 @@
 namespace App\Services\Mailbox;
 
 use App\Mail\ComposeMail;
+use App\Models\Invitation;
 use App\Models\Mailbox\Attachment;
 use App\Models\Mailbox\Message;
 use App\Models\Mailbox\Recipient;
@@ -118,7 +119,7 @@ class MailDispatchService
                 'read_at'    => $now,
             ]);
 
-            // 수신자 row — SupportWorks 사용자 매칭하여 inbox 폴더 채움
+            // 수신자 row — 항상 'inbox' 폴더로 적재 (외부 사용자도 추후 가입 시 자동 inbox 표시)
             foreach ($recipients as $r) {
                 $user = User::where('email', $r['email'])->first();
                 Recipient::create([
@@ -127,7 +128,7 @@ class MailDispatchService
                     'email'      => $r['email'],
                     'name'       => $r['name'] ?: $user?->name,
                     'type'       => $r['type'],
-                    'folder'     => $user ? 'inbox' : 'sent',  // 외부 사용자는 받은편지함 없음
+                    'folder'     => 'inbox',
                     'is_read'    => false,
                 ]);
             }
@@ -166,19 +167,62 @@ class MailDispatchService
             return $message->refresh();
         });
 
-        // 3) SMTP 외부 발송 — 실패해도 DB 적재는 살아남음
-        $this->dispatchSmtp($sender, $subject, $bodyHtml, $recipients, $files, $projectFileRefs);
+        // 3) 외부 이메일(=미가입자)은 가입 권유 토큰을 발급해서 메일에 CTA 첨부
+        //    동일 (email, 발신자 회사그룹) 으로 미완료 초대가 있으면 재사용 (중복 토큰 방지)
+        $signupUrls = $this->ensureInvitesForExternals($sender, $recipients);
 
-        // 4) SMS — 매칭된 SupportWorks 사용자가 휴대폰 있으면 알림
+        // 4) SMTP 외부 발송 — 실패해도 DB 적재는 살아남음
+        $this->dispatchSmtp($sender, $subject, $bodyHtml, $recipients, $files, $projectFileRefs, $signupUrls);
+
+        // 5) SMS — 매칭된 SupportWorks 사용자가 휴대폰 있으면 알림
         $this->dispatchSms($sender, $subject, $recipients);
 
         return $message;
     }
 
     /**
-     * SMTP 발송 — Mail::send 로 외부 메일 발송.
+     * 외부 이메일(미가입자) 마다 Invitation 토큰 생성/재사용 → 가입하기 URL 맵 반환.
+     * @return array<string, string>  이메일(소문자) → 가입 절대 URL
      */
-    private function dispatchSmtp(User $sender, string $subject, string $bodyHtml, array $recipients, array $files, array $projectFileRefs = []): void
+    private function ensureInvitesForExternals(User $sender, array $recipients): array
+    {
+        $urls = [];
+        $companyGroupId = $sender->company_group_id;
+
+        foreach ($recipients as $r) {
+            $email = mb_strtolower($r['email']);
+            // 이미 SupportWorks 사용자면 스킵
+            if (User::where('email', $email)->exists()) continue;
+
+            // 동일 (email, company_group_id) 의 미완료 초대 재사용
+            $invite = Invitation::where('email', $email)
+                ->where('company_group_id', $companyGroupId)
+                ->whereNull('accepted_at')
+                ->first();
+
+            if (!$invite) {
+                $invite = Invitation::create([
+                    'email'            => $email,
+                    'phone'            => null,
+                    'message'          => null,
+                    'project_ids'      => [],
+                    'token'            => Str::random(40),
+                    'invited_by'       => $sender->id,
+                    'company_group_id' => $companyGroupId,
+                ]);
+            }
+
+            // 절대 URL — APP_URL 베이스
+            $urls[$email] = rtrim((string) config('app.url'), '/')
+                . route('team.accept', $invite->token, false);
+        }
+        return $urls;
+    }
+
+    /**
+     * SMTP 발송 — Mail::send 로 외부 메일 발송. $signupUrls 가 있으면 미가입자에게 CTA 포함.
+     */
+    private function dispatchSmtp(User $sender, string $subject, string $bodyHtml, array $recipients, array $files, array $projectFileRefs = [], array $signupUrls = []): void
     {
         // 첨부파일 임시 정보 — ComposeMail 이 받는 형식으로 변환
         $attachments = [];
@@ -209,8 +253,9 @@ class MailDispatchService
 
         foreach ($recipients as $r) {
             try {
+                $signupUrl = $signupUrls[mb_strtolower($r['email'])] ?? null;
                 Mail::to($r['email'], $r['name'])
-                    ->send(new ComposeMail($sender, $subject, $bodyHtml, $r['name'], $attachments));
+                    ->send(new ComposeMail($sender, $subject, $bodyHtml, $r['name'], $attachments, $signupUrl));
             } catch (\Throwable $e) {
                 SystemErrorLog::record($e, 'warning');
             }

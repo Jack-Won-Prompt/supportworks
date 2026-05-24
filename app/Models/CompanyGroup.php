@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CompanyGroup extends Model
 {
-    protected $fillable = ['name', 'code', 'description', 'is_active', 'features'];
+    protected $fillable = ['name', 'code', 'description', 'is_active', 'uses_withworks', 'features'];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'features'  => 'array',
+        'is_active'      => 'boolean',
+        'uses_withworks' => 'boolean',
+        'features'       => 'array',
     ];
 
     public const FEATURE_KEYS = [

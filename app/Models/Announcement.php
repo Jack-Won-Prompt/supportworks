@@ -9,12 +9,16 @@ class Announcement extends Model
 {
     protected $fillable = [
         'title', 'body', 'type', 'is_active', 'starts_at', 'ends_at', 'created_by',
+        'target_type', 'target_company_group_ids', 'send_email', 'email_sent_at', 'email_sent_count',
     ];
 
     protected $casts = [
-        'is_active'  => 'boolean',
-        'starts_at'  => 'datetime',
-        'ends_at'    => 'datetime',
+        'is_active'                => 'boolean',
+        'send_email'               => 'boolean',
+        'starts_at'                => 'datetime',
+        'ends_at'                  => 'datetime',
+        'email_sent_at'            => 'datetime',
+        'target_company_group_ids' => 'array',
     ];
 
     public function creator(): BelongsTo

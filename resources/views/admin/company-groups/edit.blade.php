@@ -40,12 +40,20 @@
                         onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">{{ old('description', $companyGroup->description) }}</textarea>
                 </div>
 
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                     <input type="hidden" name="is_active" value="0">
                     <input type="checkbox" name="is_active" id="is_active" value="1"
                         {{ $companyGroup->is_active ? 'checked' : '' }}
                         style="width:16px;height:16px;accent-color:#6366f1;">
                     <label for="is_active" style="font-size:13px;color:#334155;cursor:pointer;">{{ __('admin.active_status') }}</label>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                    <input type="hidden" name="uses_withworks" value="0">
+                    <input type="checkbox" name="uses_withworks" id="uses_withworks" value="1"
+                        {{ $companyGroup->uses_withworks ? 'checked' : '' }}
+                        style="width:16px;height:16px;accent-color:#7c3aed;">
+                    <label for="uses_withworks" style="font-size:13px;color:#334155;cursor:pointer;">WITHWORKS 사용 회사 <span style="font-size:11px;color:#94a3b8;">(공지사항·알림 대상 필터)</span></label>
                 </div>
 
                 {{-- ?대떦 愿由ъ옄 ?좊떦 --}}

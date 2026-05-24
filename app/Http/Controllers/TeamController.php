@@ -427,6 +427,12 @@ class TeamController extends Controller
 
         $invitation->update(['accepted_at' => now()]);
 
+        // 외부 이메일로 보내진 mailbox 메시지들을 새 사용자에게 귀속 (folder는 이미 inbox)
+        // 과거에 folder='sent' 로 저장된 호환 레코드도 inbox 로 정상화
+        \App\Models\Mailbox\Recipient::where('email', $user->email)
+            ->whereNull('user_id')
+            ->update(['user_id' => $user->id, 'folder' => 'inbox']);
+
         Auth::login($user);
         $request->session()->regenerate();
 

@@ -46,6 +46,14 @@
                 <label for="is_active" style="font-size:13px;color:#334155;cursor:pointer;">{{ __('admin.active_on_create') }}</label>
             </div>
 
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="hidden" name="uses_withworks" value="0">
+                <input type="checkbox" name="uses_withworks" id="uses_withworks" value="1"
+                    {{ old('uses_withworks', false) ? 'checked' : '' }}
+                    style="width:16px;height:16px;accent-color:#7c3aed;">
+                <label for="uses_withworks" style="font-size:13px;color:#334155;cursor:pointer;">WITHWORKS 사용 회사 <span style="font-size:11px;color:#94a3b8;">(공지사항·알림 대상 필터로 사용)</span></label>
+            </div>
+
             <div style="display:flex;gap:12px;padding-top:8px;border-top:1px solid #f1f5f9;">
                 <button type="submit" class="btn-primary">{{ __('admin.create') }}</button>
                 <a href="{{ route('admin.company-groups.index') }}" class="btn-secondary">{{ __('admin.cancel') }}</a>
