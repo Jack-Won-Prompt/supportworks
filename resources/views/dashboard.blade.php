@@ -1061,6 +1061,7 @@ window.addEventListener('scroll', () => { if (_dbFcOpen) dbFcPositionPop(); }, t
 </script>
 
 {{-- ─── 대시보드 온보딩 투어 (사용자별 처음 1회, DB 기록) ─── --}}
+@if(class_exists(\App\Models\UserTourVisit::class) && Route::has('tour.visited'))
 @php $__dashTourSeen = \App\Models\UserTourVisit::hasVisited((int) auth()->id(), 'dashboard'); @endphp
 @if(!$__dashTourSeen)
 <script>
@@ -1190,6 +1191,7 @@ window.addEventListener('scroll', () => { if (_dbFcOpen) dbFcPositionPop(); }, t
     else window.addEventListener('load', () => setTimeout(start, 700));
 })();
 </script>
+@endif
 @endif
 
 @endsection

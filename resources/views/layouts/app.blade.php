@@ -352,6 +352,7 @@
                             </svg>
                             <span class="gsb-hide">{{ __('plan-do-acts.nav') }}</span>
                         </a>
+                        @if(Route::has('mailbox.inbox') && class_exists(\App\Models\Mailbox\Recipient::class))
                         @php
                             $__mbUnread = \App\Models\Mailbox\Recipient::where('user_id', auth()->id())
                                 ->where('folder', 'inbox')->where('is_read', false)->count();
@@ -365,6 +366,7 @@
                                 <span class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;">{{ $__mbUnread > 99 ? '99+' : $__mbUnread }}</span>
                             @endif
                         </a>
+                        @endif
                         @if(auth()->user()->hasCompany())
                         <a href="{{ route('shared-folder.index') }}" class="sidebar-item {{ request()->routeIs('shared-folder.*') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
