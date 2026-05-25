@@ -11,11 +11,13 @@ class MaintRequest extends Model
     protected $fillable = [
         'excel_no', 'source_sheet', 'menu_id', 'company_group_id',
         'request_date', 'priority', 'category',
-        'summary', 'content', 'status',
-        'ai_summary', 'ai_summary_at', 'ai_summary_context_ids',
+        'summary', 'content', 'status', 'difficulty_score',
+        'ai_summary', 'ai_summary_at', 'ai_summary_context_ids', 'ai_classification',
+        'ai_review_summary', 'ai_review_difficulty', 'ai_review_effort',
+        'ai_review_questions', 'ai_review_status', 'ai_review_at', 'ai_review_error',
         'progress_raw', 'colo_check_raw',
-        'colo_user_id', 'assignee_id', 'assignee_raw',
-        'eta', 'grid_refresh', 'completed_at',
+        'colo_user_id', 'assignee_id', 'assigned_at', 'assignee_raw',
+        'eta', 'grid_refresh', 'completed_at', 'reopen_count',
         'paid_dev_enabled', 'paid_dev_days', 'paid_dev_cost', 'paid_dev_description', 'paid_dev_sent_at',
     ];
 
@@ -26,6 +28,8 @@ class MaintRequest extends Model
         'excel_no'                => 'integer',
         'ai_summary_at'           => 'datetime',
         'ai_summary_context_ids'  => 'array',
+        'ai_review_questions'     => 'array',
+        'ai_review_at'            => 'datetime',
         'paid_dev_enabled'        => 'boolean',
         'paid_dev_days'           => 'integer',
         'paid_dev_cost'           => 'integer',
@@ -79,5 +83,11 @@ class MaintRequest extends Model
     public function linkNotes(): HasMany
     {
         return $this->notes()->where('note_type', 'link');
+    }
+
+    /** 명세 §3.2 — 1 SR 당 여러 난이도 단위 매핑 가능 (1:N). MAX(score) 가 difficulty_score 캐시 */
+    public function difficultyMappings(): HasMany
+    {
+        return $this->hasMany(SrDifficultyMapping::class, 'sr_id');
     }
 }

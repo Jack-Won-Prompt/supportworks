@@ -21,7 +21,7 @@ class SrSummaryService
     private const NEW_CONTENT_CAP   = 4000;  // 새 SR 본문 글자수 제한
 
     /**
-     * @return array{summary:string, context_ids:array<int>, provider:?string}
+     * @return array{summary:string, context_ids:array<int>, provider:?string, classification:?string}
      */
     public function summarize(MaintRequest $req): array
     {
@@ -41,10 +41,80 @@ class SrSummaryService
             $this->systemPrompt(),
         );
 
+        // 분류는 별도 호출 — 실패해도 요약은 그대로 반환
+        $classification = $this->classify($orch, $req);
+
         return [
-            'summary'     => trim((string) ($res['text'] ?? '')),
-            'context_ids' => $similar->pluck('id')->all(),
-            'provider'    => $res['provider'] ?? null,
+            'summary'        => trim((string) ($res['text'] ?? '')),
+            'context_ids'    => $similar->pluck('id')->all(),
+            'provider'       => $res['provider'] ?? null,
+            'classification' => $classification,
+        ];
+    }
+
+    /**
+     * SR 내용을 보고 free / paid / discuss 중 하나로 분류.
+     * 실패하거나 응답이 enum 외 값이면 null.
+     */
+    private function classify(AiOrchestrator $orch, MaintRequest $req): ?string
+    {
+        try {
+            $res = $orch->generateDraft(
+                $this->classifySystemPrompt(),
+                $this->classifyUserPrompt($req),
+                $this->classifySchema(),
+            );
+            $cls = $res['fields']['classification'] ?? null;
+            if (in_array($cls, ['free', 'paid', 'discuss'], true)) {
+                return $cls;
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[SrSummaryService] 분류 실패 SR #' . ($req->id ?? '?') . ': ' . $e->getMessage());
+        }
+        return null;
+    }
+
+    private function classifySystemPrompt(): string
+    {
+        return <<<SYS
+당신은 SR(유지보수 요청) 분류 보조입니다.
+
+다음 SR 내용을 분석해 정확히 3가지 중 하나로 분류하세요:
+
+- "free" (무상): 에러 수정, 데이터 확인/정정, 버그 보고 등 **기존 기능의 결함 해소**.
+- "paid" (유상 추가 개발): 신규 기능 추가, 프로세스 변경, 화면/기능 확장 등 **추가 개발이 필요한** 작업.
+- "discuss" (논의 필요): 요건이 모호하거나 영향 범위가 커서 위 두 분류로 단정하기 어려운 경우.
+
+판단 기준이 애매하면 "discuss" 를 선택하세요. 반드시 셋 중 하나의 값만 응답.
+SYS;
+    }
+
+    private function classifyUserPrompt(MaintRequest $req): string
+    {
+        return implode("\n", [
+            '## 분류 대상 SR',
+            '- 메뉴: ' . ($req->menu?->name ?? '—'),
+            '- 구분: ' . ($req->category ?? '—'),
+            '- 우선순위: ' . ($req->priority ?? '—'),
+            '- 요약: ' . trim((string) $req->summary),
+            '',
+            '### 상세 내용',
+            \Illuminate\Support\Str::limit((string) $req->content, 3000),
+        ]);
+    }
+
+    private function classifySchema(): array
+    {
+        return [
+            'type'       => 'object',
+            'required'   => ['classification'],
+            'properties' => [
+                'classification' => [
+                    'type'        => 'string',
+                    'enum'        => ['free', 'paid', 'discuss'],
+                    'description' => '무상(free) / 유상 추가 개발(paid) / 논의 필요(discuss) 중 하나.',
+                ],
+            ],
         ];
     }
 

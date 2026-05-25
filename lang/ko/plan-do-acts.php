@@ -23,6 +23,7 @@ return [
     'status_do'           => '실행 (Do)',
     'status_act'          => '조치 (Act)',
     'status_done'         => '완료',
+    'status_excluded'     => '제외',
 
     // ── 단계 입력 ──
     'phase_plan'          => 'Plan · 계획',
@@ -35,6 +36,10 @@ return [
     // ── 원본 소스 ──
     'source_heading'      => '원본 의견 · 답변',
     'source_linked'       => '의견 연동',
+    'src_loc_file'        => '파일 의견',
+    'src_loc_message'     => '채팅 메시지',
+    'src_loc_missing'     => '원본을 찾을 수 없음 (삭제됨)',
+    'src_open'            => '원본 열기',
 
     // ── 버튼 ──
     'btn_delete'          => '삭제',

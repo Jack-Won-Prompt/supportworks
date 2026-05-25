@@ -31,6 +31,9 @@ return [
     'translate_on_submit'       => '메시지 번역 + 이메일 전체를 :lang 로 발송',
     'translating'               => '번역 중...',
     'invite_projects_label'     => '초대 프로젝트',
+    'invite_company_label'      => '소속 회사',
+    'invite_company_hint'       => '(가입 후 소속될 회사 · 미선택 시 초대자 회사)',
+    'invite_company_default_option' => '초대자 회사로 (기본)',
 
     // ── 대기 중인 초대
     'pending_invites_title'     => '대기 중인 초대',

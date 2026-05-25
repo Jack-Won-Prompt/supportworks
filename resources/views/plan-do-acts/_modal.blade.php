@@ -18,6 +18,15 @@
         <div style="padding:18px 22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;">
             <div id="pda-source-wrap" style="display:none;">
                 <div style="font-size:11px;font-weight:700;color:var(--t600);margin-bottom:5px;">{{ __('plan-do-acts.source_heading') }}</div>
+                <div id="pda-source-meta" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;line-height:1.5;background:#fff;border:1px solid #ece9ff;border-bottom:none;border-top-left-radius:9px;border-top-right-radius:9px;padding:8px 12px;font-size:11.5px;color:#4b5563;">
+                    <span id="pda-source-type-badge" style="font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--t50);color:var(--t600);"></span>
+                    <span id="pda-source-label" style="font-weight:600;color:#1f2937;word-break:break-all;flex:1;min-width:0;"></span>
+                    <span id="pda-source-author" style="color:#6b7280;"></span>
+                    <a id="pda-source-link" href="#" target="_blank" rel="noopener" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--t600);text-decoration:none;padding:3px 8px;border:1px solid #ddd6fe;border-radius:6px;background:#faf9ff;">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        <span>{{ __('plan-do-acts.src_open') }}</span>
+                    </a>
+                </div>
                 <div id="pda-source-box" style="background:#f8f7ff;border:1px solid #ece9ff;border-radius:9px;padding:10px 12px;font-size:12.5px;color:#4b5563;white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:160px;overflow-y:auto;"></div>
             </div>
             <div>
@@ -41,6 +50,7 @@
                         <option value="do">{{ __('plan-do-acts.status_do') }}</option>
                         <option value="act">{{ __('plan-do-acts.status_act') }}</option>
                         <option value="done">{{ __('plan-do-acts.status_done') }}</option>
+                        <option value="excluded">{{ __('plan-do-acts.status_excluded') }}</option>
                     </select>
                 </div>
             </div>
@@ -85,6 +95,8 @@
         delete_failed:      @json(__('plan-do-acts.delete_failed')),
         already_registered: @json(__('plan-do-acts.already_registered')),
         confirm_delete:     @json(__('plan-do-acts.confirm_delete')),
+        src_loc_file:       @json(__('plan-do-acts.src_loc_file')),
+        src_loc_message:    @json(__('plan-do-acts.src_loc_message')),
     };
 
     let pdaId=null, pdaSourceCommentId=null, pdaSourceMessageId=null;
@@ -101,6 +113,32 @@
         sel.value=pid;
     }
 
+    function renderSourceMeta(source){
+        const meta=$('pda-source-meta'), badge=$('pda-source-type-badge'),
+              label=$('pda-source-label'), author=$('pda-source-author'),
+              link=$('pda-source-link'), box=$('pda-source-box');
+        if(!source){
+            meta.style.display='none';
+            box.style.borderTopLeftRadius='9px'; box.style.borderTopRightRadius='9px';
+            return;
+        }
+        badge.textContent = source.type==='message' ? PDA_T.src_loc_message : PDA_T.src_loc_file;
+        label.textContent = source.label || '';
+        const who = source.author || source.sender || '';
+        const when = source.created_at || '';
+        author.textContent = [who, when].filter(Boolean).join(' · ');
+        if(source.url){
+            link.href = source.url;
+            link.style.display = 'inline-flex';
+        } else {
+            link.removeAttribute('href');
+            link.style.display = 'none';
+        }
+        meta.style.display = 'flex';
+        // 메타가 위쪽 코너를 차지하므로 본문 박스 상단 코너는 사각으로
+        box.style.borderTopLeftRadius='0'; box.style.borderTopRightRadius='0';
+    }
+
     function fill(d){
         $('pda-title').value=d.title||'';
         $('pda-status').value=d.status||'plan';
@@ -109,8 +147,14 @@
         $('pda-act').value=d.act||'';
         setProject(d.project_id||d.projectId||'', d.project?d.project.name:(d.project_name||''));
         const src=d.source_excerpt||'';
-        if(src){ $('pda-source-box').textContent=src; $('pda-source-wrap').style.display='block'; }
-        else { $('pda-source-wrap').style.display='none'; }
+        if(src){
+            $('pda-source-box').textContent=src;
+            $('pda-source-wrap').style.display='block';
+            renderSourceMeta(d.source||null);
+        } else {
+            $('pda-source-wrap').style.display='none';
+            renderSourceMeta(null);
+        }
     }
 
     window.pdaOpenCreate=function(projectId,prefill){

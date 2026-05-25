@@ -346,8 +346,8 @@
         </div>
 
         {{-- 에러 --}}
-        <div id="ai-error" style="display:none;padding:32px 24px;text-align:center;">
-            <p id="ai-error-msg" style="font-size:13.5px;color:var(--color-alert-warning-500);"></p>
+        <div id="ai-error" style="display:none;padding:24px;text-align:left;">
+            <pre id="ai-error-msg" style="font-size:12.5px;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;white-space:pre-wrap;word-break:break-all;font-family:ui-monospace,monospace;line-height:1.6;margin:0;"></pre>
         </div>
 
         {{-- 서머리 본문 --}}
@@ -456,6 +456,71 @@
 #ai-content .ai-badge-hard{background:#fef3c7;color:#a16207;}
 #ai-content .ai-badge-critical{background:#fee2e2;color:#b91c1c;}
 
+/* 정형 보고서 (KPI) — 명세 §6 와이어프레임 */
+#ai-content .kpi-header{margin:0 0 14px;padding:14px 16px;background:linear-gradient(135deg,#eef2ff 0%,#faf5ff 100%);border-left:4px solid #7c3aed;border-radius:9px;}
+#ai-content .kpi-header h2{margin:0 0 6px;font-size:16px;font-weight:800;color:#0f172a;border:none;background:none;padding:0;}
+#ai-content .kpi-meta{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#475569;}
+#ai-content .kpi-meta span{display:inline-flex;align-items:center;gap:4px;}
+
+#ai-content .kpi-limitations{margin:0 0 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:0;}
+#ai-content .kpi-limitations summary{cursor:pointer;padding:10px 14px;font-size:13px;font-weight:700;color:#92400e;list-style:none;}
+#ai-content .kpi-limitations summary::-webkit-details-marker{display:none;}
+#ai-content .kpi-limitations table{margin:6px 14px 12px;font-size:12px;width:calc(100% - 28px);}
+#ai-content .kpi-limitations th,#ai-content .kpi-limitations td{padding:6px 10px;}
+
+#ai-content .kpi-assignee-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin:0 0 18px;align-items:stretch;}
+#ai-content .kpi-assignee-grid .kpi-assignee{margin:0;height:100%;display:flex;flex-direction:column;}
+#ai-content .kpi-assignee-grid .kpi-comments{margin-top:auto;}
+#ai-content .kpi-assignee{margin:0 0 18px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;box-shadow:0 1px 2px rgba(15,23,42,.04);}
+/* 담당자 카드 안의 mini 표는 좁은 폭에서 1단 세로 */
+#ai-content .kpi-assignee-grid .kpi-grid-2{grid-template-columns:1fr;}
+#ai-content .kpi-assignee h3{margin:0 0 12px;font-size:14.5px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:8px;border:none;background:none;padding:0;}
+#ai-content .kpi-assignee .muted{font-size:11px;color:#94a3b8;font-weight:400;}
+#ai-content .kpi-grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:0 0 10px;}
+#ai-content .kpi-mini h4{margin:0 0 6px;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em;}
+#ai-content .kpi-mini table{width:100%;font-size:12.5px;}
+#ai-content .kpi-mini th{text-align:left;color:#64748b;font-weight:500;padding:4px 8px;background:#f8fafc;border:none;text-transform:none;letter-spacing:0;font-size:12px;}
+#ai-content .kpi-mini td{text-align:right;color:#0f172a;font-weight:600;padding:4px 8px;font-variant-numeric:tabular-nums;}
+#ai-content .kpi-score{margin:8px 0 12px;padding:8px 12px;background:linear-gradient(90deg,#f0fdf4 0%,#ecfeff 100%);border-radius:7px;display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+#ai-content .kpi-score-final b{font-size:16px;color:#15803d;margin-left:4px;}
+
+#ai-content .kpi-penalty{margin:10px 0;}
+#ai-content .kpi-penalty h4{margin:0 0 6px;font-size:12.5px;font-weight:700;color:#a16207;}
+#ai-content .kpi-penalty table{width:100%;font-size:11.5px;border:1px solid #fde68a;}
+#ai-content .kpi-penalty thead th{background:#fef3c7;color:#92400e;padding:6px 8px;}
+#ai-content .kpi-penalty tbody td{padding:5px 8px;}
+#ai-content .kpi-penalty tr.grade-red td{background:#fee2e2;}
+#ai-content .kpi-penalty tr.grade-orange td{background:#ffedd5;}
+#ai-content .kpi-penalty tr.grade-yellow td{background:#fef3c7;}
+#ai-content .kpi-penalty tr.grade-blue td{background:#dbeafe;}
+#ai-content .kpi-penalty tfoot td{background:#fef3c7;font-weight:700;}
+
+#ai-content .kpi-comments{margin:10px 0 0;min-width:0;}
+#ai-content .kpi-comments h4{margin:0 0 6px;font-size:12.5px;font-weight:700;color:#0f172a;}
+#ai-content .kpi-comments ul{margin:0;padding-left:6px;}
+#ai-content .kpi-comments li{word-break:break-all;overflow-wrap:anywhere;hyphens:auto;}
+#ai-content .kpi-assignee{min-width:0;overflow:hidden;}
+#ai-content .kpi-assignee table{table-layout:fixed;word-break:break-all;}
+#ai-content .kpi-assignee table td,#ai-content .kpi-assignee table th{word-break:break-all;overflow-wrap:anywhere;}
+
+#ai-content .kpi-comparison,#ai-content .kpi-conclusion{margin:0 0 18px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;}
+#ai-content .kpi-comparison h3,#ai-content .kpi-conclusion h3{margin:0 0 10px;font-size:14px;font-weight:700;color:#0f172a;border:none;background:none;padding:0;}
+#ai-content .kpi-comparison table{width:100%;font-size:12px;}
+#ai-content .kpi-comparison th,#ai-content .kpi-comparison td{padding:6px 10px;text-align:center;}
+#ai-content .kpi-comparison tbody th{text-align:left;background:#f8fafc;color:#475569;font-weight:600;text-transform:none;letter-spacing:0;}
+#ai-content .kpi-conclusion h4{margin:8px 0 4px;font-size:12.5px;font-weight:700;color:#475569;text-transform:none;letter-spacing:0;}
+#ai-content .kpi-conclusion .kpi-disclaimer{margin:10px 0 0;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:11.5px;color:#64748b;}
+
+#ai-content .kpi-ai-summary{margin:0 0 18px;background:linear-gradient(135deg,#fafbff 0%,#fff 100%);border:1px solid #c4b5fd;border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(124,58,237,.08);}
+#ai-content .kpi-ai-summary h3{margin:0 0 8px;font-size:14px;font-weight:700;color:#5b21b6;border:none;background:none;padding:0;}
+#ai-content .kpi-ai-summary .muted{color:#a78bfa;font-size:11px;font-weight:400;}
+#ai-content .kpi-ai-summary .kpi-ai-body{font-size:13px;line-height:1.7;color:#334155;}
+#ai-content .kpi-ai-summary .kpi-ai-body h3{margin:10px 0 4px;font-size:13.5px;font-weight:700;color:#0f172a;background:none;border:none;padding:0;}
+#ai-content .kpi-ai-summary .kpi-ai-body h4{margin:8px 0 4px;font-size:12.5px;font-weight:700;color:#475569;text-transform:none;letter-spacing:0;}
+#ai-content .kpi-ai-summary .kpi-ai-body ul{margin:6px 0;padding-left:8px;}
+#ai-content .kpi-ai-summary .kpi-disclaimer{margin:10px 0 0;padding:6px 10px;background:#f5f3ff;border-radius:6px;font-size:11px;color:#7c3aed;}
+#ai-content .muted{color:#94a3b8;}
+
 /* 코드 인라인 */
 #ai-content code{
     background:#f1f5f9;padding:1px 6px;border-radius:4px;
@@ -474,7 +539,14 @@
 #ai-content .top-chart-legend{display:flex;gap:12px;font-size:11.5px;color:#64748b;}
 #ai-content .top-chart-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle;}
 #ai-content .top-chart-rows{display:flex;flex-direction:column;gap:6px;}
-#ai-content .top-chart-row{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center;}
+#ai-content .top-chart-row{display:grid;grid-template-columns:90px 1fr 70px;gap:10px;align-items:center;}
+#ai-content .top-chart-rows[data-no-score="1"] .top-chart-row{grid-template-columns:90px 1fr;}
+#ai-content .top-chart-score{text-align:right;}
+#ai-content .ws-score{display:inline-block;padding:2px 9px;border-radius:11px;font-size:12px;font-weight:700;background:#eef2ff;color:#4338ca;font-variant-numeric:tabular-nums;}
+#ai-content .ws-score[data-score^="1."]{background:#dcfce7;color:#15803d;}
+#ai-content .ws-score[data-score^="2"]{background:#bbf7d0;color:#166534;}
+#ai-content .ws-score[data-score^="0.4"],#ai-content .ws-score[data-score^="0.3"],#ai-content .ws-score[data-score^="0.2"],#ai-content .ws-score[data-score^="0.1"],#ai-content .ws-score[data-score^="0.0"]{background:#fee2e2;color:#b91c1c;}
+#ai-content .ws-score-na{color:#94a3b8;font-size:12px;}
 #ai-content .top-chart-name{font-size:12.5px;font-weight:600;color:#0f172a;}
 #ai-content .top-chart-bars{display:flex;flex-direction:column;gap:3px;}
 #ai-content .top-chart-bar-row{display:flex;align-items:center;gap:6px;}
@@ -532,6 +604,16 @@
 #ai-content .assignee-metric:last-child{border-bottom:none;}
 #ai-content .assignee-metric-key{color:#64748b;font-weight:500;}
 #ai-content .assignee-metric-val{color:#0f172a;font-weight:600;font-variant-numeric:tabular-nums;}
+
+/* 반복 수정 파일 목록 (담당자 카드 내부) */
+#ai-content .assignee-repeated{margin-top:6px;border-top:1px dashed #e2e8f0;padding-top:6px;}
+#ai-content .assignee-repeated summary{cursor:pointer;font-size:11.5px;color:#a16207;font-weight:600;list-style:none;padding:2px 0;}
+#ai-content .assignee-repeated summary::-webkit-details-marker{display:none;}
+#ai-content .repeated-list{list-style:none;padding:6px 0 2px;margin:0;}
+#ai-content .repeated-list li{display:flex;gap:6px;align-items:center;padding:2px 0;font-size:11px;font-family:ui-monospace,monospace;}
+#ai-content .repeated-list li::before{display:none;}
+#ai-content .repeated-count{background:#fef3c7;color:#a16207;padding:1px 6px;border-radius:9px;font-weight:700;min-width:32px;text-align:center;flex-shrink:0;}
+#ai-content .repeated-path{color:#475569;word-break:break-all;}
 
 /* 담당자별 업무 평가 카드 그리드 (### 이름 → 카드) — 컴팩트 */
 #ai-content .eval-grid{
@@ -837,7 +919,7 @@ function loadStoredSummary() {
         .then(r => r.json())
         .then(data => {
             if (data.summary) {
-                renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by, data.summary.metrics);
+                renderStructured({ content: data.summary.content, metrics: data.summary.metrics });
                 renderCommitDetails(data.summary.commit_details, data.summary.common_commit_details);
                 document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
                 // 캐시가 7일 이상 낡으면 자동 재생성 (Git 최신화 + AI 재분석)
@@ -885,7 +967,7 @@ function viewStoredSummary() {
         .then(r => r.json())
         .then(data => {
             if (data.summary) {
-                renderContent(data.summary.content, data.summary.generated_at, data.summary.generated_by, data.summary.metrics);
+                renderStructured({ content: data.summary.content, metrics: data.summary.metrics });
                 renderCommitDetails(data.summary.commit_details, data.summary.common_commit_details);
                 document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
                 if (data.summary.is_stale && window.appToast) {
@@ -936,20 +1018,43 @@ function generateSummary() {
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify(body),
     })
-    .then(r => r.json())
+    .then(async r => {
+        const status = r.status;
+        const raw = await r.text();
+        let data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+        if (!r.ok) {
+            // HTTP 에러 — body 가 JSON 이면 detail, 아니면 raw 표시
+            const detail = data?.detail ? `${data.detail}${data.at ? ' @ ' + data.at : ''}` : (raw ? raw.slice(0, 800) : '');
+            return { __err: true, status, msg: (data?.error || `HTTP ${status}`), detail };
+        }
+        return data || {};
+    })
     .then(data => {
         btn.disabled = false;
-        if (data.error) {
-            showError(data.error);
-        } else {
-            renderContent(data.content, data.generated_at, data.generated_by, data.metrics);
-            renderCommitDetails(data.commit_details, data.common_commit_details);
-            document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
+        if (data && data.__err) {
+            console.error('[generateSummary] HTTP error', data);
+            const text = `[HTTP ${data.status}] ${data.msg}\n\n${data.detail || ''}`;
+            showError(text);
+            return;
         }
+        if (data && data.error) {
+            const detail = data.detail ? ` (${data.detail}${data.at ? ' @ ' + data.at : ''})` : '';
+            showError(data.error + detail);
+            return;
+        }
+        renderStructured(data);
+        renderCommitDetails(data.commit_details, data.common_commit_details);
+        document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
+        const mailNote = data.mails_sent != null ? ` · 메일 ${data.mails_sent}건 발송` : '';
+        const msg = `✓ 새로 생성됨 (${data.generated_at})${mailNote}`;
+        if (window.appToast) window.appToast('success', msg, 4500);
+        else alert(msg);
     })
-    .catch(() => {
+    .catch(err => {
         btn.disabled = false;
-        showError(MW_I18N.summary_gen_error);
+        console.error('[generateSummary] fetch failed', err);
+        showError('[Network] ' + (err && err.message ? err.message : 'fetch 실패 — 응답 도착 안 함 (PHP fatal·Server timeout·CORS 의심)'));
     });
 }
 
@@ -995,8 +1100,44 @@ function renderCommitDetails(projectList, commonList) {
 
 function renderCommitGroup(commits, label) {
     if (!commits || commits.length === 0) return `<div style="color:#94a3b8;font-style:italic;">(${label} 커밋 없음)</div>`;
-    return commits.map(c => {
-        const diff = c.difficulty != null ? `<span style="font-size:11px;color:#7c3aed;font-weight:600;">난이도 ${Number(c.difficulty).toFixed(1)}</span>` : '';
+
+    // 담당자별 그룹화 + 평균 난이도 계산
+    const authorGroups = {};
+    commits.forEach(c => {
+        const k = c.author || '미지정';
+        if (!authorGroups[k]) authorGroups[k] = { name: k, list: [], diffSum: 0, diffN: 0, addSum: 0, delSum: 0 };
+        authorGroups[k].list.push(c);
+        authorGroups[k].addSum += Number(c.add || 0);
+        authorGroups[k].delSum += Number(c.del || 0);
+        if (c.difficulty != null) {
+            authorGroups[k].diffSum += Number(c.difficulty);
+            authorGroups[k].diffN++;
+        }
+    });
+    const sortedGroups = Object.values(authorGroups).sort((a, b) => b.list.length - a.list.length);
+
+    return sortedGroups.map(g => {
+        const avg = g.diffN > 0 ? (g.diffSum / g.diffN).toFixed(1) : null;
+        const avgLabel = avg !== null
+            ? `<span style="font-size:11px;color:#7c3aed;font-weight:700;background:#faf5ff;padding:1px 7px;border-radius:10px;">평균 난이도 ${avg}</span>`
+            : '';
+        const itemsHtml = g.list.map(c => renderCommitItem(c)).join('');
+        return `<details class="cmt-author-group" open style="margin:0 0 10px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff;">
+            <summary style="cursor:pointer;padding:8px 12px;background:#f8fafc;display:flex;align-items:center;gap:10px;list-style:none;border-bottom:1px solid #e9e7fb;">
+                <span style="font-weight:700;font-size:13px;color:#0f172a;">${escapeHtml(g.name)}</span>
+                <span style="font-size:11.5px;color:#64748b;">커밋 ${g.list.length}건</span>
+                <span style="font-size:11.5px;color:#16a34a;">+${g.addSum}</span>
+                <span style="font-size:11.5px;color:#dc2626;">-${g.delSum}</span>
+                <span style="flex:1;"></span>
+                ${avgLabel}
+            </summary>
+            <div style="padding:8px 10px 4px;">${itemsHtml}</div>
+        </details>`;
+    }).join('');
+}
+
+function renderCommitItem(c) {
+    const diff = c.difficulty != null ? `<span style="font-size:11px;color:#7c3aed;font-weight:600;">난이도 ${Number(c.difficulty).toFixed(1)}</span>` : '';
         const files = (c.files || []).map(f =>
             `<div style="display:flex;gap:6px;padding:2px 0;font-family:ui-monospace,monospace;font-size:11.5px;">
                 <span style="color:#64748b;width:60px;flex-shrink:0;">${escapeHtml(f.status || '')}</span>
@@ -1029,7 +1170,6 @@ function renderCommitGroup(commits, label) {
             ${branchInfo}
             <div style="padding:6px 12px 10px;border-top:1px solid #f1f5f9;">${files}${moreNote}</div>
         </details>`;
-    }).join('');
 }
 
 function escapeHtml(s) {
@@ -1048,6 +1188,217 @@ function showError(msg) {
     document.getElementById('ai-error').style.display      = 'block';
     document.getElementById('ai-content').style.display    = 'none';
 }
+// 정형 JSON 전용 렌더러 (명세 §6 와이어프레임). 기존 mdToHtml/markdown 흐름은 폐기.
+function renderStructured(data) {
+    document.getElementById('ai-empty').style.display   = 'none';
+    document.getElementById('ai-loading').style.display = 'none';
+    document.getElementById('ai-error').style.display   = 'none';
+    const box = document.getElementById('ai-content');
+    box.style.display = 'block';
+
+    // data 구조: { report: {...}, metrics, common_metrics, ... } 또는 show() 의 {summary: {content(JSON), metrics, ...}}
+    let report = data.report;
+    if (!report && data.content) {
+        try { const parsed = JSON.parse(data.content); report = parsed.report ?? parsed; } catch { report = null; }
+    }
+    if (!report) { box.innerHTML = '<p class="muted">표시할 보고서가 없습니다.</p>'; return; }
+
+    // 차트는 별도 영역으로 — metrics 사용
+    let html = '';
+    html += renderKpiHeader(report);
+    html += renderKpiLimitations(report.limitations || []);
+    // 담당자 카드들을 가로 그리드로 wrap
+    html += '<div class="kpi-assignee-grid">';
+    (report.assignees || []).forEach((a, i) => { html += renderKpiAssignee(a, i + 1); });
+    html += '</div>';
+    html += renderKpiComparison(report.comparison || {});
+    html += renderKpiConclusion(report.conclusion || {});
+    html += renderKpiAiSummary(report.ai_summary || null);
+
+    box.innerHTML = html;
+    // 상단에 차트 prepend
+    renderTopChart(box, data.metrics);
+
+    const wordBtn = document.getElementById('ai-word-btn');
+    if (wordBtn) wordBtn.style.display = 'inline-flex';
+}
+
+function renderKpiHeader(r) {
+    const p = r.period || {};
+    const ctx = r.project ? `프로젝트: ${escapeHtml(r.project.name)}` :
+                (r.sr_companies ? `SR 회사: ${(r.sr_companies || []).map(c => escapeHtml(c.name)).join(', ')}` : '');
+    const names = (r.assignees || []).map(a => escapeHtml(a.name)).join(', ');
+    return `<div class="kpi-header">
+        <h2>웍스 서머리 — ${escapeHtml(p.label || '')}</h2>
+        <div class="kpi-meta">
+            ${ctx ? `<span>📁 ${ctx}</span>` : ''}
+            <span>👥 ${names} (${(r.assignees || []).length}명)</span>
+        </div>
+    </div>`;
+}
+
+function renderKpiLimitations(items) {
+    return '';   // 산출 한계 패널 — 완전 제거
+    if (!items.length) return '';
+    const errs = items.filter(l => l.status === 'unavailable').length;
+    const oks  = items.filter(l => l.status === 'available').length;
+    const open = errs > 0 ? 'open' : '';
+    return `<details class="kpi-limitations" ${open}>
+        <summary>⚠️ 산출 한계 — ${items.length}항목 (❌${errs} / ✅${oks})</summary>
+        <table>
+            <thead><tr><th>항목</th><th>상태</th><th>사유</th></tr></thead>
+            <tbody>
+                ${items.map(l => `<tr>
+                    <td><code>${escapeHtml(l.key)}</code></td>
+                    <td>${l.status === 'available' ? '✅' : '❌'}</td>
+                    <td>${escapeHtml(l.reason || '')}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </details>`;
+}
+
+function renderKpiAssignee(a, idx) {
+    const g = a.git || {}, s = a.sr || {}, p = a.penalty || {}, sc = a.score || {};
+    return `<section class="kpi-assignee">
+        <h3>${idx}. ${escapeHtml(a.name)} ${a.email ? `<span class="muted">${escapeHtml(a.email)}</span>` : ''}</h3>
+        <div class="kpi-grid-2">
+            <div class="kpi-mini">
+                <h4>Git 실적</h4>
+                <table>
+                    <tr><th>커밋 수</th><td>${g.commits || 0}</td></tr>
+                    <tr><th>추가 LOC</th><td>+${(g.added || 0).toLocaleString()}</td></tr>
+                    <tr><th>삭제 LOC</th><td>-${(g.deleted || 0).toLocaleString()}</td></tr>
+                    <tr><th>순 LOC</th><td>${(g.net || 0) >= 0 ? '+' : ''}${(g.net || 0).toLocaleString()}</td></tr>
+                    <tr><th>변경 파일</th><td>${g.files || 0}</td></tr>
+                    <tr><th>unique 파일</th><td>${g.unique_files || 0}</td></tr>
+                    <tr><th>다양성</th><td>${g.diversity ?? '—'}</td></tr>
+                </table>
+            </div>
+            <div class="kpi-mini">
+                <h4>SR 실적</h4>
+                <table>
+                    <tr><th>배정</th><td>${s.assigned || 0}</td></tr>
+                    <tr><th>완료</th><td>${s.completed || 0}</td></tr>
+                    <tr><th>완료율</th><td>${s.completion_rate != null ? s.completion_rate + '%' : '—'}</td></tr>
+                    <tr><th>평균 처리일</th><td>${s.avg_handling_days != null ? s.avg_handling_days + '일' : '—'}</td></tr>
+                    <tr><th>가중 처리량</th><td>${s.weighted || 0}</td></tr>
+                    <tr><th>이월</th><td>${s.carried_over || 0}</td></tr>
+                    <tr><th>재오픈</th><td>${s.reopened || 0}</td></tr>
+                </table>
+            </div>
+        </div>
+        ${IS_ADMIN_USER ? `<div class="kpi-score">
+            <span class="kpi-score-final">WeeklyScore <b>${sc.final ?? 0}</b></span>
+        </div>` : ''}
+        ${renderKpiPenaltyTable(p)}
+        ${renderKpiComments(a.comments || [], a.name)}
+    </section>`;
+}
+
+function renderKpiPenaltyTable(p) {
+    return '';   // §5.4 반복 커밋 페널티 — 완전 제거
+    if (!IS_ADMIN_USER) return '';
+    if (!p.items || p.items.length === 0) return '';
+    return `<div class="kpi-penalty">
+        <h4>반복 커밋 페널티 (§5.4)</h4>
+        <table>
+            <thead><tr><th>패턴</th><th>대상</th><th>횟수</th><th>점수</th></tr></thead>
+            <tbody>
+                ${p.items.map(it => `<tr class="grade-${escapeHtml(it.grade)}">
+                    <td>${escapeHtml(it.pattern)}</td>
+                    <td><code>${escapeHtml(it.target)}</code></td>
+                    <td>${it.count}</td>
+                    <td>${it.score}</td>
+                </tr>`).join('')}
+            </tbody>
+            <tfoot><tr><td colspan="3">합계 (raw → 최종)</td><td>${p.raw_total} → -${p.final}</td></tr></tfoot>
+        </table>
+    </div>`;
+}
+
+function renderKpiComments(comments, assigneeName) {
+    if (!comments.length) return '';
+    // 담당자 미지정은 SR 의 assignee 가 비어있는 묶음 — 개인 코멘트 대상이 아니므로 비표시
+    if (assigneeName === '담당자 미지정' || assigneeName === 'unknown') return '';
+    return `<div class="kpi-comments">
+        <h4>코멘트</h4>
+        <ul>${comments.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>
+    </div>`;
+}
+
+function renderKpiComparison(c) {
+    if (!IS_ADMIN_USER) return '';   // 표 자체를 관리자만 노출
+    const names = c.assignees || [];
+    if (names.length === 0) return '';
+    const m = c.metrics || {};
+    const fmt = (v, suf = '') => v == null ? '—' : (typeof v === 'number' ? v : v) + suf;
+    const rows = [
+        // ── Git ──
+        ['Git 커밋',    (m.commits      || []).map(v => fmt(v))],
+        ['순 LOC',      (m.net_loc      || []).map(v => v == null ? '—' : (v >= 0 ? '+' : '') + Number(v).toLocaleString())],
+        ['파일',        (m.files        || []).map(v => fmt(v))],
+        ['다양성',      (m.diversity    || []).map(v => v == null ? '—' : Number(v).toFixed(2))],
+        // ── SR ──
+        ['SR 배정',     (m.sr_assigned  || []).map(v => fmt(v))],
+        ['SR 완료',     (m.sr_completed || []).map(v => fmt(v))],
+        ['완료율',      (m.sr_completion_rate    || []).map(v => v == null ? '—' : v + '%')],
+        ['평균 처리일', (m.sr_avg_handling_days  || []).map(v => v == null ? '—' : v + '일')],
+        ['SR 가중',     (m.sr_weighted  || []).map(v => fmt(v))],
+        ['재오픈',      (m.sr_reopened  || []).map(v => fmt(v))],
+        // ── 종합 ──
+        ['WeeklyScore', (m.weekly_score || []).map(v => v == null ? '—' : Number(v).toFixed(2))],
+    ];
+    return `<section class="kpi-comparison">
+        <h3>작업 요약</h3>
+        <table>
+            <thead><tr><th>지표</th>${names.map(n => `<th>${escapeHtml(n)}</th>`).join('')}</tr></thead>
+            <tbody>
+                ${rows.map(([label, vals]) => `<tr>
+                    <th>${label}</th>
+                    ${vals.map(v => `<td>${v ?? '—'}</td>`).join('')}
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </section>`;
+}
+
+function renderKpiConclusion(c) {
+    const toArr = v => Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v) : []);
+    const lims  = toArr(c?.limitations);
+    const preqs = toArr(c?.prerequisites);
+    const sigs  = toArr(c?.coaching_signals);
+    return `<section class="kpi-conclusion">
+        <h3>결론 및 권고</h3>
+        <h4>측정의 한계</h4>
+        <ul>${lims.map(l => `<li>${escapeHtml(l)}</li>`).join('') || '<li class="muted">(없음)</li>'}</ul>
+        <h4>선결 과제</h4>
+        <ul>${preqs.map(p => `<li>${escapeHtml(p)}</li>`).join('') || '<li class="muted">(없음)</li>'}</ul>
+        <h4>정성적 코칭 신호</h4>
+        <ul>${sigs.map(s => `<li><strong>${escapeHtml(s.name || '')}:</strong> ${toArr(s.issues).map(i => escapeHtml(i)).join(', ')}</li>`).join('') || '<li class="muted">(없음)</li>'}</ul>
+    </section>`;
+}
+
+function renderKpiAiSummary(ai) {
+    if (!ai || !ai.markdown) return '';
+    // 간단 markdown → HTML (## h2, ### h3, - 불릿, **strong**)
+    let s = String(ai.markdown).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s = s.replace(/^### (.+)$/gm,'<h4>$1</h4>')
+         .replace(/^## (.+)$/gm,'<h3>$1</h3>')
+         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+         .replace(/(?:^[ \t]*[-*•] .+(?:\n|$))+/gm, block => {
+             const items = block.split('\n').filter(l => /^[ \t]*[-*•] /.test(l))
+                 .map(l => l.replace(/^[ \t]*[-*•] /, '')).map(l => `<li>${l}</li>`).join('');
+             return `<ul>${items}</ul>`;
+         })
+         .split(/\n{2,}/).map(p => p.trim() ? (p.startsWith('<') ? p : `<p>${p.replace(/\n/g,'<br>')}</p>`) : '').join('');
+    return `<section class="kpi-ai-summary">
+        <h3>🤖 AI 종합 요약 <span class="muted">(${escapeHtml(ai.provider || '')})</span></h3>
+        <div class="kpi-ai-body">${s}</div>
+        <p class="kpi-disclaimer">위 요약은 보조 분석이며 정형 지표(상단)가 1차 근거입니다.</p>
+    </section>`;
+}
+
 function renderContent(content, generatedAt, generatedBy, metrics) {
     document.getElementById('ai-empty').style.display   = 'none';
     document.getElementById('ai-loading').style.display = 'none';
@@ -1056,6 +1407,12 @@ function renderContent(content, generatedAt, generatedBy, metrics) {
     box.style.display = 'block';
     box.innerHTML = mdToHtml(content);
     document.getElementById('ai-meta').textContent = generatedAt + '  ' + generatedBy + MW_I18N.generated_by_suffix;
+
+    // metrics 응답을 name → row 맵으로 변환 (transformAssigneeTables 가 참조)
+    window.__metricsByName = {};
+    const flatten = (list) => (list || []).forEach(r => { if (r && r.name) window.__metricsByName[r.name] = r; });
+    if (Array.isArray(metrics)) flatten(metrics);
+    else if (metrics) { flatten(metrics.project); flatten(metrics.common); }
 
     // 0) 최상단 — 담당자별 SR/Git 차트 (metrics 배열 또는 {project, common} 받음)
     renderTopChart(box, metrics);
@@ -1077,10 +1434,22 @@ function renderContent(content, generatedAt, generatedBy, metrics) {
 
 // ── 최상단 담당자별 SR/Git 막대 차트 ─────────────────────────────────
 function renderTopChart(box, metrics) {
-    // metrics 가 {project:[...], common:[...]} 이면 project 사용. 배열이면 그대로.
+    // metrics 가 {project, common} 이면 두 영역을 같은 이름끼리 합산 (담당자의 전체 활동)
     let rows = [];
-    if (Array.isArray(metrics)) rows = metrics;
-    else if (metrics && Array.isArray(metrics.project)) rows = metrics.project;
+    if (Array.isArray(metrics)) {
+        rows = metrics;
+    } else if (metrics) {
+        const merged = {};
+        const pushList = (list) => (list || []).forEach(row => {
+            const key = (row.email && row.email.toLowerCase()) || ('no-email:' + (row.name || ''));
+            if (!merged[key]) merged[key] = { name: row.name || '—', sr_completed: 0, commits: 0 };
+            merged[key].sr_completed += Number(row.sr_completed || 0);
+            merged[key].commits      += Number(row.commits || 0);
+        });
+        pushList(metrics.project);
+        pushList(metrics.common);
+        rows = Object.values(merged);
+    }
     if (!rows.length) return;
 
     const data = rows
@@ -1088,8 +1457,10 @@ function renderTopChart(box, metrics) {
             name: m.name || '—',
             sr:  Number(m.sr_completed || 0),
             git: Number(m.commits || 0),
+            score: m.weekly_score != null ? Number(m.weekly_score) : null,
         }))
-        .filter(d => d.sr + d.git > 0);
+        .filter(d => d.sr + d.git > 0)
+        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     if (!data.length) return;
 
     const maxSr  = Math.max(1, ...data.map(d => d.sr));
@@ -1097,17 +1468,24 @@ function renderTopChart(box, metrics) {
 
     const chart = document.createElement('div');
     chart.className = 'top-chart';
+    const showScore = IS_ADMIN_USER;
     chart.innerHTML =
         `<div class="top-chart-head">` +
-            `<h3>📊 담당자별 SR·Git 활동</h3>` +
+            `<h3>📊 담당자별 SR·Git 활동${showScore ? ' + WeeklyScore' : ''}</h3>` +
             `<div class="top-chart-legend">` +
                 `<span><i style="background:#3b82f6"></i>SR 처리</span>` +
                 `<span><i style="background:#7c3aed"></i>Git 반영</span>` +
+                (showScore ? `<span style="color:#0f172a;font-weight:600;">WeeklyScore</span>` : '') +
             `</div>` +
         `</div>` +
-        `<div class="top-chart-rows">` +
-            data.map(d =>
-                `<div class="top-chart-row">` +
+        `<div class="top-chart-rows" ${showScore ? '' : 'data-no-score="1"'}>` +
+            data.map(d => {
+                const scoreLabel = showScore
+                    ? (d.score != null
+                        ? `<span class="ws-score" data-score="${d.score}">${d.score.toFixed(2)}</span>`
+                        : '<span class="ws-score-na">—</span>')
+                    : '';
+                return `<div class="top-chart-row">` +
                     `<div class="top-chart-name">${escapeHtml(d.name)}</div>` +
                     `<div class="top-chart-bars">` +
                         `<div class="top-chart-bar-row">` +
@@ -1119,8 +1497,9 @@ function renderTopChart(box, metrics) {
                             `<span>${d.git}</span>` +
                         `</div>` +
                     `</div>` +
-                `</div>`
-            ).join('') +
+                    (showScore ? `<div class="top-chart-score">${scoreLabel}</div>` : '') +
+                `</div>`;
+            }).join('') +
         `</div>`;
 
     box.insertBefore(chart, box.firstChild);
@@ -1286,6 +1665,8 @@ function transformAssigneeEvalSection(root) {
 }
 
 // 첫 컬럼이 '담당자' 인 표를 가로 카드 그리드로 변환
+// metricsByName: {name => raw metric row} — 반복 파일 등 추가 정보용
+window.__metricsByName = {};
 function transformAssigneeTables(root) {
     const tables = root.querySelectorAll('table');
     tables.forEach(tbl => {
@@ -1304,13 +1685,11 @@ function transformAssigneeTables(root) {
             const card = document.createElement('div');
             card.className = 'assignee-card';
 
-            // 헤더 (담당자명)
             const head = document.createElement('div');
             head.className = 'assignee-card-head';
             head.innerHTML = `<span class="assignee-avatar">${escapeHtml(name).slice(0,1)}</span><span class="assignee-name">${escapeHtml(name)}</span>`;
             card.appendChild(head);
 
-            // 메트릭 행들 (1~N 컬럼)
             const body = document.createElement('div');
             body.className = 'assignee-card-body';
             for (let i = 1; i < headers.length; i++) {
@@ -1319,6 +1698,22 @@ function transformAssigneeTables(root) {
                 row.innerHTML = `<span class="assignee-metric-key">${escapeHtml(headers[i])}</span><span class="assignee-metric-val">${cells[i] ?? '—'}</span>`;
                 body.appendChild(row);
             }
+
+            // 반복 수정 파일 — metrics 응답에서 top_repeated_files 조회
+            const rawMetric = window.__metricsByName[name.replace(/<[^>]+>/g,'')];
+            if (rawMetric && Array.isArray(rawMetric.top_repeated_files) && rawMetric.top_repeated_files.length > 0) {
+                const det = document.createElement('details');
+                det.className = 'assignee-repeated';
+                det.innerHTML =
+                    `<summary>반복 수정 파일 ${rawMetric.top_repeated_files.length}개 ▾</summary>` +
+                    `<ul class="repeated-list">` +
+                        rawMetric.top_repeated_files.map(f =>
+                            `<li><span class="repeated-count">${f.count}회</span><span class="repeated-path">${escapeHtml(f.path)}</span></li>`
+                        ).join('') +
+                    `</ul>`;
+                body.appendChild(det);
+            }
+
             card.appendChild(body);
             grid.appendChild(card);
         });

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Mail\MaintRequestNotificationMail;
+use App\Mail\MaintRequestNoteNotificationMail;
 use App\Models\Maint\MaintMenu;
 use App\Models\Maint\MaintRequest;
 use App\Models\Maint\MaintRequestNote;
 use App\Models\Maint\MaintUser;
 use App\Models\User;
+use App\Services\Maint\SrAiReviewService;
 use App\Services\Maint\SrSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -116,9 +118,14 @@ class MaintRequestController extends Controller
         }
         $requests = $q->paginate($perPage)->withQueryString();
 
-        // ── 통계 카운트 (접근 범위 적용) ──
+        // ── 통계 카운트 (접근 범위 + 회사 선택 필터 반영) ──
+        // KPI 는 상태별 분포를 보여주므로 status/priority/assignee 등 자체 분포 필터는 반영하지 않음.
+        // 회사 선택(company_group_id)은 "어느 회사 SR 을 보는가" 라는 컨텍스트라 KPI 도 같이 좁혀야 한다.
         $cntQ = MaintRequest::query();
         $applyAccessScope($cntQ);
+        if ($isSrPrivileged && ($cg = $request->integer('company_group_id'))) {
+            $cntQ->where('company_group_id', $cg);
+        }
         $statusCounts = $cntQ->selectRaw('status, COUNT(*) as cnt')
             ->groupBy('status')
             ->pluck('cnt', 'status')
@@ -154,14 +161,39 @@ class MaintRequestController extends Controller
         ];
     }
 
-    public function show(MaintRequest $maintRequest)
-    {
-        return view('maint-requests.show', $this->detailData($maintRequest));
-    }
-
     public function embed(MaintRequest $maintRequest)
     {
         return view('maint-requests.embed', $this->detailData($maintRequest));
+    }
+
+    /**
+     * 웍스 요약을 (재)생성한 직후 AI 필드만 가벼운 PATCH 로 즉시 저장.
+     * (사용자가 본 메인 저장 버튼을 누르지 않아도 ai_summary / ai_classification 이 영구화되도록)
+     */
+    public function updateAiSummary(Request $request, MaintRequest $maintRequest)
+    {
+        $data = $request->validate([
+            'ai_summary'              => 'nullable|string',
+            'ai_summary_context_ids'  => 'nullable|array',
+            'ai_classification'       => 'nullable|in:free,paid,discuss',
+        ]);
+
+        $update = [];
+        if (array_key_exists('ai_summary', $data)) {
+            $sum = trim((string) $data['ai_summary']);
+            $update['ai_summary']             = $sum !== '' ? $sum : null;
+            $update['ai_summary_at']          = $sum !== '' ? now() : null;
+            $update['ai_summary_context_ids'] = $sum !== '' ? ($data['ai_summary_context_ids'] ?? null) : null;
+        }
+        if (array_key_exists('ai_classification', $data)) {
+            $update['ai_classification'] = $data['ai_classification'];
+        }
+
+        if ($update) {
+            $maintRequest->update($update);
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     private function detailData(MaintRequest $maintRequest): array
@@ -185,17 +217,6 @@ class MaintRequestController extends Controller
         ];
     }
 
-    public function create()
-    {
-        $menus      = MaintMenu::orderBy('name')->get(['id', 'name']);
-        $coloUsers  = MaintUser::colo()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $devUsers   = MaintUser::withworks()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $categories = MaintRequest::whereNotNull('category')->where('category', '!=', '')
-            ->distinct()->orderBy('category')->pluck('category')->values();
-
-        return view('maint-requests.create', compact('menus', 'coloUsers', 'devUsers', 'categories'));
-    }
-
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -207,6 +228,7 @@ class MaintRequestController extends Controller
             'content'          => 'nullable|string',
             'ai_summary'       => 'nullable|string',
             'ai_summary_context_ids' => 'nullable|string', // JSON 문자열로 전송
+            'ai_classification' => 'nullable|in:free,paid,discuss',
             'request_date'     => 'nullable|date',
             'eta'              => 'nullable|date',
             'colo_user_id'     => 'nullable|exists:maint_users,id',
@@ -214,6 +236,7 @@ class MaintRequestController extends Controller
             'assignee_id'      => 'nullable|exists:maint_users,id',
             'assignee_name'    => 'nullable|string|max:100',
             'status'           => 'nullable|in:' . implode(',', MaintRequest::STATUSES),
+            'difficulty_score' => 'nullable|integer|min:1|max:5',
         ]);
         $this->normalizeAiSummaryFields($data);
 
@@ -221,6 +244,8 @@ class MaintRequestController extends Controller
         $data['company_group_id'] = auth()->user()?->company_group_id;
         abort_if(empty($data['company_group_id']), 422, '회사 소속이 없는 사용자는 SR을 등록할 수 없습니다.');
 
+        // AI 분석은 모달 안에서 등록자가 미리 트리거 → ai_summary 가 채워진 상태로 제출됨.
+        // 별도 ai_review 상태 없이 바로 'requested' 로 진입.
         $newSr = null;
         DB::transaction(function () use (&$data, &$newSr) {
             $companyGroupId       = (int) ($data['company_group_id'] ?? 0) ?: null;
@@ -236,7 +261,77 @@ class MaintRequestController extends Controller
 
         $this->sendMaintRequestNotification($newSr, '등록');
 
+        // 등록 직후 인덱스 리스트로 복귀 (팝업 닫힘 효과). 상세는 사용자가 리스트에서 직접 클릭.
         return redirect()->route('maint-requests.index')->with('success', '요청이 등록되었습니다.');
+    }
+
+    /**
+     * ai_review 상태의 SR 을 요청자가 확인 → 'requested' 로 전환.
+     *
+     *   mode=as_is : AI 정리본을 채택해 ai_summary 로 승격
+     *   mode=edit  : 사용자가 수정한 summary 를 ai_summary 로 저장
+     *   mode=skip  : AI 정리본 미적용, 원본 그대로 진행 (ai_summary 비움)
+     * AI 가 던진 질문(ai_review_questions) 에 답한 내용은 그대로 ai_review_questions 에 a 로 저장.
+     */
+    public function confirmAiReview(Request $request, MaintRequest $maintRequest)
+    {
+        abort_unless($maintRequest->status === 'ai_review', 409, 'AI 검토 대기 상태가 아닙니다.');
+
+        $u = auth()->user();
+        $isSrPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+        $sameCompany = $u && (int) $u->company_group_id === (int) $maintRequest->company_group_id;
+        abort_unless($isSrPrivileged || $sameCompany, 403, 'SR 을 확인할 권한이 없습니다.');
+
+        $data = $request->validate([
+            'mode'          => 'required|in:as_is,edit,skip',
+            'ai_summary'    => 'nullable|string|max:8000',
+            'answers'       => 'nullable|array',
+            'answers.*'     => 'nullable|string|max:2000',
+        ]);
+
+        $update = ['status' => 'requested'];
+
+        if ($data['mode'] === 'as_is') {
+            $sum = trim((string) $maintRequest->ai_review_summary);
+            if ($sum !== '') {
+                $update['ai_summary']    = $sum;
+                $update['ai_summary_at'] = now();
+                $update['ai_summary_context_ids'] = null;
+            }
+        } elseif ($data['mode'] === 'edit') {
+            $sum = trim((string) ($data['ai_summary'] ?? ''));
+            if ($sum !== '') {
+                $update['ai_summary']    = $sum;
+                $update['ai_summary_at'] = now();
+                $update['ai_summary_context_ids'] = null;
+            }
+        }
+        // skip: ai_summary 그대로 (보통 null)
+
+        // AI 질문 답변 병합 — 기존 questions 배열 유지하면서 a 만 채움
+        if (is_array($maintRequest->ai_review_questions)) {
+            $answers = (array) ($data['answers'] ?? []);
+            $merged = [];
+            foreach ($maintRequest->ai_review_questions as $idx => $q) {
+                $merged[] = [
+                    'q' => (string) ($q['q'] ?? ''),
+                    'a' => isset($answers[$idx]) ? trim((string) $answers[$idx]) : (string) ($q['a'] ?? ''),
+                ];
+            }
+            $update['ai_review_questions'] = $merged;
+        }
+
+        $update['ai_review_status'] = 'confirmed';
+
+        $maintRequest->update($update);
+
+        // (담당자 알림 메일은 일단 보내지 않음 — 추후 필요 시 활성화)
+
+        if ($request->boolean('_modal')) {
+            return redirect()->route('maint-requests.embed', $maintRequest)->with('success', '확인 완료 — 담당자에게 전달되었습니다.');
+        }
+        // 상세는 팝업으로만 노출 — 리스트로 복귀하면서 자동으로 해당 SR 팝업을 열도록 ?open 쿼리 부여
+        return redirect()->route('maint-requests.index', ['open' => $maintRequest->id])->with('success', '확인 완료 — 담당자에게 전달되었습니다.');
     }
 
     public function update(Request $request, MaintRequest $maintRequest)
@@ -250,6 +345,7 @@ class MaintRequestController extends Controller
             'content'          => 'nullable|string',
             'ai_summary'       => 'nullable|string',
             'ai_summary_context_ids' => 'nullable|string',
+            'ai_classification' => 'nullable|in:free,paid,discuss',
             'request_date'     => 'nullable|date',
             'eta'              => 'nullable|date',
             'colo_user_id'     => 'nullable|exists:maint_users,id',
@@ -257,6 +353,7 @@ class MaintRequestController extends Controller
             'assignee_id'      => 'nullable|exists:maint_users,id',
             'assignee_name'    => 'nullable|string|max:100',
             'status'           => 'required|in:' . implode(',', MaintRequest::STATUSES),
+            'difficulty_score' => 'nullable|integer|min:1|max:5',
             'paid_dev_enabled'     => 'nullable|boolean',
             'paid_dev_days'        => 'nullable|integer|min:0|max:9999',
             'paid_dev_cost'        => 'nullable|integer|min:0',
@@ -286,7 +383,7 @@ class MaintRequestController extends Controller
         if (request()->boolean('_modal')) {
             return redirect()->route('maint-requests.embed', $maintRequest)->with('success', '수정되었습니다.');
         }
-        return redirect()->route('maint-requests.show', $maintRequest)->with('success', '수정되었습니다.');
+        return redirect()->route('maint-requests.index', ['open' => $maintRequest->id])->with('success', '수정되었습니다.');
     }
 
     public function quickUpdate(Request $request, MaintRequest $maintRequest)
@@ -349,14 +446,103 @@ class MaintRequestController extends Controller
         $data = $request->validate([
             'note_type' => 'required|in:colo,link',
             'body'      => 'required|string',
+            'parent_id' => 'nullable|integer|exists:maint_request_notes,id',
         ]);
+        // 답글의 답글 방지 — parent_id 가 또 다른 답글이면 그 답글의 부모를 사용 (한 단계로 평탄화)
+        if (!empty($data['parent_id'])) {
+            $parent = MaintRequestNote::find($data['parent_id']);
+            abort_if(!$parent || $parent->request_id !== $maintRequest->id, 422, '잘못된 답글 대상입니다.');
+            // 다른 type 의 비고에 답글 다는 것 금지
+            abort_if($parent->note_type !== $data['note_type'], 422, '비고 유형이 일치하지 않습니다.');
+            if ($parent->parent_id) {
+                $data['parent_id'] = $parent->parent_id; // 1단계 트리 유지
+            }
+        }
         $data['request_id'] = $maintRequest->id;
-        MaintRequestNote::create($data);
+        $note = MaintRequestNote::create($data);
+
+        // 이메일 알림 — 콜로 비고에 대해서만:
+        //  · 신규 비고(parent_id NULL): 링크더랩 관리자 + SR 담당자(assignee)
+        //  · 답글(parent_id 있음) & 작성자가 관리자/SR 담당자: SR 등록자(colo_user)
+        $this->notifyNoteAdded($note, $maintRequest);
 
         if ($request->boolean('_modal')) {
             return redirect()->route('maint-requests.embed', $maintRequest)->with('success', '비고가 추가되었습니다.');
         }
         return back()->with('success', '비고가 추가되었습니다.');
+    }
+
+    private function notifyNoteAdded(MaintRequestNote $note, MaintRequest $sr): void
+    {
+        if ($note->note_type !== 'colo') return; // 콜로(요청자 측) 비고만 알림 대상
+
+        $poster = auth()->user();
+        if (!$poster) return;
+
+        $isAgent = $poster->isAdmin() || (bool) ($poster->is_sr_agent ?? false);
+
+        $recipients = [];
+        $event      = '비고';
+        $sr->loadMissing(['coloUser', 'assignee', 'companyGroup']);
+
+        if ($note->parent_id) {
+            // 답글 — SR 담당자/관리자가 단 경우에만 SR 등록자(요청자)에게 통지
+            if (!$isAgent) return;
+            $event = '답글';
+            if ($email = $this->resolveRequesterEmail($sr)) {
+                $recipients[] = $email;
+            }
+        } else {
+            // 새 콜로 비고 — 링크더랩 관리자 + SR 담당자(assignee)
+            $recipients = array_merge(
+                $this->resolveLinkthelabAdminEmails(),
+                array_filter([$this->resolveSrAgentEmail($sr)])
+            );
+        }
+
+        // 본인 제외 + 유효성 + 중복 제거
+        $self = strtolower((string) ($poster->email ?? ''));
+        $recipients = array_values(array_unique(array_filter($recipients, function ($e) use ($self) {
+            return filter_var($e, FILTER_VALIDATE_EMAIL) && strtolower((string) $e) !== $self;
+        })));
+        if (empty($recipients)) return;
+
+        try {
+            Mail::send(new MaintRequestNoteNotificationMail($sr, $note, $recipients, $event, $poster->name ?? ''));
+        } catch (\Throwable $e) {
+            Log::warning('MaintRequestNote 이메일 알림 실패: ' . $e->getMessage(), [
+                'note_id' => $note->id, 'sr_id' => $sr->id,
+            ]);
+        }
+    }
+
+    private function resolveLinkthelabAdminEmails(): array
+    {
+        $linkthelabId = \App\Models\CompanyGroup::where('name', '링크더랩')->value('id');
+        if (!$linkthelabId) return [];
+        return User::where('company_group_id', $linkthelabId)
+            ->where('role', 'admin')
+            ->whereNotNull('email')
+            ->pluck('email')
+            ->all();
+    }
+
+    private function resolveSrAgentEmail(MaintRequest $sr): ?string
+    {
+        if (!$sr->assignee) return null;
+        return User::where('is_sr_agent', true)
+            ->where('name', $sr->assignee->name)
+            ->whereNotNull('email')
+            ->value('email');
+    }
+
+    private function resolveRequesterEmail(MaintRequest $sr): ?string
+    {
+        if (!$sr->coloUser || !$sr->company_group_id) return null;
+        return User::where('company_group_id', $sr->company_group_id)
+            ->where('name', $sr->coloUser->name)
+            ->whereNotNull('email')
+            ->value('email');
     }
 
     public function destroyNote(Request $request, MaintRequest $maintRequest, MaintRequestNote $note)
@@ -736,8 +922,10 @@ class MaintRequestController extends Controller
             return (int) $data['menu_id'];
         }
         $name = trim((string) ($data['menu_name'] ?? ''));
+        // 모달에서 메뉴를 비워두는 경우가 있으므로 엑셀 임포트와 동일하게 '(미지정)' 으로 폴백.
+        // maint_requests.menu_id 는 NOT NULL 이라 null 반환하면 INSERT 가 실패한다.
         if ($name === '') {
-            return null;
+            $name = '(미지정)';
         }
         return MaintMenu::firstOrCreate(['name' => $name])->id;
     }
@@ -746,6 +934,10 @@ class MaintRequestController extends Controller
      * MaintUser 해석/생성.
      *   team='colo' 의 경우 colo_user 는 콜로플라스트 전용이 아니라 SR 의 요청자(비 SR 담당자) —
      *   $companyGroupId 가 주어지면 같은 이름·같은 회사의 User 가 있을 때 user_id 도 자동 연결.
+     *
+     * NOTE: maint_users 의 유니크 키는 (team, name) 이므로 매칭 시에도 이 두 컬럼만 사용해야 한다.
+     *       company_group_id 를 조건에 넣으면 기존 행이 NULL 회사로 만들어진 경우 매칭 실패 →
+     *       INSERT 시도 → UK 위반 (1062). 대신 누락된 company_group_id / user_id 는 사후 patch.
      */
     private function resolveUser(?int $id, ?string $name, string $team, ?int $companyGroupId = null): ?int
     {
@@ -757,23 +949,36 @@ class MaintRequestController extends Controller
             return null;
         }
 
-        $attrs = ['team' => $team, 'name' => $name];
-        if ($team === 'colo' && $companyGroupId) {
-            // 회사가 명시된 경우 동일 회사 안에서 매칭
-            $attrs['company_group_id'] = $companyGroupId;
+        $existing = MaintUser::where('team', $team)->where('name', $name)->first();
+
+        if ($existing) {
+            // 기존 행에 누락된 정보만 보강 (덮어쓰지 않음)
+            if ($team === 'colo' && $companyGroupId) {
+                $patch = [];
+                if (empty($existing->company_group_id)) {
+                    $patch['company_group_id'] = $companyGroupId;
+                }
+                if (empty($existing->user_id)) {
+                    $userId = \App\Models\User::where('company_group_id', $companyGroupId)
+                        ->where('name', $name)
+                        ->value('id');
+                    if ($userId) $patch['user_id'] = $userId;
+                }
+                if ($patch) $existing->update($patch);
+            }
+            return $existing->id;
         }
 
-        $defaults = ['is_active' => true];
+        $data = ['team' => $team, 'name' => $name, 'is_active' => true];
         if ($team === 'colo' && $companyGroupId) {
-            $defaults['company_group_id'] = $companyGroupId;
-            // 동일 회사·동일 이름 User 가 있으면 user_id 도 자동 연결
+            $data['company_group_id'] = $companyGroupId;
             $userId = \App\Models\User::where('company_group_id', $companyGroupId)
                 ->where('name', $name)
                 ->value('id');
-            if ($userId) $defaults['user_id'] = $userId;
+            if ($userId) $data['user_id'] = $userId;
         }
 
-        return MaintUser::firstOrCreate($attrs, $defaults)->id;
+        return MaintUser::create($data)->id;
     }
 
     /**
@@ -880,10 +1085,11 @@ class MaintRequestController extends Controller
         }
 
         return response()->json([
-            'ok'           => true,
-            'summary'      => $result['summary'],
-            'context_ids'  => $result['context_ids'],
-            'provider'     => $result['provider'],
+            'ok'             => true,
+            'summary'        => $result['summary'],
+            'context_ids'    => $result['context_ids'],
+            'provider'       => $result['provider'],
+            'classification' => $result['classification'] ?? null,
         ]);
     }
 

@@ -24,7 +24,7 @@ class PlanDoActController extends Controller
             'plan'              => 'nullable|string|max:5000',
             'do'                => 'nullable|string|max:5000',
             'act'               => 'nullable|string|max:5000',
-            'status'            => 'required|in:plan,do,act,done',
+            'status'            => 'required|in:plan,do,act,done,excluded',
             'source_message_id' => 'nullable|integer|exists:messages,id',
         ]);
 
@@ -90,7 +90,7 @@ class PlanDoActController extends Controller
             'plan'   => 'nullable|string|max:5000',
             'do'     => 'nullable|string|max:5000',
             'act'    => 'nullable|string|max:5000',
-            'status' => 'required|in:plan,do,act,done',
+            'status' => 'required|in:plan,do,act,done,excluded',
         ]);
 
         $planDoAct->update([

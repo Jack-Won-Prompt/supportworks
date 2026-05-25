@@ -34,7 +34,7 @@ class PaidDevRequestMail extends Mailable
         $this->description  = (string) ($request->paid_dev_description ?? '');
         $this->sentAt       = optional($request->paid_dev_sent_at)->format('Y-m-d H:i') ?? now()->format('Y-m-d H:i');
         $this->detailUrl    = rtrim(config('app.url'), '/')
-            . route('maint-requests.show', $request->id, false);
+            . route('maint-requests.index', ['open' => $request->id], false);
     }
 
     public function envelope(): Envelope

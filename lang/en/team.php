@@ -31,6 +31,9 @@ return [
     'translate_on_submit'       => 'Message translated + full email sent in :lang',
     'translating'               => 'Translating...',
     'invite_projects_label'     => 'Invited Projects',
+    'invite_company_label'      => 'Company',
+    'invite_company_hint'       => "(Company to belong to after sign-up · defaults to inviter's company)",
+    'invite_company_default_option' => "Inviter's company (default)",
 
     // ── Pending invites
     'pending_invites_title'     => 'Pending Invites',

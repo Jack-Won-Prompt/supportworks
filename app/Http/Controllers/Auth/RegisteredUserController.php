@@ -31,6 +31,15 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if ($request->filled('email') && !User::where('email', $request->email)->exists()) {
+            $pending = Invitation::where('email', $request->email)
+                ->whereNull('accepted_at')
+                ->first();
+            if ($pending) {
+                return redirect()->route('team.accept', $pending->token);
+            }
+        }
+
         $request->validate([
             'name'         => ['required', 'string', 'max:255'],
             'email'        => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],

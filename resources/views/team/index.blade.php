@@ -31,6 +31,10 @@
 
         <div id="invite-accordion-body" style="display:none;">
         <div style="padding:20px 24px;">
+            @php
+                $myCompanyId   = auth()->user()->company_group_id;
+                $myCompanyName = $companies->firstWhere('id', $myCompanyId)?->name ?? auth()->user()->company;
+            @endphp
             <form method="POST" action="{{ route('team.invite') }}">
                 @csrf
                 <input type="hidden" name="invite_lang" id="invite-lang-field" value="">
@@ -69,6 +73,23 @@
                         </button>
                     </div>
                 </div>
+
+                {{-- 회사 선택 (매니저/관리자만 임의 지정 가능) --}}
+                @if($canManage)
+                <div style="margin-top:14px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;">
+                        {{ __('team.invite_company_label') }} <span style="font-weight:400;color:var(--color-text-tertiary);">{{ __('team.invite_company_hint') }}</span>
+                    </label>
+                    <select name="company_group_id" id="invite-company-select"
+                        style="width:100%;padding:9px 13px;border:1.5px solid var(--color-border-default);border-radius:9px;font-size:14px;color:var(--color-text-primary);outline:none;background:#fff;cursor:pointer;box-sizing:border-box;font-family:inherit;transition:border-color .15s;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url(&quot;data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%239ca3af' viewBox='0 0 24 24'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3e%3c/svg%3e&quot;);background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;"
+                        onfocus="this.style.borderColor='var(--t300)'" onblur="this.style.borderColor='#e5e7eb'">
+                        <option value="">— {{ __('team.invite_company_default_option') }} —</option>
+                        @foreach($companies as $co)
+                            <option value="{{ $co->id }}" @selected((int) $myCompanyId === (int) $co->id)>{{ $co->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
 
                 {{-- 프로젝트 선택 --}}
                 @if($projects->isNotEmpty())
@@ -843,6 +864,7 @@ async function clearCompany() {
 async function assignCompany(companyId, name) {
     if (!_coTargetBtn) return;
     const memberId = _coTargetBtn.dataset.memberId;
+
     const status = _coTargetBtn.parentElement.querySelector('.member-company-status');
     const url = '{{ url('team/members') }}/' + memberId + '/company';
     try {

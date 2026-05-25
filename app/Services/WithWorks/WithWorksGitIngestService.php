@@ -171,6 +171,8 @@ class WithWorksGitIngestService
                             'committed_at'  => $committedAt,
                             'subject'       => mb_substr($subject, 0, 1000),
                             'body'          => null,
+                            'sr_ids'        => GitCommit::parseSrIds($subject, (string) ($c['commit']['message'] ?? '')) ?: null,
+                            'is_merge'      => !empty($c['parents']) && count($c['parents']) > 1,
                             'files_changed' => $filesCount,
                             'files_json'    => $filesList ?: null,
                             'insertions'    => $add,

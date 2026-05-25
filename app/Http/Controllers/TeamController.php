@@ -118,13 +118,12 @@ class TeamController extends Controller
     {
         abort_unless($this->isManagerOrAdmin(auth()->user()), 403);
 
-        $q     = trim((string) $request->input('q', ''));
-        $limit = 50;
+        $q = trim((string) $request->input('q', ''));
 
         $rows = CompanyGroup::query()
             ->when($q !== '', fn($qb) => $qb->where('name', 'like', '%' . $q . '%'))
             ->orderBy('name')
-            ->limit($limit)
+            ->limit(500)
             ->get(['id', 'name'])
             ->map(fn($g) => ['id' => $g->id, 'name' => $g->name])
             ->values();
@@ -221,19 +220,26 @@ class TeamController extends Controller
     public function invite(Request $request)
     {
         $request->validate([
-            'email'       => 'required|email|max:255',
-            'phone'       => 'nullable|string|max:30',
-            'message'     => 'nullable|string|max:1000',
-            'project_ids' => 'nullable|array',
-            'project_ids.*' => 'exists:projects,id',
-            'invite_lang' => 'nullable|string|in:ko,en,ja,zh',
+            'email'            => 'required|email|max:255',
+            'phone'            => 'nullable|string|max:30',
+            'message'          => 'nullable|string|max:1000',
+            'project_ids'      => 'nullable|array',
+            'project_ids.*'    => 'exists:projects,id',
+            'invite_lang'      => 'nullable|string|in:ko,en,ja,zh',
+            'company_group_id' => 'nullable|integer|exists:company_groups,id',
         ]);
 
+        $me         = auth()->user();
         $email      = $request->email;
         $phone      = $request->filled('phone') ? preg_replace('/[^\d+\-\s]/', '', trim($request->phone)) : null;
         $message    = $request->filled('message') ? trim($request->message) : null;
         $projectIds = $request->input('project_ids') ? array_map('intval', $request->input('project_ids')) : null;
         $inviteLang = $request->input('invite_lang') ?: app()->getLocale();
+
+        // 회사 선택: 매니저+만 임의 회사 지정 가능, 그 외는 본인 회사로 고정
+        $companyId = $this->isManagerOrAdmin($me)
+            ? ($request->filled('company_group_id') ? (int) $request->company_group_id : $me->company_group_id)
+            : $me->company_group_id;
 
         if (User::where('email', $email)->exists()) {
             return back()->withErrors(['email' => '이미 가입된 이메일입니다.'])->withInput();
@@ -249,13 +255,14 @@ class TeamController extends Controller
                 'project_ids'      => $projectIds,
                 'token'            => Str::random(40),
                 'invited_by'       => auth()->id(),
-                'company_group_id' => auth()->user()->company_group_id,
+                'company_group_id' => $companyId,
             ]);
         } else {
             $invitation->update([
-                'phone'       => $phone ?: $invitation->phone,
-                'message'     => $message,
-                'project_ids' => $projectIds,
+                'phone'            => $phone ?: $invitation->phone,
+                'message'          => $message,
+                'project_ids'      => $projectIds,
+                'company_group_id' => $companyId,
             ]);
         }
 

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Invitation;
+use App\Models\User;
 use App\Models\UserLoginLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +28,15 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        if ($pending = $this->pendingInvitationFor($request->email)) {
+            return redirect()->route('login')
+                ->with('pending_invite', [
+                    'email' => $request->email,
+                    'url'   => route('team.accept', $pending->token),
+                ])
+                ->withInput($request->only('email'));
+        }
+
         try {
             $request->authenticate();
         } catch (ValidationException $e) {
@@ -72,5 +83,12 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    private function pendingInvitationFor(?string $email): ?Invitation
+    {
+        if (!$email) return null;
+        if (User::where('email', $email)->exists()) return null;
+        return Invitation::where('email', $email)->whereNull('accepted_at')->first();
     }
 }

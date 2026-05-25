@@ -35,6 +35,9 @@ return [
     'no_account'         => 'Don\'t have an account?',
     'signup'             => 'Get started free →',
     'error'              => 'The email or password is incorrect.',
+    'pending_invite_title' => 'Password setup required',
+    'pending_invite_desc'  => 'The account ":email" is still a pending invitation. Click the button below to set your password.',
+    'pending_invite_cta'   => 'Set up password',
     'footer'             => '© :year SupportWorks. All rights reserved.',
 
     // ── Forgot password page

@@ -2,10 +2,31 @@
 
 {{-- Quill rich editor (SR 상세 내용 리치 에디터 + 이미지 paste) --}}
 <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css">
+{{-- marked.js — 웍스 요약 탭의 markdown 렌더링용 --}}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
     .maint-sticky-bar { position: sticky; top: 0; z-index: 30; }
     .maint-sticky-bar.is-stuck { box-shadow: 0 4px 12px -4px rgba(0,0,0,.08); }
+    /* 웍스 요약 markdown 렌더링 스타일 */
+    .maint-md-render h1, .maint-md-render h2, .maint-md-render h3, .maint-md-render h4 { font-weight:700; color:#1e293b; margin-top:0.9em; margin-bottom:0.4em; line-height:1.3; }
+    .maint-md-render h1:first-child, .maint-md-render h2:first-child, .maint-md-render h3:first-child, .maint-md-render h4:first-child { margin-top:0; }
+    .maint-md-render h1 { font-size:1.05rem; }
+    .maint-md-render h2 { font-size:1rem; }
+    .maint-md-render h3 { font-size:0.95rem; }
+    .maint-md-render h4 { font-size:0.9rem; color:#334155; }
+    .maint-md-render p { margin-bottom:0.55em; }
+    .maint-md-render p:last-child { margin-bottom:0; }
+    .maint-md-render ul, .maint-md-render ol { padding-left:1.25em; margin-bottom:0.55em; }
+    .maint-md-render li { margin-bottom:0.2em; }
+    .maint-md-render strong { font-weight:700; color:#1e293b; }
+    .maint-md-render em { font-style:italic; }
+    .maint-md-render code { background:#f1f5f9; padding:1px 5px; border-radius:4px; font-size:0.85em; color:#0f172a; }
+    .maint-md-render pre { background:#0f172a; color:#e2e8f0; padding:10px 12px; border-radius:6px; font-size:.78rem; overflow-x:auto; margin:0.6em 0; }
+    .maint-md-render pre code { background:transparent; padding:0; color:inherit; }
+    .maint-md-render blockquote { border-left:3px solid #c7d2fe; padding:0.2em 0.8em; color:#475569; background:#f8fafc; margin:0.6em 0; border-radius:0 4px 4px 0; }
+    .maint-md-render a { color:#4338ca; text-decoration:underline; }
+    .maint-md-render hr { border:0; border-top:1px solid #e2e8f0; margin:0.8em 0; }
     /* SR 상세 내용 리치 에디터 */
     .sr-quill { border:1px solid var(--color-border-default); border-radius:8px; transition:border-color .15s; }
     .sr-quill.focused { border-color:#6366f1; }
@@ -61,6 +82,27 @@
 
 {{-- 세션 플래시는 전역 토스트(window.appToast)로 표시됨 — 페이지 인라인 배너 제거 --}}
 
+{{-- AI 사전 검토 패널 (등록 직후 요청자 확인 단계) --}}
+@if($r->status === 'ai_review')
+    @include('maint-requests._ai-review')
+@elseif($r->ai_review_status === 'confirmed' && (is_array($r->ai_review_questions) && !empty($r->ai_review_questions)))
+{{-- 확인된 SR의 AI Q&A 이력 (담당자가 참고할 수 있도록 작게 표시) --}}
+<details class="bg-white border border-gray-200 rounded-lg p-3 mb-3 text-sm">
+    <summary class="cursor-pointer text-gray-600 font-medium">AI 사전 검토 Q&A ({{ count($r->ai_review_questions) }}건)
+        @if($r->ai_review_difficulty)<span class="text-xs text-gray-400 ml-2">난이도 {{ $r->ai_review_difficulty }}/5</span>@endif
+        @if($r->ai_review_effort)<span class="text-xs text-gray-400 ml-1">· 예상 {{ $r->ai_review_effort }}</span>@endif
+    </summary>
+    <div class="mt-2 space-y-1.5">
+        @foreach($r->ai_review_questions as $i => $qa)
+            <div class="text-xs">
+                <div class="text-gray-700">Q{{ $i + 1 }}. {{ $qa['q'] ?? '' }}</div>
+                <div class="text-gray-500 pl-3">A. {{ trim((string) ($qa['a'] ?? '')) !== '' ? $qa['a'] : '(미답변)' }}</div>
+            </div>
+        @endforeach
+    </div>
+</details>
+@endif
+
 <div class="grid grid-cols-12 gap-5">
 
     {{-- 좌측: 요청 본문 (편집 폼) --}}
@@ -104,53 +146,120 @@
                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
             </div>
 
-            <div x-data="srSummary({
-                    initialSummary: @js(old('ai_summary', $r->ai_summary ?? '')),
-                    initialContextIds: @js(old('ai_summary_context_ids', is_array($r->ai_summary_context_ids ?? null) ? $r->ai_summary_context_ids : [])),
-                    endpoint: '{{ route('maint-requests.works-summary') }}',
-                    srId: {{ $r->id }},
-                    csrf: '{{ csrf_token() }}',
-                 })">
-                <div class="flex items-center justify-between mb-1">
-                    <label class="block text-sm font-medium text-gray-700">상세 내용</label>
-                    {{-- 요약 없음 OR 원본(summary/content) 수정됨 → 버튼 표시.
-                         요약 있고 원본 미수정 → 버튼 숨김 (저장 후 재 진입 시 자동 적용) --}}
-                    <button type="button" @click="generate()" :disabled="loading"
-                            x-show="!summary || dirty" x-cloak
-                            :class="loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-50 hover:border-indigo-300'"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md text-indigo-700 bg-white transition-colors">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span x-show="!loading">웍스 요약 생성</span>
-                        <span x-show="loading" x-cloak>생성 중...</span>
-                    </button>
+            <div x-data="(() => {
+                    const base = srSummary({
+                        initialSummary: @js(old('ai_summary', $r->ai_summary ?? '')),
+                        initialContextIds: @js(old('ai_summary_context_ids', is_array($r->ai_summary_context_ids ?? null) ? $r->ai_summary_context_ids : [])),
+                        initialClassification: @js($r->ai_classification ?? ''),
+                        endpoint: '{{ route('maint-requests.works-summary') }}',
+                        srId: {{ $r->id }},
+                        csrf: '{{ csrf_token() }}',
+                    });
+                    return {
+                        ...base,
+                        activeTab: @js(request('tab') === 'detail' ? 'detail' : (request('tab') === 'summary' || !empty($r->ai_summary) ? 'summary' : 'detail')),
+                        autoSaveEndpoint: @js(route('maint-requests.ai-summary', $r)),
+                        autoSaveCsrf: @js(csrf_token()),
+                        // 웍스 요약 버튼 클릭 핸들러:
+                        //   - 이미 저장된 요약 있으면 그대로 노출 (재생성 안 함)
+                        //   - 없으면 generate() 후 즉시 백엔드로 자동 저장
+                        async runWorksSummary() {
+                            if (this.summary && (this.summary || '').trim() !== '') {
+                                this.activeTab = 'summary';
+                                return; // 저장된 내용 그대로
+                            }
+                            await this.generate();
+                            if (this.summary) {
+                                try {
+                                    const fd = new FormData();
+                                    fd.append('_token',  this.autoSaveCsrf);
+                                    fd.append('_method', 'PATCH');
+                                    fd.append('ai_summary', this.summary);
+                                    if (this.classification) fd.append('ai_classification', this.classification);
+                                    (this.contextIds || []).forEach((v, i) => fd.append('ai_summary_context_ids[' + i + ']', v));
+                                    await fetch(this.autoSaveEndpoint, {
+                                        method: 'POST',
+                                        body: fd,
+                                        credentials: 'same-origin',
+                                        headers: { 'X-CSRF-TOKEN': this.autoSaveCsrf, 'Accept': 'application/json' },
+                                    });
+                                } catch (e) {
+                                    console.warn('웍스 요약 자동 저장 실패:', e);
+                                }
+                            }
+                        },
+                    };
+                 })()">
+                {{-- 탭 헤더 — 상세 내용 / 웍스 요약 --}}
+                <div class="flex items-end justify-between border-b border-gray-200 mb-2">
+                    <div class="flex gap-1">
+                        <button type="button" @click="activeTab='detail'"
+                                :class="activeTab==='detail' ? 'border-indigo-500 text-indigo-700 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                                class="px-3 py-2 text-sm font-medium border-b-2 -mb-px rounded-t-md transition-colors">
+                            상세 내용
+                        </button>
+                        <button type="button" @click="activeTab='summary'"
+                                :class="activeTab==='summary' ? 'border-indigo-500 text-indigo-700 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                                class="px-3 py-2 text-sm font-medium border-b-2 -mb-px rounded-t-md transition-colors inline-flex items-center gap-1.5">
+                            웍스 요약
+                            <span x-show="summary" x-cloak class="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">✓</span>
+                        </button>
+                    </div>
                 </div>
-                {{-- 상세 내용 — Quill 리치 에디터 (이미지 paste 지원) --}}
-                <div class="sr-quill" id="sr-quill-wrap">
-                    <div id="sr-quill-editor"></div>
-                </div>
-                <input type="hidden" name="content" id="sr-content-input" value="{{ old('content', $r->content) }}">
-                <template id="sr-content-initial">{{ old('content', $r->content) }}</template>
 
-                {{-- 웍스 요약 결과 (미리보기 / 편집) --}}
-                <div x-show="summary" x-cloak class="mt-3 bg-indigo-50/40 border border-indigo-200 rounded-xl p-4">
+                {{-- 상세 내용 탭 — Quill 리치 에디터 (x-show 로 숨기되 DOM 유지: 에디터 상태 보존) --}}
+                <div x-show="activeTab==='detail'">
+                    <div class="sr-quill" id="sr-quill-wrap">
+                        <div id="sr-quill-editor"></div>
+                    </div>
+                </div>
+
+                {{-- 웍스 요약 탭 — 등록 시 모달에서 생성된 요약을 표시. 매니저 이상은 우측 버튼으로 (재)생성 가능. --}}
+                @php
+                    $__u = auth()->user();
+                    $__canRunWorks = $__u && ($__u->isAdmin() || $__u->role === 'manager');
+                @endphp
+                <div x-show="activeTab==='summary'" x-cloak>
                     <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-sm font-semibold text-indigo-900 flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            웍스 요약 (담당자용)
-                        </h4>
-                        <div class="flex items-center gap-2 text-xs">
-                            <span class="text-gray-500" x-show="contextIds.length > 0">참고 SR <span x-text="contextIds.length"></span>건</span>
-                            <button type="button" @click="reset()" class="text-rose-600 hover:text-rose-800">제거</button>
+                        <span class="text-xs text-gray-500" x-show="summary && contextIds.length > 0" x-cloak>참고 SR <span x-text="contextIds.length"></span>건</span>
+                        <div class="flex items-center gap-2 ml-auto">
+                            <span class="text-xs text-gray-400" x-show="summary" x-cloak>등록 시 생성된 웍스 요약</span>
+                            @if($__canRunWorks)
+                                {{-- 웍스 요약 (관리자) — 저장된 내용 있으면 그대로 노출, 없으면 생성 후 자동 저장 --}}
+                                <button type="button" @click="runWorksSummary()" :disabled="loading"
+                                        :class="loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-50 hover:border-indigo-300'"
+                                        :title="summary ? '저장된 웍스 요약이 있습니다' : '웍스 요약 생성 + 자동 저장'"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md text-indigo-700 bg-white transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span x-show="!loading">웍스 요약</span>
+                                    <span x-show="loading" x-cloak>생성 중...</span>
+                                </button>
+                            @endif
                         </div>
                     </div>
-                    <textarea x-model="summary" rows="8"
-                              class="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm bg-white"
-                              placeholder="AI 가 정리한 요약 — 필요하면 직접 수정하세요."></textarea>
-                    <p class="text-xs text-gray-500 mt-1.5">저장 시 원본과 함께 저장됩니다.</p>
+
+                    {{-- 빈 상태 --}}
+                    <div x-show="!summary && !loading" x-cloak class="border border-dashed border-gray-200 rounded-xl py-12 text-center text-sm text-gray-400">
+                        @if($__canRunWorks)
+                            등록 시 생성된 웍스 요약이 없습니다. 우측 상단 <b>웍스 요약</b> 버튼으로 생성하세요.
+                        @else
+                            이 SR 은 등록 시 웍스 요약이 생성되지 않았습니다.
+                        @endif
+                    </div>
+
+                    {{-- 요약 본문 (markdown 렌더링 · 읽기 전용) --}}
+                    <div x-show="summary" x-cloak class="bg-indigo-50/40 border border-indigo-200 rounded-xl p-4">
+                        <div class="maint-md-render text-sm leading-relaxed text-gray-800"
+                             x-html="(window.marked && window.marked.parse) ? window.marked.parse(summary || '') : (summary || '').replace(/\n/g, '<br>')"></div>
+                    </div>
                 </div>
 
+                {{-- 폼 제출용 hidden 필드 (탭과 무관하게 항상 DOM 에 존재) --}}
+                <input type="hidden" name="content" id="sr-content-input" value="{{ old('content', $r->content) }}">
+                <template id="sr-content-initial">{{ old('content', $r->content) }}</template>
                 <input type="hidden" name="ai_summary" :value="summary || ''">
                 <input type="hidden" name="ai_summary_context_ids" :value="contextIds.length > 0 ? JSON.stringify(contextIds) : ''">
+                <input type="hidden" name="ai_classification" :value="classification || ''">
             </div>
 
             @php
@@ -247,6 +356,27 @@
                 </div>
             </div>
 
+            {{-- 난이도 점수 (1~5) — 관리자/SR 담당자만 편집 --}}
+            <div class="grid grid-cols-12 gap-3">
+                <div class="col-span-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">난이도 점수
+                        <span class="text-xs text-gray-400 font-normal">(1=쉬움 ~ 5=매우 어려움)</span>
+                    </label>
+                    @if($canEditLinkthelabFields)
+                        <select name="difficulty_score" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                            <option value="" {{ old('difficulty_score', $r->difficulty_score) ? '' : 'selected' }}>— 미매핑 —</option>
+                            <option value="1" {{ (string)old('difficulty_score', $r->difficulty_score)==='1' ? 'selected' : '' }}>1 · 매우 낮음 (표준 CRUD)</option>
+                            <option value="2" {{ (string)old('difficulty_score', $r->difficulty_score)==='2' ? 'selected' : '' }}>2 · 낮음</option>
+                            <option value="3" {{ (string)old('difficulty_score', $r->difficulty_score)==='3' ? 'selected' : '' }}>3 · 중간 (다중 모델·트랜잭션)</option>
+                            <option value="4" {{ (string)old('difficulty_score', $r->difficulty_score)==='4' ? 'selected' : '' }}>4 · 높음 (도메인 룰·알고리즘)</option>
+                            <option value="5" {{ (string)old('difficulty_score', $r->difficulty_score)==='5' ? 'selected' : '' }}>5 · 매우 높음 (외부 API·규제)</option>
+                        </select>
+                    @else
+                        <div class="w-full px-3 py-2 border border-gray-100 bg-gray-50 rounded-lg text-sm text-gray-700">{{ $r->difficulty_score ?? '미매핑' }}</div>
+                    @endif
+                </div>
+            </div>
+
             @if($errors->any())
                 <div class="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
                     <ul class="list-disc list-inside space-y-0.5">
@@ -280,25 +410,72 @@
     {{-- 우측: 비고 --}}
     <div class="col-span-4 space-y-4">
 
+        @php
+            // 비고는 1단계 트리: 최상위(parent_id=null) 만 렌더링하고 각 아래에 답글을 indent 로 표시.
+            $allNotes      = $r->notes;
+            $topColoNotes  = $allNotes->where('note_type','colo')->whereNull('parent_id')->sortBy('id');
+            $topLinkNotes  = $allNotes->where('note_type','link')->whereNull('parent_id')->sortBy('id');
+            $repliesByPid  = $allNotes->whereNotNull('parent_id')->groupBy('parent_id');
+        @endphp
+
         {{-- 회사 측 비고 (SR 대상 회사명) --}}
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <div class="flex items-center justify-between mb-2">
                 <h3 class="text-sm font-semibold text-gray-900">{{ $companyLabel }} 비고</h3>
-                <span class="text-xs text-gray-400">{{ $r->notes->where('note_type','colo')->count() }}</span>
+                <span class="text-xs text-gray-400">{{ $allNotes->where('note_type','colo')->count() }}</span>
             </div>
             <div class="space-y-2 mb-3">
-                @forelse($r->notes->where('note_type','colo') as $n)
-                    <div class="group bg-gray-50 rounded-lg p-2.5 text-sm text-gray-700">
+                @forelse($topColoNotes as $n)
+                    <div class="group bg-gray-50 rounded-lg p-2.5 text-sm text-gray-700" x-data="{ replyOpen: false }">
                         <div class="whitespace-pre-wrap break-words">{{ $n->body }}</div>
                         <div class="flex items-center justify-between mt-1 text-xs text-gray-400">
                             <span>{{ $n->created_at->format('Y-m-d H:i') }}</span>
-                            <form method="POST" action="{{ route('maint-requests.notes.destroy', [$r, $n]) }}" class="opacity-0 group-hover:opacity-100"
-                                  onsubmit="return confirm('삭제하시겠습니까?');">
-                                @csrf @method('DELETE')
-                                @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
-                                <button type="submit" class="text-red-400 hover:text-red-600">삭제</button>
-                            </form>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="replyOpen = !replyOpen"
+                                        class="text-gray-500 hover:text-indigo-600">
+                                    <span x-show="!replyOpen">답글</span>
+                                    <span x-show="replyOpen" x-cloak>닫기</span>
+                                </button>
+                                <form method="POST" action="{{ route('maint-requests.notes.destroy', [$r, $n]) }}" class="opacity-0 group-hover:opacity-100"
+                                      onsubmit="return confirm('답글이 있으면 함께 삭제됩니다. 진행할까요?');">
+                                    @csrf @method('DELETE')
+                                    @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
+                                    <button type="submit" class="text-red-400 hover:text-red-600">삭제</button>
+                                </form>
+                            </div>
                         </div>
+
+                        {{-- 답글 목록 --}}
+                        @php $replies = $repliesByPid->get($n->id) ?? collect(); @endphp
+                        @if($replies->count() > 0)
+                        <div class="mt-2 ml-3 pl-3 border-l-2 border-gray-300 space-y-1.5">
+                            @foreach($replies->sortBy('id') as $reply)
+                                <div class="group/reply bg-white rounded p-2 text-xs text-gray-700 border border-gray-100">
+                                    <div class="whitespace-pre-wrap break-words">{{ $reply->body }}</div>
+                                    <div class="flex items-center justify-between mt-1 text-[10px] text-gray-400">
+                                        <span>↳ {{ $reply->created_at->format('Y-m-d H:i') }}</span>
+                                        <form method="POST" action="{{ route('maint-requests.notes.destroy', [$r, $reply]) }}" class="opacity-0 group-hover/reply:opacity-100"
+                                              onsubmit="return confirm('삭제하시겠습니까?');">
+                                            @csrf @method('DELETE')
+                                            @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
+                                            <button type="submit" class="text-red-400 hover:text-red-600">삭제</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        {{-- 답글 작성 폼 (토글) --}}
+                        <form x-show="replyOpen" x-cloak method="POST" action="{{ route('maint-requests.notes.store', $r) }}" class="mt-2 ml-3 pl-3 border-l-2 border-gray-300 space-y-1.5">
+                            @csrf
+                            @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
+                            <input type="hidden" name="note_type" value="colo">
+                            <input type="hidden" name="parent_id" value="{{ $n->id }}">
+                            <textarea name="body" rows="2" required placeholder="답글 작성"
+                                      class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs"></textarea>
+                            <button type="submit" class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium hover:bg-gray-300">답글 등록</button>
+                        </form>
                     </div>
                 @empty
                     <div class="text-xs text-gray-400 py-2">비고가 없습니다.</div>
@@ -318,21 +495,58 @@
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <div class="flex items-center justify-between mb-2">
                 <h3 class="text-sm font-semibold text-gray-900">링크더랩 비고</h3>
-                <span class="text-xs text-gray-400">{{ $r->notes->where('note_type','link')->count() }}</span>
+                <span class="text-xs text-gray-400">{{ $allNotes->where('note_type','link')->count() }}</span>
             </div>
             <div class="space-y-2 mb-3">
-                @forelse($r->notes->where('note_type','link') as $n)
-                    <div class="group bg-indigo-50/50 rounded-lg p-2.5 text-sm text-gray-700">
+                @forelse($topLinkNotes as $n)
+                    <div class="group bg-indigo-50/50 rounded-lg p-2.5 text-sm text-gray-700" x-data="{ replyOpen: false }">
                         <div class="whitespace-pre-wrap break-words">{{ $n->body }}</div>
                         <div class="flex items-center justify-between mt-1 text-xs text-gray-400">
                             <span>{{ $n->created_at->format('Y-m-d H:i') }}</span>
-                            <form method="POST" action="{{ route('maint-requests.notes.destroy', [$r, $n]) }}" class="opacity-0 group-hover:opacity-100"
-                                  onsubmit="return confirm('삭제하시겠습니까?');">
-                                @csrf @method('DELETE')
-                                @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
-                                <button type="submit" class="text-red-400 hover:text-red-600">삭제</button>
-                            </form>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="replyOpen = !replyOpen"
+                                        class="text-gray-500 hover:text-indigo-600">
+                                    <span x-show="!replyOpen">답글</span>
+                                    <span x-show="replyOpen" x-cloak>닫기</span>
+                                </button>
+                                <form method="POST" action="{{ route('maint-requests.notes.destroy', [$r, $n]) }}" class="opacity-0 group-hover:opacity-100"
+                                      onsubmit="return confirm('답글이 있으면 함께 삭제됩니다. 진행할까요?');">
+                                    @csrf @method('DELETE')
+                                    @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
+                                    <button type="submit" class="text-red-400 hover:text-red-600">삭제</button>
+                                </form>
+                            </div>
                         </div>
+
+                        @php $replies = $repliesByPid->get($n->id) ?? collect(); @endphp
+                        @if($replies->count() > 0)
+                        <div class="mt-2 ml-3 pl-3 border-l-2 border-indigo-200 space-y-1.5">
+                            @foreach($replies->sortBy('id') as $reply)
+                                <div class="group/reply bg-white rounded p-2 text-xs text-gray-700 border border-indigo-100">
+                                    <div class="whitespace-pre-wrap break-words">{{ $reply->body }}</div>
+                                    <div class="flex items-center justify-between mt-1 text-[10px] text-gray-400">
+                                        <span>↳ {{ $reply->created_at->format('Y-m-d H:i') }}</span>
+                                        <form method="POST" action="{{ route('maint-requests.notes.destroy', [$r, $reply]) }}" class="opacity-0 group-hover/reply:opacity-100"
+                                              onsubmit="return confirm('삭제하시겠습니까?');">
+                                            @csrf @method('DELETE')
+                                            @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
+                                            <button type="submit" class="text-red-400 hover:text-red-600">삭제</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        <form x-show="replyOpen" x-cloak method="POST" action="{{ route('maint-requests.notes.store', $r) }}" class="mt-2 ml-3 pl-3 border-l-2 border-indigo-200 space-y-1.5">
+                            @csrf
+                            @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
+                            <input type="hidden" name="note_type" value="link">
+                            <input type="hidden" name="parent_id" value="{{ $n->id }}">
+                            <textarea name="body" rows="2" required placeholder="답글 작성"
+                                      class="w-full px-2 py-1.5 border border-indigo-200 rounded text-xs"></textarea>
+                            <button type="submit" class="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-medium hover:bg-indigo-700">답글 등록</button>
+                        </form>
                     </div>
                 @empty
                     <div class="text-xs text-gray-400 py-2">비고가 없습니다.</div>
@@ -349,12 +563,37 @@
         </div>
 
         @php
-            // 추가 개발(유상) 영역 노출 권한 — 관리자 OR 링크더랩 회사 소속
-            $linkthelabId = \App\Models\CompanyGroup::where('name', '링크더랩')->value('id');
-            $canSeePaidDev = auth()->user()->isAdmin() || (int) auth()->user()->company_group_id === (int) $linkthelabId;
+            // 추가 개발(유상) 영역 노출 권한 — 관리자 OR SR 담당자(is_sr_agent)
+            $canSeePaidDev = auth()->user()->isAdmin() || (bool) (auth()->user()->is_sr_agent ?? false);
+
+            // 웍스 요약 판단 (등록 시 AI 분류 결과)
+            $clsMap = [
+                'free'    => ['label' => '무상',           'sub' => '에러 / 데이터 확인',                 'bg' => '#ecfdf5', 'fg' => '#047857', 'border' => '#a7f3d0'],
+                'paid'    => ['label' => '유상 추가 개발', 'sub' => '기능 추가 / 프로세스 변경 / 추가 기능', 'bg' => '#fef3c7', 'fg' => '#92400e', 'border' => '#fde68a'],
+                'discuss' => ['label' => '논의 필요',      'sub' => '판단 보류 — 추가 협의 권장',         'bg' => '#eef2ff', 'fg' => '#3730a3', 'border' => '#c7d2fe'],
+            ];
+            $clsInfo = $clsMap[$r->ai_classification] ?? null;
         @endphp
         @if($canSeePaidDev)
-        {{-- 추가 개발 (유상) — 매니저 승인 요청 영역 (관리자 + 링크더랩 사용자만) --}}
+        {{-- 웍스 요약 판단 (추가 개발 상단 — 관리자/SR 담당자만, 웍스 요약 (재)생성 시 sr-ai-updated 이벤트로 반응형 갱신) --}}
+        <div x-data='@json(['cls' => $r->ai_classification ?? '', 'map' => $clsMap])'
+             @sr-ai-updated.window="if ($event.detail && map[$event.detail.classification]) { cls = $event.detail.classification }"
+             x-show="map[cls]"
+             x-cloak>
+            <div class="bg-white rounded-xl border border-gray-200 p-3" :style="`border-left:3px solid ${(map[cls]||{}).border}`">
+                <div class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">웍스 요약 판단</div>
+                <div class="inline-flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-md"
+                          :style="`background:${(map[cls]||{}).bg};color:${(map[cls]||{}).fg};`"
+                          x-text="(map[cls]||{}).label"></span>
+                    <span class="text-xs text-gray-500" x-text="(map[cls]||{}).sub"></span>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if($canSeePaidDev)
+        {{-- 추가 개발 (유상) — 관리자 + SR 담당자만 노출 --}}
         @php
             $paidDevInit = json_encode([
                 'enabled'  => (bool) $r->paid_dev_enabled,

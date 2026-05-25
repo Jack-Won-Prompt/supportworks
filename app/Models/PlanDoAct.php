@@ -22,7 +22,7 @@ class PlanDoAct extends Model
         'source_excerpt',
     ];
 
-    public const STATUSES = ['plan', 'do', 'act', 'done'];
+    public const STATUSES = ['plan', 'do', 'act', 'done', 'excluded'];
 
     public function project(): BelongsTo
     {
@@ -55,10 +55,11 @@ class PlanDoAct extends Model
     public function statusColors(): array
     {
         return [
-            'plan' => ['bg' => '#dbeafe', 'fg' => '#2563eb'],
-            'do'   => ['bg' => '#fef3c7', 'fg' => '#b45309'],
-            'act'  => ['bg' => '#ede9fe', 'fg' => '#7c3aed'],
-            'done' => ['bg' => '#dcfce7', 'fg' => '#16a34a'],
+            'plan'     => ['bg' => '#dbeafe', 'fg' => '#2563eb'],
+            'do'       => ['bg' => '#fef3c7', 'fg' => '#b45309'],
+            'act'      => ['bg' => '#ede9fe', 'fg' => '#7c3aed'],
+            'done'     => ['bg' => '#dcfce7', 'fg' => '#16a34a'],
+            'excluded' => ['bg' => '#f3f4f6', 'fg' => '#6b7280'],
         ][$this->status] ?? ['bg' => '#f3f4f6', 'fg' => '#6b7280'];
     }
 }

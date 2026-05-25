@@ -7,7 +7,6 @@ use App\Models\Message;
 use App\Models\PlanDoAct;
 use App\Models\Project;
 use App\Models\ProjectFile;
-use App\Models\ProjectMember;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -25,17 +24,9 @@ class PlanDoActController extends Controller
 
         $selectedProjectId = $request->query('project');
 
-        $query = PlanDoAct::with(['author', 'project'])->orderByDesc('updated_at');
-
-        if (!$user->isAdmin()) {
-            $projectIds = ProjectMember::where('user_id', $user->id)->pluck('project_id');
-            $query->where(function ($q) use ($projectIds, $user) {
-                $q->whereIn('project_id', $projectIds)
-                  ->orWhere(function ($q2) use ($user) {
-                      $q2->whereNull('project_id')->where('user_id', $user->id);
-                  });
-            });
-        }
+        $query = PlanDoAct::with(['author', 'project'])
+            ->where('user_id', $user->id)
+            ->orderByDesc('updated_at');
 
         // 상단 프로젝트 선택으로 필터
         if ($selectedProjectId === 'none') {
@@ -63,7 +54,7 @@ class PlanDoActController extends Controller
             'plan'                   => 'nullable|string|max:5000',
             'do'                     => 'nullable|string|max:5000',
             'act'                    => 'nullable|string|max:5000',
-            'status'                 => 'required|in:plan,do,act,done',
+            'status'                 => 'required|in:plan,do,act,done,excluded',
             'source_file_comment_id' => 'nullable|integer|exists:file_comments,id',
             'source_message_id'      => 'nullable|integer|exists:messages,id',
         ]);
@@ -131,7 +122,16 @@ class PlanDoActController extends Controller
     {
         $this->authorizePda($planDoAct);
 
-        return response()->json($this->toArray($planDoAct->load('author', 'project')));
+        $planDoAct->load([
+            'author',
+            'project',
+            'sourceFileComment.user',
+            'sourceFileComment.file.project',
+            'sourceMessage.conversation.participants',
+            'sourceMessage.sender',
+        ]);
+
+        return response()->json($this->toArray($planDoAct));
     }
 
     /** 수정 */
@@ -145,7 +145,7 @@ class PlanDoActController extends Controller
             'plan'       => 'nullable|string|max:5000',
             'do'         => 'nullable|string|max:5000',
             'act'        => 'nullable|string|max:5000',
-            'status'     => 'required|in:plan,do,act,done',
+            'status'     => 'required|in:plan,do,act,done,excluded',
         ]);
 
         if (!empty($data['project_id']) && (int) $data['project_id'] !== (int) $planDoAct->project_id) {
@@ -209,10 +209,61 @@ class PlanDoActController extends Controller
             'source_excerpt'         => $p->source_excerpt,
             'source_file_comment_id' => $p->source_file_comment_id,
             'source_message_id'      => $p->source_message_id,
+            'source'                 => $this->buildSourceDescriptor($p),
             'author'                 => $p->author ? ['id' => $p->author->id, 'name' => $p->author->name] : null,
             'created_at'             => optional($p->created_at)->format('Y-m-d H:i'),
             'updated_at'             => optional($p->updated_at)->format('Y-m-d H:i'),
         ];
+    }
+
+    /** 원본(파일 의견·채팅 메시지) 출처 정보 + 링크 빌드 */
+    private function buildSourceDescriptor(PlanDoAct $p): ?array
+    {
+        // 파일 의견 출처
+        if ($p->source_file_comment_id && $p->sourceFileComment) {
+            $comment = $p->sourceFileComment;
+            $file    = $comment->file;
+            $project = $file?->project;
+
+            if (!$file || !$project) {
+                return ['type' => 'file_comment', 'label' => __('plan-do-acts.src_loc_missing'), 'url' => null];
+            }
+
+            $author = $comment->user?->name ?? $comment->guest_name ?? __('plan-do-acts.reviewer_anon');
+
+            return [
+                'type'         => 'file_comment',
+                'project_name' => $project->name,
+                'file_name'    => $file->original_name,
+                'author'       => $author,
+                'created_at'   => optional($comment->created_at)->format('Y-m-d H:i'),
+                'label'        => $project->name . ' / ' . $file->original_name,
+                'url'          => route('projects.files.index', ['project' => $project->id, 'preview' => $file->id]),
+            ];
+        }
+
+        // 채팅 메시지 출처
+        if ($p->source_message_id && $p->sourceMessage) {
+            $message = $p->sourceMessage;
+            $conv    = $message->conversation;
+
+            if (!$conv) {
+                return ['type' => 'message', 'label' => __('plan-do-acts.src_loc_missing'), 'url' => null];
+            }
+
+            $userId = auth()->id() ?? 0;
+
+            return [
+                'type'              => 'message',
+                'conversation_name' => $conv->displayName($userId),
+                'sender'            => $message->sender?->name ?? __('plan-do-acts.user_unknown'),
+                'created_at'        => optional($message->created_at)->format('Y-m-d H:i'),
+                'label'             => $conv->displayName($userId),
+                'url'               => route('messages.show', $conv->id) . '#message-' . $message->id,
+            ];
+        }
+
+        return null;
     }
 
     /** 파일 의견 + 답글을 소스 스냅샷 텍스트로 변환 */

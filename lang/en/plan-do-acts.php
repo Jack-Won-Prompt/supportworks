@@ -23,6 +23,7 @@ return [
     'status_do'           => 'Do',
     'status_act'          => 'Act',
     'status_done'         => 'Done',
+    'status_excluded'     => 'Excluded',
 
     // ── Phase inputs ──
     'phase_plan'          => 'Plan',
@@ -35,6 +36,10 @@ return [
     // ── Source ──
     'source_heading'      => 'Original feedback & replies',
     'source_linked'       => 'Linked feedback',
+    'src_loc_file'        => 'File comment',
+    'src_loc_message'     => 'Chat message',
+    'src_loc_missing'     => 'Source not found (deleted)',
+    'src_open'            => 'Open source',
 
     // ── Buttons ──
     'btn_delete'          => 'Delete',

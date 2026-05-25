@@ -41,8 +41,9 @@ class MaintRequestNotificationMail extends Mailable
         $this->statusLabel   = self::statusLabel($request->status);
         $this->coloAssignee  = $request->coloUser?->name ?? '';
         $this->devAssignee   = $request->assignee?->name ?? '';
+        // 상세는 팝업으로만 — 인덱스로 보내며 ?open 쿼리로 자동 팝업 열도록 함
         $this->detailUrl     = rtrim(config('app.url'), '/')
-            . route('maint-requests.show', $request->id, false);
+            . route('maint-requests.index', ['open' => $request->id], false);
         $this->createdAt     = optional($request->updated_at ?? $request->created_at)->format('Y-m-d H:i') ?? now()->format('Y-m-d H:i');
     }
 

@@ -104,6 +104,11 @@
         .alert{display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;border-radius:12px;font-size:.82rem;margin-bottom:1.25rem}
         .alert-success{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857}
         .alert-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
+        .alert-info{display:block;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;padding:.95rem 1rem;border-radius:12px;font-size:.82rem;margin-bottom:1.25rem}
+        .alert-info-title{display:flex;align-items:center;gap:.55rem;font-weight:700;margin-bottom:.35rem;color:#1d4ed8}
+        .alert-info-desc{color:#1e3a8a;line-height:1.55;margin-bottom:.75rem}
+        .alert-info-cta{display:inline-flex;align-items:center;gap:.4rem;background:#1d4ed8;color:#fff;border-radius:8px;padding:.5rem .85rem;font-size:.78rem;font-weight:700;text-decoration:none;transition:background .15s}
+        .alert-info-cta:hover{background:#1e40af}
 
         .form-group{margin-bottom:1.1rem}
         .form-label{display:block;font-size:.8rem;font-weight:600;color:#334155;margin-bottom:.5rem;letter-spacing:.2px}
@@ -307,6 +312,20 @@
         <div class="alert alert-success">
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
             {{ session('status') }}
+        </div>
+        @endif
+
+        @if(session('pending_invite'))
+        <div class="alert alert-info">
+            <div class="alert-info-title">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ __('auth.pending_invite_title') }}
+            </div>
+            <div class="alert-info-desc">{{ __('auth.pending_invite_desc', ['email' => session('pending_invite.email')]) }}</div>
+            <a href="{{ session('pending_invite.url') }}" class="alert-info-cta">
+                {{ __('auth.pending_invite_cta') }}
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </a>
         </div>
         @endif
 

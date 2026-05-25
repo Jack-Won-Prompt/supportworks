@@ -671,8 +671,9 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('answers/{answer}/accept', [AnswerController::class, 'accept'])->name('answers.accept');
 
     // 유지보수 요청 (콜로/위드웍스 — 프로젝트와 무관한 독립 시스템)
+    // 상세는 팝업(embed) 으로만 노출 — show 라우트 미사용
     Route::resource('maint-requests', \App\Http\Controllers\MaintRequestController::class)
-        ->except(['edit'])
+        ->except(['edit', 'create', 'show'])
         ->parameters(['maint-requests' => 'maintRequest']);
     Route::post  ('maint-requests/{maintRequest}/notes',              [\App\Http\Controllers\MaintRequestController::class, 'storeNote'])  ->name('maint-requests.notes.store');
     Route::delete('maint-requests/{maintRequest}/notes/{note}',        [\App\Http\Controllers\MaintRequestController::class, 'destroyNote'])->name('maint-requests.notes.destroy');
@@ -692,6 +693,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('maint-requests/{maintRequest}/image-comments/{comment}',                [\App\Http\Controllers\MaintRequestImageCommentController::class, 'destroy'])->name('maint-requests.image-comments.destroy');
     Route::post  ('maint-requests/import',                             [\App\Http\Controllers\MaintRequestController::class, 'import'])->name('maint-requests.import');
     Route::patch ('maint-requests/{maintRequest}/quick',               [\App\Http\Controllers\MaintRequestController::class, 'quickUpdate'])->name('maint-requests.quick');
+    Route::patch ('maint-requests/{maintRequest}/ai-summary',          [\App\Http\Controllers\MaintRequestController::class, 'updateAiSummary'])->name('maint-requests.ai-summary');
+    Route::post  ('maint-requests/{maintRequest}/ai-review/confirm',   [\App\Http\Controllers\MaintRequestController::class, 'confirmAiReview'])->name('maint-requests.ai-review.confirm');
     Route::get   ('maint-requests/embed/closed',                       [\App\Http\Controllers\MaintRequestController::class, 'embedClosed'])->name('maint-requests.embed.closed');
     Route::get   ('maint-requests/{maintRequest}/embed',               [\App\Http\Controllers\MaintRequestController::class, 'embed'])->name('maint-requests.embed');
 

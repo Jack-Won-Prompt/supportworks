@@ -98,6 +98,11 @@ class WithWorksIngestLocal extends Command
         )));
         $this->info('처리할 sha: ' . count($allShas) . '건');
 
+        // 2-1) patch-id 일괄 계산 — 모든 sha 의 patch 를 한 번에 pipe (성능)
+        $this->info('patch-id 일괄 계산 중...');
+        $shaToPatchId = $this->computePatchIds($path, $from);
+        $this->info('patch-id 매핑: ' . count($shaToPatchId) . '건');
+
         // 3) sha-by-sha 처리 (작은 git show 호출들 — 안정적)
         $totalInserted = 0; $totalSkipped = 0; $totalSkippedNotSr = 0; $totalErrors = 0;
         $bar = $this->output->createProgressBar(count($allShas));
@@ -122,19 +127,20 @@ class WithWorksIngestLocal extends Command
                     continue;
                 }
 
-                // 이미 있으면 branches 만 갱신
+                // 이미 있으면 branches + patch_id 갱신
                 $branchesForSha = $shaToBranches[$sha] ?? [];
+                $patchId = $shaToPatchId[$sha] ?? null;
                 $existing = GitCommit::where('sha', $sha)->first();
                 if ($existing) {
+                    $changed = false;
                     $cur = is_array($existing->branches) ? $existing->branches : [];
                     $merged = $cur;
                     foreach ($branchesForSha as $b) {
                         if (!in_array($b, $merged, true)) $merged[] = $b;
                     }
-                    if ($merged !== $cur) {
-                        $existing->branches = $merged;
-                        $existing->save();
-                    }
+                    if ($merged !== $cur) { $existing->branches = $merged; $changed = true; }
+                    if ($patchId && $existing->patch_id !== $patchId) { $existing->patch_id = $patchId; $changed = true; }
+                    if ($changed) $existing->save();
                     $totalSkipped++;
                     $bar->setMessage((string) $totalSkipped, 'skip');
                     $bar->advance();
@@ -164,12 +170,15 @@ class WithWorksIngestLocal extends Command
                     'branch'        => $branchesForSha[0] ?? null,
                     'branches'      => $branchesForSha,
                     'sha'           => $sha,
+                    'patch_id'      => $patchId,
                     'author_name'   => mb_substr($author, 0, 100),
                     'author_email'  => $email,
                     'user_id'       => $emailToUser[$email] ?? $emailToUser[$authorEmailLower] ?? null,
                     'committed_at'  => Carbon::parse($date),
                     'subject'       => mb_substr($subject, 0, 1000),
                     'body'          => null,
+                    'sr_ids'        => GitCommit::parseSrIds($subject) ?: null,
+                    'is_merge'      => false,   // git log 기본은 --no-merges 미지정. 추후 명령에서 --no-merges 추가 검토
                     'files_changed' => count($files),
                     'files_json'    => $files ? array_slice($files, 0, 50) : null,
                     'insertions'    => $add,
@@ -189,6 +198,38 @@ class WithWorksIngestLocal extends Command
 
         $this->info("완료 — inserted={$totalInserted}, skipped(branches 갱신)={$totalSkipped}, not-SR(제외)={$totalSkippedNotSr}, errors={$totalErrors}, total={$bar->getMaxSteps()}");
         return self::SUCCESS;
+    }
+
+    /**
+     * 모든 sha 의 patch-id 를 한 번에 계산.
+     * git log --all --since=... -p --format='COMMIT-FOR-PATCH %H' | git patch-id --stable
+     * 출력: <patch_id> <commit_sha>
+     * 같은 변경(cherry-pick/revert)은 같은 patch_id 를 가짐.
+     */
+    private function computePatchIds(string $path, string $from): array
+    {
+        // git log -p 출력을 git patch-id 로 파이프 — Symfony Process 의 setInput 으로 chain
+        $logProc = new Process(
+            ['git', '-C', $path, 'log', '--all', '--since=' . $from, '-p', '--no-color'],
+            null, null, null, 600
+        );
+        $logProc->mustRun();
+        $diffOutput = $logProc->getOutput();
+
+        $pidProc = new Process(['git', 'patch-id', '--stable'], $path, null, $diffOutput, 600);
+        $pidProc->run();
+        if (!$pidProc->isSuccessful()) return [];
+
+        $map = [];
+        foreach (preg_split('/\R/', $pidProc->getOutput()) as $line) {
+            $line = trim($line);
+            if ($line === '') continue;
+            $parts = preg_split('/\s+/', $line);
+            if (count($parts) < 2) continue;
+            [$patchId, $sha] = $parts;
+            $map[$sha] = $patchId;
+        }
+        return $map;
     }
 
     private function runGit(string $path, array $args): string

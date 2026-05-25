@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class GitCommit extends Model
 {
     protected $fillable = [
-        'source', 'branch', 'branches', 'sha', 'author_name', 'author_email',
-        'user_id', 'committed_at', 'subject', 'body',
+        'source', 'branch', 'branches', 'sha', 'patch_id', 'author_name', 'author_email',
+        'user_id', 'committed_at', 'subject', 'body', 'sr_ids', 'is_merge',
         'files_changed', 'files_json', 'insertions', 'deletions', 'difficulty',
     ];
 
@@ -18,7 +18,18 @@ class GitCommit extends Model
         'difficulty'   => 'float',
         'files_json'   => 'array',
         'branches'     => 'array',
+        'sr_ids'       => 'array',
+        'is_merge'     => 'boolean',
     ];
+
+    /** 커밋 메시지에서 [SR-xxxx] 패턴 파싱 → 정수 배열 */
+    public static function parseSrIds(string $subject, string $body = ''): array
+    {
+        $text = $subject . "\n" . $body;
+        preg_match_all('/\[SR-(\d+)\]/i', $text, $m);
+        $ids = array_unique(array_map('intval', $m[1] ?? []));
+        return array_values($ids);
+    }
 
     /** 최초 발견 브랜치 = branches 배열의 첫 원소 (fallback: branch 컬럼) */
     public function firstBranch(): ?string

@@ -10,6 +10,7 @@ if (typeof window.srSummary !== 'function') {
         return {
             summary: cfg.initialSummary || '',
             contextIds: Array.isArray(cfg.initialContextIds) ? cfg.initialContextIds : [],
+            classification: cfg.initialClassification || '',
             loading: false,
             // 원본(summary/content) 이 마지막 요약 이후 수정됐는지. 수정되면 버튼 다시 노출.
             dirty: false,
@@ -58,7 +59,14 @@ if (typeof window.srSummary !== 'function') {
                     }
                     this.summary    = d.summary    || '';
                     this.contextIds = Array.isArray(d.context_ids) ? d.context_ids : [];
+                    if (['free','paid','discuss'].includes(d.classification)) {
+                        this.classification = d.classification;
+                    }
                     this.dirty      = false; // 방금 새 요약을 만들었으니 원본 변경 없음
+                    // 외부 컴포넌트(분류 배지 등)에 갱신 알림
+                    window.dispatchEvent(new CustomEvent('sr-ai-updated', {
+                        detail: { classification: this.classification, summary: this.summary },
+                    }));
                 } catch (e) {
                     alert('웍스 요약 생성 실패: ' + (e.message || e));
                 } finally {
@@ -67,8 +75,12 @@ if (typeof window.srSummary !== 'function') {
             },
 
             reset() {
-                this.summary    = '';
-                this.contextIds = [];
+                this.summary       = '';
+                this.contextIds    = [];
+                this.classification = '';
+                window.dispatchEvent(new CustomEvent('sr-ai-updated', {
+                    detail: { classification: '', summary: '' },
+                }));
             },
         };
     };

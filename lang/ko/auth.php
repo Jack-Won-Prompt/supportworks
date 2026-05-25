@@ -35,6 +35,9 @@ return [
     'no_account'         => '계정이 없으신가요?',
     'signup'             => '무료로 시작하기 →',
     'error'              => '이메일 또는 비밀번호가 올바르지 않습니다.',
+    'pending_invite_title' => '비밀번호 설정이 필요합니다',
+    'pending_invite_desc'  => ':email 계정은 초대 대기 상태입니다. 아래 버튼을 눌러 비밀번호를 등록해 주세요.',
+    'pending_invite_cta'   => '비밀번호 등록하기',
     'footer'             => '© :year SupportWorks. All rights reserved.',
 
     // ── 비밀번호 재설정 요청 페이지

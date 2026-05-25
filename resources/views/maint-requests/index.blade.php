@@ -321,7 +321,7 @@
                     <th class="px-4 py-3 text-left w-16">
                         <a href="{{ $sortUrl('id') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('id') ? 'text-indigo-700' : '' }}">#{!! $sortIcon('id') !!}</a>
                     </th>
-                    <th class="px-4 py-3 text-left">메뉴</th>
+                    <th class="px-4 py-3 text-left">대상</th>
                     <th class="px-4 py-3 text-left w-24">
                         <a href="{{ $sortUrl('priority') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('priority') ? 'text-indigo-700' : '' }}">우선순위 {!! $sortIcon('priority') !!}</a>
                     </th>
@@ -812,6 +812,14 @@ function maintOpenDetailModal(id){
     m.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
+// ?open=NNN 으로 진입하면 자동으로 상세 팝업 열기 (메일 링크 / 액션 후 리다이렉트용)
+document.addEventListener('DOMContentLoaded', function() {
+    var params = new URLSearchParams(window.location.search);
+    var openId = params.get('open');
+    if (openId && /^\d+$/.test(openId)) {
+        maintOpenDetailModal(parseInt(openId, 10));
+    }
+});
 function maintCloseDetailModal(){
     document.getElementById('maint-detail-overlay').style.display = 'none';
     document.getElementById('maint-detail-modal').style.display   = 'none';
@@ -846,7 +854,7 @@ document.addEventListener('keydown', function(e){
         <button type="button" onclick="maintCloseCreateModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
     </div>
 
-    <form method="POST" action="{{ route('maint-requests.store') }}" class="p-5 space-y-4">
+    <form method="POST" action="{{ route('maint-requests.store') }}" class="p-5 space-y-4" id="maint-create-form" onsubmit="return maintCreateSubmit(this)">
         @csrf
 
         <div class="grid grid-cols-12 gap-4">
@@ -876,13 +884,17 @@ document.addEventListener('keydown', function(e){
                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
+        {{-- 상세 내용 — Quill 리치 에디터.
+             웍스 요약은 등록 시 maintCreateSubmit() 안에서 자동 호출되어 hidden 으로 제출됨. --}}
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">상세 내용</label>
-            {{-- Quill 리치 에디터 (이미지 paste · 리사이즈 · 뷰어) — SR 상세와 동일 동작 --}}
             <div class="sr-quill" id="sr-modal-quill-wrap">
                 <div id="sr-modal-quill-editor"></div>
             </div>
             <input type="hidden" name="content" id="sr-modal-content-input" value="{{ old('content') }}">
+            <input type="hidden" name="ai_summary" id="sr-modal-ai-summary" value="{{ old('ai_summary', '') }}">
+            <input type="hidden" name="ai_summary_context_ids" id="sr-modal-ai-context-ids" value="">
+            <input type="hidden" name="ai_classification" id="sr-modal-ai-classification" value="">
         </div>
 
         {{-- 콜로 담당자(요청자) 자동, 요청일은 등록 시각, 상태는 'requested' 자동 --}}
@@ -898,15 +910,100 @@ document.addEventListener('keydown', function(e){
             </div>
         @endif
 
-        <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
-            <button type="button" onclick="maintCloseCreateModal()"
-                    class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">취소</button>
-            <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">등록</button>
+        <div class="pt-3 border-t border-gray-100">
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="maintCloseCreateModal()" id="maint-create-cancel"
+                        class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">취소</button>
+                <button type="submit" id="maint-create-submit"
+                        class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                    등록
+                </button>
+            </div>
+            {{-- 등록 버튼 아래 — AJAX 분석 진행 상태 (등록 누른 후에만 노출) --}}
+            <div id="maint-create-status" class="hidden mt-2.5 flex items-center justify-end gap-2 text-xs text-indigo-700">
+                <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>내용을 분석중입니다...</span>
+            </div>
         </div>
     </form>
 </div>
 
 <script>
+// 모달의 Quill 콘텐츠를 hidden input 으로 동기화 (Quill init 에서 채워줌)
+window.__srModalSyncContent = window.__srModalSyncContent || function() {};
+
+function __resetMaintCreateBtn() {
+    const btn = document.getElementById('maint-create-submit');
+    if (!btn) return;
+    btn.disabled = false;
+    const cancel = document.getElementById('maint-create-cancel');
+    if (cancel) cancel.disabled = false;
+    document.getElementById('maint-create-status')?.classList.add('hidden');
+}
+
+async function maintCreateSubmit(form) {
+    const btn = document.getElementById('maint-create-submit');
+    if (!btn || btn.disabled) return false; // 중복 제출 방지
+
+    btn.disabled = true;
+    document.getElementById('maint-create-cancel').disabled = true;
+    document.getElementById('maint-create-status')?.classList.remove('hidden');
+
+    // 1) Quill 본문을 hidden 으로 강제 sync (form.submit() 은 'submit' 이벤트를 발생시키지 않으므로 수동)
+    try { window.__srModalSyncContent(); } catch (e) {}
+
+    const get = (name) => (form.querySelector('[name="'+name+'"]')?.value || '').trim();
+    const aiInput  = document.getElementById('sr-modal-ai-summary');
+    const ctxInput = document.getElementById('sr-modal-ai-context-ids');
+    const clsInput = document.getElementById('sr-modal-ai-classification');
+
+    // 2) 웍스 요약 자동 호출 — 반드시 성공해야 등록 진행
+    if (aiInput && !aiInput.value.trim()) {
+        // 입력 가드: summary / content 가 모두 비어있으면 AI 호출 불가
+        if (!get('summary') && !get('content')) {
+            alert('요약 또는 상세 내용을 입력해야 합니다.');
+            __resetMaintCreateBtn();
+            return false;
+        }
+
+        try {
+            const fd = new FormData();
+            ['summary','content','menu_name','category','priority'].forEach(k => {
+                const v = get(k);
+                if (v) fd.append(k, v);
+            });
+            const res = await fetch(@json(route('maint-requests.works-summary')), {
+                method:  'POST',
+                body:    fd,
+                headers: { 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            });
+            const d = await res.json().catch(() => ({}));
+            if (res.ok && d.ok && d.summary) {
+                aiInput.value = d.summary;
+                if (ctxInput && Array.isArray(d.context_ids) && d.context_ids.length) {
+                    ctxInput.value = JSON.stringify(d.context_ids);
+                }
+                if (clsInput && ['free','paid','discuss'].includes(d.classification)) {
+                    clsInput.value = d.classification;
+                }
+            } else {
+                alert('웍스 요약 생성 실패: ' + (d.message || ('HTTP ' + res.status)));
+                __resetMaintCreateBtn();
+                return false;
+            }
+        } catch (e) {
+            alert('웍스 요약 통신 오류: ' + (e.message || e));
+            __resetMaintCreateBtn();
+            return false;
+        }
+    }
+
+    // 3) onsubmit 핸들러 제거 후 실제 제출 (form.submit() 은 submit 이벤트 미발생 → 안전)
+    form.onsubmit = null;
+    form.submit();
+    return false; // onsubmit 의 기본 제출은 막고 위에서 수동 제출
+}
 function maintOpenCreateModal(){
     document.getElementById('maint-create-overlay').style.display = 'block';
     document.getElementById('maint-create-modal').style.display   = 'block';
@@ -982,12 +1079,17 @@ document.addEventListener('keydown', function(e){
 
     quill.on('selection-change', r => { wrapEl.classList.toggle('focused', !!r); });
 
+    // 본문 → hidden input 동기화 함수. 일반 submit 이벤트뿐 아니라
+    // maintCreateSubmit() 의 비동기 흐름(form.submit()) 에서도 직접 호출 가능하도록 전역 노출.
+    const syncContent = () => {
+        const html = quill.getLength() <= 1 ? '' : quill.root.innerHTML;
+        hiddenEl.value = html;
+    };
+    window.__srModalSyncContent = syncContent;
+
     const form = editorEl.closest('form');
     if (form) {
-        form.addEventListener('submit', () => {
-            const html = quill.getLength() <= 1 ? '' : quill.root.innerHTML;
-            hiddenEl.value = html;
-        });
+        form.addEventListener('submit', syncContent);
     }
 
     // SR 표준: Copy & Paste + 8 방향 리사이즈 + 이미지 주석 (이미지 클릭 → 핸들 + 이미지 주석 진입)
@@ -996,4 +1098,7 @@ document.addEventListener('keydown', function(e){
     }
 })();
 </script>
+
+{{-- srSummary Alpine 컴포넌트 (모달의 AI 요약 생성) — create.blade.php 와 동일 --}}
+@include('maint-requests._summary-js')
 @endsection
