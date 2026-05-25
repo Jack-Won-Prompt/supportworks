@@ -57,15 +57,15 @@ class ImportLseInquiries extends Command
             '05' => 'completed',
         ];
 
-        // maint_menus 에 LSE-Import 행 firstOrCreate
-        $menuId = \DB::table('maint_menus')->where('name', 'LSE-Import')->value('id');
+        // maint_menus 에 WITHWORKS 행 firstOrCreate
+        $menuId = \DB::table('maint_menus')->where('name', 'WITHWORKS')->value('id');
         if (!$menuId) {
             $menuId = \DB::table('maint_menus')->insertGetId([
-                'name' => 'LSE-Import', 'request_cnt' => 0,
+                'name' => 'WITHWORKS', 'request_cnt' => 0,
                 'created_at' => now(), 'updated_at' => now(),
             ]);
         }
-        $this->info("menu_id (LSE-Import): {$menuId}");
+        $this->info("menu_id (WITHWORKS): {$menuId}");
 
         // 전체 파일 읽고 state machine 으로 row 추출 (content 안에 줄바꿈 있어도 안전)
         $content = file_get_contents($path);

@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Mail\MaintRequestNotificationMail;
-use App\Mail\MaintRequestNoteNotificationMail;
 use App\Models\Maint\MaintMenu;
 use App\Models\Maint\MaintRequest;
 use App\Models\Maint\MaintRequestNote;
 use App\Models\Maint\MaintUser;
 use App\Models\User;
 use App\Services\Maint\SrAiReviewService;
+use App\Services\Maint\SrNotificationService;
 use App\Services\Maint\SrSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -187,6 +187,10 @@ class MaintRequestController extends Controller
         }
         if (array_key_exists('ai_classification', $data)) {
             $update['ai_classification'] = $data['ai_classification'];
+            // paid (유상 추가 개발) 분류 시 구분 자동 매핑
+            if (($data['ai_classification'] ?? null) === 'paid') {
+                $update['category'] = '추가개발';
+            }
         }
 
         if ($update) {
@@ -239,6 +243,7 @@ class MaintRequestController extends Controller
             'difficulty_score' => 'nullable|integer|min:1|max:5',
         ]);
         $this->normalizeAiSummaryFields($data);
+        $this->applyClassificationToCategory($data);
 
         // 회사는 로그인 사용자 본인 소속으로 자동 지정
         $data['company_group_id'] = auth()->user()?->company_group_id;
@@ -361,6 +366,7 @@ class MaintRequestController extends Controller
         ]);
         $data['paid_dev_enabled'] = $request->boolean('paid_dev_enabled');
         $this->normalizeAiSummaryFields($data);
+        $this->applyClassificationToCategory($data);
 
         DB::transaction(function () use (&$data, $maintRequest) {
             $companyGroupId       = (int) ($maintRequest->company_group_id ?? 0) ?: null;
@@ -461,88 +467,13 @@ class MaintRequestController extends Controller
         $data['request_id'] = $maintRequest->id;
         $note = MaintRequestNote::create($data);
 
-        // 이메일 알림 — 콜로 비고에 대해서만:
-        //  · 신규 비고(parent_id NULL): 링크더랩 관리자 + SR 담당자(assignee)
-        //  · 답글(parent_id 있음) & 작성자가 관리자/SR 담당자: SR 등록자(colo_user)
-        $this->notifyNoteAdded($note, $maintRequest);
+        // 알림(이메일 + FCM) — 대상자 규칙은 SrNotificationService 참조
+        SrNotificationService::notifyNoteAdded($maintRequest, $note, auth()->user());
 
         if ($request->boolean('_modal')) {
             return redirect()->route('maint-requests.embed', $maintRequest)->with('success', '비고가 추가되었습니다.');
         }
         return back()->with('success', '비고가 추가되었습니다.');
-    }
-
-    private function notifyNoteAdded(MaintRequestNote $note, MaintRequest $sr): void
-    {
-        if ($note->note_type !== 'colo') return; // 콜로(요청자 측) 비고만 알림 대상
-
-        $poster = auth()->user();
-        if (!$poster) return;
-
-        $isAgent = $poster->isAdmin() || (bool) ($poster->is_sr_agent ?? false);
-
-        $recipients = [];
-        $event      = '비고';
-        $sr->loadMissing(['coloUser', 'assignee', 'companyGroup']);
-
-        if ($note->parent_id) {
-            // 답글 — SR 담당자/관리자가 단 경우에만 SR 등록자(요청자)에게 통지
-            if (!$isAgent) return;
-            $event = '답글';
-            if ($email = $this->resolveRequesterEmail($sr)) {
-                $recipients[] = $email;
-            }
-        } else {
-            // 새 콜로 비고 — 링크더랩 관리자 + SR 담당자(assignee)
-            $recipients = array_merge(
-                $this->resolveLinkthelabAdminEmails(),
-                array_filter([$this->resolveSrAgentEmail($sr)])
-            );
-        }
-
-        // 본인 제외 + 유효성 + 중복 제거
-        $self = strtolower((string) ($poster->email ?? ''));
-        $recipients = array_values(array_unique(array_filter($recipients, function ($e) use ($self) {
-            return filter_var($e, FILTER_VALIDATE_EMAIL) && strtolower((string) $e) !== $self;
-        })));
-        if (empty($recipients)) return;
-
-        try {
-            Mail::send(new MaintRequestNoteNotificationMail($sr, $note, $recipients, $event, $poster->name ?? ''));
-        } catch (\Throwable $e) {
-            Log::warning('MaintRequestNote 이메일 알림 실패: ' . $e->getMessage(), [
-                'note_id' => $note->id, 'sr_id' => $sr->id,
-            ]);
-        }
-    }
-
-    private function resolveLinkthelabAdminEmails(): array
-    {
-        $linkthelabId = \App\Models\CompanyGroup::where('name', '링크더랩')->value('id');
-        if (!$linkthelabId) return [];
-        return User::where('company_group_id', $linkthelabId)
-            ->where('role', 'admin')
-            ->whereNotNull('email')
-            ->pluck('email')
-            ->all();
-    }
-
-    private function resolveSrAgentEmail(MaintRequest $sr): ?string
-    {
-        if (!$sr->assignee) return null;
-        return User::where('is_sr_agent', true)
-            ->where('name', $sr->assignee->name)
-            ->whereNotNull('email')
-            ->value('email');
-    }
-
-    private function resolveRequesterEmail(MaintRequest $sr): ?string
-    {
-        if (!$sr->coloUser || !$sr->company_group_id) return null;
-        return User::where('company_group_id', $sr->company_group_id)
-            ->where('name', $sr->coloUser->name)
-            ->whereNotNull('email')
-            ->value('email');
     }
 
     public function destroyNote(Request $request, MaintRequest $maintRequest, MaintRequestNote $note)
@@ -985,6 +916,18 @@ class MaintRequestController extends Controller
      * 폼에서 hidden input 으로 받은 ai_summary_context_ids(JSON 문자열) 를 array 로 변환
      * 후 ai_summary_at 자동 기록. ai_summary 비어있으면 모든 ai_summary_* 칼럼 비움 (요약 제거).
      */
+    /**
+     * 웍스 요약 분류 결과(ai_classification)가 'paid' (유상 추가 개발) 이면
+     * 구분(category) 을 '추가개발' 로 자동 매핑. 그 외 분류는 기존 category 유지.
+     */
+    private function applyClassificationToCategory(array &$data): void
+    {
+        if (!array_key_exists('ai_classification', $data)) return;
+        if (($data['ai_classification'] ?? null) === 'paid') {
+            $data['category'] = '추가개발';
+        }
+    }
+
     private function normalizeAiSummaryFields(array &$data): void
     {
         if (!array_key_exists('ai_summary', $data)) return;
@@ -1436,61 +1379,6 @@ class MaintRequestController extends Controller
             Log::warning('PaidDev 메일 발송 실패: ' . $e->getMessage(), ['sr_id' => $maintRequest->id]);
             return response()->json(['ok' => true, 'message' => '저장은 완료됐으나 이메일 발송 실패: ' . $e->getMessage()]);
         }
-    }
-
-    /**
-     * SR 상세 팝업의 "추가 개발 (유상)" 영역 팝오버용:
-     *   특정 회사의 (paid_dev_enabled=true OR category='추가개발') SR 목록을 연도별로 반환.
-     *
-     * GET /maint-requests/paid-dev-list?company_group_id={id}&year={yyyy}
-     *   year 생략 시 사용 가능한 연도 목록 + 기본 연도(최신)의 데이터 반환.
-     */
-    public function paidDevList(Request $request)
-    {
-        $cgId = (int) $request->query('company_group_id');
-        if ($cgId <= 0) {
-            return response()->json(['ok' => false, 'message' => 'company_group_id 가 필요합니다.'], 422);
-        }
-
-        $base = MaintRequest::where('company_group_id', $cgId)
-            ->where(function ($q) {
-                $q->where('paid_dev_enabled', true)->orWhere('category', '추가개발');
-            });
-
-        $years = (clone $base)
-            ->selectRaw('YEAR(request_date) as y')
-            ->whereNotNull('request_date')
-            ->groupBy('y')->orderByDesc('y')
-            ->pluck('y')->map(fn($v) => (int) $v)->all();
-
-        $year = (int) ($request->query('year') ?: ($years[0] ?? now()->year));
-
-        $items = (clone $base)
-            ->whereYear('request_date', $year)
-            ->orderBy('request_date')
-            ->orderBy('excel_no')
-            ->get(['id', 'excel_no', 'summary', 'request_date', 'paid_dev_enabled', 'paid_dev_days', 'paid_dev_cost', 'category', 'status']);
-
-        $totalDays = (int) $items->sum(fn($r) => (int) ($r->paid_dev_days ?? 0));
-        $totalCost = (int) $items->sum(fn($r) => (int) ($r->paid_dev_cost ?? 0));
-
-        return response()->json([
-            'ok'         => true,
-            'year'       => $year,
-            'years'      => $years,
-            'items'      => $items->map(fn($r) => [
-                'id'          => $r->id,
-                'excel_no'    => $r->excel_no,
-                'summary'     => $r->summary,
-                'request_date'=> optional($r->request_date)->toDateString(),
-                'days'        => (int) ($r->paid_dev_days ?? 0),
-                'cost'        => (int) ($r->paid_dev_cost ?? 0),
-                'paid_dev'    => (bool) $r->paid_dev_enabled,
-                'category'    => $r->category,
-            ])->values(),
-            'total_days' => $totalDays,
-            'total_cost' => $totalCost,
-        ]);
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\CompanyGroup;
 use App\Models\Maint\MaintMenu;
 use App\Models\Maint\MaintRequest;
 use App\Models\Maint\MaintRequestNote;
+use App\Services\Maint\SrNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -40,6 +41,12 @@ class MaintRequestController extends Controller
 
         $applyScope($q);
 
+        // 권한자(admin/is_sr_agent)만 회사그룹 지정 필터 허용. 일반 사용자는 본인 회사로 이미 고정.
+        $isSrPrivileged = $request->user() && ($request->user()->isAdmin() || (bool) ($request->user()->is_sr_agent ?? false));
+        if ($isSrPrivileged && ($cg = $request->integer('company_group_id'))) {
+            $q->where('company_group_id', $cg);
+        }
+
         if ($bucket !== 'all' && isset(self::BUCKET_STATUSES[$bucket])) {
             $q->whereIn('status', self::BUCKET_STATUSES[$bucket]);
         }
@@ -69,9 +76,12 @@ class MaintRequestController extends Controller
         if ($perPage > 50) $perPage = 50;
         $page = $q->paginate($perPage);
 
-        // KPI 카운트 (status 필터 미적용, 접근 범위만 반영 — 웹과 동일한 의미)
+        // KPI 카운트 — 접근 범위 + 회사 선택 필터 반영 (웹 의미 동일)
         $cntQ = MaintRequest::query();
         $applyScope($cntQ);
+        if ($isSrPrivileged && ($cg = $request->integer('company_group_id'))) {
+            $cntQ->where('company_group_id', $cg);
+        }
         $statusCounts = $cntQ->selectRaw('status, COUNT(*) as cnt')
             ->groupBy('status')
             ->pluck('cnt', 'status')
@@ -114,6 +124,18 @@ class MaintRequestController extends Controller
         return response()->json($menus);
     }
 
+    /**
+     * 회사그룹 목록 — 권한자(admin/is_sr_agent)에게만 노출.
+     * 일반 사용자는 자기 회사로 자동 고정되므로 호출 불필요.
+     */
+    public function companyGroups(Request $request): JsonResponse
+    {
+        $u = $request->user();
+        abort_unless($u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false)), 403);
+        $groups = CompanyGroup::orderBy('name')->get(['id', 'name']);
+        return response()->json($groups);
+    }
+
     public function storeNote(Request $request, MaintRequest $maintRequest): JsonResponse
     {
         [$applyScope, $accessible] = $this->resolveAccessScope($request->user());
@@ -137,6 +159,9 @@ class MaintRequestController extends Controller
 
         $data['request_id'] = $maintRequest->id;
         $note = MaintRequestNote::create($data);
+
+        // 알림(이메일 + FCM) — 웹과 동일 규칙
+        SrNotificationService::notifyNoteAdded($maintRequest, $note, $request->user());
 
         return response()->json($this->noteResource($note), 201);
     }

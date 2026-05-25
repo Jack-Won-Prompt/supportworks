@@ -348,6 +348,7 @@ Route::prefix('mobile')->group(function () {
         // SR (유지보수 요청) — 조회/검색 + 노트
         Route::get   ('maint-requests',                                       [MobileMaintRequestController::class, 'index']);
         Route::get   ('maint-requests/menus',                                 [MobileMaintRequestController::class, 'menus']);
+        Route::get   ('maint-requests/company-groups',                        [MobileMaintRequestController::class, 'companyGroups']);
         Route::get   ('maint-requests/{maintRequest}',                        [MobileMaintRequestController::class, 'show']);
         Route::post  ('maint-requests/{maintRequest}/notes',                  [MobileMaintRequestController::class, 'storeNote']);
         Route::delete('maint-requests/{maintRequest}/notes/{note}',           [MobileMaintRequestController::class, 'destroyNote']);
