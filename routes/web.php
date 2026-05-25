@@ -681,6 +681,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post  ('maint-requests/upload-image',                       [\App\Http\Controllers\MaintRequestController::class, 'uploadImage'])->name('maint-requests.upload-image');
     Route::get   ('maint-requests/export/excel',                       [\App\Http\Controllers\MaintRequestController::class, 'exportExcel'])->name('maint-requests.export-excel');
     Route::post  ('maint-requests/{maintRequest}/send-to-manager',     [\App\Http\Controllers\MaintRequestController::class, 'sendToManager'])->name('maint-requests.send-to-manager');
+    Route::get   ('maint-requests/paid-dev-list',                      [\App\Http\Controllers\MaintRequestController::class, 'paidDevList'])->name('maint-requests.paid-dev-list');
 
     // SR 이미지 주석 + 댓글
     Route::get   ('maint-requests/{maintRequest}/image-annotations',                       [\App\Http\Controllers\MaintRequestImageAnnotationController::class, 'index'])  ->name('maint-requests.image-annotations.index');

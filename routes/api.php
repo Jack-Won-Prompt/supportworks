@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Mobile\FileController as MobileFileController;
 use App\Http\Controllers\Api\Mobile\InquiryController as MobileInquiryController;
 use App\Http\Controllers\Api\Mobile\IssueController as MobileIssueController;
 use App\Http\Controllers\Api\Mobile\LeaveController as MobileLeaveController;
+use App\Http\Controllers\Api\Mobile\MaintRequestController as MobileMaintRequestController;
 use App\Http\Controllers\Api\Mobile\MeetingMinuteController as MobileMeetingMinuteController;
 use App\Http\Controllers\Api\Mobile\MeetingRecordingController as MobileMeetingRecordingController;
 use App\Http\Controllers\Api\Mobile\MyWorkController as MobileMyWorkController;
@@ -343,6 +344,13 @@ Route::prefix('mobile')->group(function () {
         Route::patch('system-errors/resolve-all',           [MobileSystemErrorController::class, 'resolveAll']);
         Route::get  ('system-errors/{systemError}',         [MobileSystemErrorController::class, 'show']);
         Route::patch('system-errors/{systemError}/resolve', [MobileSystemErrorController::class, 'resolve']);
+
+        // SR (유지보수 요청) — 조회/검색 + 노트
+        Route::get   ('maint-requests',                                       [MobileMaintRequestController::class, 'index']);
+        Route::get   ('maint-requests/menus',                                 [MobileMaintRequestController::class, 'menus']);
+        Route::get   ('maint-requests/{maintRequest}',                        [MobileMaintRequestController::class, 'show']);
+        Route::post  ('maint-requests/{maintRequest}/notes',                  [MobileMaintRequestController::class, 'storeNote']);
+        Route::delete('maint-requests/{maintRequest}/notes/{note}',           [MobileMaintRequestController::class, 'destroyNote']);
 
         // AI Fix Job (관리자 전용) — 모바일 승인/거부 흐름
         Route::get ('ai-fix-jobs',                    [MobileAiFixJobController::class, 'index']);

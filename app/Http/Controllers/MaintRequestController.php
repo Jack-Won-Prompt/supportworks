@@ -1439,6 +1439,61 @@ class MaintRequestController extends Controller
     }
 
     /**
+     * SR 상세 팝업의 "추가 개발 (유상)" 영역 팝오버용:
+     *   특정 회사의 (paid_dev_enabled=true OR category='추가개발') SR 목록을 연도별로 반환.
+     *
+     * GET /maint-requests/paid-dev-list?company_group_id={id}&year={yyyy}
+     *   year 생략 시 사용 가능한 연도 목록 + 기본 연도(최신)의 데이터 반환.
+     */
+    public function paidDevList(Request $request)
+    {
+        $cgId = (int) $request->query('company_group_id');
+        if ($cgId <= 0) {
+            return response()->json(['ok' => false, 'message' => 'company_group_id 가 필요합니다.'], 422);
+        }
+
+        $base = MaintRequest::where('company_group_id', $cgId)
+            ->where(function ($q) {
+                $q->where('paid_dev_enabled', true)->orWhere('category', '추가개발');
+            });
+
+        $years = (clone $base)
+            ->selectRaw('YEAR(request_date) as y')
+            ->whereNotNull('request_date')
+            ->groupBy('y')->orderByDesc('y')
+            ->pluck('y')->map(fn($v) => (int) $v)->all();
+
+        $year = (int) ($request->query('year') ?: ($years[0] ?? now()->year));
+
+        $items = (clone $base)
+            ->whereYear('request_date', $year)
+            ->orderBy('request_date')
+            ->orderBy('excel_no')
+            ->get(['id', 'excel_no', 'summary', 'request_date', 'paid_dev_enabled', 'paid_dev_days', 'paid_dev_cost', 'category', 'status']);
+
+        $totalDays = (int) $items->sum(fn($r) => (int) ($r->paid_dev_days ?? 0));
+        $totalCost = (int) $items->sum(fn($r) => (int) ($r->paid_dev_cost ?? 0));
+
+        return response()->json([
+            'ok'         => true,
+            'year'       => $year,
+            'years'      => $years,
+            'items'      => $items->map(fn($r) => [
+                'id'          => $r->id,
+                'excel_no'    => $r->excel_no,
+                'summary'     => $r->summary,
+                'request_date'=> optional($r->request_date)->toDateString(),
+                'days'        => (int) ($r->paid_dev_days ?? 0),
+                'cost'        => (int) ($r->paid_dev_cost ?? 0),
+                'paid_dev'    => (bool) $r->paid_dev_enabled,
+                'category'    => $r->category,
+            ])->values(),
+            'total_days' => $totalDays,
+            'total_cost' => $totalCost,
+        ]);
+    }
+
+    /**
      * SR 등록/수정 시 이메일 알림 발송.
      *  - 수신자 1: SR 등록자 (현재 created_by 컬럼 없음 → 추후 매핑 대비) 또는 콜로 담당자의 매핑된 User
      *  - 수신자 2: 링크더랩 SR 담당자 — assignee.name 으로 users 테이블 매칭 (company=링크더랩, is_sr_agent=true)

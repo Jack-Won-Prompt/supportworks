@@ -28,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->validateCsrfTokens(except: ['collab/heartbeat', 'client-errors']);
         $middleware->encryptCookies(except: ['app_locale']);
+        // 이미 로그인된 사용자가 /login, /register 등 guest 라우트 진입 시 바로 대시보드로
+        $middleware->redirectUsersTo('/dashboard');
         $middleware->appendToGroup('web', \App\Http\Middleware\SetLocale::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\LogPageAccess::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\CollabParticipantMiddleware::class);

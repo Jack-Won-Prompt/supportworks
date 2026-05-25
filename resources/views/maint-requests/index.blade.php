@@ -321,7 +321,7 @@
                     <th class="px-4 py-3 text-left w-16">
                         <a href="{{ $sortUrl('id') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('id') ? 'text-indigo-700' : '' }}">#{!! $sortIcon('id') !!}</a>
                     </th>
-                    <th class="px-4 py-3 text-left">대상</th>
+                    <th class="px-4 py-3 text-left w-32">대상</th>
                     <th class="px-4 py-3 text-left w-24">
                         <a href="{{ $sortUrl('priority') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('priority') ? 'text-indigo-700' : '' }}">우선순위 {!! $sortIcon('priority') !!}</a>
                     </th>
@@ -332,6 +332,8 @@
                     <th class="px-4 py-3 text-left w-28">
                         <a href="{{ $sortUrl('status') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('status') ? 'text-indigo-700' : '' }}">상태 {!! $sortIcon('status') !!}</a>
                     </th>
+                    <th class="px-4 py-3 text-left w-20">구분</th>
+                    <th class="px-4 py-3 text-left w-28">유무상</th>
                     <th class="px-4 py-3 text-left w-24">링크더랩</th>
                     <th class="px-4 py-3 text-left w-28">
                         <a href="{{ $sortUrl('request_date') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('request_date') ? 'text-indigo-700' : '' }}">요청일 {!! $sortIcon('request_date') !!}</a>
@@ -348,7 +350,7 @@
                 @forelse($requests as $r)
                 <tr class="hover:bg-indigo-50/40 cursor-pointer transition-colors" onclick="maintOpenDetailModal({{ $r->id }})">
                     <td class="px-4 py-3 text-gray-400 font-mono text-xs">{{ $r->id }}</td>
-                    <td class="px-4 py-3 text-gray-700">{{ $r->menu?->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-700 truncate max-w-[8rem]" title="{{ $r->menu?->name ?? '' }}">{{ $r->menu?->name ?? '-' }}</td>
                     <td class="px-4 py-3" onclick="event.stopPropagation()">
                         <select class="maint-quick-priority maint-pill-select"
                                 data-id="{{ $r->id }}"
@@ -363,6 +365,22 @@
                     <td class="px-4 py-3 text-gray-600">{{ $r->coloUser?->name ?? '-' }}</td>
                     <td class="px-4 py-3">
                         <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600 text-xs">{{ $r->category ?: '-' }}</td>
+                    <td class="px-4 py-3">
+                        @php
+                            $__clsMap = [
+                                'free'    => ['label' => '무상',           'bg' => '#ecfdf5', 'fg' => '#047857', 'border' => '#a7f3d0'],
+                                'paid'    => ['label' => '유상 추가 개발', 'bg' => '#fef3c7', 'fg' => '#92400e', 'border' => '#fde68a'],
+                                'discuss' => ['label' => '논의 필요',      'bg' => '#eef2ff', 'fg' => '#3730a3', 'border' => '#c7d2fe'],
+                            ];
+                            $__cls = $__clsMap[$r->ai_classification] ?? null;
+                        @endphp
+                        @if($__cls)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style="background:{{ $__cls['bg'] }};color:{{ $__cls['fg'] }};border:1px solid {{ $__cls['border'] }};">{{ $__cls['label'] }}</span>
+                        @else
+                            <span class="text-gray-300 text-xs">-</span>
+                        @endif
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $r->assignee?->name ?? ($r->assignee_raw ?? '-') }}</td>
                     <td class="px-4 py-3 text-gray-400 text-xs">{{ optional($r->request_date)->format('Y.m.d') ?: '-' }}</td>
@@ -380,7 +398,7 @@
                     @endif
                 </tr>
                 @empty
-                <tr><td colspan="{{ ((bool) (auth()->user()->is_sr_agent ?? false)) ? 10 : 9 }}" class="px-4 py-20 text-center text-gray-400">
+                <tr><td colspan="{{ ((bool) (auth()->user()->is_sr_agent ?? false)) ? 12 : 11 }}" class="px-4 py-20 text-center text-gray-400">
                     <svg class="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <p class="text-sm">등록된 요청이 없습니다</p>
                 </td></tr>

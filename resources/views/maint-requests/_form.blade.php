@@ -601,18 +601,86 @@
                 'cost'     => $r->paid_dev_cost ?? '',
                 'desc'     => $r->paid_dev_description ?? '',
                 'endpoint' => route('maint-requests.send-to-manager', $r),
+                'listUrl'  => route('maint-requests.paid-dev-list'),
+                'cgId'     => (int) $r->company_group_id,
+                'cgName'   => optional($r->companyGroup)->name ?? '',
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT);
         @endphp
-        <div class="bg-white rounded-xl border border-amber-200 p-4"
+        <div class="bg-white rounded-xl border border-amber-200 p-4 relative"
              x-data='paidDevForm({!! $paidDevInit !!})'>
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     추가 개발 (유상)
                 </h3>
-                @if($r->paid_dev_sent_at)
-                    <span class="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-700 rounded">매니저 전송: {{ $r->paid_dev_sent_at->format('m-d H:i') }}</span>
-                @endif
+                <div class="flex items-center gap-2">
+                    @if($r->paid_dev_sent_at)
+                        <span class="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-700 rounded">매니저 전송: {{ $r->paid_dev_sent_at->format('m-d H:i') }}</span>
+                    @endif
+                    {{-- 회사 유상개발 명세 팝오버 트리거 --}}
+                    <button type="button" @click="toggleList()" :title="cgName + ' 유상개발 명세 보기'"
+                            class="p-1 text-amber-700 hover:bg-amber-50 rounded transition" aria-label="유상개발 명세">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- 유상개발 명세 팝오버 --}}
+            <div x-show="listOpen" x-cloak @click.outside="listOpen = false"
+                 class="absolute right-4 top-12 z-50 w-[520px] bg-white rounded-lg shadow-xl border border-amber-200">
+                <div class="flex items-center justify-between px-3 py-2 border-b border-amber-100">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-amber-800" x-text="cgName + ' 유상개발 명세'"></span>
+                        <select x-model.number="listYear" @change="loadList()"
+                                class="px-2 py-0.5 text-[11px] border border-gray-200 rounded">
+                            <template x-for="y in listYears" :key="y">
+                                <option :value="y" x-text="y + '년'"></option>
+                            </template>
+                            <option x-show="!listYears.length" :value="new Date().getFullYear()" x-text="new Date().getFullYear() + '년'"></option>
+                        </select>
+                    </div>
+                    <button type="button" @click="listOpen = false" class="text-gray-400 hover:text-gray-700 text-lg leading-none">&times;</button>
+                </div>
+                <div class="max-h-[360px] overflow-y-auto">
+                    <table class="w-full text-[11px]">
+                        <thead class="bg-amber-50 text-amber-800 sticky top-0">
+                            <tr>
+                                <th class="px-2 py-1.5 text-left w-[70px]">SR번호</th>
+                                <th class="px-2 py-1.5 text-left">요약</th>
+                                <th class="px-2 py-1.5 text-right w-[50px]">일수</th>
+                                <th class="px-2 py-1.5 text-right w-[100px]">금액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="it in listItems" :key="it.id">
+                                <tr class="border-t border-gray-100 hover:bg-amber-50/40">
+                                    <td class="px-2 py-1.5">
+                                        <span class="font-semibold text-gray-700" x-text="'#' + it.excel_no"></span>
+                                        <span class="ml-1 text-[10px] px-1 rounded"
+                                              :class="it.paid_dev ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'"
+                                              x-text="it.paid_dev ? 'Pay' : '추가개발'"></span>
+                                    </td>
+                                    <td class="px-2 py-1.5 text-gray-600 truncate max-w-[200px]" :title="it.summary" x-text="it.summary"></td>
+                                    <td class="px-2 py-1.5 text-right text-gray-700" x-text="it.days ? it.days + '일' : '-'"></td>
+                                    <td class="px-2 py-1.5 text-right text-gray-700" x-text="it.cost ? '₩' + it.cost.toLocaleString() : '-'"></td>
+                                </tr>
+                            </template>
+                            <tr x-show="!listItems.length && !listLoading">
+                                <td colspan="4" class="px-2 py-6 text-center text-gray-400 text-[11px]">해당 연도에 유상개발 내역이 없습니다.</td>
+                            </tr>
+                            <tr x-show="listLoading">
+                                <td colspan="4" class="px-2 py-6 text-center text-gray-400 text-[11px]">불러오는 중...</td>
+                            </tr>
+                        </tbody>
+                        <tfoot x-show="listItems.length" class="bg-amber-50/60 font-semibold text-amber-800 border-t-2 border-amber-200">
+                            <tr>
+                                <td colspan="2" class="px-2 py-1.5 text-right">합계</td>
+                                <td class="px-2 py-1.5 text-right" x-text="totalDays + '일'"></td>
+                                <td class="px-2 py-1.5 text-right" x-text="'₩' + totalCost.toLocaleString()"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
 
             {{-- 유상 여부 체크 --}}
@@ -626,12 +694,15 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[11px] text-gray-500 mb-1">걸리는 일(Day)</label>
-                        <input type="number" name="paid_dev_days" min="0" step="1" x-model="days"
+                        <input type="number" name="paid_dev_days" min="0" step="1" x-model.number="days"
                                class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-gray-500 mb-1">비용 (₩)</label>
-                        <input type="number" name="paid_dev_cost" min="0" step="1000" x-model="cost"
+                        <label class="block text-[11px] text-gray-500 mb-1 flex items-center justify-between">
+                            <span>비용 (₩)</span>
+                            <span class="text-[10px] text-amber-600">일당 ₩<span x-text="dailyRate.toLocaleString()"></span> 자동계산</span>
+                        </label>
+                        <input type="number" name="paid_dev_cost" min="0" step="1000" x-model.number="cost"
                                class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs">
                     </div>
                 </div>
@@ -685,6 +756,53 @@ window.paidDevForm = function(init) {
         desc: init.desc,
         endpoint: init.endpoint,
         sending: false,
+        dailyRate: 340000,   // 일당 (₩) — 변경 시 이 값만 수정
+
+        // 유상개발 명세 팝오버 상태
+        listUrl: init.listUrl,
+        cgId: init.cgId,
+        cgName: init.cgName,
+        listOpen: false,
+        listLoading: false,
+        listYear: new Date().getFullYear(),
+        listYears: [],
+        listItems: [],
+        totalDays: 0,
+        totalCost: 0,
+
+        init: function() {
+            const self = this;
+            // days 변경 시 cost 자동 재계산 (수동 입력 후 days 가 다시 바뀌면 다시 덮어씀)
+            this.$watch('days', function(v) {
+                const d = Number(v) || 0;
+                self.cost = d * self.dailyRate;
+            });
+        },
+
+        toggleList: function() {
+            this.listOpen = !this.listOpen;
+            if (this.listOpen && this.listItems.length === 0) {
+                this.loadList();
+            }
+        },
+        loadList: function() {
+            const self = this;
+            if (!self.cgId) return;
+            self.listLoading = true;
+            const url = self.listUrl + '?company_group_id=' + encodeURIComponent(self.cgId) + '&year=' + encodeURIComponent(self.listYear);
+            fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (!d.ok) { alert(d.message || '조회 실패'); return; }
+                    self.listYear   = d.year;
+                    self.listYears  = (d.years || []).length ? d.years : [d.year];
+                    self.listItems  = d.items || [];
+                    self.totalDays  = d.total_days || 0;
+                    self.totalCost  = d.total_cost || 0;
+                })
+                .catch(function(e) { alert('조회 중 오류: ' + e.message); })
+                .finally(function() { self.listLoading = false; });
+        },
         sendToManager: function() {
             const self = this;
             if (!self.enabled) { alert('먼저 유상 여부를 체크해 주세요.'); return; }

@@ -137,6 +137,7 @@ class AuthController extends Controller
             'role'             => $user->role,
             'avatar'           => $user->avatar,
             'company_group_id' => $user->company_group_id,
+            'is_sr_agent'      => (bool) ($user->is_sr_agent ?? false),
         ];
     }
 }

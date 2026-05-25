@@ -36,7 +36,7 @@ class ImportLseInquiries extends Command
     public function handle(): int
     {
         @set_time_limit(0);
-        @ini_set('memory_limit', '1024M');
+        @ini_set('memory_limit', '4G');
 
         $path = base_path($this->option('path'));
         if (!is_file($path)) { $this->error("파일 없음: {$path}"); return self::FAILURE; }
@@ -120,15 +120,16 @@ class ImportLseInquiries extends Command
 
             if (count($fields) < 29) continue;
 
-            $id           = $fields[0];
-            $inquiryNo    = $fields[2];
-            $title        = $fields[3];
-            $content      = $fields[4];
-            $status       = $fields[5];
-            $type         = $fields[6];
-            $durationTo   = $fields[10];
-            $createdAt    = $fields[24];
-            $deletedAt    = $fields[28];
+            $id            = $fields[0];
+            $inquiryNo     = $fields[2];
+            $title         = $fields[3];
+            $content       = $fields[4];
+            $status        = $fields[5];
+            $type          = $fields[6];        // FREE / PAY
+            $workingPeriod = $fields[8];        // 작업 일수 (working_period)
+            $durationTo    = $fields[10];
+            $createdAt     = $fields[24];
+            $deletedAt     = $fields[28];
 
             if ($deletedAt !== null && $deletedAt !== 'NULL') { $skipped++; $bar->advance(); continue; }
             if ($createdAt === null) { $skipped++; $bar->advance(); continue; }
@@ -150,6 +151,11 @@ class ImportLseInquiries extends Command
                 ->where('company_group_id', $cgId)->exists();
             if ($exists) { $skipped++; $bar->advance(); continue; }
 
+            // type=PAY → paid_dev 필드 자동 채움 (일당 ₩340,000)
+            $isPay   = strtoupper((string) $type) === 'PAY';
+            $payDays = $isPay ? (int) ($workingPeriod ?: 0) : null;
+            $payCost = $isPay ? $payDays * 340000 : null;
+
             try {
                 MaintRequest::create([
                     'excel_no'         => (int) $id,
@@ -165,6 +171,9 @@ class ImportLseInquiries extends Command
                     'assignee_id'      => $assigneeId,
                     'assigned_at'      => $createdAtC,
                     'completed_at'     => $completedAt,
+                    'paid_dev_enabled' => $isPay,
+                    'paid_dev_days'    => $payDays,
+                    'paid_dev_cost'    => $payCost,
                 ]);
                 $inserted++;
                 $bar->setMessage((string) $inserted, 'ins');
