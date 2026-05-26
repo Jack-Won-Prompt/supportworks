@@ -107,7 +107,7 @@
 
     {{-- 좌측: 요청 본문 (편집 폼) --}}
     <div class="col-span-8">
-        <form method="POST" action="{{ route('maint-requests.update', $r) }}" class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+        <form method="POST" action="{{ route('maint-requests.update', $r) }}" class="bg-white rounded-xl border border-gray-200 p-6 space-y-5" enctype="multipart/form-data">
             @csrf @method('PUT')
             @if($isEmbed)<input type="hidden" name="_modal" value="1">@endif
 
@@ -260,6 +260,49 @@
                 <input type="hidden" name="ai_summary" :value="summary || ''">
                 <input type="hidden" name="ai_summary_context_ids" :value="contextIds.length > 0 ? JSON.stringify(contextIds) : ''">
                 <input type="hidden" name="ai_classification" :value="classification || ''">
+            </div>
+
+            {{-- 첨부파일 — 기존 명세 (다운로드만) + 추가 업로드 (최대 10개, 각 10MB. 등록 후 삭제 불가) --}}
+            @php $atSlotsLeft = 10 - $r->attachments->count(); @endphp
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">첨부파일
+                    <span class="text-xs text-gray-400 font-normal">({{ $r->attachments->count() }}/10 · 등록 후 삭제 불가)</span>
+                </label>
+                @if($r->attachments->isNotEmpty())
+                    <ul class="space-y-1 mb-2">
+                        @foreach($r->attachments as $att)
+                            <li class="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs">
+                                <a href="{{ URL::signedRoute('maint-requests.attachments.download', ['attachment' => $att->id], now()->addMinutes(15)) }}"
+                                   class="flex items-center gap-2 flex-1 min-w-0 text-gray-700 hover:text-indigo-700">
+                                    <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span class="truncate" title="{{ $att->original_name }}">{{ $att->original_name }}</span>
+                                    <span class="text-gray-400 flex-shrink-0">{{ $att->formatted_size }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+                @if($atSlotsLeft > 0)
+                    <div class="flex items-center gap-2" x-data="srEditAttach({ max: {{ $atSlotsLeft }} })">
+                        <button type="button" @click="$refs.fi.click()"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                            파일 추가
+                        </button>
+                        <span class="text-xs text-gray-500">남은 슬롯: <span x-text="max - picked.length"></span>/{{ $atSlotsLeft }}</span>
+                        <input type="file" name="attachments[]" multiple x-ref="fi" style="display:none" @change="onPick($event)">
+                        <ul class="ml-2 text-[11px] text-indigo-700 space-y-0.5 flex-1">
+                            <template x-for="(f, i) in picked" :key="i">
+                                <li class="flex items-center gap-1.5">
+                                    <span x-text="f.name"></span>
+                                    <span class="text-gray-400" x-text="'(' + fmt(f.size) + ')'"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                @else
+                    <div class="text-[11px] text-gray-400">첨부파일 슬롯이 가득 찼습니다 (최대 10개).</div>
+                @endif
             </div>
 
             @php
@@ -680,6 +723,43 @@
 
 {{-- Alpine 데이터 컴포넌트: 추가 개발(유상) 폼 --}}
 <script>
+/* 상세 폼 첨부파일 픽커 — 신규 업로드만 (기존은 표시·다운로드만). 등록 후 삭제 불가 */
+window.srEditAttach = function(init) {
+    return {
+        max: init.max || 0,
+        picked: [],
+        fmt(b) {
+            if (b < 1024) return b + 'B';
+            if (b < 1024*1024) return (b/1024).toFixed(1) + 'KB';
+            return (b/(1024*1024)).toFixed(1) + 'MB';
+        },
+        onPick(e) {
+            const MAX_BYTES = 10*1024*1024;
+            const picked = [...(e.target.files || [])];
+            const errors = [];
+            const accepted = [];
+            for (const f of picked) {
+                if (accepted.length + this.picked.length >= this.max) {
+                    errors.push('남은 슬롯이 부족하여 일부 파일이 제외되었습니다.');
+                    break;
+                }
+                if (f.size > MAX_BYTES) {
+                    errors.push(f.name + ' 은 10MB 를 초과하여 제외되었습니다.');
+                    continue;
+                }
+                accepted.push(f);
+            }
+            // 누적 (multiple input 의 file 리스트 자체는 새로 picked 된 것이므로, picked 갱신만 하면 됨)
+            this.picked = [...this.picked, ...accepted];
+            // input.files 를 picked 와 동기화 (제출시 attachments[] 로 전송)
+            const dt = new DataTransfer();
+            this.picked.forEach(f => dt.items.add(f));
+            e.target.files = dt.files;
+            if (errors.length) alert(errors.join('\n'));
+        },
+    };
+};
+
 window.paidDevForm = function(init) {
     return {
         enabled: init.enabled,

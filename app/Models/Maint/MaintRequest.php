@@ -19,6 +19,7 @@ class MaintRequest extends Model
         'colo_user_id', 'assignee_id', 'assigned_at', 'assignee_raw',
         'eta', 'grid_refresh', 'completed_at', 'reopen_count',
         'paid_dev_enabled', 'paid_dev_days', 'paid_dev_cost', 'paid_dev_description', 'paid_dev_sent_at',
+        'gantt_sort_order',
     ];
 
     protected $casts = [
@@ -89,5 +90,11 @@ class MaintRequest extends Model
     public function difficultyMappings(): HasMany
     {
         return $this->hasMany(SrDifficultyMapping::class, 'sr_id');
+    }
+
+    /** 첨부파일 — private 디스크, 최대 10개·각 10MB. 등록 후 삭제 불가 (정책) */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(MaintRequestAttachment::class, 'request_id')->latest('id');
     }
 }

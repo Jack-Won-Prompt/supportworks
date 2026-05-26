@@ -2,6 +2,12 @@
 
 @section('title', 'SR 요청')
 
+@section('breadcrumb')
+<span style="color:#374151;font-weight:500;">SR 요청</span>
+<span>›</span>
+<span style="color:#374151;font-weight:500;">리스트</span>
+@endsection
+
 @section('content')
 <div id="maint-page" class="pt-4">
 
@@ -89,6 +95,10 @@
     <div class="flex flex-wrap items-center gap-2 mb-4">
     <form method="GET" class="flex flex-wrap items-center gap-2">
         <input type="hidden" name="bucket" value="{{ $bucket }}">
+
+        {{-- 리스트 / 간트 보기 토글 --}}
+        <a href="#" class="sr-view-tab active">리스트</a>
+        <a href="{{ route('maint-requests.gantt', request()->query()) }}" class="sr-view-tab">간트 보기</a>
 
         @if($canFilterByCompany)
         <select name="company_group_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
@@ -249,6 +259,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         신규 요청
     </button>
+
 
     {{-- 엑셀 다운로드 — 현재 필터 그대로 반영, 화면 전환 없이 바로 다운로드 --}}
     <a href="{{ route('maint-requests.export-excel', request()->query()) }}"
@@ -754,6 +765,11 @@
         font-weight:500;
         line-height:1.4;
     }
+    /* 리스트 / 간트 보기 토글 탭 */
+    .sr-view-tab { padding:7px 14px; font-size:13px; font-weight:600; border-radius:7px; border:1.5px solid #e5e7eb; text-decoration:none; color:#6b7280; background:#fff; transition:all .12s; }
+    .sr-view-tab.active { background:#eef2ff; color:#4f46e5; border-color:#c7d2fe; cursor:default; }
+    .sr-view-tab:hover:not(.active) { background:#f9fafb; }
+
     /* 멀티 체크 필터 (우선순위·담당자·상태) */
     .maint-multi { position:relative; }
     .maint-multi-btn {
@@ -872,7 +888,7 @@ document.addEventListener('keydown', function(e){
         <button type="button" onclick="maintCloseCreateModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
     </div>
 
-    <form method="POST" action="{{ route('maint-requests.store') }}" class="p-5 space-y-4" id="maint-create-form" onsubmit="return maintCreateSubmit(this)">
+    <form method="POST" action="{{ route('maint-requests.store') }}" class="p-5 space-y-4" id="maint-create-form" enctype="multipart/form-data" onsubmit="return maintCreateSubmit(this)">
         @csrf
 
         <div class="grid grid-cols-12 gap-4">
@@ -913,6 +929,21 @@ document.addEventListener('keydown', function(e){
             <input type="hidden" name="ai_summary" id="sr-modal-ai-summary" value="{{ old('ai_summary', '') }}">
             <input type="hidden" name="ai_summary_context_ids" id="sr-modal-ai-context-ids" value="">
             <input type="hidden" name="ai_classification" id="sr-modal-ai-classification" value="">
+        </div>
+
+        {{-- 첨부파일 — 최대 10개, 각 10MB. 등록 후 삭제 불가 --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">첨부파일 <span class="text-xs text-gray-400 font-normal">(최대 10개 · 각 10MB · 등록 후 삭제 불가)</span></label>
+            <div class="flex items-center gap-2">
+                <button type="button" id="sr-modal-attach-btn"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-md text-xs text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    파일 선택
+                </button>
+                <span id="sr-modal-attach-count" class="text-xs text-gray-500">0/10</span>
+            </div>
+            <input type="file" id="sr-modal-attach-input" multiple style="display:none" accept="*/*">
+            <ul id="sr-modal-attach-list" class="mt-2 space-y-1"></ul>
         </div>
 
         {{-- 콜로 담당자(요청자) 자동, 요청일은 등록 시각, 상태는 'requested' 자동 --}}
@@ -969,6 +1000,8 @@ async function maintCreateSubmit(form) {
 
     // 1) Quill 본문을 hidden 으로 강제 sync (form.submit() 은 'submit' 이벤트를 발생시키지 않으므로 수동)
     try { window.__srModalSyncContent(); } catch (e) {}
+    // 첨부파일 누적 File[] 을 input.files 로 주입
+    try { window.__srModalCollectAttachments?.(); } catch (e) {}
 
     const get = (name) => (form.querySelector('[name="'+name+'"]')?.value || '').trim();
     const aiInput  = document.getElementById('sr-modal-ai-summary');
@@ -1027,6 +1060,72 @@ function maintOpenCreateModal(){
     document.getElementById('maint-create-modal').style.display   = 'block';
     document.body.style.overflow = 'hidden';
 }
+
+/* 첨부파일 픽커 — File 객체 누적 → 폼 submit 시 attachments[] 로 전송 */
+(function(){
+    const MAX_FILES = 10;
+    const MAX_BYTES = 10 * 1024 * 1024;   // 10MB
+    const btn   = document.getElementById('sr-modal-attach-btn');
+    const input = document.getElementById('sr-modal-attach-input');
+    const list  = document.getElementById('sr-modal-attach-list');
+    const cnt   = document.getElementById('sr-modal-attach-count');
+    const form  = document.getElementById('maint-create-form');
+    if (!btn || !input || !list || !form) return;
+
+    const files = [];   // File[]
+
+    function fmt(b) {
+        if (b < 1024) return b + 'B';
+        if (b < 1024*1024) return (b/1024).toFixed(1) + 'KB';
+        return (b/(1024*1024)).toFixed(1) + 'MB';
+    }
+    function render() {
+        list.innerHTML = '';
+        files.forEach((f, i) => {
+            const li = document.createElement('li');
+            li.className = 'flex items-center justify-between gap-2 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs';
+            li.innerHTML = `
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="truncate text-gray-700" title="${f.name.replace(/"/g, '&quot;')}">${f.name.replace(/</g, '&lt;')}</span>
+                    <span class="text-gray-400 flex-shrink-0">${fmt(f.size)}</span>
+                </div>
+                <button type="button" data-i="${i}" class="text-gray-400 hover:text-red-600 px-1 leading-none" aria-label="제거">&times;</button>
+            `;
+            list.appendChild(li);
+        });
+        cnt.textContent = files.length + '/' + MAX_FILES;
+    }
+    list.addEventListener('click', e => {
+        const b = e.target.closest('button[data-i]');
+        if (!b) return;
+        files.splice(parseInt(b.dataset.i, 10), 1);
+        render();
+    });
+    btn.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+        const picked = [...input.files];
+        input.value = '';
+        const errors = [];
+        for (const f of picked) {
+            if (files.length >= MAX_FILES) { errors.push('최대 ' + MAX_FILES + '개까지만 첨부 가능합니다.'); break; }
+            if (f.size > MAX_BYTES) { errors.push(f.name + ' 은 10MB 를 초과하여 제외되었습니다.'); continue; }
+            if (files.some(x => x.name === f.name && x.size === f.size)) continue;   // 중복 방지
+            files.push(f);
+        }
+        if (errors.length) alert(errors.join('\n'));
+        render();
+    });
+
+    // 폼 submit 직전에 File 들을 input 에 다시 주입 (DataTransfer 사용)
+    window.__srModalCollectAttachments = function() {
+        const dt = new DataTransfer();
+        files.forEach(f => dt.items.add(f));
+        // 기존 input 의 name 을 attachments[] 로 사용
+        input.name = 'attachments[]';
+        input.files = dt.files;
+    };
+})();
 function maintCloseCreateModal(){
     document.getElementById('maint-create-overlay').style.display = 'none';
     document.getElementById('maint-create-modal').style.display   = 'none';

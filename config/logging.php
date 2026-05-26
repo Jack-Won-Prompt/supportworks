@@ -54,13 +54,13 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            'channels' => explode(',', (string) env('LOG_STACK', 'daily')),
             'ignore_exceptions' => false,
         ],
 
         'single' => [
             'driver' => 'single',
-            'path' => storage_path('logs/laravel.log'),
+            'path' => storage_path('logs/single.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
             // group write 권장 — www-data(웹) 와 ubuntu(queue worker) 둘 다 쓸 수 있도록.
@@ -137,7 +137,7 @@ return [
         ],
 
         'emergency' => [
-            'path' => storage_path('logs/laravel.log'),
+            'path' => storage_path('logs/emergency.log'),
         ],
 
     ],

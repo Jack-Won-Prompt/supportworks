@@ -685,6 +685,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get   ('maint-requests/export/excel',                       [\App\Http\Controllers\MaintRequestController::class, 'exportExcel'])->name('maint-requests.export-excel');
     Route::post  ('maint-requests/{maintRequest}/send-to-manager',     [\App\Http\Controllers\MaintRequestController::class, 'sendToManager'])->name('maint-requests.send-to-manager');
 
+    // 간트 보기 (SR 회사별 행, request_date~eta 바)
+    Route::get   ('maint-requests/gantt',                              [\App\Http\Controllers\MaintRequestController::class, 'gantt'])->name('maint-requests.gantt');
+    Route::patch ('maint-requests/{maintRequest}/gantt-dates',         [\App\Http\Controllers\MaintRequestController::class, 'ganttUpdateDates'])->name('maint-requests.gantt-dates');
+    Route::post  ('maint-requests/gantt-reorder',                      [\App\Http\Controllers\MaintRequestController::class, 'ganttReorder'])->name('maint-requests.gantt-reorder');
+
+    // 첨부파일 다운로드 — signed URL (라우트 자체는 web group 안, signed 미들웨어 적용)
+    Route::get   ('maint-requests/attachments/{attachment}/download',  [\App\Http\Controllers\MaintRequestController::class, 'downloadAttachment'])
+        ->middleware('signed')
+        ->name('maint-requests.attachments.download');
+
     // SR 이미지 주석 + 댓글
     Route::get   ('maint-requests/{maintRequest}/image-annotations',                       [\App\Http\Controllers\MaintRequestImageAnnotationController::class, 'index'])  ->name('maint-requests.image-annotations.index');
     Route::post  ('maint-requests/{maintRequest}/image-annotations',                       [\App\Http\Controllers\MaintRequestImageAnnotationController::class, 'store'])  ->name('maint-requests.image-annotations.store');

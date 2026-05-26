@@ -2,57 +2,74 @@
 
 @section('title', __('plan-do-acts.title'))
 
-@section('content')
 @php
     $pdaNewProjectId = ($selectedProjectId && $selectedProjectId !== 'none') ? (int) $selectedProjectId : null;
 @endphp
-<div style="display:flex;flex-direction:column;gap:16px;max-width:1080px;margin:0 auto;width:100%;">
 
-    {{-- 프로젝트 네비게이션 (특정 프로젝트 선택 시) --}}
-    @if(!empty($selectedProject))
+@section('breadcrumb')
+<a href="{{ route('projects.index') }}" class="hover:text-indigo-500 transition-colors">{{ __('projects.project') }}</a>
+@if(!empty($selectedProject))
+    <span>›</span>
+    <a href="{{ route('projects.show', $selectedProject) }}" class="hover:text-indigo-500 transition-colors">{{ $selectedProject->name }}</a>
+@endif
+<span>›</span>
+<span style="color:#374151;font-weight:500;">{{ __('plan-do-acts.title') }}</span>
+@endsection
+
+@section('header-actions')@endsection
+
+{{-- 프로젝트 진입 시: project-nav 의 page-actions 슬롯으로 "신규" 버튼 노출 --}}
+@if(!empty($selectedProject))
+@section('page-actions')
+    <button onclick="pdaOpenCreate({{ $pdaNewProjectId ?? 'null' }}, {})"
+            style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--t600),#9b8afb);border:none;border-radius:8px;cursor:pointer;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        {{ __('plan-do-acts.new') }}
+    </button>
+@endsection
+@endif
+
+@section('content')
+@if(!empty($selectedProject))
     @include('partials.project-nav', ['project' => $selectedProject, 'active' => 'plan-do-acts'])
-    @endif
+@endif
 
-    {{-- 상단: 헤더 + 프로젝트 선택 --}}
-    <div style="background:#fff;border-radius:14px;border:1px solid var(--color-bg-muted);padding:18px 22px;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <div>
-                <h2 style="margin:0 0 4px;font-size:17px;font-weight:700;color:var(--color-text-primary);display:flex;align-items:center;gap:8px;">
-                    <svg width="18" height="18" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    {{ __('plan-do-acts.title') }}
-                </h2>
-                <p style="margin:0;font-size:12px;color:var(--color-text-secondary);">{{ __('plan-do-acts.global_subtitle') }}</p>
-            </div>
-            <button onclick="pdaOpenCreate({{ $pdaNewProjectId ?? 'null' }}, {})" style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:linear-gradient(135deg,var(--t600),#9b8afb);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,.3);">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                {{ __('plan-do-acts.new') }}
-            </button>
-        </div>
-        {{-- 프로젝트 선택 --}}
-        <div style="margin-top:13px;display:flex;align-items:center;gap:8px;">
-            <label style="font-size:12px;font-weight:700;color:#64748b;">{{ __('plan-do-acts.field_project') }}</label>
-            <select onchange="location.href=this.value"
-                    style="padding:7px 11px;border:1.5px solid var(--color-border-default);border-radius:8px;font-size:12.5px;outline:none;min-width:220px;background:#fff;color:#1f2937;">
-                <option value="{{ route('plan-do-acts.index') }}" {{ !$selectedProjectId ? 'selected' : '' }}>{{ __('plan-do-acts.all_projects') }}</option>
-                @foreach($projects as $p)
+{{-- 전역 모드: 프로젝트 선택 + 신규 버튼을 별도 헤더 카드로 노출 --}}
+@if(empty($selectedProject))
+<div style="background:#fff;border-radius:10px;border:1px solid #f3f4f6;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <h2 style="margin:0;font-size:14px;font-weight:700;color:#1f2937;display:flex;align-items:center;gap:6px;">
+            <svg width="15" height="15" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            {{ __('plan-do-acts.title') }}
+        </h2>
+        <span style="font-size:11.5px;color:#9ca3af;">{{ __('plan-do-acts.global_subtitle') }}</span>
+        <label style="font-size:12px;color:#64748b;font-weight:600;margin-left:6px;">{{ __('plan-do-acts.field_project') }}</label>
+        <select onchange="location.href=this.value"
+                style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12.5px;outline:none;min-width:200px;background:#fff;color:#1f2937;">
+            <option value="{{ route('plan-do-acts.index') }}" {{ !$selectedProjectId ? 'selected' : '' }}>{{ __('plan-do-acts.all_projects') }}</option>
+            @foreach($projects as $p)
                 <option value="{{ route('plan-do-acts.index', ['project' => $p->id]) }}" {{ (string) $selectedProjectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                @endforeach
-            </select>
-        </div>
+            @endforeach
+        </select>
     </div>
-
-    {{-- 목록 --}}
-    @forelse($items as $it)
-        @include('plan-do-acts._card', ['it' => $it, 'projectId' => $it->project_id, 'showProject' => empty($selectedProjectId)])
-    @empty
-        <div style="background:#fff;border-radius:14px;border:1px solid var(--color-bg-muted);padding:48px 20px;text-align:center;color:var(--color-text-tertiary);">
-            <div style="font-size:30px;margin-bottom:8px;">🗂️</div>
-            <div style="font-size:13px;">{{ __('plan-do-acts.empty') }}</div>
-            <div style="font-size:12px;margin-top:4px;">{{ __('plan-do-acts.empty_hint_global') }}</div>
-        </div>
-    @endforelse
-
+    <button onclick="pdaOpenCreate({{ $pdaNewProjectId ?? 'null' }}, {})"
+            style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--t600),#9b8afb);border:none;border-radius:8px;cursor:pointer;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        {{ __('plan-do-acts.new') }}
+    </button>
 </div>
+@endif
+
+{{-- 목록 --}}
+@forelse($items as $it)
+    @include('plan-do-acts._card', ['it' => $it, 'projectId' => $it->project_id, 'showProject' => empty($selectedProjectId)])
+@empty
+    <div style="background:#fff;border-radius:14px;border:1px solid var(--color-bg-muted);padding:48px 20px;text-align:center;color:var(--color-text-tertiary);">
+        <div style="font-size:30px;margin-bottom:8px;">🗂️</div>
+        <div style="font-size:13px;">{{ __('plan-do-acts.empty') }}</div>
+        <div style="font-size:12px;margin-top:4px;">{{ __('plan-do-acts.empty_hint_global') }}</div>
+    </div>
+@endforelse
 
 @include('plan-do-acts._modal')
 @endsection

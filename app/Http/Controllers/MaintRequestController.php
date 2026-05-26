@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\MaintRequestNotificationMail;
 use App\Models\Maint\MaintMenu;
 use App\Models\Maint\MaintRequest;
+use App\Models\Maint\MaintRequestAttachment;
 use App\Models\Maint\MaintRequestNote;
 use App\Models\Maint\MaintUser;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as XlsxDate;
 
@@ -151,6 +153,211 @@ class MaintRequestController extends Controller
         ));
     }
 
+    /**
+     * SR 간트 보기 — 회사별 그룹, request_date~eta 로 바 표시.
+     *  - index() 와 동일한 access scope·필터 적용
+     *  - eta 가 null 이면 request_date + 7일을 임시 종료일로 사용
+     *  - 드래그 편집은 admin / is_sr_agent 만 (뷰에서 가드)
+     */
+    public function gantt(Request $request)
+    {
+        $u = auth()->user();
+        $isSrPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+        $linkthelabId = \App\Models\CompanyGroup::where('name', '링크더랩')->value('id');
+        $isLinkthelabMember = !$isSrPrivileged && $u && (int) $u->company_group_id === (int) $linkthelabId;
+
+        $accessScope = null;
+        if (!$isSrPrivileged) {
+            $accessScope = $u?->company_group_id ? (int) $u->company_group_id : 0;
+        }
+
+        $q = MaintRequest::query()->with(['companyGroup', 'assignee']);
+
+        if ($accessScope === 0) {
+            $q->whereRaw('1=0');
+        } elseif ($accessScope !== null) {
+            if ($isLinkthelabMember) {
+                $q->where(function ($x) use ($accessScope) {
+                    $x->where('company_group_id', $accessScope)->orWhere('paid_dev_enabled', true);
+                });
+            } else {
+                $q->where('company_group_id', $accessScope);
+            }
+        }
+
+        // index() 와 동일한 필터 (간트는 보통 전체 또는 진행중을 보고 싶을 것)
+        $bucket = $request->string('bucket')->toString() ?: 'in_progress';
+        $bucketStatuses = self::bucketStatuses();
+        if ($bucket !== 'all' && isset($bucketStatuses[$bucket])) {
+            $q->whereIn('status', $bucketStatuses[$bucket]);
+        }
+
+        $statusArr   = array_values(array_filter((array) $request->input('status'),   fn ($v) => $v !== null && $v !== ''));
+        $priorityArr = array_values(array_filter((array) $request->input('priority'), fn ($v) => $v !== null && $v !== ''));
+        $assigneeArr = array_values(array_filter(array_map('intval', (array) $request->input('assignee_id')),  fn ($v) => $v > 0));
+        $coloUserArr = array_values(array_filter(array_map('intval', (array) $request->input('colo_user_id')), fn ($v) => $v > 0));
+        if (!empty($statusArr))   $q->whereIn('status', $statusArr);
+        if (!empty($priorityArr)) $q->whereIn('priority', $priorityArr);
+        if (!empty($assigneeArr)) $q->whereIn('assignee_id', $assigneeArr);
+        if (!empty($coloUserArr)) $q->whereIn('colo_user_id', $coloUserArr);
+        if ($m = $request->integer('menu_id'))             $q->where('menu_id', $m);
+
+        if ($isSrPrivileged && ($cg = $request->integer('company_group_id'))) {
+            $q->where('company_group_id', $cg);
+        }
+        if ($df = $request->date('date_from')) $q->whereDate('request_date', '>=', $df->toDateString());
+        if ($dt = $request->date('date_to'))   $q->whereDate('request_date', '<=', $dt->toDateString());
+        if ($kw = trim($request->string('q')->toString())) {
+            $q->where(function ($x) use ($kw) {
+                $x->where('summary', 'like', "%{$kw}%")->orWhere('content', 'like', "%{$kw}%");
+            });
+        }
+
+        $rows = $q
+            ->orderBy('company_group_id')
+            ->orderByRaw('COALESCE(gantt_sort_order, 2147483647)')
+            ->orderBy('request_date')
+            ->orderBy('id')
+            ->get();
+
+        // 상단 통계 칩용 — index() 와 동일하게 status 별 건수 (필터 자체 분포 영향 없도록 bucket 만 빼고 access scope + company 만 반영)
+        $cntQ = MaintRequest::query();
+        if ($accessScope === 0) {
+            $cntQ->whereRaw('1=0');
+        } elseif ($accessScope !== null) {
+            if ($isLinkthelabMember) {
+                $cntQ->where(function ($x) use ($accessScope) {
+                    $x->where('company_group_id', $accessScope)->orWhere('paid_dev_enabled', true);
+                });
+            } else {
+                $cntQ->where('company_group_id', $accessScope);
+            }
+        }
+        if ($isSrPrivileged && ($cg = $request->integer('company_group_id'))) {
+            $cntQ->where('company_group_id', $cg);
+        }
+        $statusCounts = $cntQ->selectRaw('status, COUNT(*) as cnt')->groupBy('status')->pluck('cnt', 'status')->toArray();
+
+        $ganttTasks = $rows->map(function (MaintRequest $r) {
+            $start = optional($r->request_date)->format('Y-m-d') ?? now()->toDateString();
+            $end   = optional($r->eta)->format('Y-m-d') ?? \Carbon\Carbon::parse($start)->addDays(7)->toDateString();
+            $progress = match ($r->status) {
+                'completed' => 100,
+                'reviewing' => 80,
+                'in_progress', 'additional_dev' => 50,
+                'ai_review' => 10,
+                default => 0,
+            };
+            return [
+                'id'            => (string) $r->id,
+                'name'          => $r->summary,
+                'group_name'    => $r->companyGroup?->name ?? '(미지정)',
+                'start'         => $start,
+                'end'           => $end,
+                'progress'      => $progress,
+                '_status'       => $r->status,
+                '_status_label' => $this->srStatusLabel($r->status),
+                '_priority'     => $r->priority ?? '',
+                '_assignee'     => $r->assignee?->name ?? '-',
+                '_assignee_id'  => $r->assignee_id,
+                '_excel_no'     => $r->excel_no,
+                '_paid_dev'     => (bool) $r->paid_dev_enabled,
+            ];
+        })->values();
+
+        $companyGroups = \App\Models\CompanyGroup::orderBy('name')->get(['id', 'name']);
+        $coloUsers     = MaintUser::colo()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $devUsers      = MaintUser::withworks()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        $canFilterByCompany = $isSrPrivileged;
+        $isProjectManager   = $u && \App\Models\ProjectMember::where('user_id', $u->id)->where('role', 'manager')->exists();
+        $canFilterByAssignee = $isSrPrivileged || $isProjectManager;
+
+        return view('maint-requests.gantt', [
+            'ganttTasks'         => $ganttTasks,
+            'companyGroups'      => $companyGroups,
+            'coloUsers'          => $coloUsers,
+            'devUsers'           => $devUsers,
+            'canFilterByCompany' => $canFilterByCompany,
+            'canFilterByAssignee'=> $canFilterByAssignee,
+            'bucket'             => $bucket,
+            'isSrPrivileged'     => $isSrPrivileged,
+            'statusCounts'       => $statusCounts,
+        ]);
+    }
+
+    /** SR 상태 라벨 (간트 팝업/툴팁용) */
+    private function srStatusLabel(?string $s): string
+    {
+        return match ($s) {
+            'ai_review'      => 'AI 검토',
+            'requested'      => '요청',
+            'in_progress'    => '진행중',
+            'additional_dev' => '추가 개발',
+            'reviewing'      => '검토',
+            'completed'      => '완료',
+            default          => (string) $s,
+        };
+    }
+
+    /**
+     * 간트 행 순서 일괄 저장 — admin / is_sr_agent 만.
+     * Body: { order: [{id, sort_order, group_name?}, ...] }
+     * group_name 이 있으면 company_group 도 갱신 (이름 → id 매핑).
+     */
+    public function ganttReorder(Request $request)
+    {
+        $u = auth()->user();
+        $isPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+        abort_unless($isPrivileged, 403, '간트 순서 변경 권한이 없습니다.');
+
+        $data = $request->validate([
+            'order'              => 'required|array',
+            'order.*.id'         => 'required|integer|exists:maint_requests,id',
+            'order.*.sort_order' => 'required|integer',
+            'order.*.group_name' => 'nullable|string|max:100',
+        ]);
+
+        // group_name → company_group_id 매핑 (캐시)
+        $cgMap = \App\Models\CompanyGroup::pluck('id', 'name')->all();
+
+        DB::transaction(function () use ($data, $cgMap) {
+            foreach ($data['order'] as $o) {
+                $update = ['gantt_sort_order' => (int) $o['sort_order']];
+                if (!empty($o['group_name']) && isset($cgMap[$o['group_name']])) {
+                    $update['company_group_id'] = $cgMap[$o['group_name']];
+                }
+                MaintRequest::where('id', $o['id'])->update($update);
+            }
+        });
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * 간트 드래그 편집 — eta(+ 선택적으로 request_date) 만 갱신.
+     * 권한: admin 또는 is_sr_agent.
+     */
+    public function ganttUpdateDates(Request $request, MaintRequest $maintRequest)
+    {
+        $u = auth()->user();
+        $isPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+        abort_unless($isPrivileged, 403, '간트 편집 권한이 없습니다.');
+
+        $data = $request->validate([
+            'start' => 'nullable|date',
+            'end'   => 'nullable|date',
+        ]);
+
+        $update = [];
+        if (!empty($data['start'])) $update['request_date'] = $data['start'];
+        if (!empty($data['end']))   $update['eta']          = $data['end'];
+        if (empty($update)) return response()->json(['ok' => true]);
+
+        $maintRequest->update($update);
+        return response()->json(['ok' => true]);
+    }
+
     public static function bucketStatuses(): array
     {
         // 5유형(STATUSES) 기준 — 합계 = 전체
@@ -202,7 +409,11 @@ class MaintRequestController extends Controller
 
     private function detailData(MaintRequest $maintRequest): array
     {
-        $maintRequest->load(['menu', 'coloUser', 'assignee', 'companyGroup', 'notes' => fn ($q) => $q->oldest('id')]);
+        $maintRequest->load([
+            'menu', 'coloUser', 'assignee', 'companyGroup',
+            'notes' => fn ($q) => $q->oldest('id'),
+            'attachments' => fn ($q) => $q->oldest('id'),
+        ]);
 
         // 기존 SR 에서 사용된 구분(category) distinct 목록 — 입력 보조용
         $categories = MaintRequest::whereNotNull('category')
@@ -241,9 +452,13 @@ class MaintRequestController extends Controller
             'assignee_name'    => 'nullable|string|max:100',
             'status'           => 'nullable|in:' . implode(',', MaintRequest::STATUSES),
             'difficulty_score' => 'nullable|integer|min:1|max:5',
+            'attachments'      => 'nullable|array|max:10',
+            'attachments.*'    => 'file|max:10240', // 10MB / 파일
         ]);
         $this->normalizeAiSummaryFields($data);
         $this->applyClassificationToCategory($data);
+        $uploaded = $request->file('attachments', []);
+        unset($data['attachments']);
 
         // 회사는 로그인 사용자 본인 소속으로 자동 지정
         $data['company_group_id'] = auth()->user()?->company_group_id;
@@ -263,6 +478,11 @@ class MaintRequestController extends Controller
 
             $newSr = MaintRequest::create($data);
         });
+
+        // 첨부파일 저장 — SR 생성 후, private 디스크 maint-attachments/{sr_id}/
+        if ($newSr && !empty($uploaded)) {
+            $this->storeAttachments($newSr, $uploaded);
+        }
 
         $this->sendMaintRequestNotification($newSr, '등록');
 
@@ -363,10 +583,20 @@ class MaintRequestController extends Controller
             'paid_dev_days'        => 'nullable|integer|min:0|max:9999',
             'paid_dev_cost'        => 'nullable|integer|min:0',
             'paid_dev_description' => 'nullable|string|max:5000',
+            'attachments'          => 'nullable|array|max:10',
+            'attachments.*'        => 'file|max:10240', // 10MB / 파일
         ]);
         $data['paid_dev_enabled'] = $request->boolean('paid_dev_enabled');
         $this->normalizeAiSummaryFields($data);
         $this->applyClassificationToCategory($data);
+        $uploaded = $request->file('attachments', []);
+        unset($data['attachments']);
+
+        // 기존 첨부 개수 + 신규 추가 합산이 10개 초과 시 거절 (등록 후 삭제 불가 정책)
+        if (!empty($uploaded)) {
+            $existing = $maintRequest->attachments()->count();
+            abort_if($existing + count($uploaded) > 10, 422, '첨부파일은 SR 당 최대 10개까지만 가능합니다.');
+        }
 
         DB::transaction(function () use (&$data, $maintRequest) {
             $companyGroupId       = (int) ($maintRequest->company_group_id ?? 0) ?: null;
@@ -383,6 +613,10 @@ class MaintRequestController extends Controller
 
             $maintRequest->update($data);
         });
+
+        if (!empty($uploaded)) {
+            $this->storeAttachments($maintRequest, $uploaded);
+        }
 
         $this->sendMaintRequestNotification($maintRequest->fresh(), '수정');
 
@@ -916,6 +1150,50 @@ class MaintRequestController extends Controller
      * 폼에서 hidden input 으로 받은 ai_summary_context_ids(JSON 문자열) 를 array 로 변환
      * 후 ai_summary_at 자동 기록. ai_summary 비어있으면 모든 ai_summary_* 칼럼 비움 (요약 제거).
      */
+    /**
+     * 업로드된 파일들을 private 디스크에 저장하고 maint_request_attachments 행 생성.
+     * 경로: maint-attachments/{sr_id}/{timestamp}_{random}.{ext}
+     * 원본 파일명은 DB 의 original_name 컬럼에 보존.
+     */
+    private function storeAttachments(MaintRequest $sr, array $files): void
+    {
+        $userId = auth()->id();
+        foreach ($files as $file) {
+            if (!$file || !$file->isValid()) continue;
+            $path = $file->store('maint-attachments/' . $sr->id, 'local');
+            MaintRequestAttachment::create([
+                'request_id'    => $sr->id,
+                'uploaded_by'   => $userId,
+                'original_name' => $file->getClientOriginalName(),
+                'disk'          => 'local',
+                'path'          => $path,
+                'size'          => $file->getSize() ?: 0,
+                'mime'          => $file->getMimeType(),
+            ]);
+        }
+    }
+
+    /**
+     * 첨부파일 다운로드 — 라우트는 signed 미들웨어로 보호되므로 URL::signedRoute 만 통과시킴.
+     * 추가로 SR 열람 권한도 검사 (해당 회사 또는 SR 담당자).
+     */
+    public function downloadAttachment(MaintRequestAttachment $attachment)
+    {
+        $attachment->loadMissing('request');
+        $sr = $attachment->request;
+        abort_unless($sr, 404);
+
+        $u = auth()->user();
+        $isSrPrivileged = $u && ($u->isAdmin() || (bool) ($u->is_sr_agent ?? false));
+        $sameCompany = $u && (int) $u->company_group_id === (int) $sr->company_group_id;
+        abort_unless($isSrPrivileged || $sameCompany, 403, '이 SR 의 첨부파일을 다운로드할 권한이 없습니다.');
+
+        $disk = Storage::disk($attachment->disk ?: 'local');
+        abort_unless($disk->exists($attachment->path), 404, '파일이 존재하지 않습니다.');
+
+        return $disk->download($attachment->path, $attachment->original_name);
+    }
+
     /**
      * 웍스 요약 분류 결과(ai_classification)가 'paid' (유상 추가 개발) 이면
      * 구분(category) 을 '추가개발' 로 자동 매핑. 그 외 분류는 기존 category 유지.

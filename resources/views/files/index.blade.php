@@ -101,8 +101,8 @@
         {{-- ── 업로드 영역 ── --}}
         <div class="upload-card">
 
-            {{-- 카드 헤더 --}}
-            <div class="upload-card-header">
+            {{-- 카드 헤더 (클릭 시 본문 토글) --}}
+            <div class="upload-card-header" onclick="toggleUploadBody(event)" style="cursor:pointer;">
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="upload-icon-box">
                         <svg width="17" height="17" fill="none" stroke="#fff" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
@@ -112,18 +112,28 @@
                         <div style="font-size:11px;color:#a5b4fc;margin-top:1px;" class="project-name-display">{{ $project->name }}</div>
                     </div>
                 </div>
-                {{-- 세그먼트 탭 --}}
-                <div class="upload-seg">
-                    <button id="tab-file-btn" onclick="switchUploadTab('file')" class="upload-seg-btn active">
-                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                        {{ __('team.file_upload_tab') }}
-                    </button>
-                    <button id="tab-url-btn" onclick="switchUploadTab('url')" class="upload-seg-btn">
-                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                        {{ __('team.url_register_tab') }}
-                    </button>
+                {{-- 세그먼트 탭 + 접기/펼치기 토글 --}}
+                <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation();">
+                    <div class="upload-seg">
+                        <button id="tab-file-btn" onclick="switchUploadTab('file')" class="upload-seg-btn active">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            {{ __('team.file_upload_tab') }}
+                        </button>
+                        <button id="tab-url-btn" onclick="switchUploadTab('url')" class="upload-seg-btn">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                            {{ __('team.url_register_tab') }}
+                        </button>
+                    </div>
                 </div>
+                <button type="button" id="upload-toggle-caret" onclick="event.stopPropagation();toggleUploadBody(event);" title="펼치기/접기"
+                        style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background .12s;"
+                        onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='none'">
+                    <svg id="upload-toggle-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.4" style="transition:transform .15s;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
             </div>
+
+            {{-- 본문 (아코디언 — 기본 접힘, 새로고침 시 다시 접힘) --}}
+            <div id="upload-card-body" style="display:none;">
 
             {{-- ▸ 파일 업로드 탭 --}}
             <div id="tab-file-panel">
@@ -247,6 +257,7 @@
                     </div>
                 </div>
             </div>
+            </div>{{-- /upload-card-body --}}
         </div>
 
         {{-- ── 파일 목록 ── --}}
@@ -1355,6 +1366,16 @@ async function deleteCategory(id, btn) {
         const opt = [...el.options].find(o => o.value == id);
         if (opt) opt.remove();
     }
+}
+
+// ── 업로드 영역 아코디언 (기본 접힘, 상태 미저장) ───────────────
+function toggleUploadBody(e) {
+    if (e) e.stopPropagation();
+    const body = document.getElementById('upload-card-body');
+    const icon = document.getElementById('upload-toggle-icon');
+    const isHidden = body.style.display === 'none' || body.style.display === '';
+    body.style.display = isHidden ? 'block' : 'none';
+    if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
 }
 
 // ── 탭 전환 ──────────────────────────────────────────────────
