@@ -888,7 +888,7 @@ document.addEventListener('keydown', function(e){
         <button type="button" onclick="maintCloseCreateModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
     </div>
 
-    <form method="POST" action="{{ route('maint-requests.store') }}" class="p-5 space-y-4" id="maint-create-form" enctype="multipart/form-data" onsubmit="return maintCreateSubmit(this)">
+    <form method="POST" action="{{ route('maint-requests.store') }}" class="p-5 space-y-4" id="maint-create-form" enctype="multipart/form-data" onsubmit="event.preventDefault(); maintCreateSubmit(this); return false;">
         @csrf
 
         <div class="grid grid-cols-12 gap-4">
