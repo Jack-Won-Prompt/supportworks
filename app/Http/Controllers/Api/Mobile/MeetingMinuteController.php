@@ -67,6 +67,8 @@ class MeetingMinuteController extends Controller
 
     public function show(Request $request, MeetingMinute $meetingMinute): JsonResponse
     {
+        abort_unless($meetingMinute->canBeViewedBy($request->user()), 403);
+
         $meetingMinute->load(['author', 'project', 'attendees.user', 'memos', 'actionItems.assignee']);
 
         return response()->json([
@@ -118,6 +120,8 @@ class MeetingMinuteController extends Controller
 
     public function storeActionItem(Request $request, MeetingMinute $meetingMinute): JsonResponse
     {
+        abort_unless($meetingMinute->canBeViewedBy($request->user()), 403);
+
         $request->validate([
             'content'     => 'required|string|max:500',
             'due_date'    => 'nullable|date',
@@ -144,6 +148,9 @@ class MeetingMinuteController extends Controller
 
     public function updateActionItemStatus(Request $request, MeetingActionItem $meetingActionItem): JsonResponse
     {
+        $meetingActionItem->loadMissing('minute');
+        abort_if(!$meetingActionItem->minute || !$meetingActionItem->minute->canBeViewedBy($request->user()), 403);
+
         $request->validate(['status' => 'required|in:pending,in_progress,done']);
         $meetingActionItem->update(['status' => $request->status]);
         return response()->json(['status' => $meetingActionItem->status]);
@@ -151,6 +158,9 @@ class MeetingMinuteController extends Controller
 
     public function destroyActionItem(Request $request, MeetingActionItem $meetingActionItem): JsonResponse
     {
+        $meetingActionItem->loadMissing('minute');
+        abort_if(!$meetingActionItem->minute || !$meetingActionItem->minute->canBeViewedBy($request->user()), 403);
+
         $meetingActionItem->delete();
         return response()->json(['message' => '액션 아이템이 삭제되었습니다.']);
     }

@@ -644,7 +644,7 @@ class MeetingMinuteController extends Controller
         }
     }
 
-    private function authorizeMinute(MeetingMinute $minute, string $role = null): void
+    private function authorizeMinute(MeetingMinute $minute, ?string $role = null): void
     {
         $user = auth()->user();
         if ($user->isAdmin()) return;
@@ -655,13 +655,7 @@ class MeetingMinuteController extends Controller
             return;
         }
 
-        // 열람 권한: 같은 회사 · 작성자 · 참석자(계정 연결)
-        $sameCompany = $user->company_group_id
-            && $minute->company_group_id
-            && $user->company_group_id === $minute->company_group_id;
-        $isAuthor   = $minute->author_id === $user->id;
-        $isAttendee = $minute->attendees()->where('user_id', $user->id)->exists();
-
-        abort_unless($sameCompany || $isAuthor || $isAttendee, 403);
+        // 열람 권한 — MeetingMinute::canBeViewedBy 와 통합 (회사 + 프로젝트 멤버 규칙)
+        abort_unless($minute->canBeViewedBy($user), 403);
     }
 }

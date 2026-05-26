@@ -16,7 +16,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -248,16 +247,6 @@ class WeeklyAiSummaryController extends Controller
                 );
             }
 
-            // 매니저·관리자 이메일 알림 — 본문은 정형 데이터의 간단 요약
-            $notifyCgIds = array_values(array_unique(array_filter(array_merge(
-                $project->company_group_id ? [(int) $project->company_group_id] : [],
-                $srCompanyIds
-            ))));
-            $mailBody = $this->buildMailBodyFromReport($structured['report']);
-            $mailsSent = $this->notifyManagersAfterGenerate(
-                $notifyCgIds, $project, $type, $weekDate, $mailBody, $rangeLabel
-            );
-
             return response()->json(array_merge($structured, [
                 'generated_at'   => now()->format('Y.m.d H:i'),
                 'generated_by'   => auth()->user()->name,
@@ -266,7 +255,6 @@ class WeeklyAiSummaryController extends Controller
                 'commit_details' => $this->serializeCommitsForUi($commits),
                 'common_commit_details' => $this->serializeCommitsForUi($commonCommits),
                 'weekly_auto_created' => $autoCreated,
-                'mails_sent'     => $mailsSent,
             ]));
         } catch (\Throwable $e) {
             SystemErrorLog::record($e);
@@ -424,26 +412,6 @@ P;
             SystemErrorLog::record($e, 'warning');
             return null;
         }
-    }
-
-    /** 정형 report → 메일 본문용 간단 markdown */
-    private function buildMailBodyFromReport(array $report): string
-    {
-        $lines = [];
-        $lines[] = '기간: ' . ($report['period']['label'] ?? '');
-        $lines[] = '대상 담당자: ' . count($report['assignees'] ?? []) . '명';
-        $lines[] = '';
-        foreach ($report['assignees'] ?? [] as $a) {
-            $lines[] = "## {$a['name']}";
-            $lines[] = "- Git: 커밋 {$a['git']['commits']}건, +{$a['git']['added']}/-{$a['git']['deleted']} LOC, {$a['git']['files']} 파일";
-            $lines[] = "- SR: 배정 {$a['sr']['assigned']}, 완료 {$a['sr']['completed']}, 재오픈 {$a['sr']['reopened']}";
-            $lines[] = "- WeeklyScore: {$a['score']['final']} (페널티 {$a['penalty']['final']})";
-            if (!empty($a['comments'])) {
-                foreach ($a['comments'] as $c) $lines[] = "  · {$c}";
-            }
-            $lines[] = '';
-        }
-        return implode("\n", $lines);
     }
 
     /**
@@ -1037,11 +1005,6 @@ P;
                 );
             }
 
-            $mailBody = $this->buildMailBodyFromReport($structured['report']);
-            $mailsSent = $this->notifyManagersAfterGenerate(
-                $srCompanyIds, null, $type, $weekDate, $mailBody, $rangeLabel
-            );
-
             return response()->json(array_merge($structured, [
                 'generated_at'   => now()->format('Y.m.d H:i'),
                 'generated_by'   => auth()->user()->name,
@@ -1050,7 +1013,6 @@ P;
                 'commit_details' => $this->serializeCommitsForUi($commits),
                 'common_commit_details' => $this->serializeCommitsForUi($commonCommits),
                 'weekly_auto_created' => $autoCreated,
-                'mails_sent'     => $mailsSent,
             ]));
         } catch (\Throwable $e) {
             SystemErrorLog::record($e);
@@ -1612,87 +1574,6 @@ P;
             }
         }
         return $out;
-    }
-
-    /**
-     * 서머리 생성 직후 알림 메일 — 회사 매니저(User, role=manager) + 회사 매핑 관리자(AdminUser)에게.
-     * 본문: 짧은 요약 + Word 첨부.
-     * 실패해도 본 흐름은 영향 없음 (try/catch + 로그).
-     */
-    private function notifyManagersAfterGenerate(
-        array $companyGroupIds,
-        ?Project $project,
-        string $type,
-        ?string $weekDate,
-        string $content,
-        string $rangeLabel
-    ): int {
-        try {
-            $companyGroupIds = array_values(array_filter(array_map('intval', $companyGroupIds)));
-            if (empty($companyGroupIds)) return 0;
-
-            // 1) 수신자 수집
-            $managerEmails = User::whereIn('company_group_id', $companyGroupIds)
-                ->whereExists(fn($q) => $q->select(DB::raw(1))->from('project_members')
-                    ->whereColumn('user_id', 'users.id')->where('role', 'manager'))
-                ->whereNotNull('email')->pluck('email')->all();
-
-            $adminEmails = DB::table('admin_company_group_access as a')
-                ->join('admin_users as au', 'au.id', '=', 'a.admin_user_id')
-                ->whereIn('a.company_group_id', $companyGroupIds)
-                ->whereNotNull('au.email')->pluck('au.email')->all();
-
-            $recipients = array_values(array_unique(array_filter(array_map(
-                fn($e) => mb_strtolower(trim($e)),
-                array_merge($managerEmails, $adminEmails)
-            ))));
-            if (empty($recipients)) return 0;
-
-            // 2) Word 파일 생성
-            $projectForDocx = $project ?: new Project(['name' => '회사 SR 통합 서머리']);
-            $writer = new DocxWriter();
-            $writer->buildAiSummary(
-                $projectForDocx,
-                $type === 'weekly' ? 'weekly' : 'full',
-                $rangeLabel,
-                $content,
-                now()->format('Y.m.d H:i'),
-                auth()->user()?->name ?? ''
-            );
-            @mkdir(storage_path('app/temp'), 0775, true);
-            $filename = ($projectForDocx->name ?? 'AI서머리') . '_' . now()->format('Ymd_His') . '.docx';
-            $tmpPath  = storage_path('app/temp/' . $filename);
-            $writer->save($tmpPath);
-
-            // 3) 본문 — 마크다운 제목/표 일부만 plain text 로
-            $shortBody = mb_substr(strip_tags($content), 0, 1500);
-            $subject = '[웍스 서머리] ' . ($projectForDocx->name ?? '') . ' — ' . $rangeLabel;
-            $bodyHtml =
-                '<p>안녕하세요, 새 웍스 서머리가 생성되었습니다.</p>' .
-                '<p><b>대상:</b> ' . e($projectForDocx->name) . '<br>' .
-                '<b>기간:</b> ' . e($rangeLabel) . '</p>' .
-                '<p>요약은 첨부된 Word 파일을 확인해주세요. 아래는 일부 발췌입니다.</p>' .
-                '<pre style="font-family:ui-monospace,monospace;font-size:12px;background:#f8fafc;padding:10px;border-radius:6px;white-space:pre-wrap;">'
-                . e($shortBody) . '</pre>';
-
-            $sent = 0;
-            foreach ($recipients as $to) {
-                try {
-                    Mail::html($bodyHtml, function ($m) use ($to, $subject, $tmpPath, $filename) {
-                        $m->to($to)->subject($subject)->attach($tmpPath, ['as' => $filename]);
-                    });
-                    $sent++;
-                } catch (\Throwable $e) {
-                    SystemErrorLog::record($e, 'warning');
-                }
-            }
-
-            @unlink($tmpPath);
-            return $sent;
-        } catch (\Throwable $e) {
-            SystemErrorLog::record($e, 'warning');
-            return 0;
-        }
     }
 
     /**

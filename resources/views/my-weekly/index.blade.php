@@ -1046,8 +1046,7 @@ function generateSummary() {
         renderStructured(data);
         renderCommitDetails(data.commit_details, data.common_commit_details);
         document.getElementById('ai-gen-label').textContent = MW_I18N.summary_regenerate;
-        const mailNote = data.mails_sent != null ? ` · 메일 ${data.mails_sent}건 발송` : '';
-        const msg = `✓ 새로 생성됨 (${data.generated_at})${mailNote}`;
+        const msg = `✓ 새로 생성됨 (${data.generated_at})`;
         if (window.appToast) window.appToast('success', msg, 4500);
         else alert(msg);
     })
