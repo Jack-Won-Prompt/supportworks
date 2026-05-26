@@ -1031,6 +1031,8 @@ function maintCloseCreateModal(){
     document.getElementById('maint-create-overlay').style.display = 'none';
     document.getElementById('maint-create-modal').style.display   = 'none';
     document.body.style.overflow = '';
+    // 모달 안의 Quill 이미지 핸들/주석바가 body 에 fixed 로 남는 것 방지
+    try { window.__srModalResizeApi?.deselect?.(); } catch (e) {}
 }
 document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' && document.getElementById('maint-create-modal').style.display === 'block') {
@@ -1112,7 +1114,8 @@ document.addEventListener('keydown', function(e){
 
     // SR 표준: Copy & Paste + 8 방향 리사이즈 + 이미지 주석 (이미지 클릭 → 핸들 + 이미지 주석 진입)
     if (window.installQuillImageResize) {
-        window.installQuillImageResize(quill, { uploadUrl: UPLOAD_URL, csrfToken: CSRF, enableAnnotate: true });
+        // 모달 닫힐 때 deselect 호출하도록 API 전역 노출
+        window.__srModalResizeApi = window.installQuillImageResize(quill, { uploadUrl: UPLOAD_URL, csrfToken: CSRF, enableAnnotate: true });
     }
 })();
 </script>

@@ -9,7 +9,7 @@
 --}}
 @once
 <style>
-    .stdq-img-overlay { position:fixed; pointer-events:none; z-index:10600; display:none; }
+    .stdq-img-overlay { position:fixed; pointer-events:none; z-index:11050; display:none; }
     .stdq-img-overlay.is-active { display:block; }
     .stdq-img-handle { position:absolute; width:10px; height:10px; background:var(--t500, #7c3aed); border:1.5px solid #fff; border-radius:2px; pointer-events:auto; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
     .stdq-img-handle.h-tl { top:-5px; left:-5px; cursor:nwse-resize; }
