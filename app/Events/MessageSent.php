@@ -18,6 +18,16 @@ class MessageSent implements ShouldBroadcastNow
     {
         $channelNames = ['conversation.' . $this->message->conversation_id];
 
+        // 발신자 외 참여자 개인 채널에도 broadcast → 트레이 앱이 자기 채널 하나만 구독해도 알림 수신
+        $conv = $this->message->conversation;
+        if ($conv) {
+            foreach ($conv->participants as $p) {
+                if ((int) $p->id !== (int) $this->message->sender_id) {
+                    $channelNames[] = 'user.' . $p->id;
+                }
+            }
+        }
+
         // 모든 active admin에게 알림 전송
         // ※ arrow function은 외부 배열을 값으로 캡처하므로 foreach 사용
         foreach (\App\Models\AdminUser::where('status', 'active')->pluck('id') as $adminId) {

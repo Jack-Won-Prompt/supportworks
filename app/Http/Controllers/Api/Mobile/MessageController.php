@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -89,6 +90,14 @@ class MessageController extends Controller
 
         $conv->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
 
+        if ($message) {
+            try {
+                broadcast(new MessageSent($message));
+            } catch (\Throwable $e) {
+                // 실시간 전파 실패는 무시 (저장 자체는 성공)
+            }
+        }
+
         return response()->json([
             'conversation_id' => $conv->id,
             'message'         => $message ? $this->messageResource($message->load('sender')) : null,
@@ -126,6 +135,14 @@ class MessageController extends Controller
         }
 
         $conv->participants()->updateExistingPivot($user->id, ['last_read_at' => now()]);
+
+        if ($message) {
+            try {
+                broadcast(new MessageSent($message));
+            } catch (\Throwable $e) {
+                // 실시간 전파 실패는 무시
+            }
+        }
 
         return response()->json([
             'conversation_id' => $conv->id,
@@ -180,6 +197,12 @@ class MessageController extends Controller
             'type'            => 'message',
             'conversation_id' => (string) $conversation->id,
         ]);
+
+        try {
+            broadcast(new MessageSent($message));
+        } catch (\Throwable $e) {
+            // 실시간 전파 실패는 무시
+        }
 
         return response()->json($this->messageResource($message->load(['sender', 'replyTo'])), 201);
     }

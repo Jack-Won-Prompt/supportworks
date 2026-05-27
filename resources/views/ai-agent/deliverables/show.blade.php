@@ -723,6 +723,11 @@ main { padding: 0 !important; overflow: hidden !important; min-height: 0 !import
                     <div id="dlv-content-inner" style="transform-origin:top center;padding:28px 36px;">
                         @foreach($typeDef['steps'] as $step)
                         <div class="dlv-step-page" data-step="{{ $step['order'] }}" data-title="{{ e($step['title']) }}" style="display:none;">
+                            @if(!empty($step['description']))
+                            <div style="margin-bottom:18px;padding:10px 14px;background:rgba(124,58,237,.08);border-left:3px solid #8b5cf6;border-radius:0 6px 6px 0;font-size:12.5px;color:#d1d5db;line-height:1.5;">
+                                {{ $step['description'] }}
+                            </div>
+                            @endif
                             @php $stepHasContent = false; @endphp
                             @foreach($step['fields'] ?? [] as $field)
                                 @php

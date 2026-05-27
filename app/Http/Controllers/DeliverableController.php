@@ -39,7 +39,19 @@ class DeliverableController extends Controller
 
     public function __construct()
     {
-        $this->config = config('deliverables');
+        // 두 산출물 카탈로그 통합 — 메인 + 구축 설계
+        $main  = config('deliverables');
+        $build = config('deliverables_build') ?? ['deliverables' => []];
+        $this->config = $main;
+        // 'tab' 메타 부여
+        foreach ($this->config['deliverables'] ?? [] as $k => &$v) {
+            $v['tab'] = 'standard';
+        }
+        unset($v);
+        foreach ($build['deliverables'] ?? [] as $k => $v) {
+            $v['tab'] = 'build';
+            $this->config['deliverables'][$k] = $v;
+        }
     }
 
     /**
@@ -129,23 +141,37 @@ class DeliverableController extends Controller
             ->get()
             ->keyBy('type_id');
 
-        $types        = $this->config['deliverables'];
+        $allTypes     = $this->config['deliverables'];
         $categories   = $this->config['categories'];
         $view         = $request->input('view', 'card'); // card | list
+        $tab          = $request->input('tab') === 'build' ? 'build' : 'standard';
 
-        // 화면 표시용 로케일 변환 (이름, timing 등)
-        $types = $this->localizeTypes($types);
+        // 탭별 필터링
+        $types = collect($allTypes)->filter(fn($t) => ($t['tab'] ?? 'standard') === $tab)->all();
+
+        // 화면 표시용 로케일 변환 (이름, timing 등) — 메인 카탈로그만 EN 번역 존재
+        if ($tab === 'standard') {
+            $types = $this->localizeTypes($types);
+        }
 
         // 필터
         $filterCategory       = $request->input('category');
         $filterResponsibility = $request->input('responsibility');
         $filterStatus         = $request->input('status');
 
-        // 통계
+        // 통계 (현재 탭만)
         $total     = count($types);
-        $completed = $deliverables->where('status', 'completed')->count();
-        $inProg    = $deliverables->where('status', 'in_progress')->count();
+        $tabTypeIds = array_keys($types);
+        $tabDeliverables = $deliverables->whereIn('type_id', $tabTypeIds);
+        $completed = $tabDeliverables->where('status', 'completed')->count();
+        $inProg    = $tabDeliverables->where('status', 'in_progress')->count();
         $notStart  = $total - $completed - $inProg;
+
+        // 탭 카운트 (네비게이션 배지용)
+        $tabCounts = [
+            'standard' => collect($allTypes)->filter(fn($t) => ($t['tab'] ?? 'standard') === 'standard')->count(),
+            'build'    => collect($allTypes)->filter(fn($t) => ($t['tab'] ?? 'standard') === 'build')->count(),
+        ];
 
         return view('ai-agent.deliverables.index', [
             'project'              => $project,
@@ -153,6 +179,8 @@ class DeliverableController extends Controller
             'categories'           => $categories,
             'deliverables'         => $deliverables,
             'view'                 => $view,
+            'tab'                  => $tab,
+            'tabCounts'            => $tabCounts,
             'filterCategory'       => $filterCategory,
             'filterResponsibility' => $filterResponsibility,
             'filterStatus'         => $filterStatus,

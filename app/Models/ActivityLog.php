@@ -42,8 +42,6 @@ class ActivityLog extends Model
         'App\Models\Question'          => 'Q&A',
         'App\Models\Answer'            => 'Q&A',
         'App\Models\PlanningDoc'       => '기획서',
-        'App\Models\CommunityPost'     => '커뮤니티',
-        'App\Models\Comment'           => '커뮤니티',
         'App\Models\Memo'              => '메모',
     ];
 
@@ -59,8 +57,6 @@ class ActivityLog extends Model
         'App\Models\Answer'            => 'Q&A 답변',
         'App\Models\Schedule'          => '일정',
         'App\Models\PlanningDoc'       => '기획서',
-        'App\Models\CommunityPost'     => '커뮤니티 게시글',
-        'App\Models\Comment'           => '댓글',
         'App\Models\Memo'              => '메모',
         'App\Models\ProjectFile'       => '프로젝트 파일',
     ];

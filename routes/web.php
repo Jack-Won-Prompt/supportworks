@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AdminInviteAcceptController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\CalendarController;
-use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\MemoController;
@@ -23,14 +22,12 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
-use App\Http\Controllers\AiController;
 use App\Http\Controllers\CollabController;
 use App\Http\Controllers\FileCommentController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PlanningDocController;
 use App\Http\Controllers\UrsController;
 use App\Http\Controllers\DeliverableController;
-use App\Http\Controllers\TeamsController;
 use App\Http\Controllers\MessageAnalyzeController;
 use App\Http\Controllers\MessageImageCommentController;
 use App\Http\Controllers\MessageImageAnnotationController;
@@ -340,8 +337,6 @@ Route::middleware('admin.web')->prefix('admin')->name('admin.')->group(function 
     Route::patch('system-maintenance', [\App\Http\Controllers\Admin\SystemMaintenanceController::class, 'update'])->name('system-maintenance.update');
 
     // AI 프롬프트 내역
-    Route::get('ai-prompts',           [\App\Http\Controllers\Admin\AdminAiPromptController::class, 'index'])->name('ai-prompts.index');
-    Route::get('ai-prompts/{session}', [\App\Http\Controllers\Admin\AdminAiPromptController::class, 'show']) ->name('ai-prompts.show');
 
     // 시스템 에러 로그
     Route::get   ('system-errors',                      [\App\Http\Controllers\Admin\AdminSystemErrorController::class, 'index'])         ->name('system-errors.index');
@@ -757,47 +752,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // AI Agent
-    Route::prefix('ai')->name('ai.')->group(function () {
-        Route::get('/',                                [AiController::class, 'index'])->name('index');
-        Route::post('/settings',                       [AiController::class, 'saveSettings'])->name('settings');
-        Route::post('/figma',                          [AiController::class, 'addFigmaFile'])->name('figma.add');
-        Route::post('/figma/{file}/sync',              [AiController::class, 'syncFigmaFile'])->name('figma.sync');
-        Route::delete('/figma/{file}',                 [AiController::class, 'deleteFigmaFile'])->name('figma.delete');
-        Route::post('/sessions',                       [AiController::class, 'createSession'])->name('sessions.create');
-        Route::get('/sessions/{session}',              [AiController::class, 'getSession'])->name('sessions.get');
-        Route::delete('/sessions/{session}',           [AiController::class, 'deleteSession'])->name('sessions.delete');
-        Route::post('/sessions/{session}/messages',        [AiController::class, 'sendMessage'])->name('sessions.message');
-        Route::post('/sessions/{session}/generate-prompt', [AiController::class, 'generatePrompt'])->name('sessions.generate-prompt');
-        // 프롬프트 정제
-        Route::post('/prompts/refine',                 [AiController::class, 'refinePrompt'])->name('prompts.refine');
-        // 프롬프트 라이브러리
-        Route::get('/prompts',                         [AiController::class, 'promptIndex'])->name('prompts.index');
-        Route::post('/prompts',                        [AiController::class, 'storePrompt'])->name('prompts.store');
-        Route::put('/prompts/{prompt}',                [AiController::class, 'updatePrompt'])->name('prompts.update');
-        Route::delete('/prompts/{prompt}',             [AiController::class, 'destroyPrompt'])->name('prompts.destroy');
-        // 카테고리
-        Route::post('/categories',                     [AiController::class, 'storeCategory'])->name('categories.store');
-        Route::delete('/categories/{category}',        [AiController::class, 'destroyCategory'])->name('categories.destroy');
-        // 실행 이력
-        Route::get('/executions',                      [AiController::class, 'executionIndex'])->name('executions.index');
-        Route::get('/executions/{execution}',          [AiController::class, 'executionShow'])->name('executions.show');
-        Route::get('/executions/{execution}/files/{file}/download', [AiController::class, 'fileDownload'])->name('executions.files.download');
-        Route::get('/messages/{message}/download',                 [AiController::class, 'downloadCode'])->name('message.download');
-        Route::post('/sessions/{session}/share',                   [AiController::class, 'shareSession'])->name('sessions.share');
-        Route::post('/sessions/{session}/fork',                    [AiController::class, 'forkSession'])->name('sessions.fork');
-        Route::post('/sessions/{session}/minutes',                 [AiController::class, 'exportMinutes'])->name('sessions.minutes');
-        Route::get('/minutes/download',                            [AiController::class, 'downloadMinutes'])->name('minutes.download');
-        Route::post('/sessions/{session}/pptx',                   [AiController::class, 'exportPptx'])->name('sessions.pptx');
-        Route::get('/pptx/download',                              [AiController::class, 'downloadPptx'])->name('pptx.download');
-        Route::post('/sessions/{session}/excel',                  [AiController::class, 'exportExcel'])->name('sessions.excel');
-        Route::get('/excel/download',                             [AiController::class, 'downloadExcel'])->name('excel.download');
-        Route::get('/word/download',                              [AiController::class, 'downloadWordDoc'])->name('word.download');
-        Route::get('/projects/{project}/files',                   [AiController::class, 'getProjectFiles'])->name('projects.files');
-        Route::post('/sessions/{session}/context-check',           [AiController::class, 'contextCheck'])->name('sessions.contextCheck');
-        Route::get('/user-projects',                               [AiController::class, 'getUserProjects'])->name('user.projects');
-        Route::post('/messages/{message}/add-to-project',          [AiController::class, 'addDocToProject'])->name('messages.addToProject');
-        Route::post('/messages/{message}/add-zip-to-project',      [AiController::class, 'addZipToProject'])->name('messages.addZipToProject');
-    });
 
     // AI Agent 개발 워크플로우
     Route::prefix('ai-agent')->name('ai-agent.')->group(function () {
@@ -1264,20 +1218,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{screenKey}/versions/{versionId}/rollback',[MaintenanceController::class, 'rollback'])->name('versions.rollback');
     });
 
-    // Teams 연동
-    Route::prefix('teams')->name('teams.')->group(function () {
-        Route::get('/',                        [TeamsController::class, 'index'])->name('index');
-        Route::post('/verify',                 [TeamsController::class, 'verify'])->name('verify');
-        Route::get('/api/teams',               [TeamsController::class, 'teams'])->name('api.teams');
-        Route::get('/api/teams/{teamId}/channels', [TeamsController::class, 'channels'])->name('api.channels');
-        Route::post('/api/message',            [TeamsController::class, 'sendMessage'])->name('api.message');
-        Route::post('/api/chat',               [TeamsController::class, 'createChat'])->name('api.chat');
-        Route::get('/api/users',               [TeamsController::class, 'searchUsers'])->name('api.users');
-        Route::get('/api/sites',               [TeamsController::class, 'sites'])->name('api.sites');
-        Route::get('/api/sites/{siteId}/drives', [TeamsController::class, 'drives'])->name('api.drives');
-        Route::post('/api/upload',             [TeamsController::class, 'uploadFile'])->name('api.upload');
-    });
-
     // 팀원
     Route::get('/team', [TeamController::class, 'index'])->name('team.index');
     Route::post('/team/invite', [TeamController::class, 'invite'])->name('team.invite');
@@ -1296,20 +1236,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{conversation}',              [InquiryController::class, 'show'])->name('show');
         Route::post('/{conversation}/reply',       [InquiryController::class, 'reply'])->name('reply');
         Route::post('/{conversation}/close',       [InquiryController::class, 'close'])->name('close');
-    });
-
-    // 커뮤니티
-    Route::prefix('community')->name('community.')->group(function () {
-        Route::get('/',                                     [CommunityController::class, 'index'])->name('index');
-        Route::post('/',                                    [CommunityController::class, 'store'])->name('store');
-        Route::get('/{post}',                               [CommunityController::class, 'show'])->name('show');
-        Route::get('/{post}/detail',                        [CommunityController::class, 'quickView'])->name('detail');
-        Route::delete('/{post}',                            [CommunityController::class, 'destroy'])->name('destroy');
-        Route::post('/{post}/vote',                         [CommunityController::class, 'vote'])->name('vote');
-        Route::post('/{post}/react',                        [CommunityController::class, 'react'])->name('react');
-        Route::post('/{post}/comments',                     [CommunityController::class, 'storeComment'])->name('comments.store');
-        Route::delete('/comments/{comment}',                [CommunityController::class, 'destroyComment'])->name('comments.destroy');
-        Route::post('/comments/{comment}/vote',             [CommunityController::class, 'voteComment'])->name('comments.vote');
     });
 
     // 메모
@@ -1418,5 +1344,9 @@ Route::middleware(['auth'])->group(function () {
 
     // (관리자 패널은 별도 admin.web 미들웨어로 분리됨)
 });
+
+// 트레이 앱 → 웹 자동로그인 핸드오버 (공개 라우트, 토큰 일회용)
+Route::get('/auth/handover', [\App\Http\Controllers\Auth\WebHandoverController::class, 'consume'])
+    ->name('auth.handover');
 
 require __DIR__.'/auth.php';

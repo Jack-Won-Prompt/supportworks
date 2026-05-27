@@ -90,10 +90,6 @@ $statusDot = match($user->agent_status ?? 'offline') {
                         <div style="font-size:20px;font-weight:800;color:#2563eb;">{{ $stats['tasks'] }}</div>
                         <div style="font-size:10px;color:#94a3b8;margin-top:2px;font-weight:600;">Tasks</div>
                     </div>
-                    <div style="background:#fdf4ff;border-radius:10px;padding:12px;text-align:center;">
-                        <div style="font-size:20px;font-weight:800;color:#9333ea;">{{ $stats['ai_sessions'] }}</div>
-                        <div style="font-size:10px;color:#94a3b8;margin-top:2px;font-weight:600;">{{ __('team.stat_ai_sessions') }}</div>
-                    </div>
                     <div style="background:#fdf2f8;border-radius:10px;padding:12px;text-align:center;">
                         <div style="font-size:20px;font-weight:800;color:#db2777;">{{ $stats['minutes'] }}</div>
                         <div style="font-size:10px;color:#94a3b8;margin-top:2px;font-weight:600;">{{ __('team.stat_minutes') }}</div>

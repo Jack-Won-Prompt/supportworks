@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActionItem;
-use App\Models\CommunityPost;
 use App\Models\Discussion;
 use App\Models\MeetingMinute;
 use App\Models\Project;
@@ -110,13 +109,6 @@ class DashboardController extends Controller
         $todayActions   = $calendarActionItems->filter(fn ($a) => optional($a->due_date)?->toDateString() === $todayDate)->count();
         $todayCount     = $todayMeetings + $todaySchedules + $todayActions;
 
-        $recentCommunityPosts = CommunityPost::companyOf($user)
-            ->withCount('allComments')
-            ->with('user')
-            ->latest()
-            ->take(5)
-            ->get();
-
         $recentFiles = ProjectFile::whereIn('project_id', $projectIds)
             ->with(['project', 'uploader'])
             ->withCount('comments')
@@ -134,7 +126,7 @@ class DashboardController extends Controller
             'pendingActions', 'myTasks',
             'recentMinutes', 'minutesThisMonth',
             'pendingActionItems', 'todoTasks',
-            'recentCommunityPosts', 'recentFiles',
+            'recentFiles',
             'todayCount', 'todayMeetings', 'todaySchedules', 'todayActions'
         ));
     }

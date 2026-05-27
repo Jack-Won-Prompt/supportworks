@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActionItem;
-use App\Models\CommunityPost;
 use App\Models\MeetingMinute;
 use App\Models\Project;
 use App\Models\Schedule;
@@ -60,13 +59,6 @@ class DashboardController extends Controller
             ->take(3)
             ->get();
 
-        $recentPosts = CommunityPost::companyOf($user)
-            ->withCount('allComments')
-            ->with('user')
-            ->latest()
-            ->take(5)
-            ->get();
-
         return response()->json([
             'stats' => [
                 'total_projects'   => $totalProjects,
@@ -79,7 +71,6 @@ class DashboardController extends Controller
             'pending_actions'    => $this->actionItemsResource($pendingActions),
             'upcoming_schedules' => $this->schedulesResource($upcomingSchedules),
             'recent_minutes'     => $this->minutesResource($recentMinutes),
-            'recent_posts'       => $this->postsResource($recentPosts),
         ]);
     }
 
@@ -142,14 +133,4 @@ class DashboardController extends Controller
         ])->toArray();
     }
 
-    private function postsResource($posts): array
-    {
-        return $posts->map(fn($p) => [
-            'id'             => $p->id,
-            'title'          => $p->title,
-            'all_comments_count' => $p->all_comments_count,
-            'created_at'     => $p->created_at,
-            'user'           => $p->user ? ['id' => $p->user->id, 'name' => $p->user->name] : null,
-        ])->toArray();
-    }
 }

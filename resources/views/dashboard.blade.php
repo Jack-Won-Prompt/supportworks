@@ -632,60 +632,7 @@ $greeting = $today->hour < 12 ? __('dashboard.greeting_morning') : ($today->hour
     {{-- ═══════════════════════════════════════════
          WIDGET: 최근 커뮤니티
     ═══════════════════════════════════════════ --}}
-    <div class="grid-stack-item" gs-id="community" gs-x="8" gs-y="14" gs-w="4" gs-h="7" gs-min-w="2" gs-min-h="3">
-        <div class="grid-stack-item-content">
-            <div class="gs-card">
-                <div class="gs-drag-handle">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:28px;height:28px;background:#ecfdf5;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <svg width="14" height="14" fill="none" stroke="#10b981" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
-                        <span style="font-size:13px;font-weight:700;color:var(--color-text-primary);">{{ __('dashboard.recent_community') }}</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <a href="{{ route('community.index') }}" style="font-size:12px;color:var(--t500);text-decoration:none;font-weight:600;">{{ __('dashboard.view_all') }}</a>
-                        <svg class="gs-grip" width="14" height="14" fill="#c4b5fd" viewBox="0 0 14 14">
-                            <circle cx="3" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>
-                            <circle cx="3" cy="7" r="1.5"/><circle cx="11" cy="7" r="1.5"/>
-                            <circle cx="3" cy="11" r="1.5"/><circle cx="11" cy="11" r="1.5"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="gs-card-body">
-                    @forelse($recentCommunityPosts as $post)
-                    <a href="{{ route('community.show', $post) }}" style="display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid #f8f7ff;text-decoration:none;" class="db-row-hover">
-                        <div style="flex:1;min-width:0;">
-                            <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
-                                <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;color:#fff;background:{{ $post->category_color }};flex-shrink:0;">{{ $post->category_label }}</span>
-                                @if($post->pinned)<span style="font-size:10px;color:var(--color-alert-warning-500);font-weight:600;flex-shrink:0;">📌</span>@endif
-                            </div>
-                            <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $post->title }}</div>
-                            <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px;">{{ $post->user->name }} · {{ $post->created_at->diffForHumans() }}</div>
-                        </div>
-                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-                            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--color-text-tertiary);">
-                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                                {{ $post->all_comments_count }}
-                            </div>
-                            @if($post->votes > 0)
-                            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#10b981;font-weight:600;">
-                                <svg width="10" height="10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"/></svg>
-                                {{ $post->votes }}
-                            </div>
-                            @endif
-                        </div>
-                    </a>
-                    @empty
-                    <div style="text-align:center;padding:24px 0;color:var(--color-text-tertiary);font-size:12px;">
-                        <div style="font-size:24px;margin-bottom:6px;">💬</div>
-                        {{ __('dashboard.no_posts') }}<br>
-                        <a href="{{ route('community.index') }}" style="color:var(--t500);font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;display:inline-block;">{{ __('dashboard.write_first_post') }}</a>
-                    </div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    </div>
+{{-- 커뮤니티 위젯 제거됨 (기능 폐기) --}}
 
     {{-- ═══════════════════════════════════════════
          WIDGET: 나의 Action 아이템
@@ -862,9 +809,7 @@ const DEFAULT_LAYOUT = [
     { id: 'calendar',        x: 0,  y: 7,  w: 4,  h: 10 },
     { id: 'recent-files',    x: 4,  y: 0,  w: 4,  h: 5  },
     { id: 'recent-minutes',  x: 4,  y: 5,  w: 4,  h: 7  },
-    { id: 'ai-chat',         x: 8,  y: 0,  w: 4,  h: 8  },
     { id: 'my-tasks',        x: 8,  y: 8,  w: 4,  h: 6  },
-    { id: 'community',       x: 8,  y: 14, w: 4,  h: 7  },
     { id: 'action-items',    x: 8,  y: 21, w: 4,  h: 9  },
 ];
 
@@ -1082,12 +1027,8 @@ window.addEventListener('scroll', () => { if (_dbFcOpen) dbFcPositionPop(); }, t
           text: '최근 업로드되거나 수정된 파일에 빠르게 접근할 수 있습니다.' },
         { sel: '[gs-id="recent-minutes"]', title: '최근 회의록',
           text: '최근 회의록 목록입니다. 항목을 클릭하면 팝업으로 바로 열람할 수 있습니다.' },
-        { sel: '[gs-id="ai-chat"]', title: '웍스 AI 대화',
-          text: '웍스 어시스턴트와의 최근 대화를 이어가거나 새 대화를 시작할 수 있습니다.' },
         { sel: '[gs-id="my-tasks"]', title: '내 Tasks',
           text: '나에게 할당된 할 일과 진행 상태를 한곳에서 관리합니다.' },
-        { sel: '[gs-id="community"]', title: '커뮤니티',
-          text: '최근 커뮤니티 글과 Q&A를 확인하고 참여할 수 있습니다.' },
         { sel: '[gs-id="action-items"]', title: '나의 Action 아이템',
           text: '프로젝트별로 처리할 Action 아이템입니다. 체크 버튼으로 완료 처리하세요. 이것으로 둘러보기를 마칩니다 🎉' },
     ];

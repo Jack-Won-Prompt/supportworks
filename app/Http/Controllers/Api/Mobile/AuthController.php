@@ -93,6 +93,42 @@ class AuthController extends Controller
         return response()->json(['user' => $this->userResource($request->user())]);
     }
 
+    /**
+     * POST /api/mobile/auth/web-handover
+     *
+     * 트레이 앱이 토스트 클릭 시 호출. 짧은 TTL 의 일회용 토큰을 발급하고
+     * 브라우저로 열어야 할 핸드오버 URL 을 함께 돌려준다.
+     */
+    public function webHandover(Request $request): JsonResponse
+    {
+        $request->validate([
+            'redirect' => 'nullable|string|max:500',
+        ]);
+
+        $user = $request->user();
+
+        $token = bin2hex(random_bytes(32));
+        $ttlSeconds = 300; // 5 minutes
+        \Illuminate\Support\Facades\Cache::put(
+            'handover:' . $token,
+            ['user_id' => $user->id],
+            $ttlSeconds
+        );
+
+        $redirect = $request->string('redirect')->toString();
+        $params = ['token' => $token];
+        if ($redirect !== '') {
+            $params['redirect'] = $redirect;
+        }
+
+        $url = url('/auth/handover') . '?' . http_build_query($params);
+
+        return response()->json([
+            'handover_url' => $url,
+            'expires_in'   => $ttlSeconds,
+        ]);
+    }
+
     public function updateProfile(Request $request): JsonResponse
     {
         $user = $request->user();

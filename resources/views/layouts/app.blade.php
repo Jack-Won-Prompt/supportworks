@@ -379,21 +379,6 @@
                             <span class="gsb-hide">{{ __('shared-folder.nav') }}</span>
                         </a>
                         @endif {{-- shared folder --}}
-                        @if(auth()->user()->hasFeature('teams'))
-                        <a href="{{ route('teams.index') }}" class="sidebar-item {{ request()->routeIs('teams.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                <path d="M14 5.5C14 6.88 12.88 8 11.5 8S9 6.88 9 5.5 10.12 3 11.5 3 14 4.12 14 5.5z" fill="{{ request()->routeIs('teams.*') ? '#6d5ce7' : '#9e97c0' }}"/>
-                                <path d="M19 7.5C19 8.33 18.33 9 17.5 9S16 8.33 16 7.5 16.67 6 17.5 6 19 6.67 19 7.5z" fill="{{ request()->routeIs('teams.*') ? '#9b8afb' : '#c4b5fd' }}"/>
-                                <path d="M16 10h3a1 1 0 011 1v4a3 3 0 01-3 3h-.5A5.5 5.5 0 0111 13.5V10h5z" fill="{{ request()->routeIs('teams.*') ? '#7c6ef5' : '#b8b0d8' }}"/>
-                                <path d="M5 10h9v3.5A4.5 4.5 0 019.5 18h-1A3.5 3.5 0 015 14.5V10z" fill="{{ request()->routeIs('teams.*') ? '#6d5ce7' : '#9e97c0' }}"/>
-                            </svg>
-                            <span class="gsb-hide">Teams</span>
-                            @php $teamsVerified = \App\Models\TeamsSetting::current()->is_verified; @endphp
-                            @if($teamsVerified)
-                            <span class="gsb-hide" style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#16a34a;flex-shrink:0;display:block;"></span>
-                            @endif
-                        </a>
-                        @endif {{-- teams feature --}}
 
                     <div class="sidebar-divider"></div>
 
@@ -525,14 +510,6 @@
                         <div class="gsb-hide" style="padding:6px 10px 4px;">
                             <span class="section-label">{{ __('app.nav_works_tools') }}</span>
                         </div>
-                        {{-- 웍스 채팅 메뉴 숨김 처리
-                        @if(auth()->user()->hasFeature('ai_chat'))
-                        <a href="{{ route('ai.index') }}" class="sidebar-item {{ request()->routeIs('ai.index') || (request()->routeIs('ai.*') && !request()->routeIs('ai-agent.*')) ? 'active' : '' }}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_works_chat') }}</span>
-                        </a>
-                        @endif
-                        --}}
                         @if(auth()->user()->hasFeature('prompt_agent'))
                         <a href="{{ route('works-prompt.index') }}" class="sidebar-item {{ request()->routeIs('works-prompt.*') ? 'active' : '' }}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -551,17 +528,11 @@
 
                     <div class="sidebar-divider"></div>
 
-                    {{-- 커뮤니티 섹션 --}}
+                    {{-- 문의 섹션 --}}
                     <div style="margin-bottom:4px;">
                         <div class="gsb-hide" style="padding:6px 10px 4px;">
-                            <span class="section-label">{{ __('app.nav_community') }}</span>
+                            <span class="section-label">{{ __('app.nav_inquiry') }}</span>
                         </div>
-                        @if(auth()->user()->hasFeature('community'))
-                        <a href="{{ route('community.index') }}" class="sidebar-item {{ request()->routeIs('community.*') ? 'active' : '' }}">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
-                            <span class="gsb-hide">{{ __('app.nav_community') }}</span>
-                        </a>
-                        @endif {{-- community feature --}}
                         @if(auth()->user()->hasFeature('inquiry'))
                         <a href="{{ route('inquiry.index') }}" class="sidebar-item {{ request()->routeIs('inquiry.*') ? 'active' : '' }}">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -1793,9 +1764,6 @@
                 { label:'{{ __("app.search_label_calendar") }}',  url:'{{ route("calendar") }}',         icon:'📅' },
                 { label:'{{ __("app.search_label_messages") }}',  url:'{{ route("messages.index") }}',   icon:'💬' },
                 { label:'{{ __("app.search_label_team") }}',      url:'{{ route("team.index") }}',       icon:'👥' },
-                { label:'Teams',                                   url:'{{ route("teams.index") }}',      icon:'🔗' },
-                { label:'{{ __("app.search_label_works_agent") }}',                                url:'{{ route("ai.index") }}',         icon:'🤖' },
-                { label:'{{ __("app.search_label_community") }}', url:'{{ route("community.index") }}',  icon:'🌐' },
                 { label:'{{ __("app.search_label_inquiry") }}',   url:'{{ route("inquiry.index") }}',    icon:'❓' },
                 { label:'{{ __("app.search_label_minutes") }}',   url:'{{ route("meeting-minutes.index") }}', icon:'📋' },
                 { label:'Tasks',                                   url:'{{ route("tasks.index") }}',      icon:'✅' },

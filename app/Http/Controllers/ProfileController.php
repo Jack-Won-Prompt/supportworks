@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use App\Models\AiSession;
 use App\Models\MeetingMinute;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +20,6 @@ class ProfileController extends Controller
         $stats = [
             'projects'    => $user->projects()->count(),
             'tasks'       => Task::where('user_id', $user->id)->count(),
-            'ai_sessions' => AiSession::where('user_id', $user->id)->count(),
             'minutes'     => MeetingMinute::where('author_id', $user->id)->count(),
         ];
 

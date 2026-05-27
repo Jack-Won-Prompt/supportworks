@@ -15,7 +15,6 @@ use App\Http\Controllers\Api\Desktop\EventController;
 use App\Http\Controllers\Api\Mobile\ActionItemController as MobileActionItemController;
 use App\Http\Controllers\Api\Mobile\AuthController as MobileAuthController;
 use App\Http\Controllers\Api\Mobile\CalendarController as MobileCalendarController;
-use App\Http\Controllers\Api\Mobile\CommunityController as MobileCommunityController;
 use App\Http\Controllers\Api\Mobile\DashboardController as MobileDashboardController;
 use App\Http\Controllers\Api\Mobile\DeviceTokenController as MobileDeviceTokenController;
 use App\Http\Controllers\Api\Mobile\FileController as MobileFileController;
@@ -29,6 +28,7 @@ use App\Http\Controllers\Api\Mobile\MyWorkController as MobileMyWorkController;
 use App\Http\Controllers\Api\Mobile\MemoController as MobileMemoController;
 use App\Http\Controllers\Api\Mobile\MessageController as MobileMessageController;
 use App\Http\Controllers\Api\Mobile\PlanDoActController as MobilePlanDoActController;
+use App\Http\Controllers\Api\Mobile\PusherController as MobilePusherController;
 use App\Http\Controllers\Api\Mobile\ProjectController as MobileProjectController;
 use App\Http\Controllers\Api\Mobile\QuestionController as MobileQuestionController;
 use App\Http\Controllers\Api\Mobile\ScheduleController as MobileScheduleController;
@@ -194,6 +194,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('auth/logout',          [MobileAuthController::class, 'logout']);
         Route::patch('auth/profile',        [MobileAuthController::class, 'updateProfile']);
         Route::patch('auth/password',       [MobileAuthController::class, 'changePassword']);
+        Route::post('auth/web-handover',    [MobileAuthController::class, 'webHandover']);
 
         // 대시보드
         Route::get('dashboard', [MobileDashboardController::class, 'index']);
@@ -201,6 +202,9 @@ Route::prefix('mobile')->group(function () {
         // FCM 디바이스 토큰
         Route::post('device-tokens',        [MobileDeviceTokenController::class, 'store']);
         Route::post('device-tokens/remove', [MobileDeviceTokenController::class, 'remove']);
+
+        // Pusher private 채널 인증 (트레이 앱 실시간 알림용)
+        Route::post('pusher/auth', [MobilePusherController::class, 'auth']);
 
         // 내 업무
         Route::get('my-work', [MobileMyWorkController::class, 'index']);
@@ -261,15 +265,6 @@ Route::prefix('mobile')->group(function () {
 
         Route::get ('messages/{conversation}',               [MobileMessageController::class, 'show']);
         Route::post('messages/{conversation}/reply',         [MobileMessageController::class, 'reply']);
-
-        // 커뮤니티
-        Route::get   ('community',                        [MobileCommunityController::class, 'index']);
-        Route::post  ('community',                        [MobileCommunityController::class, 'store']);
-        Route::get   ('community/{post}',                 [MobileCommunityController::class, 'show']);
-        Route::delete('community/{post}',                 [MobileCommunityController::class, 'destroy']);
-        Route::post  ('community/{post}/vote',            [MobileCommunityController::class, 'vote']);
-        Route::post  ('community/{post}/comments',        [MobileCommunityController::class, 'storeComment']);
-        Route::delete('community/comments/{comment}',     [MobileCommunityController::class, 'destroyComment']);
 
         // 회의록
         Route::get   ('meeting-minutes',                              [MobileMeetingMinuteController::class, 'index']);

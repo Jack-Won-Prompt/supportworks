@@ -20,6 +20,14 @@
 .dlv-search { flex:1; min-width:180px; max-width:280px; font-size:12px; padding:5px 10px; border:1.5px solid #e2e8f0; border-radius:7px; color:#374151; }
 .dlv-search:focus { outline:none; border-color:var(--t400); }
 
+/* 산출물 탭 (표준 / 구축 설계) */
+.dlv-tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:1.5px solid #e2e8f0; }
+.dlv-tab { padding:8px 16px; font-size:13px; font-weight:600; color:#64748b; background:transparent; border:none; border-bottom:2px solid transparent; cursor:pointer; transition:all .15s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; margin-bottom:-1.5px; }
+.dlv-tab:hover { color:var(--t600); }
+.dlv-tab.is-active { color:var(--t700); border-bottom-color:var(--t500); font-weight:700; }
+.dlv-tab-count { font-size:11px; padding:1px 7px; border-radius:10px; background:#f1f5f9; color:#64748b; font-weight:600; }
+.dlv-tab.is-active .dlv-tab-count { background:#ede9fe; color:var(--t700); }
+
 /* 책임 뱃지 */
 .dlv-resp { display:inline-block; font-size:10px; font-weight:700; padding:1px 7px; border-radius:4px; }
 .dlv-resp.b   { background:#ede9fe; color:#6d28d9; }
@@ -80,12 +88,32 @@
 @section('content')
 @include('partials.project-nav', ['project' => $project, 'active' => 'deliverables'])
 
+{{-- 탭 (표준 산출물 / 구축 설계 산출물) --}}
+@php
+    $qs = request()->except(['tab','page']);
+    $tabUrl = fn($t) => route('ai-agent.projects.deliverables.index', array_merge(['project' => $project->id, 'tab' => $t], $qs));
+@endphp
+<div class="dlv-tabs">
+    <a href="{{ $tabUrl('standard') }}" class="dlv-tab {{ ($tab ?? 'standard') === 'standard' ? 'is-active' : '' }}">
+        산출물
+        <span class="dlv-tab-count">{{ $tabCounts['standard'] ?? 0 }}</span>
+    </a>
+    <a href="{{ $tabUrl('build') }}" class="dlv-tab {{ ($tab ?? 'standard') === 'build' ? 'is-active' : '' }}">
+        구축 설계 산출물
+        <span class="dlv-tab-count">{{ $tabCounts['build'] ?? 0 }}</span>
+    </a>
+</div>
+
 {{-- 헤더 --}}
 <div class="dlv-header">
     <div class="dlv-header-left">
         <h2>
             <svg width="18" height="18" fill="none" stroke="var(--t500)" viewBox="0 0 24 24" style="display:inline;margin-right:5px;vertical-align:-3px;" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
-            {{ __('deliverables.title') }}
+            @if(($tab ?? 'standard') === 'build')
+                구축 설계 산출물
+            @else
+                {{ __('deliverables.title') }}
+            @endif
         </h2>
         <p>{{ __('deliverables.subtitle', ['count' => count($types)]) }}</p>
     </div>
