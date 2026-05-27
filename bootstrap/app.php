@@ -17,6 +17,25 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Support\Facades\Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
                 $rememberKey = 'remember_web_' . sha1(\App\Models\User::class);
                 $ch = (string) $request->input('channel_name');
+
+                // 진단: broadcaster 인스턴스에 등록된 채널 패턴 개수/목록
+                try {
+                    $broadcaster = \Illuminate\Support\Facades\Broadcast::getFacadeRoot()->driver();
+                    $refl = new \ReflectionClass($broadcaster);
+                    while ($refl && !$refl->hasProperty('channels')) {
+                        $refl = $refl->getParentClass();
+                    }
+                    $patterns = [];
+                    if ($refl) {
+                        $prop = $refl->getProperty('channels');
+                        $prop->setAccessible(true);
+                        $patterns = array_keys($prop->getValue($broadcaster));
+                    }
+                    \Log::info('[bcast-auth] driver=' . get_class($broadcaster) . ' channels=' . count($patterns) . ' patterns=' . implode(',', $patterns));
+                } catch (\Throwable $e) {
+                    \Log::info('[bcast-auth] driver-probe-fail: ' . $e->getMessage());
+                }
+
                 \Log::info('[bcast-auth] enter ch=' . $ch
                     . ' web=' . (auth('web')->check() ? auth('web')->id() : 'null')
                     . ' admin=' . (auth('admin')->check() ? auth('admin')->id() : 'null')
