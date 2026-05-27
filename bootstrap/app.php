@@ -16,12 +16,20 @@ return Application::configure(basePath: dirname(__DIR__))
             // 진단 로그(임시): Broadcast::auth 호출 직전 인증/세션 상태 기록 → 콜백 진입 전 거절 케이스 추적
             \Illuminate\Support\Facades\Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
                 $rememberKey = 'remember_web_' . sha1(\App\Models\User::class);
-                \Log::info('[bcast-auth] enter ch=' . (string) $request->input('channel_name')
+                $ch = (string) $request->input('channel_name');
+                \Log::info('[bcast-auth] enter ch=' . $ch
                     . ' web=' . (auth('web')->check() ? auth('web')->id() : 'null')
                     . ' admin=' . (auth('admin')->check() ? auth('admin')->id() : 'null')
                     . ' sid=' . substr((string) session()->getId(), 0, 8)
                     . ' has_remember=' . ($request->hasCookie($rememberKey) ? 'y' : 'n'));
-                return \Illuminate\Support\Facades\Broadcast::auth($request);
+                try {
+                    $response = \Illuminate\Support\Facades\Broadcast::auth($request);
+                    \Log::info('[bcast-auth] OK ch=' . $ch);
+                    return $response;
+                } catch (\Throwable $e) {
+                    \Log::info('[bcast-auth] FAIL ch=' . $ch . ' ex=' . get_class($e) . ' msg=' . $e->getMessage() . ' file=' . basename($e->getFile()) . ':' . $e->getLine());
+                    throw $e;
+                }
             })->middleware('web')->name('broadcasting.auth');
             require base_path('routes/channels.php');
         },
