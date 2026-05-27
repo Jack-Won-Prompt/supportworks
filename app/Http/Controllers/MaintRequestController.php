@@ -1350,18 +1350,25 @@ class MaintRequestController extends Controller
             $q->where('company_group_id', $cg);
         }
 
-        // 필터(현재 화면 상태 그대로 반영)
-        if ($s = $request->string('status')->toString())   $q->where('status', $s);
-        if ($p = $request->string('priority')->toString()) $q->where('priority', $p);
-        if ($a = $request->integer('assignee_id'))         $q->where('assignee_id', $a);
-        if ($c = $request->integer('colo_user_id'))        $q->where('colo_user_id', $c);
-        if ($kw = trim($request->string('q')->toString())) {
+        // 필터(현재 화면 상태 그대로 반영) — index() 와 동일하게 status/priority/담당자는 배열 멀티값 지원
+        $statusArr   = array_values(array_filter((array) $request->input('status'),   fn ($v) => $v !== null && $v !== ''));
+        $priorityArr = array_values(array_filter((array) $request->input('priority'), fn ($v) => $v !== null && $v !== ''));
+        $assigneeArr = array_values(array_filter(array_map('intval', (array) $request->input('assignee_id')),  fn ($v) => $v > 0));
+        $coloUserArr = array_values(array_filter(array_map('intval', (array) $request->input('colo_user_id')), fn ($v) => $v > 0));
+        if (!empty($statusArr))   $q->whereIn('status', $statusArr);
+        if (!empty($priorityArr)) $q->whereIn('priority', $priorityArr);
+        if (!empty($assigneeArr)) $q->whereIn('assignee_id', $assigneeArr);
+        if (!empty($coloUserArr)) $q->whereIn('colo_user_id', $coloUserArr);
+        if ($m = $request->integer('menu_id'))             $q->where('menu_id', $m);
+        if ($df = $request->date('date_from')) $q->whereDate('request_date', '>=', $df->toDateString());
+        if ($dt = $request->date('date_to'))   $q->whereDate('request_date', '<=', $dt->toDateString());
+        if ($kw = trim((string) $request->input('q', ''))) {
             $q->where(function ($x) use ($kw) {
                 $x->where('summary', 'like', "%{$kw}%")
                   ->orWhere('content', 'like', "%{$kw}%");
             });
         }
-        $bucket = $request->string('bucket')->toString();
+        $bucket = (string) $request->input('bucket', '');
         $bucketStatuses = self::bucketStatuses();
         if ($bucket && $bucket !== 'all' && isset($bucketStatuses[$bucket])) {
             $q->whereIn('status', $bucketStatuses[$bucket]);

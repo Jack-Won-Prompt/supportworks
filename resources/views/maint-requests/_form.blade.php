@@ -338,8 +338,16 @@
                 </div>
                 <div class="col-span-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ $companyLabel }} 담당자</label>
-                    <div class="w-full px-3 py-2 border border-gray-100 bg-gray-50 rounded-lg text-sm text-gray-700">{{ $currentColoName ?: '-' }}</div>
-                    <input type="hidden" name="colo_user_name" value="{{ $currentColoName }}">
+                    <select name="colo_user_name"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="">— 선택 —</option>
+                        @foreach($coloUsers as $cu)
+                            <option value="{{ $cu->name }}" @selected($currentColoName === $cu->name)>{{ $cu->name }}</option>
+                        @endforeach
+                        @if($currentColoName && !$coloUsers->pluck('name')->contains($currentColoName))
+                            <option value="{{ $currentColoName }}" selected>{{ $currentColoName }}</option>
+                        @endif
+                    </select>
                 </div>
                 <div class="col-span-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">링크더랩 담당자</label>
