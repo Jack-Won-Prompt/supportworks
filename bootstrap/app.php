@@ -13,7 +13,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             // auth 미들웨어 제거: admin guard 사용자도 channels.php에서 처리
-            \Illuminate\Support\Facades\Broadcast::routes(['middleware' => ['web']]);
+            // 진단 로그(임시): Broadcast::auth 호출 직전 인증/세션 상태 기록 → 콜백 진입 전 거절 케이스 추적
+            \Illuminate\Support\Facades\Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+                $rememberKey = 'remember_web_' . sha1(\App\Models\User::class);
+                \Log::info('[bcast-auth] enter ch=' . (string) $request->input('channel_name')
+                    . ' web=' . (auth('web')->check() ? auth('web')->id() : 'null')
+                    . ' admin=' . (auth('admin')->check() ? auth('admin')->id() : 'null')
+                    . ' sid=' . substr((string) session()->getId(), 0, 8)
+                    . ' has_remember=' . ($request->hasCookie($rememberKey) ? 'y' : 'n'));
+                return \Illuminate\Support\Facades\Broadcast::auth($request);
+            })->middleware('web')->name('broadcasting.auth');
             require base_path('routes/channels.php');
         },
     )
