@@ -12,21 +12,16 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('conversation.{id}', function ($user, $id) {
     if ($user instanceof \App\Models\User) {
         // 웹 사용자: 참여자이면 타입 무관하게 허용 (일반 메시지 + 문의)
-        $ok = \App\Models\Conversation::where('id', $id)
+        return \App\Models\Conversation::where('id', $id)
             ->whereHas('participants', fn($q) => $q->where('user_id', $user->id))
             ->exists();
-        if (!$ok) \Log::info('[bcast-auth] conversation.'.$id.' denied: web user '.$user->id.' not participant');
-        return $ok;
     }
     if ($user instanceof \App\Models\AdminUser) {
         // 관리자: inquiry 타입 대화만 허용
-        $ok = \App\Models\Conversation::where('id', $id)
+        return \App\Models\Conversation::where('id', $id)
             ->where('type', 'inquiry')
             ->exists();
-        if (!$ok) \Log::info('[bcast-auth] conversation.'.$id.' denied: admin '.$user->id.' but not inquiry');
-        return $ok;
     }
-    \Log::info('[bcast-auth] conversation.'.$id.' denied: no user (web='.(auth('web')->check() ? auth('web')->id() : 'null').', admin='.(auth('admin')->check() ? auth('admin')->id() : 'null').')');
     return false;
 }, ['guards' => ['web', 'admin']]);
 
@@ -57,9 +52,7 @@ Broadcast::channel('collab', function ($user) {
 
 // 협업: 개인 알림 채널 (요청/수락/거절 수신)
 Broadcast::channel('collab-user.{userId}', function ($user, $userId) {
-    $ok = $user instanceof \App\Models\User && $user->id === (int) $userId;
-    if (!$ok) \Log::info('[bcast-auth] collab-user.'.$userId.' denied: web='.(auth('web')->check() ? auth('web')->id() : 'null').', user_class='.($user ? get_class($user) : 'null').', user_id='.($user?->id ?? 'null'));
-    return $ok;
+    return $user instanceof \App\Models\User && $user->id === (int) $userId;
 }, ['guards' => ['web']]);
 
 // AI 분석 세션 채널 (status.updated)
