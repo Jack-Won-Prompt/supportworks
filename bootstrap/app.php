@@ -10,10 +10,13 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         apiPrefix: 'api',
         commands: __DIR__.'/../routes/console.php',
+        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
         then: function () {
             // auth 미들웨어 제거: admin guard 사용자도 channels.php에서 처리
             // 진단 로그(임시): Broadcast::auth 호출 직전 인증/세션 상태 기록 → 콜백 진입 전 거절 케이스 추적
+            // 주의: channels.php 등록은 위 channels: 파라미터가 withBroadcasting() 으로 처리 (Laravel 12 정규 경로)
+            //       여기서는 default /broadcasting/auth 라우트만 진단 로그가 있는 버전으로 override
             \Illuminate\Support\Facades\Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
                 $rememberKey = 'remember_web_' . sha1(\App\Models\User::class);
                 $ch = (string) $request->input('channel_name');
@@ -50,7 +53,6 @@ return Application::configure(basePath: dirname(__DIR__))
                     throw $e;
                 }
             })->middleware('web')->name('broadcasting.auth');
-            require base_path('routes/channels.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
