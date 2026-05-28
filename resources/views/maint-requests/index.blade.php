@@ -359,7 +359,7 @@
             </thead>
             <tbody>
                 @forelse($requests as $r)
-                <tr class="hover:bg-indigo-50/40 cursor-pointer transition-colors" onclick="maintOpenDetailModal({{ $r->id }})">
+                <tr data-sr-id="{{ $r->id }}" class="hover:bg-indigo-50/40 cursor-pointer transition-colors" onclick="maintOpenDetailModal({{ $r->id }})">
                     <td class="px-4 py-3 text-gray-400 font-mono text-xs">{{ $r->id }}</td>
                     <td class="px-4 py-3 text-gray-700 truncate max-w-[8rem]" title="{{ $r->menu?->name ?? '' }}">{{ $r->menu?->name ?? '-' }}</td>
                     <td class="px-4 py-3" onclick="event.stopPropagation()">
@@ -377,8 +377,8 @@
                     <td class="px-4 py-3">
                         <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
                     </td>
-                    <td class="px-4 py-3 text-gray-600 text-xs">{{ $r->category ?: '-' }}</td>
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 text-gray-600 text-xs" data-category-cell>{{ $r->category ?: '-' }}</td>
+                    <td class="px-4 py-3" data-cls-cell>
                         @php
                             $__clsMap = [
                                 'free'    => ['label' => '무상',           'bg' => '#ecfdf5', 'fg' => '#047857', 'border' => '#a7f3d0'],
@@ -855,10 +855,55 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 function maintCloseDetailModal(){
+    // 팝업 내부에서 예약된 분류/카테고리 변경을 해당 행에만 즉시 반영
+    try { maintFlushPendingRowUpdates(); } catch(e) { console.error(e); }
     document.getElementById('maint-detail-overlay').style.display = 'none';
     document.getElementById('maint-detail-modal').style.display   = 'none';
     document.getElementById('maint-detail-iframe').src = 'about:blank';
     document.body.style.overflow = '';
+}
+
+// ── SR 상세 팝업 → 리스트 행 갱신 (페이지 리로드 없이) ──────────────────
+// iframe(embed) 안에서 분류 저장 후 window.parent.maintQueueRowClsUpdate(id, cls, category) 호출.
+// 실제 DOM 반영은 모달 닫힐 때 일괄 처리.
+window.__maintPendingRowClsUpdates = window.__maintPendingRowClsUpdates || {};
+window.maintQueueRowClsUpdate = function(id, classification, category) {
+    if (!id) return;
+    window.__maintPendingRowClsUpdates[id] = {
+        classification: classification || '',
+        category: category || null,
+    };
+};
+function maintFlushPendingRowUpdates() {
+    var pending = window.__maintPendingRowClsUpdates || {};
+    var clsMap = {
+        free:    { label: '무상',           bg: '#ecfdf5', fg: '#047857', border: '#a7f3d0' },
+        paid:    { label: '유상 추가 개발', bg: '#fef3c7', fg: '#92400e', border: '#fde68a' },
+        discuss: { label: '논의 필요',      bg: '#eef2ff', fg: '#3730a3', border: '#c7d2fe' },
+    };
+    Object.keys(pending).forEach(function(id) {
+        var row = document.querySelector('tr[data-sr-id="' + id + '"]');
+        if (!row) return;
+        var data = pending[id];
+        // 분류 배지 셀
+        var clsCell = row.querySelector('[data-cls-cell]');
+        if (clsCell) {
+            var c = clsMap[data.classification];
+            if (c) {
+                clsCell.innerHTML = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" '
+                    + 'style="background:' + c.bg + ';color:' + c.fg + ';border:1px solid ' + c.border + ';">'
+                    + c.label + '</span>';
+            } else {
+                clsCell.innerHTML = '<span class="text-gray-300 text-xs">-</span>';
+            }
+        }
+        // category 자동 매핑 반영 (paid → '추가개발')
+        if (data.category) {
+            var catCell = row.querySelector('[data-category-cell]');
+            if (catCell) catCell.textContent = data.category;
+        }
+    });
+    window.__maintPendingRowClsUpdates = {};
 }
 // iframe 내부에서 호출: 삭제 후 모달 닫고 인덱스 새로고침
 function maintHandleModalClose(reloadList){

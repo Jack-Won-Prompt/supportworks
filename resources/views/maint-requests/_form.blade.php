@@ -626,18 +626,91 @@
             $clsInfo = $clsMap[$r->ai_classification] ?? null;
         @endphp
         @if($canSeePaidDev)
-        {{-- 웍스 요약 판단 (추가 개발 상단 — 관리자/SR 담당자만, 웍스 요약 (재)생성 시 sr-ai-updated 이벤트로 반응형 갱신) --}}
-        <div x-data='@json(['cls' => $r->ai_classification ?? '', 'map' => $clsMap])'
-             @sr-ai-updated.window="if ($event.detail && map[$event.detail.classification]) { cls = $event.detail.classification }"
-             x-show="map[cls]"
+        {{-- 웍스 요약 판단 (추가 개발 상단 — 관리자/SR 담당자만 편집 가능,
+             웍스 요약 (재)생성 시 sr-ai-updated 이벤트로 cls/saved 반응형 갱신) --}}
+        <div x-data='@json([
+                'srId'     => $r->id,
+                'cls'      => $r->ai_classification ?? '',
+                'saved'    => $r->ai_classification ?? '',
+                'saving'   => false,
+                'flash'    => '',
+                'map'      => $clsMap,
+                'endpoint' => route('maint-requests.classification', $r),
+             ])'
+             @sr-ai-updated.window="if ($event.detail && map[$event.detail.classification]) { cls = $event.detail.classification; saved = cls; }"
              x-cloak>
-            <div class="bg-white rounded-xl border border-gray-200 p-3" :style="`border-left:3px solid ${(map[cls]||{}).border}`">
-                <div class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">웍스 요약 판단</div>
-                <div class="inline-flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-md"
-                          :style="`background:${(map[cls]||{}).bg};color:${(map[cls]||{}).fg};`"
-                          x-text="(map[cls]||{}).label"></span>
-                    <span class="text-xs text-gray-500" x-text="(map[cls]||{}).sub"></span>
+            <div class="bg-white rounded-xl border border-gray-200 p-3" :style="`border-left:3px solid ${(map[cls]||map[saved]||{}).border || '#e5e7eb'}`">
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">웍스 요약 판단</div>
+                    <span x-show="flash" x-cloak class="text-[10px] text-emerald-600" x-text="flash"></span>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    {{-- 현재 라벨 배지 (cls 가 비어 있으면 미분류 표기) --}}
+                    <template x-if="map[cls]">
+                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-md"
+                              :style="`background:${(map[cls]||{}).bg};color:${(map[cls]||{}).fg};`"
+                              x-text="(map[cls]||{}).label"></span>
+                    </template>
+                    <template x-if="!map[cls]">
+                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-500">미분류</span>
+                    </template>
+                    <span class="text-xs text-gray-500" x-text="(map[cls]||{}).sub || '직접 선택해 저장하세요'"></span>
+
+                    {{-- 편집 컨트롤 --}}
+                    <div class="ml-auto flex items-center gap-1.5">
+                        <select x-model="cls"
+                                class="px-2 py-1 border border-gray-200 rounded text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">선택…</option>
+                            <option value="free">무상</option>
+                            <option value="paid">유상 추가 개발</option>
+                            <option value="discuss">논의 필요</option>
+                        </select>
+                        <button type="button"
+                                @click="
+                                    if (!cls || cls === saved || saving) return;
+                                    saving = true; flash = '';
+                                    fetch(endpoint, {
+                                        method: 'PATCH',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                        },
+                                        body: JSON.stringify({ ai_classification: cls }),
+                                    })
+                                    .then(async r => {
+                                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                                        return r.json();
+                                    })
+                                    .then(j => {
+                                        saved = j.ai_classification || cls;
+                                        cls   = saved;
+                                        flash = '저장됨';
+                                        setTimeout(() => flash = '', 1500);
+                                        // 부모창(리스트) 갱신 예약 — 모달 닫힐 때 해당 행 배지만 교체
+                                        try {
+                                            if (window.parent && window.parent !== window) {
+                                                window.parent.maintQueueRowClsUpdate &&
+                                                window.parent.maintQueueRowClsUpdate(srId, saved, j.category || null);
+                                            }
+                                        } catch (e) {}
+                                        // 같은 폼 안의 다른 분류 의존 UI 도 즉시 반영 (paid 시 category 자동매핑 등)
+                                        window.dispatchEvent(new CustomEvent('sr-ai-updated', { detail: { classification: saved } }));
+                                        if (j.category) {
+                                            const catInput = document.querySelector('input[name=category]');
+                                            if (catInput && catInput.value !== j.category) catInput.value = j.category;
+                                        }
+                                    })
+                                    .catch(err => { flash = '저장 실패'; console.error(err); })
+                                    .finally(() => { saving = false; });
+                                "
+                                :disabled="!cls || cls === saved || saving"
+                                class="px-2.5 py-1 text-xs font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
+                            <span x-show="!saving">저장</span>
+                            <span x-show="saving" x-cloak>저장 중…</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

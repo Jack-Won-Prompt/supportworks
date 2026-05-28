@@ -712,6 +712,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post  ('maint-requests/import',                             [\App\Http\Controllers\MaintRequestController::class, 'import'])->name('maint-requests.import');
     Route::patch ('maint-requests/{maintRequest}/quick',               [\App\Http\Controllers\MaintRequestController::class, 'quickUpdate'])->name('maint-requests.quick');
     Route::patch ('maint-requests/{maintRequest}/ai-summary',          [\App\Http\Controllers\MaintRequestController::class, 'updateAiSummary'])->name('maint-requests.ai-summary');
+    Route::patch ('maint-requests/{maintRequest}/classification',      [\App\Http\Controllers\MaintRequestController::class, 'updateClassification'])
+        ->middleware('sr.or.admin')
+        ->name('maint-requests.classification');
     Route::post  ('maint-requests/{maintRequest}/ai-review/confirm',   [\App\Http\Controllers\MaintRequestController::class, 'confirmAiReview'])->name('maint-requests.ai-review.confirm');
     Route::get   ('maint-requests/embed/closed',                       [\App\Http\Controllers\MaintRequestController::class, 'embedClosed'])->name('maint-requests.embed.closed');
     Route::get   ('maint-requests/{maintRequest}/embed',               [\App\Http\Controllers\MaintRequestController::class, 'embed'])->name('maint-requests.embed');

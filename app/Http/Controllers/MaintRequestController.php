@@ -407,6 +407,30 @@ class MaintRequestController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /**
+     * 웍스 요약 판단(ai_classification) 수동 변경 — 관리자/SR 담당자 전용.
+     * 라우트 미들웨어(sr.or.admin)로 권한 보호.
+     * paid 변경 시 category='추가개발' 자동 매핑(updateAiSummary 와 동일 정책).
+     */
+    public function updateClassification(Request $request, MaintRequest $maintRequest)
+    {
+        $data = $request->validate([
+            'ai_classification' => 'required|in:free,paid,discuss',
+        ]);
+
+        $update = ['ai_classification' => $data['ai_classification']];
+        if ($data['ai_classification'] === 'paid') {
+            $update['category'] = '추가개발';
+        }
+        $maintRequest->update($update);
+
+        return response()->json([
+            'ok'                => true,
+            'ai_classification' => $maintRequest->ai_classification,
+            'category'          => $maintRequest->category,
+        ]);
+    }
+
     private function detailData(MaintRequest $maintRequest): array
     {
         $maintRequest->load([
