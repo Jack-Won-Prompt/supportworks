@@ -627,8 +627,10 @@
         @endphp
         @if($canSeePaidDev)
         {{-- 웍스 요약 판단 (추가 개발 상단 — 관리자/SR 담당자만 편집 가능,
-             웍스 요약 (재)생성 시 sr-ai-updated 이벤트로 cls/saved 반응형 갱신) --}}
-        <div x-data='@json([
+             웍스 요약 (재)생성 시 sr-ai-updated 이벤트로 cls/saved 반응형 갱신)
+             ※ Blade @json([...]) 다중라인 표기는 컴파일러 버그가 있어 변수로 분리 필수 --}}
+        @php
+            $clsAlpineData = [
                 'srId'     => $r->id,
                 'cls'      => $r->ai_classification ?? '',
                 'saved'    => $r->ai_classification ?? '',
@@ -636,7 +638,9 @@
                 'flash'    => '',
                 'map'      => $clsMap,
                 'endpoint' => route('maint-requests.classification', $r),
-             ])'
+            ];
+        @endphp
+        <div x-data='@json($clsAlpineData)'
              @sr-ai-updated.window="if ($event.detail && map[$event.detail.classification]) { cls = $event.detail.classification; saved = cls; }"
              x-cloak>
             <div class="bg-white rounded-xl border border-gray-200 p-3" :style="`border-left:3px solid ${(map[cls]||map[saved]||{}).border || '#e5e7eb'}`">
