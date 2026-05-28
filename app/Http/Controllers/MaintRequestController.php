@@ -415,11 +415,14 @@ class MaintRequestController extends Controller
     public function updateClassification(Request $request, MaintRequest $maintRequest)
     {
         $data = $request->validate([
-            'ai_classification' => 'required|in:free,paid,discuss',
+            // 빈 값(null) 허용 — 미분류 상태로 되돌릴 수 있어야 함
+            'ai_classification' => 'nullable|in:free,paid,discuss',
         ]);
 
-        $update = ['ai_classification' => $data['ai_classification']];
-        if ($data['ai_classification'] === 'paid') {
+        $cls = $data['ai_classification'] ?? null;
+        $update = ['ai_classification' => $cls];
+        // paid 로 바뀔 때만 category 자동 매핑. 그 외(미분류/free/discuss)에서는 기존 category 보존.
+        if ($cls === 'paid') {
             $update['category'] = '추가개발';
         }
         $maintRequest->update($update);

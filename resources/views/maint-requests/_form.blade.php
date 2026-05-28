@@ -664,14 +664,14 @@
                     <div class="ml-auto flex items-center gap-1.5">
                         <select x-model="cls"
                                 class="px-2 py-1 border border-gray-200 rounded text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="">선택…</option>
+                            <option value="">미분류 (표시 안 함)</option>
                             <option value="free">무상</option>
                             <option value="paid">유상 추가 개발</option>
                             <option value="discuss">논의 필요</option>
                         </select>
                         <button type="button"
                                 @click="
-                                    if (!cls || cls === saved || saving) return;
+                                    if (cls === saved || saving) return;
                                     saving = true; flash = '';
                                     fetch(endpoint, {
                                         method: 'PATCH',
@@ -681,18 +681,19 @@
                                             'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
                                             'X-Requested-With': 'XMLHttpRequest',
                                         },
-                                        body: JSON.stringify({ ai_classification: cls }),
+                                        // 빈 값은 null 로 보내 미분류로 저장
+                                        body: JSON.stringify({ ai_classification: cls === '' ? null : cls }),
                                     })
                                     .then(async r => {
                                         if (!r.ok) throw new Error('HTTP ' + r.status);
                                         return r.json();
                                     })
                                     .then(j => {
-                                        saved = j.ai_classification || cls;
+                                        saved = j.ai_classification ?? '';
                                         cls   = saved;
                                         flash = '저장됨';
                                         setTimeout(() => flash = '', 1500);
-                                        // 부모창(리스트) 갱신 예약 — 모달 닫힐 때 해당 행 배지만 교체
+                                        // 부모창(리스트) 갱신 예약 — 모달 닫힐 때 해당 행 배지만 교체 (빈 값 = 미분류)
                                         try {
                                             if (window.parent && window.parent !== window) {
                                                 window.parent.maintQueueRowClsUpdate &&
@@ -709,7 +710,7 @@
                                     .catch(err => { flash = '저장 실패'; console.error(err); })
                                     .finally(() => { saving = false; });
                                 "
-                                :disabled="!cls || cls === saved || saving"
+                                :disabled="cls === saved || saving"
                                 class="px-2.5 py-1 text-xs font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
                             <span x-show="!saving">저장</span>
                             <span x-show="saving" x-cloak>저장 중…</span>
