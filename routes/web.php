@@ -373,6 +373,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
 
+    // ── 사용자 영역: 시스템 에러 (SR 담당자 + 관리자) ────────────────────
+    Route::middleware('sr.or.admin')->prefix('user')->name('user.')->group(function () {
+        Route::get   ('system-errors',                       [\App\Http\Controllers\User\SystemErrorController::class, 'index'])           ->name('system-errors.index');
+        Route::patch ('system-errors/resolve-all',           [\App\Http\Controllers\User\SystemErrorController::class, 'resolveAll'])      ->name('system-errors.resolve-all');
+        Route::delete('system-errors',                       [\App\Http\Controllers\User\SystemErrorController::class, 'destroyResolved']) ->name('system-errors.destroy-resolved');
+        Route::get   ('system-errors/{systemError}',         [\App\Http\Controllers\User\SystemErrorController::class, 'show'])            ->name('system-errors.show');
+        Route::patch ('system-errors/{systemError}/resolve', [\App\Http\Controllers\User\SystemErrorController::class, 'resolve'])         ->name('system-errors.resolve');
+        Route::delete('system-errors/{systemError}',         [\App\Http\Controllers\User\SystemErrorController::class, 'destroy'])         ->name('system-errors.destroy');
+    });
+
     // 상단바 이메일 보내기 (팝오버)
     Route::get ('/email-compose/recipients',   [\App\Http\Controllers\EmailComposeController::class, 'recipients'])->name('email-compose.recipients');
     Route::post('/email-compose',              [\App\Http\Controllers\EmailComposeController::class, 'send'])->name('email-compose.send');

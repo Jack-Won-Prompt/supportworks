@@ -544,6 +544,27 @@
 
                     <div class="sidebar-divider"></div>
 
+                    {{-- SR 담당자 / 관리자 공통 섹션 ──────────────────────── --}}
+                    @if(auth()->user()->isSr() || auth()->user()->isAdmin())
+                    {{-- 사용자 영역은 source=withworks 만 다루므로 배지도 동일 범위로 한정. --}}
+                    @php $srUnresolvedErrors = \App\Models\SystemErrorLog::unresolved()->where('source', 'withworks')->count(); @endphp
+                    <div style="margin-bottom:4px;">
+                        <div class="gsb-hide" style="padding:6px 10px 4px;">
+                            <span class="section-label">{{ __('app.nav_sr_section') }}</span>
+                        </div>
+                        <a href="{{ route('user.system-errors.index') }}" class="sidebar-item {{ request()->routeIs('user.system-errors.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span class="gsb-hide">{{ __('app.nav_user_system_errors') }}</span>
+                            @if($srUnresolvedErrors > 0)
+                            <span class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;">{{ $srUnresolvedErrors > 99 ? '99+' : $srUnresolvedErrors }}</span>
+                            @endif
+                        </a>
+                    </div>
+                    <div class="sidebar-divider"></div>
+                    @endif
+
                     {{-- 관리자 섹션 --}}
                     @if(auth()->user()->isAdmin())
                     @php $adminUnresolvedErrors = \App\Models\SystemErrorLog::unresolved()->count(); @endphp

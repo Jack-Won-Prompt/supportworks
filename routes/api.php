@@ -52,6 +52,17 @@ Route::get('app-version', [AppVersionController::class, 'publicVersion']);
 
 /*
 |--------------------------------------------------------------------------
+| Public: External error reporting (HMAC auth)
+| POST /api/external-errors  — withworks/fulfillment 등 외부 시스템의 에러 수신
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('verify.hmac')
+    ->post('external-errors', [\App\Http\Controllers\Api\ExternalErrorController::class, 'store'])
+    ->name('api.external-errors.store');
+
+/*
+|--------------------------------------------------------------------------
 | Admin API Routes
 | Base URL: /api/admin
 |--------------------------------------------------------------------------

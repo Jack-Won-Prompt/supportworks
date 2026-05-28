@@ -47,6 +47,14 @@ class User extends Authenticatable
         return in_array($this->role, ['admin', 'member']);
     }
 
+    /**
+     * SR 담당자 여부. is_sr_agent 플래그를 신뢰.
+     */
+    public function isSr(): bool
+    {
+        return (bool) $this->is_sr_agent;
+    }
+
     public function hasFeature(string $key): bool
     {
         return $this->companyGroup?->hasFeature($key) ?? true;

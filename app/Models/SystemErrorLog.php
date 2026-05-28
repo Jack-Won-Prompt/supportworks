@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\FcmService;
+use App\Services\SmsService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Mail;
 class SystemErrorLog extends Model
 {
     protected $fillable = [
-        'level', 'exception', 'message', 'file', 'line',
+        'level', 'source', 'origin', 'exception', 'message', 'file', 'line',
         'trace', 'context', 'is_resolved', 'resolved_by', 'resolved_at',
     ];
 
@@ -30,6 +31,42 @@ class SystemErrorLog extends Model
     public function scopeLevel(Builder $query, string $level): Builder
     {
         return $query->where('level', $level);
+    }
+
+    public function scopeSource(Builder $query, string $source): Builder
+    {
+        return $query->where('source', $source);
+    }
+
+    public function scopeOrigin(Builder $query, string $origin): Builder
+    {
+        return $query->where('origin', $origin);
+    }
+
+    /**
+     * 외부 시스템(withworks 등)에서 HMAC 인증 후 들어온 페이로드를 기록.
+     * source/origin 컬럼과 context 페이로드를 보존하고, SR 담당자에게 알림 발송.
+     */
+    public static function recordExternal(array $payload): self
+    {
+        $context = is_array($payload['context'] ?? null) ? $payload['context'] : [];
+
+        $record = self::create([
+            'level'     => (string) ($payload['level']     ?? 'error'),
+            'source'    => (string) ($payload['source']    ?? 'external'),
+            'origin'    => (string) ($payload['origin']    ?? 'server'),
+            'exception' => (string) ($payload['exception'] ?? 'External'),
+            'message'   => mb_substr((string) ($payload['message'] ?? ''), 0, 65000),
+            'file'      => (string) ($payload['file']      ?? ''),
+            'line'      => (int)    ($payload['line']      ?? 0),
+            'trace'     => mb_substr((string) ($payload['trace'] ?? ''), 0, 65000),
+            'context'   => $context,
+        ]);
+
+        // 외부 에러는 SR 담당자에게만 알림 발송 (FCM + Email + SMS, 5분 쿨다운).
+        static::notifySrAgents($record);
+
+        return $record;
     }
 
     public static function record(\Throwable $e, string $level = 'error'): void
@@ -273,5 +310,112 @@ class SystemErrorLog extends Model
             $detailUrl !== '' ? '' : null,
             $detailUrl !== '' ? "Detail    : $detailUrl" : null,
         ], fn ($x) => $x !== null));
+    }
+
+    /**
+     * 외부 시스템(withworks 등) 에서 들어온 에러를 SR 담당자(is_sr_agent=1)에게 통지.
+     * 채널: FCM + Email + SMS. error/critical/alert/emergency 만 발송, 5분 쿨다운.
+     *
+     * 정책 결정 근거 (2026-05-28):
+     *  - admin 은 기존 notifyAdmins() 흐름에서 별도 처리 — 본 메서드는 SR 전용.
+     *  - 쿨다운 키는 source+exception+file+line — 같은 시스템·동일 위치 도배 차단.
+     *  - SMS 는 phone 있는 SR 만 — SmsService 가 normalize 후 미존재 처리.
+     */
+    protected static function notifySrAgents(self $log): void
+    {
+        try {
+            // SR 사용자 영역 = withworks 만 관리하므로 알림도 source=withworks 한정.
+            // 향후 다른 source 도 SR 통지가 필요해지면 이 가드를 풀거나 화이트리스트화.
+            if ($log->source !== 'withworks') return;
+
+            $critical = ['error', 'critical', 'alert', 'emergency'];
+            if (!in_array($log->level, $critical, true)) return;
+
+            // 쿨다운 키 — admin 알림과 별도 네임스페이스
+            $cacheKey = 'sys_err_notify_sr:' . md5(
+                ($log->source    ?? '') . '|' .
+                ($log->exception ?? '') . '|' .
+                ($log->file      ?? '') . '|' .
+                ($log->line      ?? '')
+            );
+            if (Cache::has($cacheKey)) return;
+            Cache::put($cacheKey, 1, 300);
+
+            $srAgents = User::where('is_sr_agent', 1)->get(['id', 'name', 'email', 'phone']);
+            if ($srAgents->isEmpty()) return;
+
+            $sourceTag = $log->source ?: 'external';
+            $title     = '[' . strtoupper($log->level) . '/' . $sourceTag . '] 외부 시스템 에러';
+            $bodyShort = $log->exception
+                ? class_basename($log->exception) . ': ' . mb_substr($log->message ?? '', 0, 100)
+                : mb_substr($log->message ?? '', 0, 140);
+
+            // 1) FCM (batch)
+            try {
+                FcmService::notifyUsers($srAgents->pluck('id')->all(), $title, $bodyShort, [
+                    'type'     => 'system_error_external',
+                    'error_id' => (string) $log->id,
+                    'source'   => (string) $sourceTag,
+                    'level'    => (string) $log->level,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('[SystemErrorLog] FCM(SR) 발송 실패: ' . $e->getMessage());
+            }
+
+            // 2) Email — SR 별 개별 발송
+            $emailBody = static::buildSrEmailBody($log);
+            foreach ($srAgents as $sr) {
+                if (empty($sr->email)) continue;
+                try {
+                    Mail::raw($emailBody, function ($m) use ($sr, $title) {
+                        $m->to($sr->email, $sr->name ?? null)
+                          ->subject('[SupportWorks] ' . $title);
+                    });
+                } catch (\Throwable $e) {
+                    Log::warning("[SystemErrorLog] email(SR) to {$sr->email} 실패: " . $e->getMessage());
+                }
+            }
+
+            // 3) SMS — phone 있는 SR 만 (SmsService 가 정규화/미존재 처리)
+            try {
+                $smsBody = static::buildSrSmsBody($log);
+                // alsoFcm=false : 위에서 이미 FCM 발송했으므로 SmsService 의 fallback FCM 끔.
+                SmsService::sendMany($srAgents, $smsBody, false);
+            } catch (\Throwable $e) {
+                Log::warning('[SystemErrorLog] SMS(SR) 발송 실패: ' . $e->getMessage());
+            }
+        } catch (\Throwable) {
+            // 외부 채널 실패는 무시 — 에러 로그 자체 기록은 성공해야 함
+        }
+    }
+
+    /** SR 이메일 본문 (plain text). user 영역 상세 링크 포함. */
+    protected static function buildSrEmailBody(self $log): string
+    {
+        $appUrl    = rtrim((string) config('app.url'), '/');
+        $detailUrl = $appUrl !== '' ? "$appUrl/user/system-errors/{$log->id}" : '';
+
+        return implode("\n", array_filter([
+            '외부 시스템에서 발생한 에러입니다.',
+            '',
+            'Source    : ' . ($log->source ?? '-'),
+            'Origin    : ' . ($log->origin ?? '-'),
+            'Level     : ' . $log->level,
+            'Exception : ' . ($log->exception ?? '-'),
+            'Message   : ' . mb_substr($log->message ?? '', 0, 500),
+            'File      : ' . ($log->file ?? '-') . ($log->line ? ':' . $log->line : ''),
+            'Occurred  : ' . optional($log->created_at)->toIso8601String(),
+            $detailUrl !== '' ? '' : null,
+            $detailUrl !== '' ? "Detail    : $detailUrl" : null,
+        ], fn ($x) => $x !== null));
+    }
+
+    /** SR SMS 본문 — 90byte 단문 권장. 길면 자동 LMS 전환되긴 함. */
+    protected static function buildSrSmsBody(self $log): string
+    {
+        $src   = $log->source ?: 'ext';
+        $level = strtoupper($log->level);
+        $msg   = mb_substr($log->message ?? '', 0, 80);
+        return "[SW에러:{$level}/{$src}] {$msg}";
     }
 }

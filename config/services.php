@@ -81,4 +81,13 @@ return [
         'key' => env('MANUS_API_KEY'),
     ],
 
+    // 외부 시스템(withworks 등)에서 supportworks 로 보내는 에러의 HMAC 인증.
+    // source 키별로 secret 을 분리하여 키 회전·시스템별 차단을 쉽게 함.
+    'external_errors' => [
+        'sources' => [
+            'withworks'   => env('WITHWORKS_HMAC_SECRET'),
+            'fulfillment' => env('FULFILLMENT_HMAC_SECRET'),
+        ],
+    ],
+
 ];
