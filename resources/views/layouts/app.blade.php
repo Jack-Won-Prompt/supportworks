@@ -1683,7 +1683,10 @@
                                 window.showToast(data.sender_name, preview, href);
                             }
                             if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
-                                try { new Notification(data.sender_name, { body: preview, tag: 'sw-' + cid }); } catch(e) {}
+                                try {
+                                    const n = new Notification(data.sender_name, { body: preview, tag: 'sw-' + cid });
+                                    n.onclick = () => { window.focus(); n.close(); if (href) location.href = href; };
+                                } catch(e) {}
                             }
                         }
 
@@ -1748,7 +1751,10 @@
                         window.showToast(adminName, preview, inquiryUrl);
                     }
                     if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
-                        try { new Notification(adminName, { body: preview, tag: 'admin-msg-' + cid }); } catch(e) {}
+                        try {
+                            const n = new Notification(adminName, { body: preview, tag: 'admin-msg-' + cid });
+                            n.onclick = () => { window.focus(); n.close(); if (inquiryUrl) location.href = inquiryUrl; };
+                        } catch(e) {}
                     }
                 });
         }
