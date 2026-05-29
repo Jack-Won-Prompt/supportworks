@@ -62,7 +62,7 @@ return [
         'USR' => [
             'no'             => 2,
             'name'           => '사용자 요구사항 명세서',
-            'shortName'      => 'USR',
+            'shortName'      => 'URS', // 표시 라벨만 URS (내부 type_id 키는 'USR' 유지)
             'category'       => 'design',
             'responsibility' => 'B',
             'timing'         => '계약 분석 및 체결',
