@@ -27,8 +27,24 @@ class TranslateController extends Controller
             'target' => 'required|string|in:ko,en,ja,zh',
         ]);
 
-        $text       = $request->input('text');
-        $target     = $request->input('target');
+        $translated = self::translateText($request->input('text'), $request->input('target'));
+
+        if ($translated !== null && trim($translated) !== '') {
+            return response()->json(['ok' => true, 'translated' => trim($translated)]);
+        }
+
+        return response()->json(['error' => '번역에 실패했습니다. 웍스 API 키를 확인해 주세요.'], 503);
+    }
+
+    /**
+     * 텍스트를 대상 언어로 번역해 문자열로 반환한다. (Google→Claude→OpenAI→Manus 폴백)
+     * HTTP 엔드포인트와 서버 내부 호출(예: Word 내보내기 자동 번역)에서 공용.
+     * 모든 서비스 실패 시 null 반환. 빈 입력은 빈 문자열 반환.
+     */
+    public static function translateText(string $text, string $target): ?string
+    {
+        if (trim($text) === '') return '';
+
         $targetName = self::LANG_NAMES[$target] ?? $target;
         $system     = sprintf(self::SYSTEM_PROMPT, $targetName);
         $msgs       = [['role' => 'user', 'content' => $text]];
@@ -38,10 +54,8 @@ class TranslateController extends Controller
 
         // 1차: Google Translate (API 키 불필요)
         try {
-            $translated = $this->googleTranslate($text, $target);
-            if (trim($translated) !== '') {
-                return response()->json(['ok' => true, 'translated' => trim($translated)]);
-            }
+            $translated = self::googleTranslate($text, $target);
+            if (trim($translated) !== '') return trim($translated);
         } catch (\Throwable $e) {
             $errors[] = 'Google: ' . $e->getMessage();
             Log::warning('[Translate] Google failed: ' . $e->getMessage());
@@ -53,9 +67,7 @@ class TranslateController extends Controller
             $claudeKey = $setting->anthropicKey();
             if ($claudeKey) {
                 $translated = (new ClaudeService($claudeKey))->chatRawTranslate($msgs, $system);
-                if (trim($translated) !== '') {
-                    return response()->json(['ok' => true, 'translated' => trim($translated)]);
-                }
+                if (trim($translated) !== '') return trim($translated);
             }
         } catch (\Throwable $e) {
             $errors[] = 'Claude: ' . $e->getMessage();
@@ -68,9 +80,7 @@ class TranslateController extends Controller
             $openaiKey = $setting->openaiKey();
             if ($openaiKey) {
                 $translated = (new OpenAiService($openaiKey))->chatRawTranslate($msgs, $system);
-                if (trim($translated) !== '') {
-                    return response()->json(['ok' => true, 'translated' => trim($translated)]);
-                }
+                if (trim($translated) !== '') return trim($translated);
             }
         } catch (\Throwable $e) {
             $errors[] = 'OpenAI: ' . $e->getMessage();
@@ -84,9 +94,7 @@ class TranslateController extends Controller
             $manusEndpoint = $setting->manusEndpoint();
             if ($manusKey && $manusEndpoint) {
                 $translated = (new ManusService($manusKey, $manusEndpoint))->chatRawTranslate($msgs, $system);
-                if (trim($translated) !== '') {
-                    return response()->json(['ok' => true, 'translated' => trim($translated)]);
-                }
+                if (trim($translated) !== '') return trim($translated);
             }
         } catch (\Throwable $e) {
             $errors[] = 'Manus: ' . $e->getMessage();
@@ -97,23 +105,23 @@ class TranslateController extends Controller
         Log::error('[Translate] All services failed', ['errors' => $errors]);
         \App\Models\SystemErrorLog::log('error', '[Translate] 모든 번역 서비스 실패: ' . implode('; ', $errors));
 
-        return response()->json(['error' => '번역에 실패했습니다. 웍스 API 키를 확인해 주세요.'], 503);
+        return null;
     }
 
-    private function googleTranslate(string $text, string $target): string
+    private static function googleTranslate(string $text, string $target): string
     {
         // 텍스트가 길면 단락 단위로 분할 번역 (GET URL 길이 제한 우회)
-        $chunks = $this->splitIntoChunks($text, 3000);
+        $chunks = self::splitIntoChunks($text, 3000);
         $results = [];
 
         foreach ($chunks as $chunk) {
-            $results[] = $this->googleTranslateChunk($chunk, $target);
+            $results[] = self::googleTranslateChunk($chunk, $target);
         }
 
         return implode("\n", $results);
     }
 
-    private function googleTranslateChunk(string $text, string $target): string
+    private static function googleTranslateChunk(string $text, string $target): string
     {
         // POST 방식으로 URL 길이 제한 우회
         $baseUrl = 'https://translate.googleapis.com/translate_a/single?'
@@ -139,7 +147,7 @@ class TranslateController extends Controller
         return $parts;
     }
 
-    private function splitIntoChunks(string $text, int $maxLen): array
+    private static function splitIntoChunks(string $text, int $maxLen): array
     {
         if (mb_strlen($text) <= $maxLen) {
             return [$text];

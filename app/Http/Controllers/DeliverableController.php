@@ -1391,9 +1391,26 @@ class DeliverableController extends Controller
             foreach ($step['fields'] ?? [] as $field) {
                 if ($isEn) {
                     $enData = $stepEnGetter($step['order'], $field['key']);
-                    // 영문 번역이 없으면 해당 필드 제외 (한글 원문 폴백 없음)
-                    if (!$enData['valid'] || !$enData['en_value']) continue;
-                    $val = $enData['en_value'];
+                    if ($enData['valid'] && $enData['en_value']) {
+                        // 현재 한글 원문과 일치하는 유효 번역 → 그대로 사용
+                        $val = $enData['en_value'];
+                    } else {
+                        // 유효 번역 없음(미번역 또는 한글 수정으로 stale) → 자동 번역 후 캐시 저장
+                        // 이렇게 하지 않으면 STEP 전체가 영문 문서에서 조용히 누락됨
+                        $ko = (string) $stepValueGetter($step['order'], $field['key']);
+                        if (trim($ko) !== '') {
+                            $translated = \App\Http\Controllers\TranslateController::translateText($ko, 'en');
+                            if ($translated !== null && trim($translated) !== '') {
+                                $val = $translated;
+                                $this->cacheTranslation($deliverable, $step['order'], $field['key'], $ko, $translated);
+                            } else {
+                                // 번역 서비스 실패 시 누락 방지: 기존(stale) 영문 → 한글 원문 순 폴백
+                                $val = $enData['en_value'] ?: $ko;
+                            }
+                        } else {
+                            $val = '';
+                        }
+                    }
                 } else {
                     $val = $stepValueGetter($step['order'], $field['key']);
                 }
@@ -1825,6 +1842,28 @@ class DeliverableController extends Controller
             }
             return $deliverable->getStepValue($step, $key);
         };
+    }
+
+    /**
+     * Word 내보내기 중 자동 번역한 영문을 작업본 STEP 데이터에 캐시한다.
+     * 다음 내보내기부터는 API 호출 없이 재사용된다.
+     * 번역 대상 한글($ko)이 작업본 원문과 동일할 때만 저장(스냅샷 값 번역은 해시 불일치 방지 위해 캐시 생략).
+     */
+    private function cacheTranslation(Deliverable $deliverable, int $step, string $key, string $ko, string $en): void
+    {
+        try {
+            $row = DeliverableStepData::where([
+                'deliverable_id' => $deliverable->id,
+                'step_order'     => $step,
+                'field_key'      => $key,
+            ])->first();
+
+            if ($row && (string) $row->value === $ko) {
+                $row->update(['en_value' => $en, 'en_hash' => md5($ko)]);
+            }
+        } catch (\Throwable $e) {
+            \App\Models\SystemErrorLog::record($e, 'warning');
+        }
     }
 
     private function stepEnResolver(Deliverable $deliverable, array $snapshots): \Closure
