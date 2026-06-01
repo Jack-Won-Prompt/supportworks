@@ -35,8 +35,6 @@ return [
     // ── 작성/수정 화면 (edit) ────────────────────────────────
     'edit_popup_title'        => '위클리 수정 — :label',
     'edit_popup_new'          => '신규',
-    'concurrent_detected'     => '동시 작성 감지',
-    'continue_writing'        => '계속 작성',
     'back_to_project'         => '프로젝트로 돌아가기',
     'report_title_label'      => '보고서 제목',
     'base_date_select'        => '기준 날짜 선택',
@@ -78,7 +76,6 @@ return [
     'no_in_progress_task'     => '진행 중인 업무 없음',
     'summary_placeholder'     => '이번 주 주요 성과를 자유롭게 작성하세요...',
     'prev_linked_badge'       => '이전 주(:date) 계획 :count건 연계됨',
-    'concurrent_message'      => ':name님이 동일 주차(:date) 보고서를 작성 중입니다. 중복 작성을 방지하려면 돌아가기를 클릭하세요.',
     'original_data_alert'     => "원본 데이터:\n업무명: :name\n시작일: :start\n종료일: :end",
     'downloading_word'        => '웍스가 보고서를 작성 중...',
     'week_label_js'           => ':year년 :month월 :week주차',

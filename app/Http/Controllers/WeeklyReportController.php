@@ -317,29 +317,6 @@ class WeeklyReportController extends Controller
         ]);
     }
 
-    public function checkConcurrent(Request $request, Project $project): JsonResponse
-    {
-        $this->authorizeProject($project);
-        $user = auth()->user();
-
-        $weekStartDate = $request->get('week_start_date');
-        if (!$weekStartDate) {
-            return response()->json(['concurrent' => false]);
-        }
-
-        $concurrent = WeeklyReport::where('project_id', $project->id)
-            ->where('week_start_date', $weekStartDate)
-            ->where('user_id', '!=', $user->id)
-            ->where('status', 'draft')
-            ->with('user:id,name')
-            ->first();
-
-        return response()->json([
-            'concurrent' => (bool) $concurrent,
-            'user_name'  => $concurrent?->user?->name,
-        ]);
-    }
-
     public function teamNames(Project $project): JsonResponse
     {
         $this->authorizeProject($project);

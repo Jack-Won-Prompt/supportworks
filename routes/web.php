@@ -455,7 +455,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post  ('/bulk-download',           [\App\Http\Controllers\WeeklyReportController::class, 'bulkDownload'])   ->name('bulk-download');
         Route::post  ('/analyze',                 [\App\Http\Controllers\WeeklyReportController::class, 'analyze'])        ->name('analyze');
         Route::get   ('/previous-tasks',          [\App\Http\Controllers\WeeklyReportController::class, 'previousTasks'])  ->name('previous-tasks');
-        Route::get   ('/check-concurrent',        [\App\Http\Controllers\WeeklyReportController::class, 'checkConcurrent'])->name('check-concurrent');
         Route::get   ('/team-names',              [\App\Http\Controllers\WeeklyReportController::class, 'teamNames'])      ->name('team-names');
         Route::post  ('/upload-image',            [\App\Http\Controllers\WeeklyReportController::class, 'uploadImage'])    ->name('upload-image');
         Route::get   ('/{weeklyReport}/import-git-sr', [\App\Http\Controllers\WeeklyReportController::class, 'importGitSr'])->name('import-git-sr');

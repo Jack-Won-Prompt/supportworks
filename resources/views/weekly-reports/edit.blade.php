@@ -55,31 +55,11 @@
 
     .btn-add-row { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1.5px dashed #c4b5fd; border-radius:7px; color:#7c3aed; font-size:12.5px; font-weight:600; cursor:pointer; background:transparent; transition:all .13s; }
     .btn-add-row:hover { background:#f5f3ff; border-color:#7c3aed; }
-
-    #concurrent-modal { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.45); align-items:center; justify-content:center; }
-    #concurrent-modal.show { display:flex; }
 </style>
 @endpush
 
 @section('content')
 <div class="space-y-4 pt-4" style="max-width:900px;margin:0 auto;">
-
-{{-- 동시성 경고 모달 --}}
-<div id="concurrent-modal">
-    <div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-            <div style="background:#fef3c7;border-radius:8px;padding:7px;">
-                <svg width="20" height="20" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-            </div>
-            <span style="font-size:15px;font-weight:700;color:#1f2937;">{{ __('weekly.concurrent_detected') }}</span>
-        </div>
-        <p id="concurrent-msg" style="font-size:13.5px;color:#374151;line-height:1.6;margin-bottom:20px;"></p>
-        <div style="display:flex;gap:12px;justify-content:flex-end;">
-            <button onclick="closeConcurrentModal()" style="padding:8px 18px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;color:#374151;background:#fff;cursor:pointer;">{{ __('weekly.continue_writing') }}</button>
-            <a href="{{ route('projects.show', $project) }}" style="padding:8px 18px;background:#6d28d9;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{{ __('weekly.back_to_project') }}</a>
-        </div>
-    </div>
-</div>
 
 {{-- 폼 --}}
 <form id="report-form" method="POST"
@@ -334,7 +314,6 @@ const INITIAL = {
 const PROJECT_ID = {{ $project->id }};
 const URLS = {
     prevTasks:       '{{ route('projects.weekly-reports.previous-tasks', $project) }}',
-    checkConcurrent: '{{ route('projects.weekly-reports.check-concurrent', $project) }}',
 };
 
 // ── 번역 문자열 ────────────────────────────────────────────────────
@@ -342,7 +321,6 @@ const WR_I18N = {
     weekLabel:        @json(__('weekly.week_label_js')),
     titleTemplate:    @json(__('weekly.report_title_template', ['project' => $project->name, 'label' => ':label'])),
     prevLinkedBadge:  @json(__('weekly.prev_linked_badge', ['date' => ':date', 'count' => ':count'])),
-    concurrentMsg:    @json(__('weekly.concurrent_message', ['name' => ':name', 'date' => ':date'])),
     taskNamePlaceholder: @json(__('weekly.task_name_placeholder')),
     statusPending:    @json(__('weekly.status_pending')),
     statusInProgress: @json(__('weekly.status_in_progress')),
@@ -425,25 +403,6 @@ async function loadPreviousTasks(weekStartDate) {
     } catch (e) { /* 무시 */ }
 }
 
-// ── 동시성 확인 ──────────────────────────────────────────────────────
-async function checkConcurrent(weekStartDate) {
-    try {
-        const res = await fetch(`${URLS.checkConcurrent}?week_start_date=${weekStartDate}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const data = await res.json();
-        if (data.concurrent) {
-            document.getElementById('concurrent-msg').textContent = WR_I18N.concurrentMsg
-                .replace(':name', data.user_name)
-                .replace(':date', weekStartDate);
-            document.getElementById('concurrent-modal').classList.add('show');
-        }
-    } catch (e) { /* 무시 */ }
-}
-
-function closeConcurrentModal() {
-    document.getElementById('concurrent-modal').classList.remove('show');
-}
 
 // ── 현재 업무 그리드 ─────────────────────────────────────────────────
 function renderCurrentTasks() {
@@ -762,10 +721,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // 주차 UI 업데이트
     updateWeekUI(INITIAL.week_start_date);
 
-    // 신규 작성 시: 이전 데이터 로드 + 동시성 확인
+    // 신규 작성 시: 이전 데이터 로드
     if (INITIAL.is_new) {
         loadPreviousTasks(INITIAL.week_start_date);
-        checkConcurrent(INITIAL.week_start_date);
     }
 
     // 날짜 변경 리스너
@@ -776,7 +734,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (currentTasks.length === 0) {
             loadPreviousTasks(info.weekStartDate);
         }
-        checkConcurrent(info.weekStartDate);
     });
 });
 </script>

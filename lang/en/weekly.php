@@ -35,8 +35,6 @@ return [
     // ── Create/Edit screen (edit) ────────────────────────────
     'edit_popup_title'        => 'Edit Weekly — :label',
     'edit_popup_new'          => 'New',
-    'concurrent_detected'     => 'Concurrent Editing Detected',
-    'continue_writing'        => 'Continue Writing',
     'back_to_project'         => 'Back to Project',
     'report_title_label'      => 'Report Title',
     'base_date_select'        => 'Select Base Date',
@@ -78,7 +76,6 @@ return [
     'no_in_progress_task'     => 'No tasks in progress',
     'summary_placeholder'     => 'Feel free to write this week\'s key achievements...',
     'prev_linked_badge'       => ':count plan(s) from previous week (:date) linked',
-    'concurrent_message'      => ':name is currently writing a report for the same week (:date). Click Back to avoid duplicate entries.',
     'original_data_alert'     => "Original data:\nTask name: :name\nStart date: :start\nEnd date: :end",
     'downloading_word'        => 'Works is writing the report...',
     'week_label_js'           => 'Week :week, :month/:year',
