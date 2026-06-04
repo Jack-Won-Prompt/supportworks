@@ -92,8 +92,15 @@ class MessageController extends Controller
         $user     = auth()->user();
         $receiver = User::findOrFail((int) $request->receiver_id);
 
-        if ($user->hasCompany() && !$user->inSameCompany($receiver)) {
-            return back()->with('error', '같은 회사 구성원에게만 메시지를 보낼 수 있습니다.');
+        // 같은 프로젝트 동료(회사 무관) 또는 같은 회사 구성원에게만 1:1 발송 허용.
+        // 그룹 채팅과 동일하게 프로젝트 멤버십 기준을 적용 — 다른 회사라도 공유 프로젝트가 있으면 가능.
+        $sharesProject = \DB::table('project_members')
+            ->where('user_id', $receiver->id)
+            ->whereIn('project_id', $user->projects()->pluck('projects.id'))
+            ->exists();
+
+        if (!$sharesProject && !$user->inSameCompany($receiver)) {
+            return back()->with('error', '같은 프로젝트 또는 같은 회사 구성원에게만 메시지를 보낼 수 있습니다.');
         }
 
         $conv = Conversation::findBetween($user->id, $receiver->id);
