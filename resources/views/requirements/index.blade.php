@@ -27,6 +27,23 @@
 @section('content')
 @include('partials.project-nav', ['project' => $project, 'active' => 'requirements'])
 
+{{-- 공통 리치에디터(Quill) 스타일 --}}
+<link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css">
+<style>
+    .rq-quill-wrap { border:1.5px solid #e4e4e7; border-radius:8px; overflow:hidden; background:#fff; }
+    .rq-quill-wrap.focused { border-color:var(--t500,#7c3aed); }
+    .rq-quill-wrap .ql-toolbar { border:none; border-bottom:1px solid #eef0f2; padding:5px 8px; background:#fafafa; }
+    .rq-quill-wrap .ql-container { border:none; font-family:inherit; }
+    .rq-quill-wrap .ql-editor { min-height:120px; max-height:340px; overflow-y:auto; padding:10px 12px; font-size:13px; color:#374151; line-height:1.7; }
+    .rq-quill-wrap .ql-editor.ql-blank::before { font-style:normal; color:#a1a1aa; left:12px; right:12px; }
+    .rq-quill-wrap .ql-editor img { max-width:100%; height:auto; border-radius:4px; cursor:pointer; }
+    .rq-richtext { font-size:13px; color:#374151; line-height:1.7; }
+    .rq-richtext img { max-width:100%; height:auto; border-radius:4px; }
+    .rq-richtext p { margin:0 0 6px; }
+    .rq-richtext ul, .rq-richtext ol { margin:0 0 6px; padding-left:22px; }
+    .rq-richtext blockquote { border-left:3px solid var(--t200,#ddd6fe); margin:6px 0; padding:2px 12px; color:#52525b; }
+</style>
+
 {{-- 필터 바 --}}
 <form method="GET" id="filter-form" style="background:#fff;border:1px solid #f3f4f6;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
     <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('requirements.search_title_placeholder') }}"
@@ -424,9 +441,8 @@
 
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('common.description') }}</label>
-            <textarea name="description" rows="4" placeholder="{{ __('requirements.req_desc_placeholder') }}"
-                      style="width:100%;padding:8px 11px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;"
-                      onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
+            <div id="req-desc-wrap" class="rq-quill-wrap"><div id="req-desc-editor"></div></div>
+            <input type="hidden" name="description" id="req-desc-hidden">
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -470,13 +486,14 @@
 
         <div>
             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">{{ __('requirements.attachments_label') }} <span style="font-weight:400;color:#9ca3af;">{{ __('requirements.attachments_hint') }}</span></label>
-            <label id="req-file-label" style="display:flex;align-items:center;gap:8px;padding:8px 11px;border:1.5px dashed #e4e4e7;border-radius:8px;cursor:pointer;transition:border-color .15s;background:#fafafa;"
-                   onmouseover="this.style.borderColor='var(--t500)'" onmouseout="this.style.borderColor='#e4e4e7'">
-                <svg width="16" height="16" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                <span id="req-file-hint" style="font-size:12.5px;color:#94a3b8;">{{ __('requirements.file_select_placeholder') }}</span>
-                <input type="file" name="attachments[]" id="req-file-input" multiple
-                       style="display:none;" onchange="reqFileChanged(this)">
-            </label>
+            <div id="req-file-label" onclick="document.getElementById('req-file-input').click()"
+                 style="display:flex;align-items:center;gap:8px;padding:8px 11px;border:1.5px dashed #e4e4e7;border-radius:8px;cursor:pointer;transition:border-color .15s;background:#fafafa;"
+                 onmouseover="this.style.borderColor='var(--t500)'" onmouseout="this.style.borderColor='#e4e4e7'">
+                <svg width="16" height="16" fill="none" stroke="#94a3b8" viewBox="0 0 24 24" style="pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                <span id="req-file-hint" style="font-size:12.5px;color:#94a3b8;pointer-events:none;">{{ __('requirements.file_select_placeholder') }}</span>
+            </div>
+            <input type="file" name="attachments[]" id="req-file-input" multiple
+                   style="display:none;" onchange="reqFileChanged(this)">
             <div id="req-file-list" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
         </div>
 
@@ -746,9 +763,9 @@
                     <p style="font-size:12px;font-weight:700;color:#374151;margin:0;">{{ __('common.description') }}</p>
                     <button onclick="rdToggleDesc()" style="font-size:12px;color:var(--t500);background:none;border:none;cursor:pointer;padding:0;">{{ __('requirements.rd_edit') }}</button>
                 </div>
-                <div id="rd-desc-view" style="font-size:13px;color:#374151;line-height:1.7;white-space:pre-wrap;min-height:40px;"></div>
+                <div id="rd-desc-view" class="rq-richtext" style="min-height:40px;"></div>
                 <div id="rd-desc-edit" style="display:none;">
-                    <textarea id="rd-desc-input" rows="6" style="width:100%;padding:8px 10px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" onfocus="this.style.borderColor='var(--t500)'" onblur="this.style.borderColor='#e4e4e7'"></textarea>
+                    <div id="rd-desc-wrap" class="rq-quill-wrap"><div id="rd-desc-editor"></div></div>
                     <div style="display:flex;gap:8px;margin-top:6px;">
                         <button onclick="rdSaveDesc()" style="padding:5px 14px;font-size:12px;font-weight:600;color:#fff;background:var(--t500);border:none;border-radius:7px;cursor:pointer;">{{ __('common.save') }}</button>
                         <button onclick="rdToggleDesc()" style="padding:5px 12px;font-size:12px;color:#6b7280;border:1.5px solid #e4e4e7;background:#fff;border-radius:7px;cursor:pointer;">{{ __('common.cancel') }}</button>
@@ -1302,6 +1319,8 @@ async function doApply() {
 
 async function openReqModal() {
     document.getElementById('req-form').reset();
+    if (window.reqQuillSet) window.reqQuillSet(window.reqDescQuill, '');
+    document.getElementById('req-desc-hidden').value = '';
     document.getElementById('req-error').style.display = 'none';
     document.getElementById('req-file-list').innerHTML = '';
     document.getElementById('req-file-hint').textContent = @json(__('requirements.file_select_placeholder'));
@@ -1933,7 +1952,7 @@ document.getElementById('req-form').addEventListener('submit', async function(e)
     }
 
     const titleVal = form.querySelector('input[name="title"]').value.trim();
-    const descVal  = form.querySelector('textarea[name="description"]').value.trim();
+    const descVal  = window.reqDescQuill ? window.reqDescQuill.getText().trim() : '';
 
     btn.disabled = true; btn.textContent = @json(__('requirements.js_validating'));
     errEl.style.display = 'none';
@@ -1964,6 +1983,8 @@ document.getElementById('req-form').addEventListener('submit', async function(e)
 async function reqDoStore(form, btn, errEl) {
     btn.disabled = true; btn.textContent = @json(__('requirements.js_saving'));
     errEl.style.display = 'none';
+    // Quill HTML → hidden description 동기화 (FormData 전송 직전)
+    if (window.reqQuillGet) document.getElementById('req-desc-hidden').value = window.reqQuillGet(window.reqDescQuill);
     try {
         const res = await fetch(STORE_URL, {
             method:  'POST',
@@ -2380,9 +2401,9 @@ async function rdRender(data) {
     // 삭제 버튼
     document.getElementById('rd-delete-btn').style.display = data.can_delete ? '' : 'none';
 
-    // 설명
-    document.getElementById('rd-desc-view').textContent = req.description || @json(__('requirements.rd_no_description'));
-    document.getElementById('rd-desc-input').value = req.description ?? '';
+    // 설명 (리치 HTML 렌더)
+    if (window.rqRenderDesc) window.rqRenderDesc(document.getElementById('rd-desc-view'), req.description || '');
+    if (window.reqQuillSet)  window.reqQuillSet(window.rdDescQuill, req.description || '');
     document.getElementById('rd-desc-edit').style.display = 'none';
     document.getElementById('rd-desc-view').style.display = 'block';
 
@@ -2495,7 +2516,10 @@ async function rdToggleDesc() {
     const isEdit = edit.style.display !== 'none';
     view.style.display = isEdit ? 'block' : 'none';
     edit.style.display = isEdit ? 'none' : 'block';
-    if (!isEdit) document.getElementById('rd-desc-input').focus();
+    if (!isEdit) {
+        if (window.reqQuillSet) window.reqQuillSet(window.rdDescQuill, _rd?.requirement?.description || '');
+        if (window.rdDescQuill) setTimeout(() => window.rdDescQuill.focus(), 30);
+    }
 }
 
 function rdToggleTitle() {
@@ -2535,13 +2559,13 @@ async function rdSaveTitle() {
 
 async function rdSaveDesc() {
     if (!_rd) return;
-    const val  = document.getElementById('rd-desc-input').value;
+    const val  = window.reqQuillGet ? window.reqQuillGet(window.rdDescQuill) : '';
     const body = new FormData();
     body.append('_method', 'PATCH');
     body.append('description', val);
     const res = await fetch(_rd.urls.update, { method:'POST', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}, body });
     if (res.ok) {
-        document.getElementById('rd-desc-view').textContent = val || @json(__('requirements.rd_no_description'));
+        if (window.rqRenderDesc) window.rqRenderDesc(document.getElementById('rd-desc-view'), val);
         _rd.requirement.description = val;
         rdToggleDesc();
     }
@@ -2813,4 +2837,60 @@ async function submitGanttModal() {
                 onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">{{ __('requirements.gantt_register') }}</button>
     </div>
 </div>
+
+{{-- 공통 리치에디터(Quill) 초기화 — 설명(등록 모달 + 상세 편집) --}}
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+(function () {
+    if (!window.Quill) return;
+    const TOOLBAR = [
+        [{ header: [false, 1, 2, 3] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ color: [] }, { background: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['blockquote', 'code-block'],
+        ['link', 'image'],
+        ['clean'],
+    ];
+    const UPLOAD_URL = @json(route('projects.requirements.upload-image', $project));
+    const CSRF = document.querySelector('meta[name=csrf-token]')?.content || @json(csrf_token());
+    const PLACEHOLDER = @json(__('requirements.req_desc_placeholder'));
+
+    function mkQuill(editorId, wrapId) {
+        const el = document.getElementById(editorId);
+        if (!el) return null;
+        const q = new Quill(el, { theme: 'snow', placeholder: PLACEHOLDER, modules: { toolbar: TOOLBAR } });
+        const wrap = document.getElementById(wrapId);
+        if (wrap) q.on('selection-change', r => wrap.classList.toggle('focused', !!r));
+        if (window.installQuillImageResize) {
+            window.installQuillImageResize(q, { uploadUrl: UPLOAD_URL, csrfToken: CSRF, enableAnnotate: true });
+        }
+        return q;
+    }
+
+    window.reqDescQuill = mkQuill('req-desc-editor', 'req-desc-wrap');
+    window.rdDescQuill  = mkQuill('rd-desc-editor',  'rd-desc-wrap');
+
+    // HTML 여부 판별 후 주입 (구 데이터=평문도 안전 처리)
+    window.reqQuillSet = function (q, html) {
+        if (!q) return;
+        const v = (html || '').trim();
+        if (v && /<\w+[\s\S]*?>/.test(v)) { q.root.innerHTML = v; q.update(); }
+        else if (v) { q.setText(v); }
+        else { q.setText(''); }
+    };
+    window.reqQuillGet = function (q) {
+        if (!q) return '';
+        return q.getLength() <= 1 ? '' : q.root.innerHTML;
+    };
+    // 상세 보기 영역 렌더 (HTML 이면 그대로, 평문이면 escape)
+    window.rqRenderDesc = function (el, val) {
+        if (!el) return;
+        const v = (val || '').trim();
+        if (!v) { el.innerHTML = '<span style="color:#9ca3af;">' + @json(__('requirements.rd_no_description')) + '</span>'; return; }
+        if (/<\w+[\s\S]*?>/.test(v)) { el.innerHTML = v; }
+        else { el.textContent = v; el.style.whiteSpace = 'pre-wrap'; }
+    };
+})();
+</script>
 @endsection

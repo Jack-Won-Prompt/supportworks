@@ -147,7 +147,10 @@
                 if (!selectedImg) return;
                 // 원본 보관 — 첫 이미지 주석 시점에 현재 src 를 data-original-src 로 보관 (이미 있으면 보존)
                 if (!selectedImg.dataset.originalSrc) selectedImg.dataset.originalSrc = selectedImg.src;
-                window.openMailImageAnnotator(quill, selectedImg, { uploadUrl, csrfToken: csrf });
+                const target = selectedImg;
+                // 주석 모달 위로 리사이즈 핸들 오버레이가 비치지 않도록 선택 해제
+                selectImage(null);
+                window.openMailImageAnnotator(quill, target, { uploadUrl, csrfToken: csrf });
             });
             annotateBtn.addEventListener('mousedown', e => e.stopPropagation());
 

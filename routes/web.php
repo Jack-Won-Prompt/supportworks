@@ -532,6 +532,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get   ('/',                              [\App\Http\Controllers\RequirementController::class, 'index'])         ->name('index');
         Route::post  ('/',                              [\App\Http\Controllers\RequirementController::class, 'store'])         ->name('store');
         Route::post  ('/validate',                      [\App\Http\Controllers\RequirementController::class, 'validateBeforeStore'])->name('validate');
+        Route::post  ('/upload-image',                  [\App\Http\Controllers\RequirementController::class, 'uploadImage'])   ->name('upload-image');
         Route::get   ('/export',                        [\App\Http\Controllers\RequirementController::class, 'export'])        ->name('export');
         Route::post  ('/bulk-destroy',                  [\App\Http\Controllers\RequirementController::class, 'bulkDestroy'])   ->name('bulk-destroy');
         Route::get   ('/{requirement}',                 [\App\Http\Controllers\RequirementController::class, 'show'])          ->name('show');

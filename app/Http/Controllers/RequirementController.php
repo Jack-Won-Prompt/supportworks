@@ -73,6 +73,17 @@ class RequirementController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * 요구사항 설명 리치에디터(Quill) 인라인 이미지 업로드.
+     */
+    public function uploadImage(Request $request, Project $project): JsonResponse
+    {
+        $this->authorizeProject($project);
+        $request->validate(['image' => 'required|image|max:5120']);  // 5MB
+        $path = $request->file('image')->store('requirements/images', 'public');
+        return response()->json(['url' => asset('storage/' . $path)]);
+    }
+
     public function store(Request $request, Project $project)
     {
         $this->authorizeProject($project);
