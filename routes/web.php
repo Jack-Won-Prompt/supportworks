@@ -417,6 +417,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/messages/{conversation}/leave', [MessageController::class, 'leave'])->name('messages.leave');
     Route::post('/messages/{conversation}/invite', [MessageController::class, 'invite'])->name('messages.invite');
     Route::post('/messages/{message}/email-file', [MessageController::class, 'emailFile'])->name('messages.email-file');
+    Route::patch ('/messages/{message}', [MessageController::class, 'update'])->name('messages.update');
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
     Route::post('/messages/{message}/action-items', [MessageActionItemController::class, 'store'])->name('messages.action-items.store');
     Route::post('/messages/analyze', [MessageAnalyzeController::class, 'analyze'])->name('messages.analyze');
     Route::post('/translate', [TranslateController::class, 'translate'])->name('translate');

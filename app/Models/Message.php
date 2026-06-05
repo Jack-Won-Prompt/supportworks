@@ -6,7 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    protected $fillable = ['conversation_id', 'sender_id', 'body', 'translated_body', 'translate_lang', 'file_path', 'file_name', 'file_size', 'reply_to_id'];
+    protected $fillable = ['conversation_id', 'sender_id', 'body', 'translated_body', 'translate_lang', 'file_path', 'file_name', 'file_size', 'reply_to_id', 'edited_at', 'deleted_at'];
+
+    protected $casts = [
+        'edited_at'  => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    public function isDeleted(): bool
+    {
+        return $this->deleted_at !== null;
+    }
+
+    public function isEdited(): bool
+    {
+        return $this->edited_at !== null;
+    }
 
     public function isImage(): bool
     {

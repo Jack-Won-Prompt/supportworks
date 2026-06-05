@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Events\ConversationRead;
 use App\Events\MessageSent;
+use App\Events\MessageUpdated;
+use App\Events\MessageDeleted;
 use App\Mail\ChatFileShareMail;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -230,6 +232,76 @@ class MessageController extends Controller
             'added'   => $toAttach->count(),
             'message' => $toAttach->count() . '명을 초대했습니다.',
         ]);
+    }
+
+    /**
+     * 메시지 본문 수정 — 발신자 본인만, 삭제되지 않은 텍스트 메시지에 한함.
+     * 답글(reply_to_id 있는 메시지)도 동일하게 처리.
+     */
+    public function update(Request $request, Message $message)
+    {
+        $user         = auth()->user();
+        $conversation = $message->conversation;
+
+        abort_if($conversation->type !== null, 404);
+        abort_unless($conversation->participants->contains('id', $user->id), 403);
+        abort_unless((int) $message->sender_id === (int) $user->id, 403, '본인이 보낸 메시지만 수정할 수 있습니다.');
+        abort_if($message->isDeleted(), 410, '삭제된 메시지는 수정할 수 없습니다.');
+
+        $data = $request->validate([
+            'body' => 'required|string|max:8000',
+        ]);
+
+        $body = trim($data['body']);
+        if ($body === '') {
+            return response()->json(['ok' => false, 'message' => '내용을 입력하세요.'], 422);
+        }
+
+        $message->body = $body;
+        // 본문이 바뀌면 기존 번역본은 더 이상 일치하지 않으므로 제거
+        $message->translated_body = null;
+        $message->translate_lang  = null;
+        $message->edited_at       = now();
+        $message->save();
+
+        try {
+            broadcast(new MessageUpdated($message));
+        } catch (\Throwable $e) {
+            \App\Models\SystemErrorLog::record($e, 'warning');
+        }
+
+        return response()->json([
+            'ok'        => true,
+            'id'        => $message->id,
+            'body'      => $message->body,
+            'edited'    => true,
+        ]);
+    }
+
+    /**
+     * 메시지 삭제 — 발신자 본인만. 답글 스레드 보존을 위해 soft tombstone(deleted_at).
+     */
+    public function destroy(Request $request, Message $message)
+    {
+        $user         = auth()->user();
+        $conversation = $message->conversation;
+
+        abort_if($conversation->type !== null, 404);
+        abort_unless($conversation->participants->contains('id', $user->id), 403);
+        abort_unless((int) $message->sender_id === (int) $user->id, 403, '본인이 보낸 메시지만 삭제할 수 있습니다.');
+
+        if (!$message->isDeleted()) {
+            $message->deleted_at = now();
+            $message->save();
+
+            try {
+                broadcast(new MessageDeleted($message));
+            } catch (\Throwable $e) {
+                \App\Models\SystemErrorLog::record($e, 'warning');
+            }
+        }
+
+        return response()->json(['ok' => true, 'id' => $message->id]);
     }
 
     public function emailFile(Request $request, Message $message)

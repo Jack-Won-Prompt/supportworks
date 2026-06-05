@@ -633,6 +633,21 @@
 .bubble-reply-body { color:#3f3f46; grid-column:1; white-space:pre-wrap; word-break:break-word; line-height:1.4; }
 .msg-bubble.mine .bubble-reply-body { color:rgba(255,255,255,.88); }
 
+/* 수정/삭제 표시 */
+.msg-deleted-note { font-style:italic; opacity:.7; font-size:12.5px; display:inline-flex; align-items:center; gap:5px; }
+.msg-deleted-note::before { content:'🚫'; font-style:normal; }
+.msg-bubble.deleted { background:#f3f4f6; color:#9ca3af; border-color:#e5e7eb; box-shadow:none; }
+.msg-bubble-wrap:has(.msg-bubble.deleted) .msg-btn-group { display:none !important; }
+.msg-edited-label { font-size:10.5px; opacity:.55; margin-left:5px; }
+.bubble-reply-item.deleted .bubble-reply-body { font-style:italic; opacity:.65; }
+/* 인라인 편집기 */
+.msg-edit-box { display:flex; flex-direction:column; gap:6px; }
+.msg-edit-box textarea { width:100%; min-width:220px; border:1px solid var(--t300); border-radius:8px; padding:7px 9px; font-size:13.5px; line-height:1.5; resize:vertical; font-family:inherit; color:#1e1b2e; background:#fff; outline:none; }
+.msg-edit-actions { display:flex; gap:6px; justify-content:flex-end; }
+.msg-edit-actions button { padding:4px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.msg-edit-save { background:var(--t500); color:#fff; }
+.msg-edit-cancel { background:#e5e7eb; color:#374151; }
+
 /* 우클릭 컨텍스트 메뉴 */
 #msg-ctx-menu {
     display:none; position:fixed; z-index:99999;
@@ -1140,8 +1155,11 @@
                                 $msgLangName     = $hasTranslation ? ($langNames[$msg->translate_lang] ?? $msg->translate_lang) : '';
                             @endphp
                             <div class="msg-bubble-wrap" data-msg-id="{{ $msg->id }}" data-msg-body="{{ $previewBody ?: ($msg->file_name ? '📎 '.$msg->file_name : '') }}" data-msg-sender="{{ $isMine ? __('messages.me') : $msg->sender->name }}">
-                                <div class="msg-bubble {{ $isMine ? 'mine' : 'theirs' }}">
-                                    @if($displayBody)<div style="white-space:pre-wrap;word-break:break-word;">{!! preg_replace('/(https?:\/\/[^\s<>"\']+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;word-break:break-all;">$1</a>', e($displayBody)) !!}</div>@endif
+                                <div class="msg-bubble {{ $isMine ? 'mine' : 'theirs' }}{{ $msg->isDeleted() ? ' deleted' : '' }}">
+                                    @if($msg->isDeleted())
+                                    <div class="msg-deleted-note">{{ __('messages.msg_deleted') }}</div>
+                                    @else
+                                    @if($displayBody)<div class="msg-body-text" style="white-space:pre-wrap;word-break:break-word;">{!! preg_replace('/(https?:\/\/[^\s<>"\']+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;word-break:break-all;">$1</a>', e($displayBody)) !!}</div>@endif
                                     @if($hasTranslation && $isMine)
                                         <div class="msg-translated-badge">🌐{{ $langNames[$msg->translate_lang] ?? $msg->translate_lang }}</div>
                                     @elseif($hasTranslation && !$isMine && $msg->body && $msg->translate_lang !== app()->getLocale())
@@ -1163,14 +1181,16 @@
                                             </button>
                                         </div>
                                     @endif
+                                    @if($msg->isEdited())<span class="msg-edited-label">({{ __('messages.msg_edited') }})</span>@endif
+                                    @endif
                                     @if($descendants->count() > 0)
                                     <div class="bubble-replies" id="breply-{{ $msg->id }}">
                                         @foreach($descendants as $reply)
                                             @php $replyIsMine = $reply->sender_id === $me; @endphp
-                                            <div class="bubble-reply-item{{ $replyIsMine ? ' mine' : '' }}" data-reply-id="{{ $reply->id }}">
+                                            <div class="bubble-reply-item{{ $replyIsMine ? ' mine' : '' }}{{ $reply->isDeleted() ? ' deleted' : '' }}" data-reply-id="{{ $reply->id }}" data-reply-mine="{{ $replyIsMine ? '1' : '0' }}">
                                                 <span class="bubble-reply-sender">{{ $replyIsMine ? __('messages.me') : $reply->sender->name }}</span>
                                                 <span class="bubble-reply-time">{{ $reply->created_at->format('H:i') }}</span>
-                                                <span class="bubble-reply-body">{{ $reply->body ?: ($reply->file_name ? '📎 '.$reply->file_name : '') }}</span>
+                                                <span class="bubble-reply-body">@if($reply->isDeleted()){{ __('messages.msg_deleted') }}@else{{ $reply->body ?: ($reply->file_name ? '📎 '.$reply->file_name : '') }}{!! $reply->isEdited() ? ' <span class="msg-edited-label">('.e(__('messages.msg_edited')).')</span>' : '' !!}@endif</span>
                                             </div>
                                         @endforeach
                                     </div>
@@ -1303,6 +1323,34 @@
     <div class="ctx-item" id="ctx-copy-btn" onclick="ctxCopy()">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         {{ __('messages.ctx_copy') }}
+    </div>
+    <div class="ctx-item" id="ctx-edit-btn" onclick="ctxEdit()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        {{ __('messages.ctx_edit') }}
+    </div>
+    <div class="ctx-item" id="ctx-delete-btn" onclick="ctxDelete()" style="color:#dc2626;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2H5z"/></svg>
+        {{ __('messages.ctx_delete') }}
+    </div>
+</div>
+
+{{-- 메시지 삭제 확인 다이얼로그 --}}
+<div id="msg-confirm-backdrop" onclick="if(event.target===this)msgConfirmResolve(false)"
+     style="display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;border-radius:16px;padding:24px 26px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.22);">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="background:#fee2e2;border-radius:9px;padding:8px;flex-shrink:0;">
+                <svg width="20" height="20" fill="none" stroke="#dc2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2H5z"/></svg>
+            </div>
+            <span style="font-size:15px;font-weight:700;color:#1f2937;">{{ __('messages.delete_dialog_title') }}</span>
+        </div>
+        <p id="msg-confirm-text" style="font-size:13.5px;color:#4b5563;line-height:1.6;margin:0 0 20px;">{{ __('messages.confirm_delete_msg') }}</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button type="button" onclick="msgConfirmResolve(false)"
+                style="padding:8px 18px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;color:#374151;background:#fff;cursor:pointer;">{{ __('messages.edit_cancel') }}</button>
+            <button type="button" onclick="msgConfirmResolve(true)"
+                style="padding:8px 18px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">{{ __('messages.ctx_delete') }}</button>
+        </div>
     </div>
 </div>
 
@@ -1698,14 +1746,14 @@ const MSG_STR = {
     aiLabelTone:          '{{ __("messages.ai_label_tone") }}',
     aiLabelKeywords:      '{{ __("messages.ai_label_keywords") }}',
     aiLabelContext:       '{{ __("messages.ai_label_context") }}',
-    aiActionHeading:      @js(__('messages.ai_action_heading')),
-    aiActionCreate:       @js(__('messages.ai_action_create')),
-    aiActionCreated:      @js(__('messages.ai_action_created')),
-    aiActionCreating:     @js(__('messages.ai_action_creating')),
-    aiActionEmpty:        @js(__('messages.ai_action_empty')),
-    aiActionDue:          @js(__('messages.ai_action_due')),
-    aiActionAssignee:     @js(__('messages.ai_action_assignee')),
-    aiActionPromoteFail:  @js(__('messages.ai_action_promote_fail')),
+    aiActionHeading:      @json(__('messages.ai_action_heading')),
+    aiActionCreate:       @json(__('messages.ai_action_create')),
+    aiActionCreated:      @json(__('messages.ai_action_created')),
+    aiActionCreating:     @json(__('messages.ai_action_creating')),
+    aiActionEmpty:        @json(__('messages.ai_action_empty')),
+    aiActionDue:          @json(__('messages.ai_action_due')),
+    aiActionAssignee:     @json(__('messages.ai_action_assignee')),
+    aiActionPromoteFail:  @json(__('messages.ai_action_promote_fail')),
     lbLoading:            '{{ __("messages.lb_loading") }}',
     lbDeleteTitle:        '{{ __("messages.lb_delete_title") }}',
     lbCountSuffix:        '{{ __("messages.lb_count_suffix") }}',
@@ -1986,22 +2034,53 @@ function clearFile() {
 
 // ── 우클릭 컨텍스트 메뉴 ──────────────────────────────────
 const ctxMenu = document.getElementById('msg-ctx-menu');
-let ctxTargetWrap = null; // 현재 우클릭된 msg-bubble-wrap
+let ctxTarget = null; // { kind:'msg'|'reply', id, isMine, isDeleted, body, sender, el }
 
 document.getElementById('chat-messages')?.addEventListener('contextmenu', async function(e) {
-    const wrap = e.target.closest('.msg-bubble-wrap');
-    if (!wrap) return;
+    const replyItem = e.target.closest('.bubble-reply-item');
+    const wrap      = e.target.closest('.msg-bubble-wrap');
+    if (!replyItem && !wrap) return;
     e.preventDefault();
 
-    ctxTargetWrap = wrap;
+    if (replyItem) {
+        const bodyEl = replyItem.querySelector('.bubble-reply-body');
+        ctxTarget = {
+            kind: 'reply',
+            id: replyItem.dataset.replyId,
+            isMine: replyItem.dataset.replyMine === '1' || replyItem.classList.contains('mine'),
+            isDeleted: replyItem.classList.contains('deleted'),
+            body: bodyEl ? bodyEl.textContent : '',
+            sender: replyItem.querySelector('.bubble-reply-sender')?.textContent || '',
+            el: replyItem,
+        };
+    } else {
+        const bubble = wrap.querySelector('.msg-bubble');
+        const row    = wrap.closest('.msg-row');
+        ctxTarget = {
+            kind: 'msg',
+            id: wrap.dataset.msgId,
+            isMine: !!row?.classList.contains('mine'),
+            isDeleted: !!bubble?.classList.contains('deleted'),
+            body: wrap.dataset.msgBody || '',
+            sender: wrap.dataset.msgSender || '',
+            el: wrap,
+        };
+    }
 
-    // 복사 항목: 텍스트 없는 파일 전용 메시지면 숨김
-    const hasText = !!(wrap.dataset.msgBody && wrap.dataset.msgBody.trim());
-    document.getElementById('ctx-copy-btn').style.display = hasText ? '' : 'none';
+    // 텍스트 본문 존재 여부 (파일 전용·삭제 메시지 제외)
+    const isFileOnly = ctxTarget.body.trim().startsWith('📎');
+    const hasText    = !!ctxTarget.body.trim() && !isFileOnly && !ctxTarget.isDeleted;
+    const canEdit    = ctxTarget.isMine && !ctxTarget.isDeleted && hasText;
+    const canDelete  = ctxTarget.isMine && !ctxTarget.isDeleted;
 
-    // 위치 결정 (뷰포트 경계 체크)
+    document.getElementById('ctx-reply-btn').style.display  = ctxTarget.isDeleted ? 'none' : '';
+    document.getElementById('ctx-copy-btn').style.display   = hasText ? '' : 'none';
+    document.getElementById('ctx-edit-btn').style.display   = canEdit ? '' : 'none';
+    document.getElementById('ctx-delete-btn').style.display = canDelete ? '' : 'none';
+
+    // 위치 결정 (뷰포트 경계 체크 — 항목 최대 4개 높이 반영)
     const x = Math.min(e.clientX, window.innerWidth  - 175);
-    const y = Math.min(e.clientY, window.innerHeight - 90);
+    const y = Math.min(e.clientY, window.innerHeight - 180);
     ctxMenu.style.left    = x + 'px';
     ctxMenu.style.top     = y + 'px';
     ctxMenu.style.display = 'block';
@@ -2015,23 +2094,192 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') ctxMenu.st
 
 async function ctxReply() {
     ctxMenu.style.display = 'none';
-    if (!ctxTargetWrap) return;
-    const msgId     = ctxTargetWrap.dataset.msgId;
-    const sender    = ctxTargetWrap.dataset.msgSender || '';
-    const body      = ctxTargetWrap.dataset.msgBody   || '';
-
-    document.getElementById('reply-to-id-input').value = msgId;
-    document.getElementById('reply-preview-name').textContent = sender;
-    document.getElementById('reply-preview-text').textContent = body;
+    if (!ctxTarget) return;
+    document.getElementById('reply-to-id-input').value = ctxTarget.id;
+    document.getElementById('reply-preview-name').textContent = ctxTarget.sender;
+    document.getElementById('reply-preview-text').textContent = ctxTarget.body;
     document.getElementById('reply-preview-bar').style.display = 'flex';
     document.getElementById('msg-textarea')?.focus();
 }
 
 async function ctxCopy() {
     ctxMenu.style.display = 'none';
-    if (!ctxTargetWrap) return;
-    const body = ctxTargetWrap.dataset.msgBody || '';
-    navigator.clipboard.writeText(body).catch(() => {});
+    if (!ctxTarget) return;
+    navigator.clipboard.writeText(ctxTarget.body || '').catch(() => {});
+}
+
+// ── 메시지 수정/삭제 ──────────────────────────────────────
+let _editActive = null; // { container, savedHTML, kind, id }
+
+function ctxEdit() {
+    ctxMenu.style.display = 'none';
+    if (!ctxTarget || !ctxTarget.isMine || ctxTarget.isDeleted) return;
+
+    if (ctxTarget.kind === 'reply') {
+        const bodyEl     = ctxTarget.el.querySelector('.bubble-reply-body');
+        const editedMark = ' (' + @json(__('messages.msg_edited')) + ')';
+        let current = bodyEl ? bodyEl.textContent : '';
+        if (current.endsWith(editedMark)) current = current.slice(0, -editedMark.length);
+        openInlineEditor(ctxTarget.el, current, 'reply', ctxTarget.id);
+    } else {
+        const bubble = ctxTarget.el.querySelector('.msg-bubble');
+        const bodyEl = bubble?.querySelector('.msg-body-text');
+        openInlineEditor(bubble, bodyEl ? bodyEl.textContent : '', 'msg', ctxTarget.id);
+    }
+}
+
+function openInlineEditor(container, currentText, kind, id) {
+    if (_editActive) cancelInlineEdit();
+    const savedHTML = container.innerHTML;
+    _editActive = { container, savedHTML, kind, id };
+
+    const box = document.createElement('div');
+    box.className = 'msg-edit-box';
+    const ta = document.createElement('textarea');
+    ta.value = currentText;
+    const actions = document.createElement('div');
+    actions.className = 'msg-edit-actions';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button'; cancelBtn.className = 'msg-edit-cancel';
+    cancelBtn.textContent = @json(__('messages.edit_cancel'));
+    cancelBtn.onclick = cancelInlineEdit;
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button'; saveBtn.className = 'msg-edit-save';
+    saveBtn.textContent = @json(__('messages.edit_save'));
+    saveBtn.onclick = saveInlineEdit;
+    actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+    box.appendChild(ta); box.appendChild(actions);
+
+    container.innerHTML = '';
+    container.appendChild(box);
+    ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveInlineEdit(); }
+        else if (e.key === 'Escape') { e.preventDefault(); cancelInlineEdit(); }
+    });
+    ta.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 200) + 'px'; });
+}
+
+function cancelInlineEdit() {
+    if (!_editActive) return;
+    _editActive.container.innerHTML = _editActive.savedHTML;
+    _editActive = null;
+}
+
+async function saveInlineEdit() {
+    if (!_editActive) return;
+    const ta = _editActive.container.querySelector('textarea');
+    const newBody = (ta?.value || '').trim();
+    if (!newBody) { ta?.focus(); return; }
+    const { id, kind, container, savedHTML } = _editActive;
+    try {
+        const res = await fetch(`{{ url('messages') }}/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ body: newBody }),
+        });
+        if (!res.ok) throw new Error('fail');
+        container.innerHTML = savedHTML;
+        _editActive = null;
+        applyMessageEdit(id, newBody);
+    } catch (e) {
+        container.innerHTML = savedHTML;
+        _editActive = null;
+        if (window.appToast) window.appToast(@json(__('messages.edit_empty_error')), 'error');
+    }
+}
+
+// Promise 기반 커스텀 확인 다이얼로그
+let _msgConfirmResolver = null;
+function msgConfirm(message) {
+    const backdrop = document.getElementById('msg-confirm-backdrop');
+    if (message) document.getElementById('msg-confirm-text').textContent = message;
+    backdrop.style.display = 'flex';
+    return new Promise((resolve) => { _msgConfirmResolver = resolve; });
+}
+function msgConfirmResolve(val) {
+    document.getElementById('msg-confirm-backdrop').style.display = 'none';
+    const r = _msgConfirmResolver; _msgConfirmResolver = null;
+    if (r) r(val);
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && _msgConfirmResolver) { e.preventDefault(); msgConfirmResolve(false); }
+});
+
+async function ctxDelete() {
+    ctxMenu.style.display = 'none';
+    if (!ctxTarget || !ctxTarget.isMine || ctxTarget.isDeleted) return;
+    const id = ctxTarget.id;
+    if (!await msgConfirm(@json(__('messages.confirm_delete_msg')))) return;
+    try {
+        const res = await fetch(`{{ url('messages') }}/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        if (!res.ok) throw new Error('fail');
+        applyMessageDelete(id);
+    } catch (e) {
+        if (window.appToast) window.appToast('{{ __('messages.ctx_delete') }} ✕', 'error');
+    }
+}
+
+// DOM 반영 (본인 액션 + 실시간 수신 공용)
+function applyMessageEdit(id, newBody) {
+    const editedLabel = '<span class="msg-edited-label">(' + @json(__('messages.msg_edited')) + ')</span>';
+    const wrap = document.querySelector(`.msg-bubble-wrap[data-msg-id="${id}"]`);
+    if (wrap) {
+        const bubble = wrap.querySelector('.msg-bubble');
+        if (bubble && !bubble.classList.contains('deleted')) {
+            let bodyEl = bubble.querySelector('.msg-body-text');
+            if (!bodyEl) {
+                bodyEl = document.createElement('div');
+                bodyEl.className = 'msg-body-text';
+                bodyEl.style.cssText = 'white-space:pre-wrap;word-break:break-word;';
+                bubble.insertBefore(bodyEl, bubble.firstChild);
+            }
+            bodyEl.innerHTML = linkify(convertEmoticons(newBody));
+            bubble.querySelector('.msg-translated-badge')?.remove();
+            bubble.querySelector('.msg-original-note')?.remove();
+            ensureEditedLabel(bubble);
+            wrap.dataset.msgBody = newBody.slice(0, 80);
+        }
+    }
+    const reply = document.querySelector(`.bubble-reply-item[data-reply-id="${id}"]`);
+    if (reply && !reply.classList.contains('deleted')) {
+        const b = reply.querySelector('.bubble-reply-body');
+        if (b) b.innerHTML = convertEmoticons(newBody).replace(/</g, '&lt;') + ' ' + editedLabel;
+    }
+}
+
+function ensureEditedLabel(bubble) {
+    if (bubble.querySelector('.msg-edited-label')) return;
+    const lbl = document.createElement('span');
+    lbl.className = 'msg-edited-label';
+    lbl.textContent = '(' + @json(__('messages.msg_edited')) + ')';
+    const replies = bubble.querySelector('.bubble-replies');
+    if (replies) bubble.insertBefore(lbl, replies); else bubble.appendChild(lbl);
+}
+
+function applyMessageDelete(id) {
+    const deletedHtml = '<div class="msg-deleted-note">' + @json(__('messages.msg_deleted')) + '</div>';
+    const wrap = document.querySelector(`.msg-bubble-wrap[data-msg-id="${id}"]`);
+    if (wrap) {
+        const bubble = wrap.querySelector('.msg-bubble');
+        if (bubble) {
+            bubble.classList.add('deleted');
+            const replies = bubble.querySelector('.bubble-replies');
+            bubble.innerHTML = deletedHtml;
+            if (replies) bubble.appendChild(replies);
+        }
+        wrap.dataset.msgBody = '';
+    }
+    const reply = document.querySelector(`.bubble-reply-item[data-reply-id="${id}"]`);
+    if (reply) {
+        reply.classList.add('deleted');
+        const b = reply.querySelector('.bubble-reply-body');
+        if (b) b.textContent = @json(__('messages.msg_deleted'));
+    }
 }
 
 async function clearReply() {
@@ -2308,7 +2556,7 @@ async function renderMessage(data) {
     const shouldShowTranslation = !isMine && hasTranslation;
     const displayBody   = shouldShowTranslation ? data.translated_body : data.body;
     const msgPreview    = (shouldShowTranslation ? data.translated_body : data.body || (data.file_name ? '📎 '+data.file_name : '')).slice(0, 80);
-    const bodyHtml      = displayBody ? `<div style="white-space:pre-wrap;word-break:break-word;">${linkify(convertEmoticons(displayBody))}</div>` : '';
+    const bodyHtml      = displayBody ? `<div class="msg-body-text" style="white-space:pre-wrap;word-break:break-word;">${linkify(convertEmoticons(displayBody))}</div>` : '';
 
     let translationHtml = '';
     if (hasTranslation) {
@@ -2342,6 +2590,12 @@ async function setupReadReceipt() {
         .listen('.ConversationRead', async function(data) {
             if (data.reader_id === MY_ID) return; // 내가 읽은 건 무시
             updateReadReceipts(data.reader_id, data.read_at);
+        })
+        .listen('.MessageUpdated', async function(data) {
+            if (data.body != null) applyMessageEdit(String(data.id), data.body);
+        })
+        .listen('.MessageDeleted', async function(data) {
+            applyMessageDelete(String(data.id));
         });
 }
 if (window.Echo) { setupReadReceipt(); }
