@@ -7,6 +7,7 @@ return [
     'subtitle'            => 'Manage feedback through the Plan-Do-Act cycle.',
     'global_subtitle'     => 'Plan-Do-Act items across all your projects.',
     'all_projects'        => 'All projects',
+    'all_status'          => 'All statuses',
     'new'                 => 'New Plan-Do-Act',
 
     // ── Create/Edit popup ──

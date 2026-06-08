@@ -32,6 +32,18 @@
 @section('content')
 @if(!empty($selectedProject))
     @include('partials.project-nav', ['project' => $selectedProject, 'active' => 'plan-do-acts'])
+
+    {{-- 상태값 필터 --}}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <label style="font-size:12px;color:#64748b;font-weight:600;">{{ __('plan-do-acts.field_status') }}</label>
+        <select onchange="location.href=this.value"
+                style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12.5px;outline:none;min-width:130px;background:#fff;color:#1f2937;">
+            <option value="{{ route('plan-do-acts.index', array_filter(['project' => $selectedProjectId])) }}" {{ !$selectedStatus ? 'selected' : '' }}>{{ __('plan-do-acts.all_status') }}</option>
+            @foreach(\App\Models\PlanDoAct::STATUSES as $st)
+                <option value="{{ route('plan-do-acts.index', array_filter(['project' => $selectedProjectId, 'status' => $st])) }}" {{ $selectedStatus === $st ? 'selected' : '' }}>{{ __('plan-do-acts.status_' . $st) }}</option>
+            @endforeach
+        </select>
+    </div>
 @endif
 
 {{-- 전역 모드: 프로젝트 선택 + 신규 버튼을 별도 헤더 카드로 노출 --}}
@@ -46,9 +58,17 @@
         <label style="font-size:12px;color:#64748b;font-weight:600;margin-left:6px;">{{ __('plan-do-acts.field_project') }}</label>
         <select onchange="location.href=this.value"
                 style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12.5px;outline:none;min-width:200px;background:#fff;color:#1f2937;">
-            <option value="{{ route('plan-do-acts.index') }}" {{ !$selectedProjectId ? 'selected' : '' }}>{{ __('plan-do-acts.all_projects') }}</option>
+            <option value="{{ route('plan-do-acts.index', array_filter(['status' => $selectedStatus])) }}" {{ !$selectedProjectId ? 'selected' : '' }}>{{ __('plan-do-acts.all_projects') }}</option>
             @foreach($projects as $p)
-                <option value="{{ route('plan-do-acts.index', ['project' => $p->id]) }}" {{ (string) $selectedProjectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                <option value="{{ route('plan-do-acts.index', array_filter(['project' => $p->id, 'status' => $selectedStatus])) }}" {{ (string) $selectedProjectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+            @endforeach
+        </select>
+        <label style="font-size:12px;color:#64748b;font-weight:600;margin-left:6px;">{{ __('plan-do-acts.field_status') }}</label>
+        <select onchange="location.href=this.value"
+                style="padding:6px 10px;border:1.5px solid #e4e4e7;border-radius:7px;font-size:12.5px;outline:none;min-width:130px;background:#fff;color:#1f2937;">
+            <option value="{{ route('plan-do-acts.index', array_filter(['project' => $selectedProjectId])) }}" {{ !$selectedStatus ? 'selected' : '' }}>{{ __('plan-do-acts.all_status') }}</option>
+            @foreach(\App\Models\PlanDoAct::STATUSES as $st)
+                <option value="{{ route('plan-do-acts.index', array_filter(['project' => $selectedProjectId, 'status' => $st])) }}" {{ $selectedStatus === $st ? 'selected' : '' }}>{{ __('plan-do-acts.status_' . $st) }}</option>
             @endforeach
         </select>
     </div>

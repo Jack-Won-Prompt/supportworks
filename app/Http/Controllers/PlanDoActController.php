@@ -23,6 +23,7 @@ class PlanDoActController extends Controller
             : $user->projects()->orderBy('projects.name')->get(['projects.id', 'projects.name']);
 
         $selectedProjectId = $request->query('project');
+        $selectedStatus    = $request->query('status');
 
         $query = PlanDoAct::with(['author', 'project'])
             ->where('user_id', $user->id)
@@ -35,6 +36,13 @@ class PlanDoActController extends Controller
             $query->where('project_id', $selectedProjectId);
         }
 
+        // 상단 상태값 필터
+        if ($selectedStatus && in_array($selectedStatus, PlanDoAct::STATUSES, true)) {
+            $query->where('status', $selectedStatus);
+        } else {
+            $selectedStatus = null;
+        }
+
         $items = $query->get();
 
         // 특정 프로젝트가 선택되면 상단 프로젝트 네비게이션용 모델 로드
@@ -42,7 +50,7 @@ class PlanDoActController extends Controller
             ? Project::find($selectedProjectId)
             : null;
 
-        return view('plan-do-acts.global', compact('items', 'projects', 'selectedProjectId', 'selectedProject'));
+        return view('plan-do-acts.global', compact('items', 'projects', 'selectedProjectId', 'selectedProject', 'selectedStatus'));
     }
 
     /** 등록 */
