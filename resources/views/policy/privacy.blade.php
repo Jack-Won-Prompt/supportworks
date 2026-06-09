@@ -13,7 +13,7 @@
     <h1 class="pt">{{ __('policy.privacy_title') }}</h1>
 
 @if(app()->getLocale() === 'en')
-    <p class="pd">Effective Date: January 1, 2024 &nbsp;|&nbsp; LinkTheLab Co., Ltd.</p>
+    <p class="pd">Effective Date: June 9, 2026 &nbsp;|&nbsp; LinkTheLab Co., Ltd.</p>
 
     <div class="info-box">
         <p>LinkTheLab Co., Ltd. establishes and discloses the following Privacy Policy to protect the personal information of data subjects and to handle related grievances promptly and smoothly, in accordance with Article 30 of the Personal Information Protection Act.</p>
@@ -24,7 +24,7 @@
         <p>The Company processes personal information for the following purposes. The processed personal information will not be used for purposes other than those listed below. If the purpose of use changes, the Company will seek prior consent.</p>
         <ul>
             <li><strong>Membership registration and management:</strong> Confirming intent to use the service, identifying and authenticating users, preventing unauthorized use</li>
-            <li><strong>Service provision:</strong> Providing project collaboration, real-time messaging, and 웍스 assistant features</li>
+            <li><strong>Service provision:</strong> Project collaboration (Plan-Do-Act, schedules), real-time messaging with file/voice/image attachments, Maintenance Requests (SR), 웍스 AI assistant, and push notifications</li>
             <li><strong>Customer support:</strong> Receiving and handling inquiries, resolving complaints</li>
             <li><strong>Service improvement:</strong> Developing new features, analyzing data to improve service quality</li>
             <li><strong>Marketing and advertising:</strong> Event notifications, newsletter delivery (with separate consent)</li>
@@ -40,7 +40,9 @@
             <tbody>
                 <tr><td>Required</td><td>Name, email address, password, company name</td><td>Direct input during registration</td></tr>
                 <tr><td>Optional</td><td>Profile photo, phone number, job title</td><td>Direct input during profile setup</td></tr>
-                <tr><td>Automatically collected</td><td>IP address, browser type, service usage records, cookies</td><td>Automatically collected when using the Service</td></tr>
+                <tr><td>User-generated content</td><td>Chat messages, Plan-Do-Act notes, SR (maintenance request) content and notes, attached files / images / voice recordings</td><td>Direct input during Service use</td></tr>
+                <tr><td>Mobile-specific</td><td>FCM device token (push-notification delivery), notification permission state</td><td>Granted by user on the mobile app</td></tr>
+                <tr><td>Automatically collected</td><td>IP address, browser/OS type, service usage records, cookies</td><td>Automatically collected when using the Service</td></tr>
             </tbody>
         </table>
     </div>
@@ -78,6 +80,7 @@
             </thead>
             <tbody>
                 <tr><td>Amazon Web Services (AWS)</td><td>Server infrastructure and data storage</td><td>Until contract termination</td></tr>
+                <tr><td>Google LLC</td><td>Firebase Cloud Messaging (FCM) — push-notification delivery to mobile devices</td><td>Until contract termination</td></tr>
                 <tr><td>Pusher Ltd.</td><td>Real-time message delivery</td><td>Until contract termination</td></tr>
                 <tr><td>Email delivery service</td><td>Sending service notification emails</td><td>Until contract termination</td></tr>
             </tbody>
@@ -126,12 +129,12 @@
 
     <div class="ps">
         <h2>Addendum</h2>
-        <p>This Policy shall take effect from January 1, 2024.</p>
+        <p>This Policy shall take effect from June 9, 2026.</p>
         <p class="contact-line">Contact: <a href="mailto:adm@linkthelab.co.kr">adm@linkthelab.co.kr</a> &nbsp;|&nbsp; 02-1544-9086</p>
     </div>
 
 @else
-    <p class="pd">시행일: 2024년 1월 1일 &nbsp;|&nbsp; 주식회사 링크더랩</p>
+    <p class="pd">시행일: 2026년 6월 9일 &nbsp;|&nbsp; 주식회사 링크더랩</p>
 
     <div class="info-box">
         <p>주식회사 링크더랩은 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보 처리방침을 수립·공개합니다.</p>
@@ -142,7 +145,7 @@
         <p>회사는 다음 목적을 위해 개인정보를 처리합니다. 처리한 개인정보는 다음 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경될 경우 사전에 동의를 구합니다.</p>
         <ul>
             <li><strong>회원 가입 및 관리:</strong> 서비스 이용 의사 확인, 이용자 식별·인증, 서비스 부정 이용 방지</li>
-            <li><strong>서비스 제공:</strong> 프로젝트 협업, 실시간 메시지, 웍스 어시스턴트 기능 제공</li>
+            <li><strong>서비스 제공:</strong> 프로젝트 협업(Plan-Do-Act·일정), 파일·음성·이미지 첨부 실시간 메시지, 유지보수 요청(SR), 웍스 AI 어시스턴트, 푸시 알림</li>
             <li><strong>고객 지원:</strong> 문의 접수·처리, 불만 해소</li>
             <li><strong>서비스 개선:</strong> 신규 기능 개발, 서비스 품질 향상을 위한 분석</li>
             <li><strong>마케팅·광고:</strong> 이벤트 안내, 뉴스레터 발송 (별도 동의 시)</li>
@@ -158,7 +161,9 @@
             <tbody>
                 <tr><td>필수</td><td>이름, 이메일 주소, 비밀번호, 회사명</td><td>회원가입 시 직접 입력</td></tr>
                 <tr><td>선택</td><td>프로필 사진, 연락처, 직책</td><td>프로필 설정 시 직접 입력</td></tr>
-                <tr><td>자동 수집</td><td>접속 IP, 브라우저 종류, 서비스 이용 기록, 쿠키</td><td>서비스 이용 시 자동 수집</td></tr>
+                <tr><td>사용자 생성 콘텐츠</td><td>채팅 메시지, Plan-Do-Act 노트, SR(유지보수 요청) 본문·노트, 첨부 파일·이미지·음성 녹음</td><td>서비스 이용 중 직접 입력</td></tr>
+                <tr><td>모바일 전용</td><td>FCM 디바이스 토큰(푸시 알림 전송용), 알림 권한 상태</td><td>모바일 앱에서 사용자 동의 후 수집</td></tr>
+                <tr><td>자동 수집</td><td>접속 IP, 브라우저/OS 종류, 서비스 이용 기록, 쿠키</td><td>서비스 이용 시 자동 수집</td></tr>
             </tbody>
         </table>
     </div>
@@ -196,6 +201,7 @@
             </thead>
             <tbody>
                 <tr><td>Amazon Web Services (AWS)</td><td>서버 인프라 및 데이터 저장</td><td>계약 종료 시까지</td></tr>
+                <tr><td>Google LLC</td><td>Firebase Cloud Messaging(FCM) — 모바일 기기 푸시 알림 전송</td><td>계약 종료 시까지</td></tr>
                 <tr><td>Pusher Ltd.</td><td>실시간 메시지 전송 처리</td><td>계약 종료 시까지</td></tr>
                 <tr><td>이메일 발송 서비스</td><td>서비스 알림 이메일 발송</td><td>계약 종료 시까지</td></tr>
             </tbody>
@@ -244,7 +250,7 @@
 
     <div class="ps">
         <h2>부칙</h2>
-        <p>본 방침은 2024년 1월 1일부터 시행합니다.</p>
+        <p>본 방침은 2026년 6월 9일부터 시행합니다.</p>
         <p class="contact-line">문의: <a href="mailto:adm@linkthelab.co.kr">adm@linkthelab.co.kr</a> &nbsp;|&nbsp; 02-1544-9086</p>
     </div>
 @endif

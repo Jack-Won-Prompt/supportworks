@@ -159,6 +159,7 @@ Route::get('/terms',   fn() => view('policy.terms'))->name('policy.terms');
 Route::get('/privacy', fn() => view('policy.privacy'))->name('policy.privacy');
 Route::get('/cookie',  fn() => view('policy.cookie'))->name('policy.cookie');
 Route::get('/youth',   fn() => view('policy.youth'))->name('policy.youth');
+Route::get('/account-deletion', fn() => view('policy.account-deletion'))->name('policy.account-deletion');
 
 // 회원가입 회사명 자동완성 (인증 불필요)
 Route::get('/autocomplete/companies', function (\Illuminate\Http\Request $request) {
