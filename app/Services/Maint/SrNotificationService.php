@@ -3,6 +3,7 @@
 namespace App\Services\Maint;
 
 use App\Mail\MaintRequestNoteNotificationMail;
+use App\Mail\MaintRequestNotificationMail;
 use App\Models\CompanyGroup;
 use App\Models\Maint\MaintRequest;
 use App\Models\Maint\MaintRequestNote;
@@ -120,6 +121,65 @@ class SrNotificationService
             'sr_id'   => (string) $sr->id,
             'note_id' => (string) $note->id,
             'event'   => $event,
+        ]);
+    }
+
+    /**
+     * SR 신규 등록 / 수정 시 알림 발송.
+     *
+     * 대상자: 콜로(요청자) + 링크더랩 SR 담당자(assignee). 본인(poster)은 제외.
+     * 채널: 이메일(기존 메일러블 재사용) + FCM 푸시.
+     *
+     * @param string $eventLabel '등록' | '수정' — 이메일 제목/FCM 본문에 사용
+     */
+    public static function notifySrChanged(MaintRequest $sr, ?User $poster, string $eventLabel): void
+    {
+        $sr->loadMissing(['coloUser', 'assignee', 'companyGroup']);
+
+        $candidates = array_filter([
+            self::resolveRequester($sr),
+            self::resolveSrAgent($sr),
+        ]);
+
+        $byId = [];
+        foreach ($candidates as $u) {
+            if ($poster && $u->id === $poster->id) continue;
+            $byId[$u->id] = $u;
+        }
+        $recipients = array_values($byId);
+        if (empty($recipients)) return;
+
+        $emails = [];
+        foreach ($recipients as $u) {
+            $em = (string) ($u->email ?? '');
+            if (!filter_var($em, FILTER_VALIDATE_EMAIL)) continue;
+            $emails[] = $em;
+        }
+        $emails = array_values(array_unique($emails));
+        if (!empty($emails)) {
+            try {
+                Mail::send(new MaintRequestNotificationMail($sr, $emails, $eventLabel));
+            } catch (\Throwable $e) {
+                Log::warning('MaintRequest 이메일 알림 실패: ' . $e->getMessage(), ['sr_id' => $sr->id]);
+            }
+        }
+
+        $type = match ($eventLabel) {
+            '등록' => 'maint_request_created',
+            '수정' => 'maint_request_updated',
+            default => 'maint_request_changed',
+        };
+
+        $userIds = array_values(array_unique(array_map(fn (User $u) => (int) $u->id, $recipients)));
+        $title = "SR #{$sr->id} {$eventLabel}";
+        $bodySrc = trim((string) $sr->summary);
+        $body = mb_substr($bodySrc, 0, 100);
+        if (mb_strlen($bodySrc) > 100) $body .= '…';
+
+        FcmService::notifyUsers($userIds, $title, $body, [
+            'type'  => $type,
+            'sr_id' => (string) $sr->id,
+            'event' => $eventLabel,
         ]);
     }
 

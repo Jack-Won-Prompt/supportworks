@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\MaintRequestNotificationMail;
 use App\Models\Maint\MaintMenu;
 use App\Models\Maint\MaintRequest;
 use App\Models\Maint\MaintRequestAttachment;
@@ -511,7 +510,7 @@ class MaintRequestController extends Controller
             $this->storeAttachments($newSr, $uploaded);
         }
 
-        $this->sendMaintRequestNotification($newSr, '등록');
+        SrNotificationService::notifySrChanged($newSr, auth()->user(), '등록');
 
         // 등록 직후 인덱스 리스트로 복귀 (팝업 닫힘 효과). 상세는 사용자가 리스트에서 직접 클릭.
         return redirect()->route('maint-requests.index')->with('success', '요청이 등록되었습니다.');
@@ -645,7 +644,7 @@ class MaintRequestController extends Controller
             $this->storeAttachments($maintRequest, $uploaded);
         }
 
-        $this->sendMaintRequestNotification($maintRequest->fresh(), '수정');
+        SrNotificationService::notifySrChanged($maintRequest->fresh(), auth()->user(), '수정');
 
         if (request()->boolean('_modal')) {
             return redirect()->route('maint-requests.embed', $maintRequest)->with('success', '수정되었습니다.');
@@ -1693,48 +1692,4 @@ class MaintRequestController extends Controller
         }
     }
 
-    /**
-     * SR 등록/수정 시 이메일 알림 발송.
-     *  - 수신자 1: SR 등록자 (현재 created_by 컬럼 없음 → 추후 매핑 대비) 또는 콜로 담당자의 매핑된 User
-     *  - 수신자 2: 링크더랩 SR 담당자 — assignee.name 으로 users 테이블 매칭 (company=링크더랩, is_sr_agent=true)
-     * 매칭되지 않거나 이메일이 없으면 건너뜀. 발송 실패해도 본 작업은 진행.
-     */
-    private function sendMaintRequestNotification(?MaintRequest $sr, string $eventLabel): void
-    {
-        if (!$sr) return;
-        try {
-            $sr->loadMissing(['companyGroup', 'coloUser', 'assignee']);
-
-            $recipients = [];
-
-            // 1) 콜로(요청 회사) 측 담당자 — 회사그룹 사용자 중 이름 매칭
-            if ($sr->coloUser && $sr->company_group_id) {
-                $u = User::where('company_group_id', $sr->company_group_id)
-                    ->where('name', $sr->coloUser->name)
-                    ->whereNotNull('email')
-                    ->first();
-                if ($u && filter_var($u->email, FILTER_VALIDATE_EMAIL)) {
-                    $recipients[] = $u->email;
-                }
-            }
-
-            // 2) 링크더랩 SR 담당자 (위드웍스측) — is_sr_agent + 이름 매칭
-            if ($sr->assignee) {
-                $u = User::where('is_sr_agent', true)
-                    ->where('name', $sr->assignee->name)
-                    ->whereNotNull('email')
-                    ->first();
-                if ($u && filter_var($u->email, FILTER_VALIDATE_EMAIL)) {
-                    $recipients[] = $u->email;
-                }
-            }
-
-            $recipients = array_values(array_unique($recipients));
-            if (empty($recipients)) return;
-
-            Mail::send(new MaintRequestNotificationMail($sr, $recipients, $eventLabel));
-        } catch (\Throwable $e) {
-            Log::warning('MaintRequest 이메일 알림 실패: ' . $e->getMessage(), ['sr_id' => $sr->id ?? null]);
-        }
-    }
 }
