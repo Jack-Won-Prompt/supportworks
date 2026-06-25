@@ -1438,11 +1438,17 @@ async function openStatusDropdown(event, tid) {
 
     const sd = document.getElementById('sd');
     const rect = event.currentTarget.getBoundingClientRect();
+    // 먼저 표시해 실제 높이를 측정 (아래 공간 부족 시 위로 뒤집기 위함)
+    sd.style.visibility = 'hidden';
+    sd.style.display    = 'block';
+    const sdH = sd.offsetHeight;
     const x = Math.min(rect.left, window.innerWidth - 160);
-    const y = rect.bottom + 4;
-    sd.style.left    = x + 'px';
-    sd.style.top     = y + 'px';
-    sd.style.display = 'block';
+    // 아래 공간이 부족하면 배지 위쪽으로 열기
+    const openUp = rect.bottom + 4 + sdH > window.innerHeight && rect.top - 4 - sdH > 0;
+    const y = openUp ? rect.top - 4 - sdH : rect.bottom + 4;
+    sd.style.left       = x + 'px';
+    sd.style.top        = y + 'px';
+    sd.style.visibility = 'visible';
     document.getElementById('sd-overlay').style.display = 'block';
 }
 
