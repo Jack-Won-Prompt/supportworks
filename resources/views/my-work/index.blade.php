@@ -402,8 +402,8 @@
 {{-- Widget: 최근 완료 --}}
 @if($recentDoneTasks->count() || $recentDoneActions->count())
 @php
-    $allDone = $recentDoneTasks->map(fn($t)=>['tp'=>'Task','title'=>$t->title,'proj'=>$t->project?->name,'at'=>$t->updated_at,'bg'=>'#dbeafe','c'=>'#2563eb'])
-        ->merge($recentDoneActions->map(fn($a)=>['tp'=>'Action','title'=>$a->title,'proj'=>$a->project?->name,'at'=>$a->completed_at,'bg'=>'#ede9fe','c'=>'#7c3aed']))
+    $allDone = $recentDoneTasks->map(fn($t)=>['tp'=>'Task','title'=>$t->title,'proj'=>$t->project?->name,'at'=>$t->updated_at,'bg'=>'#dbeafe','c'=>'#2563eb'])->toBase()
+        ->merge($recentDoneActions->map(fn($a)=>['tp'=>'Action','title'=>$a->title,'proj'=>$a->project?->name,'at'=>$a->completed_at,'bg'=>'#ede9fe','c'=>'#7c3aed'])->toBase())
         ->sortByDesc('at')->take(6);
 @endphp
 <div class="mw-widget">
