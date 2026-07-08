@@ -1107,14 +1107,27 @@
                         }
                         return $all;
                     };
-                    $topMsgs  = $allMsgs->filter(fn($m) => !$m->reply_to_id)->sortBy('created_at')->values();
+                    // 원본글의 '마지막 활동 시각' = 원본 + 모든 답글 중 가장 최근 created_at
+                    // → 답글이 달린 스레드가 맨 아래(최신)로 정렬됨
+                    $lastActivityMap = [];
+                    foreach ($allMsgs->filter(fn($m) => !$m->reply_to_id) as $tm) {
+                        $maxAt = $tm->created_at;
+                        foreach ($getDescendants($tm->id) as $d) {
+                            if ($d->created_at->gt($maxAt)) $maxAt = $d->created_at;
+                        }
+                        $lastActivityMap[$tm->id] = $maxAt;
+                    }
+                    $topMsgs  = $allMsgs->filter(fn($m) => !$m->reply_to_id)
+                        ->sortBy(fn($m) => $lastActivityMap[$m->id]->timestamp)
+                        ->values();
                     $prevDate = null;
                 @endphp
 
                 @foreach($topMsgs as $msg)
                     @php
                         $isMine      = $msg->sender_id === $me;
-                        $msgDate     = $msg->created_at->format('Y-m-d');
+                        $activityAt  = $lastActivityMap[$msg->id] ?? $msg->created_at;
+                        $msgDate     = $activityAt->format('Y-m-d');
                         $senderColor = $colors[($msg->sender_id ?? 0) % count($colors)];
                         $readLabel   = '';
                         if ($isMine && isset($participantReadAt)) {
@@ -1133,7 +1146,7 @@
                     @if($msgDate !== $prevDate)
                         <div style="text-align:center;" data-date="{{ $msgDate }}">
                             <span style="display:inline-block;font-size:11.5px;color:var(--color-text-tertiary);background:var(--t100);padding:3px 12px;border-radius:20px;">
-                                {{ $msg->created_at->format(__('messages.php_date_label_format')) }}
+                                {{ $activityAt->format(__('messages.php_date_label_format')) }}
                             </span>
                         </div>
                         @php $prevDate = $msgDate; @endphp
@@ -2498,7 +2511,21 @@ async function renderMessage(data) {
                 if (data.id) item.dataset.replyId = data.id;
                 item.innerHTML = `<span class="bubble-reply-sender">${senderName}</span><span class="bubble-reply-time">${timeShort}</span><span class="bubble-reply-body">${convertEmoticons(bodyText).replace(/</g,'&lt;')}</span>`;
                 repliesDiv.appendChild(item);
-                parentWrap.closest('.msg-row')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                // 답글이 달린 스레드(원본 행)를 맨 아래(최신)로 이동
+                const parentRow = parentWrap.closest('.msg-row');
+                if (parentRow) {
+                    const bottom = document.getElementById('bottom');
+                    // 답글 날짜가 새 날짜면 날짜 구분선 추가
+                    if (data.date && data.date !== lastDate) {
+                        lastDate = data.date;
+                        const dsep = document.createElement('div');
+                        dsep.style.textAlign = 'center'; dsep.dataset.date = data.date;
+                        dsep.innerHTML = `<span style="display:inline-block;font-size:11.5px;color:var(--color-text-tertiary);background:var(--t100);padding:3px 12px;border-radius:20px;">${data.date_label}</span>`;
+                        cm.insertBefore(dsep, bottom);
+                    }
+                    cm.insertBefore(parentRow, bottom);
+                    parentRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
             }
         }
         return;
