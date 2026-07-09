@@ -710,11 +710,14 @@
 
 @push('styles')
 <style>
-    /* 페이지를 flex 컬럼으로 → 테이블이 남는 높이를 채우고 페이징은 항상 하단 노출 */
+    /* 페이지를 flex 컬럼으로 → 테이블이 남는 높이를 채우고 페이징은 항상 하단 노출.
+       overflow:hidden 으로 페이지 자체 스크롤을 막아 이중 스크롤 방지 (스크롤은 테이블 박스만) */
     #maint-page {
         display: flex;
         flex-direction: column;
         height: 100%;
+        min-height: 0;
+        overflow: hidden;
     }
     /* 테이블 박스: 남는 공간만큼 늘어나고 내부 스크롤 */
     #maint-table-box {
