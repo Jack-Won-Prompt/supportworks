@@ -710,9 +710,16 @@
 
 @push('styles')
 <style>
-    /* 테이블 박스: 자체적으로 높이 제한 + 스크롤 */
+    /* 페이지를 flex 컬럼으로 → 테이블이 남는 높이를 채우고 페이징은 항상 하단 노출 */
+    #maint-page {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    /* 테이블 박스: 남는 공간만큼 늘어나고 내부 스크롤 */
     #maint-table-box {
-        max-height: calc(100vh - 360px);
+        flex: 1 1 auto;
+        min-height: 0;
         overflow-y: auto;
     }
     /* thead 행 sticky */
