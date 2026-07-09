@@ -377,7 +377,7 @@
                     <td class="px-4 py-3">
                         <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
                     </td>
-                    <td class="px-4 py-3 text-gray-600 text-xs" data-category-cell>{{ $r->category ?: '-' }}</td>
+                    <td class="px-4 py-3 text-gray-600 text-xs whitespace-nowrap" data-category-cell>{{ $r->category ?: '-' }}</td>
                     <td class="px-4 py-3 whitespace-nowrap" data-cls-cell>
                         @php
                             $__clsMap = [
