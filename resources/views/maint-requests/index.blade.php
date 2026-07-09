@@ -292,7 +292,7 @@
 
     {{-- 테이블 (thead 고정 + 본문만 스크롤) --}}
     <div id="maint-table-box" class="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <table class="w-full text-sm">
+        <table class="w-full text-sm table-fixed">
             <thead>
                 @php
                     $curSort = request('sort');
@@ -373,11 +373,11 @@
                         </select>
                     </td>
                     <td class="px-4 py-3 text-gray-900 max-w-md truncate" title="{{ $r->summary }}">{{ $r->summary }}</td>
-                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $r->coloUser?->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-600 truncate" title="{{ $r->coloUser?->name ?? '' }}">{{ $r->coloUser?->name ?? '-' }}</td>
                     <td class="px-4 py-3">
                         <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
                     </td>
-                    <td class="px-4 py-3 text-gray-600 text-xs whitespace-nowrap" data-category-cell>{{ $r->category ?: '-' }}</td>
+                    <td class="px-4 py-3 text-gray-600 text-xs truncate" title="{{ $r->category ?: '' }}" data-category-cell>{{ $r->category ?: '-' }}</td>
                     <td class="px-4 py-3 whitespace-nowrap" data-cls-cell>
                         @php
                             $__clsMap = [
