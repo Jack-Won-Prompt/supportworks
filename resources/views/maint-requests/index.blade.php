@@ -281,7 +281,7 @@
             @endif
         @endforeach
         <select name="per_page" onchange="this.form.submit()" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-            @foreach([30, 50, 100] as $n)
+            @foreach([10, 20, 30, 50, 100] as $n)
                 <option value="{{ $n }}" {{ $perPage===$n ? 'selected' : '' }}>{{ $n }}개씩</option>
             @endforeach
         </select>
@@ -710,20 +710,10 @@
 
 @push('styles')
 <style>
-    /* 페이지를 flex 컬럼으로 → 테이블이 남는 높이를 채우고 페이징은 항상 하단 노출.
-       overflow:hidden 으로 페이지 자체 스크롤을 막아 이중 스크롤 방지 (스크롤은 테이블 박스만) */
-    #maint-page {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        min-height: 0;
-        overflow: hidden;
-    }
-    /* 테이블 박스: 남는 공간만큼 늘어나고 내부 스크롤 */
+    /* 테이블 박스: 바깥(main) 단일 스크롤만 사용 — 박스 자체 스크롤 없음(이중 스크롤 방지).
+       thead sticky 는 스크롤 컨테이너인 main 에 고정됨 */
     #maint-table-box {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
+        overflow: visible;
     }
     /* thead 행 sticky */
     #maint-table-box thead th {

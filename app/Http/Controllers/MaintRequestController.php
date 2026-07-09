@@ -113,9 +113,9 @@ class MaintRequestController extends Controller
             });
         }
 
-        $perPage = (int) $request->integer('per_page', 30);
-        if (!in_array($perPage, [30, 50, 100], true)) {
-            $perPage = 30;
+        $perPage = (int) $request->integer('per_page', 10);
+        if (!in_array($perPage, [10, 20, 30, 50, 100], true)) {
+            $perPage = 10;
         }
         $requests = $q->paginate($perPage)->withQueryString();
 
