@@ -329,31 +329,31 @@
                     $isActiveSort = fn($field) => $curSort === $field;
                 @endphp
                 <tr>
-                    <th class="px-4 py-3 text-left w-16">
+                    <th class="px-4 py-3 text-left w-16 whitespace-nowrap">
                         <a href="{{ $sortUrl('id') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('id') ? 'text-indigo-700' : '' }}">#{!! $sortIcon('id') !!}</a>
                     </th>
-                    <th class="px-4 py-3 text-left w-32">대상</th>
-                    <th class="px-4 py-3 text-left w-24">
+                    <th class="px-4 py-3 text-left w-20 whitespace-nowrap">대상</th>
+                    <th class="px-4 py-3 text-left w-24 whitespace-nowrap">
                         <a href="{{ $sortUrl('priority') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('priority') ? 'text-indigo-700' : '' }}">우선순위 {!! $sortIcon('priority') !!}</a>
                     </th>
                     <th class="px-4 py-3 text-left">요약</th>
-                    <th class="px-4 py-3 text-left w-32">
+                    <th class="px-4 py-3 text-left w-32 whitespace-nowrap">
                         <a href="{{ $sortUrl('colo_user') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('colo_user') ? 'text-indigo-700' : '' }}">요청자 {!! $sortIcon('colo_user') !!}</a>
                     </th>
-                    <th class="px-4 py-3 text-left w-28">
+                    <th class="px-4 py-3 text-left w-28 whitespace-nowrap">
                         <a href="{{ $sortUrl('status') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('status') ? 'text-indigo-700' : '' }}">상태 {!! $sortIcon('status') !!}</a>
                     </th>
-                    <th class="px-4 py-3 text-left w-20">구분</th>
-                    <th class="px-4 py-3 text-left w-28">유무상</th>
-                    <th class="px-4 py-3 text-left w-24">링크더랩</th>
-                    <th class="px-4 py-3 text-left w-28">
+                    <th class="px-4 py-3 text-left w-20 whitespace-nowrap">구분</th>
+                    <th class="px-4 py-3 text-left w-28 whitespace-nowrap">유무상</th>
+                    <th class="px-4 py-3 text-left w-24 whitespace-nowrap">링크더랩</th>
+                    <th class="px-4 py-3 text-left w-28 whitespace-nowrap">
                         <a href="{{ $sortUrl('request_date') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('request_date') ? 'text-indigo-700' : '' }}">요청일 {!! $sortIcon('request_date') !!}</a>
                     </th>
-                    <th class="px-4 py-3 text-left w-28">
+                    <th class="px-4 py-3 text-left w-28 whitespace-nowrap">
                         <a href="{{ $sortUrl('eta') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('eta') ? 'text-indigo-700' : '' }}">완료예정 {!! $sortIcon('eta') !!}</a>
                     </th>
                     @if((bool) (auth()->user()->is_sr_agent ?? false))
-                        <th class="px-4 py-3 text-center w-16">삭제</th>
+                        <th class="px-4 py-3 text-center w-16 whitespace-nowrap">삭제</th>
                     @endif
                 </tr>
             </thead>
@@ -361,7 +361,7 @@
                 @forelse($requests as $r)
                 <tr data-sr-id="{{ $r->id }}" class="hover:bg-indigo-50/40 cursor-pointer transition-colors" onclick="maintOpenDetailModal({{ $r->id }})">
                     <td class="px-4 py-3 text-gray-400 font-mono text-xs">{{ $r->id }}</td>
-                    <td class="px-4 py-3 text-gray-700 truncate max-w-[8rem]" title="{{ $r->menu?->name ?? '' }}">{{ $r->menu?->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-700 truncate max-w-[5rem] whitespace-nowrap" title="{{ $r->menu?->name ?? '' }}">{{ $r->menu?->name ?? '-' }}</td>
                     <td class="px-4 py-3" onclick="event.stopPropagation()">
                         <select class="maint-quick-priority maint-pill-select"
                                 data-id="{{ $r->id }}"
