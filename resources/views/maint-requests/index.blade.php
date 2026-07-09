@@ -332,7 +332,7 @@
                     <th class="px-4 py-3 text-left w-16 whitespace-nowrap">
                         <a href="{{ $sortUrl('id') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('id') ? 'text-indigo-700' : '' }}">#{!! $sortIcon('id') !!}</a>
                     </th>
-                    <th class="px-4 py-3 text-left w-20 whitespace-nowrap">대상</th>
+                    <th class="px-4 py-3 text-left w-16 whitespace-nowrap">대상</th>
                     <th class="px-4 py-3 text-left w-24 whitespace-nowrap">
                         <a href="{{ $sortUrl('priority') }}" class="group inline-flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 {{ $isActiveSort('priority') ? 'text-indigo-700' : '' }}">우선순위 {!! $sortIcon('priority') !!}</a>
                     </th>
@@ -361,7 +361,7 @@
                 @forelse($requests as $r)
                 <tr data-sr-id="{{ $r->id }}" class="hover:bg-indigo-50/40 cursor-pointer transition-colors" onclick="maintOpenDetailModal({{ $r->id }})">
                     <td class="px-4 py-3 text-gray-400 font-mono text-xs">{{ $r->id }}</td>
-                    <td class="px-4 py-3 text-gray-700 truncate max-w-[5rem] whitespace-nowrap" title="{{ $r->menu?->name ?? '' }}">{{ $r->menu?->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-700 truncate max-w-[4rem] whitespace-nowrap" title="{{ $r->menu?->name ?? '' }}">{{ $r->menu?->name ?? '-' }}</td>
                     <td class="px-4 py-3" onclick="event.stopPropagation()">
                         <select class="maint-quick-priority maint-pill-select"
                                 data-id="{{ $r->id }}"
@@ -373,12 +373,12 @@
                         </select>
                     </td>
                     <td class="px-4 py-3 text-gray-900 max-w-md truncate" title="{{ $r->summary }}">{{ $r->summary }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ $r->coloUser?->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $r->coloUser?->name ?? '-' }}</td>
                     <td class="px-4 py-3">
                         <span class="maint-pill-static" style="{{ $statusStyles[$r->status] ?? '' }}">{{ $statusLabels[$r->status] ?? $r->status }}</span>
                     </td>
                     <td class="px-4 py-3 text-gray-600 text-xs" data-category-cell>{{ $r->category ?: '-' }}</td>
-                    <td class="px-4 py-3" data-cls-cell>
+                    <td class="px-4 py-3 whitespace-nowrap" data-cls-cell>
                         @php
                             $__clsMap = [
                                 'free'    => ['label' => '무상',           'bg' => '#ecfdf5', 'fg' => '#047857', 'border' => '#a7f3d0'],
