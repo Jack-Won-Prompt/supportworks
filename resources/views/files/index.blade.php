@@ -48,7 +48,7 @@
                         <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $cat->name }}</span>
                         <span class="cat-count">{{ $cat->files_count }}</span>
                     </a>
-                    <button class="cat-edit-btn" onclick="startEditCategory({{ $cat->id }}, '{{ addslashes($cat->name) }}', '{{ $cat->color }}')" title="{{ __('common.edit') }}">
+                    <button class="cat-edit-btn" onclick="startEditCategory({{ $cat->id }}, {{ \Illuminate\Support\Js::from($cat->name) }}, '{{ $cat->color }}')" title="{{ __('common.edit') }}">
                         <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </button>
                     <button class="cat-delete-btn" onclick="deleteCategory({{ $cat->id }}, this)" title="{{ __('common.delete') }}">×</button>
@@ -322,7 +322,7 @@
                                 <span style="font-size:20px;flex-shrink:0;">{{ $file->icon }}</span>
                                 <div style="min-width:0;flex:1;overflow:hidden;">
                                     @if($file->isUrlType())
-                                    <button onclick="openUrlViewer({{ $file->id }}, {{ $project->id }}, '{{ addslashes($file->original_name) }}', '{{ addslashes($file->getEmbedUrl()) }}', '{{ addslashes($file->source_url) }}')"
+                                    <button onclick="openUrlViewer({{ $file->id }}, {{ $project->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }}, {{ \Illuminate\Support\Js::from($file->getEmbedUrl()) }}, {{ \Illuminate\Support\Js::from($file->source_url) }})"
                                             title="{{ $file->original_name }}"
                                             style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;text-align:left;padding:0;display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .12s;"
                                             onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#111827'">
@@ -331,7 +331,7 @@
                                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                                         <span style="font-size:10px;padding:1px 7px;background:#e0e7ff;color:#4338ca;border-radius:10px;font-weight:600;">URL</span>
                                         <button id="file-comment-badge-{{ $file->id }}"
-                                                onclick="openUrlViewer({{ $file->id }}, {{ $project->id }}, '{{ addslashes($file->original_name) }}', '{{ addslashes($file->getEmbedUrl()) }}', '{{ addslashes($file->source_url) }}')"
+                                                onclick="openUrlViewer({{ $file->id }}, {{ $project->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }}, {{ \Illuminate\Support\Js::from($file->getEmbedUrl()) }}, {{ \Illuminate\Support\Js::from($file->source_url) }})"
                                                 style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
                                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                             {{ __('team.opinion_count') }} {{ $file->comments_count > 0 ? $file->comments_count : '' }}
@@ -381,7 +381,7 @@
                                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                                         <span style="font-size:11px;color:#a5b4fc;">{{ __('team.click_to_review') }}</span>
                                         <button id="file-comment-badge-{{ $file->id }}"
-                                                onclick="openComments({{ $file->id }}, '{{ addslashes($file->original_name) }}', {{ $project->id }}, true)"
+                                                onclick="openComments({{ $file->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }}, {{ $project->id }}, true)"
                                                 style="display:{{ $file->comments_count > 0 ? 'inline-flex' : 'none' }};align-items:center;gap:4px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
                                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                             {{ __('team.opinion_count') }} {{ $file->comments_count }}
@@ -430,7 +430,7 @@
                                     </a>
                                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                                         <button id="file-comment-badge-{{ $file->id }}"
-                                                onclick="openComments({{ $file->id }}, '{{ addslashes($file->original_name) }}', {{ $project->id }}, false)"
+                                                onclick="openComments({{ $file->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }}, {{ $project->id }}, false)"
                                                 style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;">
                                             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                             {{ __('team.opinion_count') }} {{ $file->comments_count > 0 ? $file->comments_count : '' }}
@@ -482,7 +482,7 @@
                         </td>
                         <td style="padding:12px;max-width:0;width:12%;">
                             <div style="color:#6b7280;font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;"
-                                @if($file->description) onmouseenter="showDescTooltip(event,'{{ addslashes($file->description) }}')" onmouseleave="hideDescTooltip()" @endif
+                                @if($file->description) onmouseenter="showDescTooltip(event, {{ \Illuminate\Support\Js::from($file->description) }})" onmouseleave="hideDescTooltip()" @endif
                                 title="{{ $file->description ?? '' }}">{{ $file->description ?? '—' }}</div>
                         </td>
                         <td style="padding:12px;color:#6b7280;font-size:12px;white-space:nowrap;">{{ $file->formatted_size }}</td>
@@ -491,7 +491,7 @@
                         <td style="padding:12px;white-space:nowrap;">
                             <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;">
                                 @if($file->isUrlType())
-                                <button onclick="logFileAction({{ $file->id }},'view');openUrlViewer({{ $file->id }}, {{ $project->id }}, '{{ addslashes($file->original_name) }}', '{{ addslashes($file->getEmbedUrl()) }}', '{{ addslashes($file->source_url) }}')"
+                                <button onclick="logFileAction({{ $file->id }},'view');openUrlViewer({{ $file->id }}, {{ $project->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }}, {{ \Illuminate\Support\Js::from($file->getEmbedUrl()) }}, {{ \Illuminate\Support\Js::from($file->source_url) }})"
                                         style="font-size:12px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
                                         onmouseover="this.style.color='#6d28d9';showFileActionTooltip(event,{{ $file->id }},'view')" onmouseout="this.style.color='#7c3aed';hideFileActionTooltip()">{{ __('team.viewer_btn') }}</button>
                                 @elseif($file->previewType())
@@ -499,12 +499,12 @@
                                         style="font-size:12px;font-weight:600;color:#7c3aed;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
                                         onmouseover="this.style.color='#6d28d9';showFileActionTooltip(event,{{ $file->id }},'view')" onmouseout="this.style.color='#7c3aed';hideFileActionTooltip()">{{ __('team.review_btn') }}</button>
                                 @endif
-                                <button onclick="openReviewRequest({{ $file->id }}, '{{ addslashes($file->original_name) }}')"
+                                <button onclick="openReviewRequest({{ $file->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }})"
                                         style="font-size:12px;font-weight:600;color:#059669;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
                                         onmouseover="this.style.color='#047857';showFileActionTooltip(event,{{ $file->id }},'review_request')" onmouseout="this.style.color='#059669';hideFileActionTooltip()">{{ __('team.review_request_btn') }}</button>
                                 @if($file->isShareable())
                                 <button id="share-btn-{{ $file->id }}"
-                                        onclick="openShareModal({{ $file->id }}, '{{ addslashes($file->original_name) }}', '{{ $file->share_token }}', '{{ $file->share_token ? route('files.public-share', $file->share_token) : '' }}')"
+                                        onclick="openShareModal({{ $file->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }}, '{{ $file->share_token }}', '{{ $file->share_token ? route('files.public-share', $file->share_token) : '' }}')"
                                         style="font-size:12px;font-weight:600;color:{{ $file->share_token ? '#7c3aed' : '#9ca3af' }};background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
                                         onmouseover="this.style.color='#7c3aed';showFileActionTooltip(event,{{ $file->id }},'share')" onmouseout="this.style.color='{{ $file->share_token ? '#7c3aed' : '#9ca3af' }}';hideFileActionTooltip()">
                                     {{ $file->share_token ? __('team.sharing_now') : __('team.share_link') }}
@@ -516,7 +516,7 @@
                                    onmouseover="this.style.color='#4f46e5';showFileActionTooltip(event,{{ $file->id }},'download')" onmouseout="this.style.color='#6366f1';hideFileActionTooltip()">{{ __('team.download_btn') }}</a>
                                 @endif
                                 @if($copyableProjects->count())
-                                <button onclick="openCopyModal({{ $file->id }}, '{{ addslashes($file->original_name) }}')"
+                                <button onclick="openCopyModal({{ $file->id }}, {{ \Illuminate\Support\Js::from($file->original_name) }})"
                                         style="font-size:12px;font-weight:600;color:#0891b2;background:none;border:none;cursor:pointer;padding:0;transition:color .12s;"
                                         onmouseover="this.style.color='#0e7490';showFileActionTooltip(event,{{ $file->id }},'copy')" onmouseout="this.style.color='#0891b2';hideFileActionTooltip()">{{ __('team.copy_btn') }}</button>
                                 @endif
