@@ -2,7 +2,7 @@
 
 namespace App\Services\Agent\Parsers;
 
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Support\SafeSpreadsheetReader;
 
 class ExcelFileParser implements FileParser
 {
@@ -20,7 +20,7 @@ class ExcelFileParser implements FileParser
 
     public function parse(string $storagePath, string $absolutePath): ParsedFileContent
     {
-        $spreadsheet = IOFactory::load($absolutePath);
+        $spreadsheet = SafeSpreadsheetReader::load($absolutePath);
 
         $sheets     = [];
         $allText    = [];

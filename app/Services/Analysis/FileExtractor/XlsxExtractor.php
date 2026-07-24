@@ -2,7 +2,7 @@
 
 namespace App\Services\Analysis\FileExtractor;
 
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Support\SafeSpreadsheetReader;
 
 class XlsxExtractor implements FileExtractorInterface
 {
@@ -17,7 +17,7 @@ class XlsxExtractor implements FileExtractorInterface
 
     public function extract(string $filePath): string
     {
-        $spreadsheet = IOFactory::load($filePath);
+        $spreadsheet = SafeSpreadsheetReader::load($filePath);
         $lines = [];
 
         foreach ($spreadsheet->getAllSheets() as $sheet) {
