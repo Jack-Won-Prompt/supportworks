@@ -1365,4 +1365,11 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/auth/handover', [\App\Http\Controllers\Auth\WebHandoverController::class, 'consume'])
     ->name('auth.handover');
 
+// ── AI Works: Reverb 전용 브로드캐스트 인가 ─────────────────────────────
+// 기본 /broadcasting/auth 는 기본 커넥션(pusher) secret 으로 서명하므로 Reverb 가 거부한다.
+// AI Works 채널은 반드시 이 엔드포인트를 쓴다. (채널 콜백은 routes/channels.php 에 reverb 커넥션으로 등록)
+Route::post('/aiw/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+    return \Illuminate\Support\Facades\Broadcast::connection('reverb')->auth($request);
+})->middleware(['auth'])->name('aiw.broadcasting.auth');
+
 require __DIR__.'/auth.php';

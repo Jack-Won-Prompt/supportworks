@@ -73,3 +73,36 @@ Broadcast::channel('collab-session.{sessionKey}', function ($user, $sessionKey) 
         ->where('status', 'active')
         ->exists();
 }, ['guards' => ['web']]);
+
+// ── AI Works: Reverb 커넥션 전용 채널 등록 ──────────────────────────────
+// 주의: 평범한 Broadcast::channel() 은 기본 커넥션(pusher) 인스턴스에만 등록된다.
+//      Broadcaster::$channels 는 인스턴스별 배열이고 BroadcastManager::resolve() 가 복사하지 않으므로,
+//      reverb 인스턴스에 따로 등록하지 않으면 /aiw/broadcasting/auth 가 항상 403 을 반환한다.
+//
+// 가드 필수: 이 파일은 booted() 에서 매 부팅마다 require 된다(HTTP·artisan·큐 잡 전부).
+//      Broadcast::connection('reverb') 는 그 자리에서 드라이버를 resolve → new Pusher(key, secret, app_id)
+//      까지 간다. config/broadcasting.php 의 reverb 커넥션은 Laravel 기본값으로 이미 존재하므로
+//      "커넥션 미정의" 예외로 걸러지지 않고, REVERB_* 미설정이면 null 이 non-nullable string 파라미터로
+//      넘어가 TypeError → 앱 전체 부팅 실패가 된다. key/secret/app_id 세 값을 모두 확인한다.
+$aiwReverb = config('broadcasting.connections.reverb');
+
+if (filled($aiwReverb['key'] ?? null) && filled($aiwReverb['secret'] ?? null) && filled($aiwReverb['app_id'] ?? null)) {
+    // [Phase 1 검증용 임시 채널] 인가 배관이 동작하는지 확인하는 용도. Phase 3 에서 제거한다.
+    Broadcast::connection('reverb')->channel('aiw.ping', function ($user) {
+        return $user instanceof \App\Models\User;
+    }, ['guards' => ['web']]);
+
+    // [Phase 3] 여기에 aiw.job.{jobId} 채널을 등록한다 (AiwJob 모델은 Phase 2 산출물).
+} else {
+    // 이 경고가 없으면 "가드로 건너뜀"과 "권한 없음"이 둘 다 403 이라 구분이 안 된다.
+    // channels.php 는 매 요청·artisan·큐 잡마다 실행되므로 시간당 1회로 묶는다.
+    // 스토어는 file 고정: 이 프로젝트는 CACHE_STORE=database 라 기본 스토어를 쓰면 부팅 시점에 DB 를 타고,
+    // cache 테이블이 없는 신규 클론에서는 부팅이 죽어 migrate 조차 못 돌게 된다.
+    try {
+        if (\Illuminate\Support\Facades\Cache::store('file')->add('aiw:reverb-unconfigured-warned', 1, 3600)) {
+            \Illuminate\Support\Facades\Log::warning('AI Works: REVERB_APP_KEY/SECRET/APP_ID 미설정으로 reverb 채널 등록을 건너뜀. AI Works 화면의 실시간 구독이 403 이 된다.');
+        }
+    } catch (\Throwable $e) {
+        // 캐시 백엔드가 실패해도 부팅을 막지 않는다. 경고 한 줄보다 부팅이 우선이다.
+    }
+}
