@@ -65,6 +65,13 @@ enum AiwJobStatus: string
 
     public function canTransitionTo(self $to): bool
     {
+        // 같은 상태로의 전이는 no-op 이다. 데몬은 running 을 유지한 채 매 턴
+        // context_tokens/cost_usd 만 갱신하는데, 이걸 막으면 정상 흐름이 409 가 된다.
+        // 다만 종료 상태는 닫아 둔다 — 이미 끝난 job 을 다시 종료 처리할 이유가 없다.
+        if ($to === $this) {
+            return ! $this->isTerminal();
+        }
+
         return in_array($to, $this->allowedTransitions(), true);
     }
 

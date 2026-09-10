@@ -366,3 +366,30 @@ Route::prefix('mobile')->group(function () {
         Route::post('ai-fix-jobs/{aiFixJob}/reject',  [MobileAiFixJobController::class, 'reject']);
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| AI Works — 데몬 API
+|--------------------------------------------------------------------------
+| 작업 PC 의 데몬만 호출한다. 인증은 aiw.agent 미들웨어(Bearer 토큰).
+| 모든 job 엔드포인트는 job.agent_id 를 검증하고, 남의 job 이면 404 를 낸다
+| (403 이면 다른 에이전트의 job 존재 여부가 드러난다).
+*/
+Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function () {
+    Route::post('heartbeat',         [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'heartbeat'])->name('heartbeat');
+    Route::post('broadcasting/auth', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'broadcastingAuth'])->name('broadcasting.auth');
+    Route::get ('jobs/pending',      [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'pendingJobs'])->name('jobs.pending');
+    Route::get ('jobs/{job}/inbox',  [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'inbox'])->name('jobs.inbox');
+
+    Route::prefix('jobs/{job}')->name('jobs.')->group(function () {
+        Route::post('start',       [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'start'])->name('start');
+        Route::post('logs',        [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'logs'])->name('logs');
+        Route::post('messages',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'messages'])->name('messages');
+        Route::post('messages/{message}/delivered', [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'delivered'])->name('messages.delivered');
+        Route::post('status',      [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'status'])->name('status');
+        Route::post('permissions', [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'permissions'])->name('permissions');
+        Route::post('handover',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'handover'])->name('handover');
+        Route::post('complete',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'complete'])->name('complete');
+        Route::post('fail',        [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'fail'])->name('fail');
+    });
+});

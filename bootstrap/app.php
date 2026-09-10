@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.role'   => \App\Http\Middleware\AdminRoleMiddleware::class,
             'verify.hmac'  => \App\Http\Middleware\VerifyHmacSignature::class,
             'sr.or.admin'  => \App\Http\Middleware\RequireSrOrAdmin::class,
+            'aiw.agent'    => \App\Http\Middleware\AiwAgentMiddleware::class,
         ]);
         $middleware->validateCsrfTokens(except: ['collab/heartbeat', 'client-errors']);
         $middleware->encryptCookies(except: ['app_locale']);

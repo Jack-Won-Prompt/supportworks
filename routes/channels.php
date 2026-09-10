@@ -87,12 +87,20 @@ Broadcast::channel('collab-session.{sessionKey}', function ($user, $sessionKey) 
 $aiwReverb = config('broadcasting.connections.reverb');
 
 if (filled($aiwReverb['key'] ?? null) && filled($aiwReverb['secret'] ?? null) && filled($aiwReverb['app_id'] ?? null)) {
-    // [Phase 1 검증용 임시 채널] 인가 배관이 동작하는지 확인하는 용도. Phase 3 에서 제거한다.
-    Broadcast::connection('reverb')->channel('aiw.ping', function ($user) {
-        return $user instanceof \App\Models\User;
+    // job 상세 화면의 실시간 구독. 해당 프로젝트 멤버만 허용한다.
+    // (기존 analysis-session 채널과 동일한 projectMembers 패턴)
+    Broadcast::connection('reverb')->channel('aiw.job.{jobId}', function ($user, $jobId) {
+        if (! $user instanceof \App\Models\User) {
+            return false;
+        }
+
+        return \App\Models\AiWork\AiwJob::where('id', $jobId)
+            ->whereHas('project.projectMembers', fn ($q) => $q->where('user_id', $user->id))
+            ->exists();
     }, ['guards' => ['web']]);
 
-    // [Phase 3] 여기에 aiw.job.{jobId} 채널을 등록한다 (AiwJob 모델은 Phase 2 산출물).
+    // aiw.agent.* 는 여기 등록하지 않는다. 데몬은 user 가 없어 콜백 방식을 탈 수 없고,
+    // /api/aiw/broadcasting/auth 에서 토큰을 확인한 뒤 직접 서명한다.
 } else {
     // 이 경고가 없으면 "가드로 건너뜀"과 "권한 없음"이 둘 다 403 이라 구분이 안 된다.
     // channels.php 는 매 요청·artisan·큐 잡마다 실행되므로 시간당 1회로 묶는다.
