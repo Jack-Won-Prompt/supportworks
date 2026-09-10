@@ -89,7 +89,13 @@ PROMPT,
     public function up(): void
     {
         $now     = now();
-        $adminId = DB::table('users')->orderBy('id')->value('id') ?? 1;
+        $adminId = DB::table('users')->orderBy('id')->value('id');
+
+        // 사용자가 하나도 없는 빈 DB(테스트·신규 설치)에서는 시드를 건너뛴다.
+        // 기존의 `?? 1` 폴백은 created_by -> users.id 외래키를 위반한다.
+        if ($adminId === null) {
+            return;
+        }
 
         foreach ($this->prompts as $prompt) {
             $exists = DB::table('ai_agent_prompts')

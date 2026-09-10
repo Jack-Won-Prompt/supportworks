@@ -66,6 +66,7 @@ use App\Services\Llm\LlmRouter;
 use App\Services\Llm\OpenAiProvider;
 use App\View\Composers\AiAgentComposer;
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Support\Facades\DB as DBFacade;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -421,6 +422,18 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // -- 파괴적 DB 명령 차단 -------------------------------------------
+        // 원격 DB(운영)에 붙어 있을 때 migrate:fresh / migrate:refresh /
+        // migrate:reset / db:wipe 를 금지한다. 일반 migrate 는 영향 없다.
+        //
+        // Laravel 기본 안전장치는 APP_ENV=production 일 때만 걸린다. 이 프로젝트는
+        // 로컬 .env 를 운영 DB 로 돌려놓고 작업하는 경우가 있어(APP_ENV=local 유지)
+        // 기본 장치가 무력하다. 그래서 환경이 아니라 '접속 대상 호스트'로 판단한다.
+        $dbHost = (string) config('database.connections.'.config('database.default').'.host');
+        $isLocalDb = in_array($dbHost, ['127.0.0.1', 'localhost', '::1', ''], true);
+
+        DBFacade::prohibitDestructiveCommands(! $isLocalDb);
+
         $appUrl = config('app.url');
         if ($appUrl) {
             URL::forceRootUrl($appUrl);

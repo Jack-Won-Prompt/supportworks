@@ -61,9 +61,12 @@ return [
             'prefix_indexes' => true,
             'strict' => false,
             'engine' => 'InnoDB',
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+            // PHP 8.5 부터 PDO::MYSQL_ATTR_SSL_CA 상수 참조 자체가 deprecated 다.
+            // env 값이 없으면(현재 로컬·운영 모두 미설정) 상수를 아예 평가하지 않는다.
+            // 값이 설정된 환경에서는 종전과 동일하게 동작한다.
+            'options' => extension_loaded('pdo_mysql') && env('MYSQL_ATTR_SSL_CA')
+                ? [PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA')]
+                : [],
         ],
 
         'mysql' => [
@@ -79,7 +82,9 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
-            'strict' => true,
+            // 로컬 테스트는 MariaDB 라 NO_ZERO_DATE 가 TIMESTAMP NOT NULL(암묵적 zero 기본값)을 거부한다.
+            // 운영(MySQL)은 기본값 true 를 그대로 쓴다. phpunit.xml 에서만 false 로 내린다.
+            'strict' => env('DB_STRICT', true),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),

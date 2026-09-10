@@ -26,8 +26,18 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- 테스트는 MySQL 로 돌린다. 이 저장소의 마이그레이션 다수가 MySQL 전용 DDL
+             (ALTER TABLE ... MODIFY COLUMN ENUM, UPDATE ... JOIN)을 써서 sqlite 로는
+             실행되지 않고, 운영도 MySQL 이라 이쪽이 실제 동작에 더 가깝다.
+             DB_DATABASE 는 반드시 _test 로 끝나야 한다 — tests/TestCase.php 가 강제한다. -->
+        <env name="DB_CONNECTION" value="mysql" force="true"/>
+        <env name="DB_HOST" value="127.0.0.1" force="true"/>
+        <env name="DB_PORT" value="3306" force="true"/>
+        <env name="DB_DATABASE" value="supportworks_test" force="true"/>
+        <env name="DB_SUPPORTWORKS_DATABASE" value="supportworks_test" force="true"/>
+        <env name="DB_USERNAME" value="root" force="true"/>
+        <env name="DB_PASSWORD" value="" force="true"/>
+        <env name="DB_STRICT" value="false" force="true"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
