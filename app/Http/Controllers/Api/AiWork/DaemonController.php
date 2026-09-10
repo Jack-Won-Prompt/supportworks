@@ -40,6 +40,9 @@ class DaemonController extends AgentApiController
             ->get(['id', 'status']);
 
         return response()->json([
+            // 데몬은 토큰으로만 자신을 아는데 채널 구독에는 id 가 필요하다.
+            // 사람이 화면에서 번호를 복사해 .env 에 넣게 하지 않고 여기서 알려준다.
+            'agent_id'        => $agent->id,
             'server_time'     => now()->toIso8601String(),
             'pending_job_ids' => $jobs->whereIn('status', [AiwJobStatus::Queued, AiwJobStatus::Dispatched])
                 ->pluck('id')->values(),

@@ -1,0 +1,68 @@
+import 'dotenv/config';
+
+function required(name: string): string {
+    const value = process.env[name];
+
+    if (!value) {
+        throw new Error(`필수 환경변수가 없습니다: ${name}. .env.example 을 참고하세요.`);
+    }
+
+    return value;
+}
+
+function num(name: string, fallback: number): number {
+    const raw = process.env[name];
+    const parsed = raw ? Number(raw) : NaN;
+
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function bool(name: string, fallback: boolean): boolean {
+    const raw = process.env[name];
+
+    return raw === undefined ? fallback : /^(1|true|yes|on)$/i.test(raw);
+}
+
+export const config = {
+    baseUrl: required('SW_BASE_URL').replace(/\/+$/, ''),
+    token: required('SW_AGENT_TOKEN'),
+
+    reverb: {
+        key: required('REVERB_APP_KEY'),
+        host: required('REVERB_HOST'),
+        port: num('REVERB_PORT', 443),
+        scheme: process.env.REVERB_SCHEME ?? 'https',
+    },
+
+    /**
+     * Windows 에서 Claude Code 는 Git Bash 를 요구한다. 이 값을
+     * CLAUDE_CODE_GIT_BASH_PATH 로 SDK 자식 프로세스에 넘긴다.
+     * 데몬이 직접 셸을 띄우지는 않는다.
+     */
+    shell: process.env.SW_SHELL || undefined,
+
+    heartbeatSec: num('HEARTBEAT_SEC', 30),
+
+    /**
+     * PC 전체 동시 실행 상한. 같은 local_path 는 이 값과 무관하게 항상 직렬이다
+     * (브랜치 충돌은 같은 워킹트리 안에서만 일어나므로 직렬 기준은 PC 가 아니라 폴더다).
+     */
+    maxParallelJobs: num('MAX_PARALLEL_JOBS', 2),
+
+    jobTimeoutSec: num('JOB_TIMEOUT_SEC', 1800),
+    idleTimeoutSec: num('IDLE_TIMEOUT_SEC', 300),
+    sessionMaxSec: num('SESSION_MAX_SEC', 7200),
+
+    /** context_limit_tokens 대비 이 비율에 도달하면 인수인계로 세션을 교체한다. */
+    contextHandoverRatio: num('CONTEXT_HANDOVER_RATIO', 0.6),
+
+    handoverDir: process.env.HANDOVER_DIR ?? 'docs/aiw/handover',
+    logDir: process.env.LOG_DIR ?? './logs',
+
+    resumeOnRestart: bool('RESUME_ON_RESTART', true),
+
+    /** 승인 결정을 기다리는 동안 /inbox 를 폴링하는 주기. Reverb 유실 대비. */
+    inboxPollSec: num('INBOX_POLL_SEC', 30),
+} as const;
+
+export type Config = typeof config;
