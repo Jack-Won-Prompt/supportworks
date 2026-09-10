@@ -21,6 +21,8 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "flatpickr": "^4.6.13"
+        "dompurify": "^3.4.15",
+        "flatpickr": "^4.6.13",
+        "marked": "^18.0.12"
     }
 }

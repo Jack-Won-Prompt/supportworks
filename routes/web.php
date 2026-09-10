@@ -1365,6 +1365,32 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/auth/handover', [\App\Http\Controllers\Auth\WebHandoverController::class, 'consume'])
     ->name('auth.handover');
 
+// ── AI Works: 웹 화면 ───────────────────────────────────────────────────
+// 모든 액션은 AiwJobPolicy 를 경유한다(컨트롤러에서 authorize).
+Route::middleware('auth')->group(function () {
+    Route::prefix('projects/{project}/ai-works')->name('projects.ai-works.')->group(function () {
+        Route::get ('/',                 [\App\Http\Controllers\AiWork\AiwJobController::class, 'index'])->name('index');
+        Route::get ('create',            [\App\Http\Controllers\AiWork\AiwJobController::class, 'create'])->name('create');
+        Route::post('/',                 [\App\Http\Controllers\AiWork\AiwJobController::class, 'store'])->name('store');
+        Route::get ('{job}',             [\App\Http\Controllers\AiWork\AiwJobController::class, 'show'])->name('show');
+        Route::post('{job}/messages',    [\App\Http\Controllers\AiWork\AiwJobController::class, 'message'])->name('message');
+        Route::post('{job}/permissions/{permission}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'decide'])->name('decide');
+        Route::post('{job}/promote',     [\App\Http\Controllers\AiWork\AiwJobController::class, 'promote'])->name('promote');
+        Route::post('{job}/{action}',    [\App\Http\Controllers\AiWork\AiwJobController::class, 'action'])
+            ->whereIn('action', ['cancel', 'end', 'handover', 'redispatch'])->name('action');
+    });
+
+    // 작업 PC 관리(관리자). "AI 에이전트"가 아니라 "작업 PC" — 기존 상담원 agent 와 구분한다.
+    Route::prefix('settings/aiw-agents')->name('settings.aiw-agents.')->group(function () {
+        Route::get ('/',                       [\App\Http\Controllers\AiWork\AiwAgentController::class, 'index'])->name('index');
+        Route::post('/',                       [\App\Http\Controllers\AiWork\AiwAgentController::class, 'store'])->name('store');
+        Route::post('{agent}/regenerate',      [\App\Http\Controllers\AiWork\AiwAgentController::class, 'regenerate'])->name('regenerate');
+        Route::delete('{agent}',               [\App\Http\Controllers\AiWork\AiwAgentController::class, 'destroy'])->name('destroy');
+        Route::post('{agent}/mappings',        [\App\Http\Controllers\AiWork\AiwAgentController::class, 'storeMapping'])->name('mappings.store');
+        Route::delete('{agent}/mappings/{mapping}', [\App\Http\Controllers\AiWork\AiwAgentController::class, 'destroyMapping'])->name('mappings.destroy');
+    });
+});
+
 // ── AI Works: Reverb 전용 브로드캐스트 인가 ─────────────────────────────
 // 기본 /broadcasting/auth 는 기본 커넥션(pusher) secret 으로 서명하므로 Reverb 가 거부한다.
 // AI Works 채널은 반드시 이 엔드포인트를 쓴다. (채널 콜백은 routes/channels.php 에 reverb 커넥션으로 등록)
