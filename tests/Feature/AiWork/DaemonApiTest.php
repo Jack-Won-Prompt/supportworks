@@ -364,16 +364,31 @@ class DaemonApiTest extends TestCase
         $this->assertSame("aiw/diffs/job-{$job->id}.diff", $job->git_diff_path);
     }
 
-    public function test_응답에_중단_플래그가_실린다(): void
+    public function test_비용_상한_초과는_job을_중단시키고_플래그로_알린다(): void
     {
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
 
+        // 상한($2)을 크게 넘는 누적 비용을 보고하면 CostGuard 가 job 을 끊는다.
         $response = $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/status", [
             'status' => 'running', 'cost_usd' => 99.0,
         ]);
 
         $response->assertOk()
             ->assertJsonPath('cost_over_limit', true)
+            ->assertJsonPath('cancel_requested', true)
+            ->assertJsonPath('status', 'failed');
+
+        $this->assertSame(AiwJobStatus::Failed, $this->job->fresh()->status);
+    }
+
+    public function test_상한_이내면_중단되지_않는다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/status", [
+            'status' => 'running', 'cost_usd' => 0.5,
+        ])->assertOk()
+            ->assertJsonPath('cost_over_limit', false)
             ->assertJsonPath('cancel_requested', false);
     }
 }

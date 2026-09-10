@@ -14,6 +14,11 @@ use App\Models\AiWork\AiwPermissionRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Exceptions\AiWork\InvalidJobTransitionException;
+use App\Services\AiWork\CostGuard;
+use App\Services\AiWork\HandoverService;
+use App\Services\AiWork\JobStateMachine;
+use App\Services\AiWork\PermissionService;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -24,6 +29,13 @@ use Illuminate\Support\Facades\Storage;
  */
 class JobReportController extends AgentApiController
 {
+    public function __construct(
+        private JobStateMachine $states,
+        private PermissionService $permissions,
+        private HandoverService $handovers,
+        private CostGuard $costGuard,
+    ) {}
+
     /** 세션 시작 보고. session_chain 에 새 세션을 push 하고 running 으로 만든다. */
     public function start(Request $request, AiwJob $job): JsonResponse
     {
@@ -42,12 +54,6 @@ class JobReportController extends AgentApiController
             'reason'     => null,
         ];
 
-        $job->forceFill([
-            'session_chain' => $chain,
-            'status'        => AiwJobStatus::Running,
-            'started_at'    => $job->started_at ?? now(),
-        ])->save();
-
         // 복구된 세션은 툴 호출을 처음부터 다시 시도하므로 새 request_key 가 생긴다.
         // 옛 pending 을 남겨두면 사용자가 무효한 카드를 누르게 된다.
         if ($request->boolean('resumed')) {
@@ -57,7 +63,7 @@ class JobReportController extends AgentApiController
             ]);
         }
 
-        $this->emit(new JobStatusChanged($job));
+        $this->states->transition($job, AiwJobStatus::Running, ['session_chain' => $chain]);
 
         return response()->json($this->controlFlags($job));
     }
@@ -176,21 +182,20 @@ class JobReportController extends AgentApiController
 
         $to = AiwJobStatus::from($validated['status']);
 
-        abort_unless(
-            $job->status->canTransitionTo($to),
-            409,
-            "상태 전이가 허용되지 않습니다: {$job->status->value} → {$to->value}"
-        );
+        try {
+            $this->states->transition($job, $to, array_filter([
+                'context_tokens' => $validated['context_tokens'] ?? null,
+            ], fn ($v) => $v !== null));
+        } catch (InvalidJobTransitionException $e) {
+            abort(409, $e->getMessage());
+        }
 
-        $job->forceFill(array_filter([
-            'status'         => $to,
-            'context_tokens' => $validated['context_tokens'] ?? null,
-            'cost_usd'       => $validated['cost_usd'] ?? null,
-        ], fn ($v) => $v !== null))->save();
+        // 비용 갱신은 상한 검사와 한 몸이다. 넘으면 여기서 job 이 중단된다.
+        if (isset($validated['cost_usd'])) {
+            $this->costGuard->apply($job, (float) $validated['cost_usd']);
+        }
 
-        $this->emit(new JobStatusChanged($job));
-
-        return response()->json($this->controlFlags($job));
+        return response()->json($this->controlFlags($job->refresh()));
     }
 
     /**
@@ -207,23 +212,15 @@ class JobReportController extends AgentApiController
             'tool_input'  => ['nullable', 'array'],
         ]);
 
-        $permission = AiwPermissionRequest::firstOrCreate(
-            ['request_key' => $validated['request_key']],
-            [
-                'job_id'     => $job->id,
-                'tool_name'  => $validated['tool_name'],
-                'tool_input' => $validated['tool_input'] ?? [],
-                'status'     => 'pending',
-                'created_at' => now(),
-            ]
+        $permission = $this->permissions->request(
+            $job,
+            $validated['request_key'],
+            $validated['tool_name'],
+            $validated['tool_input'] ?? [],
         );
 
         // 다른 job 의 키를 재사용하려는 시도는 막는다.
         abort_unless((int) $permission->job_id === (int) $job->id, 409, 'request_key 가 다른 작업에 속합니다.');
-
-        if ($permission->wasRecentlyCreated) {
-            $this->emit(new PermissionRequested($permission));
-        }
 
         return response()->json([
             'request_key' => $permission->request_key,
@@ -246,41 +243,9 @@ class JobReportController extends AgentApiController
             'reason'           => ['nullable', 'string', 'max:191'],
         ]);
 
-        $chain = $job->session_chain ?? [];
+        $this->handovers->record($job, $validated);
 
-        for ($i = count($chain) - 1; $i >= 0; $i--) {
-            if (($chain[$i]['session_id'] ?? null) === $validated['ended_session_id']) {
-                $chain[$i]['ended_at'] = now()->toIso8601String();
-                $chain[$i]['reason'] = $validated['reason'] ?? 'context';
-                break;
-            }
-        }
-
-        $chain[] = [
-            'session_id' => $validated['new_session_id'],
-            'started_at' => now()->toIso8601String(),
-            'ended_at'   => null,
-            'reason'     => null,
-        ];
-
-        $job->forceFill([
-            'session_chain'  => $chain,
-            'handover_count' => $job->handover_count + 1,
-            'context_tokens' => 0,          // 새 세션은 컨텍스트가 비어 있다
-            'status'         => AiwJobStatus::Running,
-        ])->save();
-
-        $message = AiwJobMessage::create([
-            'job_id'        => $job->id,
-            'seq'           => $validated['seq'],
-            'role'          => 'handover',
-            'content'       => $validated['summary'],
-            'session_index' => max(0, count($chain) - 2),
-            'created_at'    => now(),
-        ]);
-
-        $this->emit(new JobMessageAppended($message));
-        $this->emit(new JobStatusChanged($job));
+        $job->refresh();
 
         return response()->json([
             'handover_count' => $job->handover_count,
@@ -301,27 +266,20 @@ class JobReportController extends AgentApiController
             'duration_ms'    => ['nullable', 'integer', 'min:0'],
         ]);
 
-        abort_unless(
-            $job->status->canTransitionTo(AiwJobStatus::Completed),
-            409,
-            "상태 전이가 허용되지 않습니다: {$job->status->value} → completed"
-        );
-
         [$inline, $path] = $this->storeDiff($job, $validated['git_diff'] ?? null);
 
-        $job->forceFill([
-            'status'         => AiwJobStatus::Completed,
-            'result_summary' => $validated['result_summary'] ?? null,
-            'changed_files'  => $validated['changed_files'] ?? null,
-            'git_diff'       => $inline,
-            'git_diff_path'  => $path,
-            'cost_usd'       => $validated['cost_usd'] ?? $job->cost_usd,
-            'duration_ms'    => $validated['duration_ms'] ?? null,
-            'finished_at'    => now(),
-        ])->save();
-
-        $this->expirePendingPermissions($job);
-        $this->emit(new JobStatusChanged($job));
+        try {
+            $this->states->transition($job, AiwJobStatus::Completed, [
+                'result_summary' => $validated['result_summary'] ?? null,
+                'changed_files'  => $validated['changed_files'] ?? null,
+                'git_diff'       => $inline,
+                'git_diff_path'  => $path,
+                'cost_usd'       => $validated['cost_usd'] ?? $job->cost_usd,
+                'duration_ms'    => $validated['duration_ms'] ?? null,
+            ]);
+        } catch (InvalidJobTransitionException $e) {
+            abort(409, $e->getMessage());
+        }
 
         return response()->json($this->controlFlags($job));
     }
@@ -337,22 +295,15 @@ class JobReportController extends AgentApiController
             'duration_ms'   => ['nullable', 'integer', 'min:0'],
         ]);
 
-        abort_unless(
-            $job->status->canTransitionTo(AiwJobStatus::Failed),
-            409,
-            "상태 전이가 허용되지 않습니다: {$job->status->value} → failed"
-        );
-
-        $job->forceFill([
-            'status'        => AiwJobStatus::Failed,
-            'error_message' => $validated['error_message'],
-            'cost_usd'      => $validated['cost_usd'] ?? $job->cost_usd,
-            'duration_ms'   => $validated['duration_ms'] ?? null,
-            'finished_at'   => now(),
-        ])->save();
-
-        $this->expirePendingPermissions($job);
-        $this->emit(new JobStatusChanged($job));
+        try {
+            $this->states->transition($job, AiwJobStatus::Failed, [
+                'error_message' => $validated['error_message'],
+                'cost_usd'      => $validated['cost_usd'] ?? $job->cost_usd,
+                'duration_ms'   => $validated['duration_ms'] ?? null,
+            ]);
+        } catch (InvalidJobTransitionException $e) {
+            abort(409, $e->getMessage());
+        }
 
         return response()->json($this->controlFlags($job));
     }
@@ -378,12 +329,4 @@ class JobReportController extends AgentApiController
         return [null, $path];
     }
 
-    /** 종료된 job 에 승인 대기가 남아 있으면 사용자가 무효한 카드를 누르게 된다. */
-    private function expirePendingPermissions(AiwJob $job): void
-    {
-        $job->permissionRequests()->pending()->update([
-            'status'     => 'expired',
-            'decided_at' => now(),
-        ]);
-    }
 }

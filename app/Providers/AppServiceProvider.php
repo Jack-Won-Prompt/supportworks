@@ -479,5 +479,13 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\WorksBuilder\Task::class,
             \App\Policies\WorksBuilder\TaskPolicy::class,
         );
+
+        // AI Works Policy 등록.
+        // 모델과 정책의 네임스페이스가 달라(App\Models\AiWork vs App\Policies\AiWork)
+        // 자동 탐색이 걸리지 않으므로 명시 등록한다.
+        \Illuminate\Support\Facades\Gate::policy(
+            \App\Models\AiWork\AiwJob::class,
+            \App\Policies\AiWork\AiwJobPolicy::class,
+        );
     }
 }
