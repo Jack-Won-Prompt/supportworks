@@ -155,6 +155,27 @@ export class ApiClient {
         );
     }
 
+    /** 담당자가 만든 결과물(스크린샷)을 그 발언에 붙인다. */
+    async uploadAttachment(
+        jobId: number,
+        seq: number,
+        filename: string,
+        mime: string,
+        data: Buffer,
+    ): Promise<{ attachment_id: number | null }> {
+        const form = new FormData();
+
+        form.append('seq', String(seq));
+        form.append('file', new Blob([new Uint8Array(data)], { type: mime }), filename);
+
+        const response = await this.http.post(`/jobs/${jobId}/attachments`, form, {
+            // 이미지는 20초로 부족할 수 있다.
+            timeout: 60000,
+        });
+
+        return response.data as { attachment_id: number | null };
+    }
+
     markDelivered(jobId: number, messageId: number) {
         return this.send<ControlFlags>(() =>
             this.http.post(`/jobs/${jobId}/messages/${messageId}/delivered`, {}),

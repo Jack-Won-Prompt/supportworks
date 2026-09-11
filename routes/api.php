@@ -386,6 +386,7 @@ Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function 
         Route::post('start',       [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'start'])->name('start');
         Route::post('logs',        [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'logs'])->name('logs');
         Route::post('messages',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'messages'])->name('messages');
+        Route::post('attachments', [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'attachments'])->name('attachments');
         Route::post('messages/{message}/delivered', [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'delivered'])->name('messages.delivered');
         Route::post('status',      [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'status'])->name('status');
         Route::post('permissions', [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'permissions'])->name('permissions');

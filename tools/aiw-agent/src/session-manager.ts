@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 import { ApiClient, JobSpec } from './api.js';
 import { buildContent } from './attachments.js';
 import { parseChoices } from './choices.js';
+import { flushOutbox, OUTBOX_DIR } from './outbox.js';
 import { config } from './config.js';
 import {
     handoverPath,
@@ -33,6 +34,13 @@ const FIXED_HEADER = (jobId: number, root: string) =>
         '```',
         'Use it only for a real decision you cannot make yourself. Keep each option under',
         'one line, and put your reasoning in the prose above the block, not inside it.',
+        '',
+        `When something must be SEEN to be judged (a rendered page, a visual change),`,
+        `save a PNG into ${OUTBOX_DIR}/ and it will be shown to the human with your reply.`,
+        'Anything you can describe in words belongs in the reply itself, not there.',
+        'Headless Chrome can do this, e.g.:',
+        '  chrome --headless=new --disable-gpu --screenshot=<abs path> --window-size=1280,900 <url>',
+        'Use forward slashes in paths.',
     ].join('\n');
 
 /** 프롬프트 조각 구분자. 헤더 / 규칙 / 본문을 빈 줄로 나눈다. */
@@ -249,17 +257,35 @@ export class SessionManager {
         // 모델이 선택지를 제시했으면 버튼으로 만들 수 있게 분리해 보낸다.
         const { text: body, choices } = parseChoices(text);
 
-        void this.api.quiet('messages', () =>
-            this.api.messages(this.job.job_id, [
-                {
-                    seq: this.messageSeq++,
-                    role: 'assistant',
-                    // 블록만 있고 본문이 비면 질문이 사라진다. 최소한의 문구를 남긴다.
-                    content: body || '아래에서 선택해 주세요.',
-                    ...(choices.length ? { choices } : {}),
-                },
-            ]),
-        );
+        const seq = this.messageSeq++;
+
+        void this.api
+            .quiet('messages', () =>
+                this.api.messages(this.job.job_id, [
+                    {
+                        seq,
+                        role: 'assistant',
+                        // 블록만 있고 본문이 비면 질문이 사라진다. 최소한의 문구를 남긴다.
+                        content: body || '아래에서 선택해 주세요.',
+                        ...(choices.length ? { choices } : {}),
+                    },
+                ]),
+            )
+            // 메시지가 먼저 있어야 그 seq 로 파일을 붙일 수 있다.
+            .then(() => this.flushOutbox(seq));
+    }
+
+    /** 담당자가 출력함에 놓은 화면 캡처를 그 발언에 붙인다. */
+    private async flushOutbox(seq: number): Promise<void> {
+        const result = await flushOutbox(this.api, this.job.job_id, this.sandbox.root, seq);
+
+        if (result.skipped.length > 0) {
+            this.pushLog(
+                'daemon',
+                `전달하지 못한 결과물 ${result.skipped.length}건: ${result.skipped.slice(0, 5).join(', ')}`
+                + ' (이미지만 전달됩니다. 글은 답변에 써 주세요.)',
+            );
+        }
     }
 
     private async onTurnEnd(usage: TurnUsage, completed = false): Promise<void> {

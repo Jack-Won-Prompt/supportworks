@@ -222,6 +222,62 @@ class AiwAttachmentTest extends TestCase
             ->assertHeader('Content-Type', 'image/png');
     }
 
+    public function test_담당자가_결과물을_대화에_올린다(): void
+    {
+        Storage::fake('local');
+        Event::fake();
+
+        $job = $this->job();
+        $this->message($job);
+
+        // 담당자가 화면 캡처를 올린다. 어느 발언에 붙일지는 seq 로 지정한다.
+        AiwJobMessage::create([
+            'job_id' => $job->id, 'seq' => 1, 'role' => 'assistant', 'content' => '이렇게 바뀌었습니다',
+        ]);
+
+        $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->post("/api/aiw/jobs/{$job->id}/attachments", [
+                'seq'  => 1,
+                'file' => $this->png(1200, 800),
+            ])
+            ->assertOk()
+            ->assertJsonStructure(['attachment_id']);
+
+        $message = AiwJobMessage::where('job_id', $job->id)->where('seq', 1)->first();
+
+        $this->assertSame(1, $message->attachments()->count());
+        // 담당자는 사람이 아니다. job 을 만든 사람에게 귀속된다.
+        $this->assertSame($this->member->id, $message->attachments()->first()->created_by);
+    }
+
+    public function test_없는_seq로는_올릴_수_없다(): void
+    {
+        Storage::fake('local');
+        $job = $this->job();
+        $this->message($job);
+
+        $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->post("/api/aiw/jobs/{$job->id}/attachments", ['seq' => 99, 'file' => $this->png(100, 100)])
+            ->assertStatus(404);
+    }
+
+    public function test_담당자_업로드도_리사이즈된다(): void
+    {
+        Storage::fake('local');
+        $job = $this->job();
+        $this->message($job);
+
+        $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->post("/api/aiw/jobs/{$job->id}/attachments", ['seq' => 0, 'file' => $this->png(3000, 1000)])
+            ->assertOk();
+
+        // 캡처는 대개 크다. 그대로 두면 컨텍스트와 전송량을 낭비한다.
+        $this->assertSame(
+            AttachmentService::MAX_EDGE,
+            AiwJobAttachment::where('job_id', $job->id)->first()->width,
+        );
+    }
+
     public function test_남의_job_첨부는_받을_수_없다(): void
     {
         Storage::fake('local');

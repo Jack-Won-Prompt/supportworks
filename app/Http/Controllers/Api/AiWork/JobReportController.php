@@ -12,11 +12,13 @@ use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobLog;
 use App\Models\AiWork\AiwJobMessage;
 use App\Models\AiWork\AiwPermissionRequest;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\AiWork\InvalidJobTransitionException;
+use App\Services\AiWork\AttachmentService;
 use App\Services\AiWork\CostGuard;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobStateMachine;
@@ -154,6 +156,40 @@ class JobReportController extends AgentApiController
         }
 
         return response()->json(['accepted' => $inserted->count()] + $this->controlFlags($job));
+    }
+
+    /**
+     * 담당자가 만든 결과물(스크린샷 등)을 대화에 첨부한다.
+     *
+     * 작업 폴더의 docs/aiw/outbox 에 놓인 이미지를 데몬이 올린다. 글로 설명할 수
+     * 있는 것은 답변에 쓰면 되고, 이 경로는 "보여 줘야 아는 것"을 위한 것이다.
+     * 사람이 화면을 눈으로 확인한 뒤 배포를 결정할 수 있게 하는 것이 목적이다.
+     *
+     * 어느 발언에 붙일지는 seq 로 지정한다 — 데몬은 메시지를 먼저 보내고
+     * 그 seq 로 파일을 올리므로 id 를 알 필요가 없다.
+     */
+    public function attachments(Request $request, AiwJob $job): JsonResponse
+    {
+        $job = $this->ownedJob($request, $job);
+
+        $validated = $request->validate([
+            'seq'  => ['required', 'integer', 'min:0'],
+            'file' => ['required', 'image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
+        ]);
+
+        $message = $job->messages()->where('seq', $validated['seq'])->firstOrFail();
+
+        // 담당자는 사람이 아니다. 이 job 을 만든 사람의 것으로 귀속시킨다.
+        $owner = $job->creator ?? User::findOrFail($job->created_by);
+
+        $saved = app(AttachmentService::class)->attach($message, [$request->file('file')], $owner);
+
+        // 화면이 새로고침 없이 받아볼 수 있게 메시지를 다시 브로드캐스트한다.
+        $this->emit(new JobMessageAppended($message->fresh()));
+
+        return response()->json([
+            'attachment_id' => $saved[0]->id ?? null,
+        ] + $this->controlFlags($job));
     }
 
     /** 사용자 메시지 주입 완료 보고 → 화면의 "전달 대기" 표시가 풀린다. */
