@@ -269,6 +269,77 @@ class AiwWebTest extends TestCase
             ->assertSee("useBranch: true", false);
     }
 
+    public function test_선택지가_버튼으로_보인다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::WaitingInput, 'mode' => 'interactive']);
+
+        AiwJobMessage::create([
+            'job_id' => $job->id, 'seq' => 1, 'role' => 'assistant',
+            'content' => '어떻게 반영할까요?',
+            'choices' => ['관리자 화면에서 켜기', '마이그레이션으로 켜기'],
+        ]);
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('관리자 화면에서 켜기')
+            ->assertSee('마이그레이션으로 켜기')
+            ->assertSee('직접 입력해서 답해도 됩니다');
+    }
+
+    public function test_지난_질문의_선택지는_숨긴다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::WaitingInput, 'mode' => 'interactive']);
+
+        AiwJobMessage::create([
+            'job_id' => $job->id, 'seq' => 1, 'role' => 'assistant',
+            'content' => '첫 질문', 'choices' => ['지난 선택지'],
+        ]);
+        AiwJobMessage::create([
+            'job_id' => $job->id, 'seq' => 2, 'role' => 'assistant',
+            'content' => '두 번째 질문', 'choices' => ['지금 선택지'],
+        ]);
+
+        // 이미 답한 질문의 버튼이 남아 있으면 같은 답을 다시 보내게 된다.
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('지금 선택지')
+            ->assertDontSee('지난 선택지');
+    }
+
+    public function test_종료된_job은_선택지_버튼을_숨긴다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::Completed, 'mode' => 'interactive']);
+
+        AiwJobMessage::create([
+            'job_id' => $job->id, 'seq' => 1, 'role' => 'assistant',
+            'content' => '질문', 'choices' => ['누를 수 없는 선택지'],
+        ]);
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertDontSee('누를 수 없는 선택지');
+    }
+
+    public function test_선택지_버튼을_누르면_사용자_메시지가_된다(): void
+    {
+        Event::fake();
+        $job = $this->job(['status' => AiwJobStatus::WaitingInput, 'mode' => 'interactive']);
+
+        // 버튼은 그 문구를 그대로 사용자 메시지로 보낸다.
+        $this->actingAs($this->member)
+            ->post(route('projects.ai-works.message', [$this->project(), $job]), [
+                'content' => '관리자 화면에서 켜기',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('aiw_job_messages', [
+            'job_id' => $job->id, 'role' => 'user', 'content' => '관리자 화면에서 켜기',
+        ]);
+    }
+
     public function test_미지원_툴은_422로_거부된다(): void
     {
         $this->actingAs($this->member)

@@ -1,6 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { ApiClient, JobSpec } from './api.js';
+import { parseChoices } from './choices.js';
 import { config } from './config.js';
 import {
     handoverPath,
@@ -22,6 +23,15 @@ const FIXED_HEADER = (jobId: number, root: string) =>
         `Working directory ${root} is enforced by the daemon; access outside it is blocked.`,
         'Never push to remote. When reading long outputs (test logs, large files) use head/tail/grep',
         'to keep them short. When you need a decision from the human, ask a clear question and stop.',
+        '',
+        'When you stop to ask, and the answer is a choice among a few concrete options,',
+        'end your message with a block in exactly this form so the human can answer with one click:',
+        '```aiw-choices',
+        '- first option',
+        '- second option',
+        '```',
+        'Use it only for a real decision you cannot make yourself. Keep each option under',
+        'one line, and put your reasoning in the prose above the block, not inside it.',
     ].join('\n');
 
 /** 프롬프트 조각 구분자. 헤더 / 규칙 / 본문을 빈 줄로 나눈다. */
@@ -218,9 +228,18 @@ export class SessionManager {
             return;
         }
 
+        // 모델이 선택지를 제시했으면 버튼으로 만들 수 있게 분리해 보낸다.
+        const { text: body, choices } = parseChoices(text);
+
         void this.api.quiet('messages', () =>
             this.api.messages(this.job.job_id, [
-                { seq: this.messageSeq++, role: 'assistant', content: text },
+                {
+                    seq: this.messageSeq++,
+                    role: 'assistant',
+                    // 블록만 있고 본문이 비면 질문이 사라진다. 최소한의 문구를 남긴다.
+                    content: body || '아래에서 선택해 주세요.',
+                    ...(choices.length ? { choices } : {}),
+                },
             ]),
         );
     }

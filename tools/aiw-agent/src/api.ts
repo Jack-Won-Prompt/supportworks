@@ -122,7 +122,16 @@ export class ApiClient {
         );
     }
 
-    messages(jobId: number, messages: { seq: number; role: 'assistant' | 'handover'; content: string }[]) {
+    messages(
+        jobId: number,
+        messages: {
+            seq: number;
+            role: 'assistant' | 'handover';
+            content: string;
+            /** 모델이 제시한 선택지. 화면이 버튼으로 그린다. */
+            choices?: string[];
+        }[],
+    ) {
         return this.send<{ accepted: number } & ControlFlags>(() =>
             this.http.post(`/jobs/${jobId}/messages`, { messages }),
         );

@@ -121,6 +121,9 @@ class JobReportController extends AgentApiController
             'messages.*.seq'     => ['required', 'integer', 'min:0'],
             'messages.*.role'    => ['required', 'in:assistant,handover'],
             'messages.*.content' => ['required', 'string'],
+            // 모델이 제시한 선택지. 화면이 버튼으로 그린다.
+            'messages.*.choices'   => ['nullable', 'array', 'max:6'],
+            'messages.*.choices.*' => ['required', 'string', 'max:200'],
         ]);
 
         $sessionIndex = $job->currentSessionIndex();
@@ -132,6 +135,9 @@ class JobReportController extends AgentApiController
                 'seq'           => $m['seq'],
                 'role'          => $m['role'],
                 'content'       => $m['content'],
+                'choices'       => isset($m['choices'])
+                    ? json_encode(array_values($m['choices']), JSON_UNESCAPED_UNICODE)
+                    : null,
                 'session_index' => $sessionIndex,
                 'created_at'    => $now,
             ])->all()

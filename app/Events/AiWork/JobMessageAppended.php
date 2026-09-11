@@ -28,6 +28,7 @@ class JobMessageAppended extends AiwEvent
             'seq'           => (int) $this->message->seq,
             'role'          => $this->message->role,
             'content'       => $this->message->content,
+            'choices'       => $this->message->choices ?: null,
             'user_id'       => $this->message->user_id,
             'session_index' => (int) $this->message->session_index,
             'delivered_at'  => optional($this->message->delivered_at)->toIso8601String(),

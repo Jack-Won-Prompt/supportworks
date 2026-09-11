@@ -150,8 +150,12 @@
             <h3 class="text-sm font-bold text-gray-900 mb-2">대화</h3>
 
             <div class="flex-1 space-y-2 overflow-y-auto" style="max-height:60vh;" x-ref="messages">
+                @php
+                    // 선택지 버튼은 마지막 질문에만 띄운다(지난 질문의 버튼은 이미 답한 것이다).
+                    $latestChoiceId = $messages->last(fn ($m) => ! empty($m->choices))?->id;
+                @endphp
                 @foreach ($messages as $message)
-                    @include('aiw.jobs.partials.message', ['message' => $message, 'project' => $project, 'job' => $job])
+                    @include('aiw.jobs.partials.message', ['message' => $message, 'project' => $project, 'job' => $job, 'latestChoiceId' => $latestChoiceId, 'canEdit' => $canEdit])
                 @endforeach
 
                 {{-- 실시간으로 도착한 메시지 --}}
@@ -160,6 +164,21 @@
                          :class="m.role === 'user' ? 'bg-indigo-50 ml-8' : (m.role === 'handover' ? 'bg-violet-50 border border-violet-200' : 'bg-gray-50 mr-8')">
                         <div class="text-[11px] text-gray-500 mb-1" x-text="roleLabel(m.role)"></div>
                         <div class="prose prose-sm max-w-none" x-html="render(m.content)"></div>
+
+                        @if ($job->mode === 'interactive' && $canEdit)
+                            {{-- 실시간으로 도착한 질문의 선택지. 마지막 것만 띄운다. --}}
+                            <div x-show="m.choices && m.choices.length && m.id === latestLiveChoiceId && ! isTerminal" x-cloak
+                                 class="mt-2 flex flex-wrap gap-2 border-t border-gray-200 pt-2">
+                                <template x-for="c in (m.choices || [])" :key="c">
+                                    <form method="POST" action="{{ route('projects.ai-works.message', [$project, $job]) }}">
+                                        @csrf
+                                        <input type="hidden" name="content" :value="c">
+                                        <button class="rounded-lg border border-indigo-300 bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                                                x-text="c"></button>
+                                    </form>
+                                </template>
+                            </div>
+                        @endif
                     </div>
                 </template>
 
@@ -434,6 +453,12 @@ function aiwJob(initial) {
             if (this.contextPct >= 60) return 'bg-orange-400';
             return 'bg-indigo-500';
         },
+        /** 실시간 메시지 중 선택지를 가진 마지막 것. 지난 질문의 버튼은 숨긴다. */
+        get latestLiveChoiceId() {
+            const withChoices = this.liveMessages.filter((m) => m.choices && m.choices.length);
+            return withChoices.length ? withChoices[withChoices.length - 1].id : null;
+        },
+
         get costPct() { return this.costLimit > 0 ? Math.min(100, (this.costUsd / this.costLimit) * 100) : 0; },
         get costTone() { return this.costPct >= 80 ? 'bg-red-500' : 'bg-emerald-500'; },
 
