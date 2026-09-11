@@ -155,6 +155,9 @@
 
                 <div class="flex items-end">
                     <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        {{-- 체크 해제 시 브라우저는 아무것도 보내지 않는다. 이 hidden 이 없으면
+                             서버가 "값 없음"을 기본값(켬)으로 해석해 끌 방법이 사라진다. --}}
+                        <input type="hidden" name="use_branch" value="0">
                         <input type="checkbox" name="use_branch" value="1"
                                @checked(old('use_branch', $parent->use_branch ?? true))
                                class="rounded border-gray-300">

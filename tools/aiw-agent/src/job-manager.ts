@@ -112,7 +112,13 @@ export class JobManager {
 
             await manager!.run(root);
         } catch (error) {
-            await this.api.quiet('fail', () => this.api.fail(spec.job_id, String((error as Error).message ?? error)));
+            const reason = String((error as Error).message ?? error);
+
+            // 콘솔에도 남긴다. 이게 없으면 서버에만 실패가 기록되고 데몬 화면은
+            // "작업 시작" 에서 멈춘 것처럼 보여, 멈춘 건지 실패한 건지 알 수 없다.
+            log('error', '작업을 시작하지 못했습니다.', { jobId: spec.job_id, reason });
+
+            await this.api.quiet('fail', () => this.api.fail(spec.job_id, reason));
             this.active.delete(spec.job_id);
             this.known.delete(spec.job_id);
 

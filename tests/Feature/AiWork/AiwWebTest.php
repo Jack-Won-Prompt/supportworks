@@ -189,6 +189,35 @@ class AiwWebTest extends TestCase
         ]);
     }
 
+    public function test_브랜치_분리를_끌_수_있다(): void
+    {
+        Event::fake();
+
+        $base = [
+            'title' => '브랜치 없이',
+            'agent_id' => $this->agent->id,
+            'instruction' => '작업 내용',
+            'mode' => 'interactive',
+            'allowed_tools' => ['Read'],
+            'permission_mode' => 'acceptEdits',
+            'cost_limit_usd' => 2.0,
+        ];
+
+        // 폼의 hidden 이 보내는 값. 예전에는 값이 없으면 true 로 봤는데, 해제한
+        // 체크박스는 아무것도 보내지 않아 브랜치 분리를 끌 방법이 없었다.
+        $this->actingAs($this->member)
+            ->post(route('projects.ai-works.store', $this->project()), $base + ['use_branch' => '0'])
+            ->assertRedirect();
+
+        $this->assertFalse((bool) AiwJob::latest('id')->first()->use_branch);
+
+        $this->actingAs($this->member)
+            ->post(route('projects.ai-works.store', $this->project()), $base + ['use_branch' => '1'])
+            ->assertRedirect();
+
+        $this->assertTrue((bool) AiwJob::latest('id')->first()->use_branch);
+    }
+
     public function test_미지원_툴은_422로_거부된다(): void
     {
         $this->actingAs($this->member)

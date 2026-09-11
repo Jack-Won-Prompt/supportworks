@@ -141,7 +141,10 @@ class AiwJobController extends Controller
             'allowed_tools'        => $tools,
             'permission_mode'      => $validated['permission_mode'],
             'cost_limit_usd'       => $validated['cost_limit_usd'],
-            'use_branch'           => (bool) ($validated['use_branch'] ?? true),
+            // 폼의 hidden 이 "0" 을 보내므로 여기서 그대로 해석한다. 예전에는
+            // 값이 없으면 true 로 봤는데, 해제한 체크박스는 아무것도 보내지 않아
+            // 브랜치 분리를 끌 수 없었다.
+            'use_branch'           => $request->boolean('use_branch'),
             'created_by'           => $request->user()->id,
         ]);
 
@@ -316,6 +319,11 @@ class AiwJobController extends Controller
     private function redispatch(AiwJob $job): RedirectResponse
     {
         $this->authorize('cancel', $job);   // 재전송도 편집 권한
+
+        // 오래된 화면에서 누르면 여기 걸린다. RuntimeException 이 그대로 나가면 500 이다.
+        if (! in_array($job->status, [AiwJobStatus::Queued, AiwJobStatus::Dispatched], true)) {
+            return $this->conflict($job, '재전송은 대기·전달 상태에서만 가능합니다');
+        }
 
         $sent = $this->dispatcher->redispatch($job);
 
