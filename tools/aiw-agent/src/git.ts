@@ -23,9 +23,18 @@ export class GitWorkspace {
         const status = await this.git.status();
 
         if (!status.isClean()) {
+            // 무엇이 걸렸는지 보여 준다. "정리하세요" 만으로는 어느 파일인지 알 수 없어
+            // 같은 실패를 반복하게 된다.
+            const sample = [...new Set([...status.files.map((f) => f.path), ...status.not_added])]
+                .slice(0, 5)
+                .join(', ');
+
             throw new Error(
-                `작업 폴더에 커밋되지 않은 변경이 있습니다(${status.files.length}건). ` +
-                '정리한 뒤 다시 시도하세요.',
+                `브랜치 분리를 켜면 작업 폴더가 깨끗해야 합니다. 지금 정리되지 않은 항목이 `
+                + `${status.files.length}건 있습니다: ${sample}`
+                + (status.files.length > 5 ? ' 외' : '')
+                + '. 커밋하거나 .gitignore 에 넣어 정리하세요. '
+                + '또는 새 지시를 등록할 때 "별도 브랜치에서 작업" 체크를 해제하면 현재 브랜치에서 바로 진행합니다.',
             );
         }
 
