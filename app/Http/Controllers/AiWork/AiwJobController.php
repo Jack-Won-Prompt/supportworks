@@ -10,6 +10,8 @@ use App\Events\AiWork\JobUserMessage;
 use App\Http\Controllers\Controller;
 use App\Models\AiWork\AiwAgent;
 use App\Models\AiWork\AiwJob;
+use App\Models\AiWork\AiwDeploy;
+use App\Models\AiWork\AiwDeployTarget;
 use App\Models\AiWork\AiwJobAttachment;
 use App\Models\AiWork\AiwJobMessage;
 use App\Models\AiWork\AiwPermissionRequest;
@@ -214,6 +216,11 @@ class AiwJobController extends Controller
             // 실패 복구 버튼 중 매핑 수정은 관리자만 할 수 있다.
             'canManageAgents' => auth()->user()->can('manageAgents', AiwJob::class),
             'publishes' => $job->publishes()->with('requester:id,name')->latest('id')->get(),
+            // 배포 대상은 관리자가 미리 등록한 것만 고를 수 있다.
+            'deployTargets' => AiwDeployTarget::where('project_id', $job->project_id)
+                ->where('enabled', true)->orderBy('name')->get(),
+            'deploys' => AiwDeploy::where('job_id', $job->id)
+                ->with(['target:id,name', 'requester:id,name'])->latest('id')->get(),
             // 같은 담당자가 다른 작업을 붙들고 있으면 이 작업은 줄 서 있다.
             // 화면이 말해 주지 않으면 "보냈는데 아무 일도 없는" 상태로 보인다.
             'blockingJob' => $job->status === AiwJobStatus::Dispatched

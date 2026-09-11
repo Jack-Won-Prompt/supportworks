@@ -600,6 +600,13 @@
                             </svg>
                             <span class="gsb-hide">담당자</span>
                         </a>
+                        {{-- 배포 대상: 여기 등록한 명령이 서버에서 실행된다. 관리자 전용. --}}
+                        <a href="{{ route('settings.aiw-deploys.index') }}" class="sidebar-item {{ request()->routeIs('settings.aiw-deploys.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                            <span class="gsb-hide">배포 대상</span>
+                        </a>
                     </div>
                     <div class="sidebar-divider"></div>
                     @endif

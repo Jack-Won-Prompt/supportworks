@@ -1378,11 +1378,20 @@ Route::middleware('auth')->group(function () {
         Route::post('{job}/permissions/{permission}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'decide'])->name('decide');
         Route::post('{job}/promote',     [\App\Http\Controllers\AiWork\AiwJobController::class, 'promote'])->name('promote');
         Route::post('{job}/publish',     [\App\Http\Controllers\AiWork\AiwJobController::class, 'publish'])->name('publish');
+        Route::post('{job}/deploy',      [\App\Http\Controllers\AiWork\AiwDeployController::class, 'run'])->name('deploy');
         Route::post('{job}/{action}',    [\App\Http\Controllers\AiWork\AiwJobController::class, 'action'])
             ->whereIn('action', ['cancel', 'end', 'handover', 'redispatch'])->name('action');
     });
 
     // 작업 PC 관리(관리자). "AI 에이전트"가 아니라 "작업 PC" — 기존 상담원 agent 와 구분한다.
+    // 배포 대상 등록. 여기 등록한 명령이 서버에서 그대로 실행되므로 관리자만 다룬다.
+    Route::prefix('settings/aiw-deploys')->name('settings.aiw-deploys.')->group(function () {
+        Route::get ('/',                 [\App\Http\Controllers\AiWork\AiwDeployController::class, 'index'])->name('index');
+        Route::post('/',                 [\App\Http\Controllers\AiWork\AiwDeployController::class, 'store'])->name('store');
+        Route::post('{target}/toggle',   [\App\Http\Controllers\AiWork\AiwDeployController::class, 'toggle'])->name('toggle');
+        Route::delete('{target}',        [\App\Http\Controllers\AiWork\AiwDeployController::class, 'destroy'])->name('destroy');
+    });
+
     Route::prefix('settings/aiw-agents')->name('settings.aiw-agents.')->group(function () {
         Route::get ('/',                       [\App\Http\Controllers\AiWork\AiwAgentController::class, 'index'])->name('index');
         Route::post('/',                       [\App\Http\Controllers\AiWork\AiwAgentController::class, 'store'])->name('store');
