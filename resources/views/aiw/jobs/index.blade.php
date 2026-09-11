@@ -107,7 +107,8 @@
                         <th class="py-2 pr-3 font-medium">등록자</th>
                         <th class="py-2 pr-3 font-medium">등록일</th>
                         <th class="py-2 pr-3 font-medium">소요</th>
-                        <th class="py-2 pr-3 font-medium">비용</th>
+                        {{-- 작업 PC 마다 과금 방식이 다를 수 있어 헤더는 중립어를 쓰고 행에서 구분한다. --}}
+                        <th class="py-2 pr-3 font-medium">비용/사용량</th>
                         <th class="py-2 pr-3 font-medium">세션</th>
                     </tr>
                 </thead>
@@ -135,9 +136,12 @@
                             <td class="py-2 pr-3 text-gray-500">
                                 {{ $job->duration_ms ? round($job->duration_ms / 1000).'초' : '—' }}
                             </td>
-                            <td class="py-2 pr-3 text-gray-500">
+                            <td class="py-2 pr-3 text-gray-500" title="{{ $job->agent?->costHint() }}">
                                 ${{ number_format((float) $job->cost_usd, 2) }}
                                 <span class="text-gray-400">/ ${{ number_format((float) $job->cost_limit_usd, 2) }}</span>
+                                @if ($job->agent && ! $job->agent->usesApiKey())
+                                    <span class="text-[10px] text-gray-400">추정</span>
+                                @endif
                             </td>
                             <td class="py-2 pr-3 text-gray-500">{{ $job->handover_count }}</td>
                         </tr>

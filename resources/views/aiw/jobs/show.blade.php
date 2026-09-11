@@ -116,7 +116,9 @@
 
             <div>
                 <div class="flex items-center justify-between text-xs mb-1">
-                    <span class="font-semibold text-gray-700">비용</span>
+                    <span class="font-semibold text-gray-700" title="{{ $job->agent?->costHint() }}">
+                        {{ $job->agent?->costLabel() ?? '비용' }}
+                    </span>
                     <span class="text-gray-500">
                         $<span x-text="costUsd.toFixed(4)"></span> / $<span x-text="costLimit.toFixed(2)"></span>
                     </span>
@@ -124,7 +126,12 @@
                 <div class="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
                     <div class="h-full rounded-full transition-all" :class="costTone" :style="`width:${costPct}%`"></div>
                 </div>
-                <p x-show="costPct >= 80" x-cloak class="mt-1 text-xs text-red-600">비용 상한에 근접했습니다.</p>
+                <p x-show="costPct >= 80" x-cloak class="mt-1 text-xs text-red-600">상한에 근접했습니다.</p>
+                @if ($job->agent && ! $job->agent->usesApiKey())
+                    <p class="mt-1 text-[11px] text-gray-400">
+                        구독 로그인으로 실행되어 실제 청구액이 아닙니다. 폭주를 막는 상한으로만 쓰입니다.
+                    </p>
+                @endif
             </div>
         </div>
     </div>

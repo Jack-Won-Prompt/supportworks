@@ -133,7 +133,7 @@ export class SessionManager {
                 },
                 onAssistantText: (text) => this.onAssistantText(text),
                 onLog: (type, content, raw) => this.pushLog(type, content, raw),
-                onTurnEnd: (usage) => void this.onTurnEnd(usage),
+                onTurnEnd: (usage, completed) => void this.onTurnEnd(usage, completed),
                 onFinished: (error) => void this.onFinished(error),
             },
         );
@@ -159,7 +159,7 @@ export class SessionManager {
         );
     }
 
-    private async onTurnEnd(usage: TurnUsage): Promise<void> {
+    private async onTurnEnd(usage: TurnUsage, completed = false): Promise<void> {
         this.lastUsage = usage;
 
         const flags = await this.api.quiet('status', () =>
@@ -178,6 +178,13 @@ export class SessionManager {
         }
 
         if (this.handoverInFlight) {
+            return;
+        }
+
+        // batch 에서 작업이 끝났으면 완료가 우선이다. 끝난 일을 정리해 넘길 이유가 없다.
+        if (completed && this.job.mode === 'batch') {
+            await this.stop('completed');
+
             return;
         }
 

@@ -9,7 +9,16 @@ async function main(): Promise<void> {
     log('info', 'AI Works 데몬을 시작합니다.', {
         baseUrl: config.baseUrl,
         maxParallelJobs: config.maxParallelJobs,
+        // 과금 주체가 갈리는 지점이라 명시적으로 남긴다.
+        auth: config.anthropicApiKey ? 'ANTHROPIC_API_KEY' : '이 PC 의 Claude Code 로그인',
     });
+
+    if (!config.anthropicApiKey) {
+        // 경고가 아니다 — 구독 로그인으로 돌리는 것이 정상 운영 모드일 수 있다.
+        // 다만 이 모드에서는 서버에 보고되는 cost_usd 가 실제 청구액이 아니라
+        // "API 로 썼다면 얼마였을지"의 추정치라는 점을 분명히 해 둔다.
+        log('info', '이 PC 의 Claude Code 로그인으로 실행합니다. 보고되는 비용은 실제 청구액이 아니라 추정치입니다.');
+    }
 
     const api = new ApiClient();
     const jobs = new JobManager(api);
@@ -20,6 +29,12 @@ async function main(): Promise<void> {
         node: process.version,
         adapter: 'sdk',
         shell: config.shell ?? null,
+        /**
+         * 과금 주체. 화면이 비용 라벨을 고르는 데 쓴다.
+         * subscription 모드에서 보고되는 cost_usd 는 실제 청구액이 아니라
+         * "API 로 썼다면 얼마였을지"의 추정치다.
+         */
+        auth_mode: config.anthropicApiKey ? 'api_key' : 'subscription',
     };
 
     // 첫 하트비트로 토큰을 검증하고 밀린 작업을 받아 온다.

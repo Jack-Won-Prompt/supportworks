@@ -113,6 +113,34 @@ class AiwAgent extends Model
         return ($ipLong & $mask) === ($subnetLong & $mask);
     }
 
+    // ── 과금 주체 ───────────────────────────────────────────────────────────
+
+    /**
+     * ANTHROPIC_API_KEY 로 도는가(= 실제 종량 과금), 아니면 그 PC 의 Claude Code
+     * 로그인으로 도는가(= 구독에 포함).
+     *
+     * 데몬이 하트비트의 capabilities.auth_mode 로 알려준다. 값이 없으면(구버전
+     * 데몬) 추정치 쪽으로 보수적으로 읽는다 — 실제 청구액이라고 잘못 말하는 것보다
+     * 낫다.
+     */
+    public function usesApiKey(): bool
+    {
+        return ($this->capabilities['auth_mode'] ?? null) === 'api_key';
+    }
+
+    /** 화면에 쓸 비용 라벨. 구독 모드에서는 청구액이 아니라 사용량 지표다. */
+    public function costLabel(): string
+    {
+        return $this->usesApiKey() ? '비용' : '예상 사용량';
+    }
+
+    public function costHint(): string
+    {
+        return $this->usesApiKey()
+            ? 'ANTHROPIC_API_KEY 로 실행되어 실제 청구되는 금액입니다.'
+            : '이 작업 PC 는 구독 로그인으로 실행됩니다. API 로 썼다면 얼마였을지의 추정치이며 실제 청구액이 아닙니다.';
+    }
+
     // ── 온라인 판정 ─────────────────────────────────────────────────────────
 
     public function getIsOnlineAttribute(): bool

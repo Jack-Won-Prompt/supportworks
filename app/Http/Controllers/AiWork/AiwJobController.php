@@ -60,7 +60,8 @@ class AiwJobController extends Controller
         $jobs = AiwJob::query()
             ->where('project_id', $project->id)
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
-            ->with(['agent:id,name', 'creator:id,name'])
+            // capabilities 는 비용 라벨(실제 청구 vs 추정치) 판단에 필요하다.
+            ->with(['agent:id,name,capabilities', 'creator:id,name'])
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
@@ -172,7 +173,7 @@ class AiwJobController extends Controller
         $this->authorize('view', $job);
         abort_unless((int) $job->project_id === (int) $project->id, 404);
 
-        $job->load(['agent:id,name', 'creator:id,name', 'parent:id,title']);
+        $job->load(['agent:id,name,capabilities', 'creator:id,name', 'parent:id,title']);
 
         return view('aiw.jobs.show', [
             'project'  => $project,

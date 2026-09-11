@@ -95,13 +95,18 @@ export class Sandbox {
         return ALLOW;
     }
 
-    /** 툴 호출 전체 검사. canUseTool 에서 서버에 묻기 전에 가장 먼저 통과해야 한다. */
+    /**
+     * 툴 호출 전체 검사. canUseTool 에서 서버에 묻기 전에 가장 먼저 통과해야 한다.
+     *
+     * 명령 검사는 툴 '이름'이 아니라 입력 '모양'으로 판단한다. Claude Code 는
+     * 환경에 따라 Bash 외에도 셸 실행 툴을 노출한다(Windows 의 PowerShell 등).
+     * 이름으로 분기하면 우리가 모르는 셸 툴이 검사를 통째로 건너뛴다 — 실측으로
+     * PowerShell 이 git 명령을 실행하는 것을 확인했다.
+     */
     async check(toolName: string, input: unknown): Promise<SandboxVerdict> {
-        if (toolName === 'Bash') {
-            const command = typeof (input as { command?: unknown })?.command === 'string'
-                ? (input as { command: string }).command
-                : '';
+        const command = (input as { command?: unknown })?.command;
 
+        if (typeof command === 'string' && command.trim() !== '') {
             const verdict = this.checkCommand(command);
 
             if (!verdict.allowed) {

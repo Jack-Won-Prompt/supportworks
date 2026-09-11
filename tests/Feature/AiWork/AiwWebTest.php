@@ -308,6 +308,48 @@ class AiwWebTest extends TestCase
         $this->assertStringContainsString('CLAUDE.md', $follow->instruction);
     }
 
+    // ── 과금 주체 표시 ──────────────────────────────────────────────────────
+
+    public function test_구독_로그인_PC는_비용을_추정치로_표시한다(): void
+    {
+        // 데몬이 auth_mode 를 보고하지 않았거나 subscription 이면 추정치다.
+        $this->agent->forceFill(['capabilities' => ['auth_mode' => 'subscription']])->save();
+        $job = $this->job();
+
+        $this->assertFalse($this->agent->fresh()->usesApiKey());
+        $this->assertSame('예상 사용량', $this->agent->fresh()->costLabel());
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('예상 사용량')
+            ->assertSee('실제 청구액이 아닙니다');
+    }
+
+    public function test_API키_PC는_비용으로_표시한다(): void
+    {
+        $this->agent->forceFill(['capabilities' => ['auth_mode' => 'api_key']])->save();
+        $job = $this->job();
+
+        $this->assertTrue($this->agent->fresh()->usesApiKey());
+        $this->assertSame('비용', $this->agent->fresh()->costLabel());
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertDontSee('실제 청구액이 아닙니다');
+    }
+
+    public function test_auth_mode_미보고시_보수적으로_추정치로_본다(): void
+    {
+        // 구버전 데몬은 auth_mode 를 보내지 않는다. 실제 청구액이라고
+        // 잘못 말하는 것보다 추정치로 읽는 편이 안전하다.
+        $this->agent->forceFill(['capabilities' => ['max_parallel_jobs' => 2]])->save();
+
+        $this->assertFalse($this->agent->fresh()->usesApiKey());
+        $this->assertSame('예상 사용량', $this->agent->fresh()->costLabel());
+    }
+
     // ── 작업 PC 관리 ────────────────────────────────────────────────────────
 
     public function test_관리자만_작업PC_화면에_접근한다(): void

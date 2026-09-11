@@ -67,6 +67,11 @@ export class SdkSessionAdapter implements SessionAdapter {
                         allowedTools: [],
                         disallowedTools: disallowed,
                         permissionMode: 'default',
+                        // 파일시스템 설정을 읽지 않는다(SDK 격리 모드).
+                        // 생략하면 이 PC 의 ~/.claude/settings.json 에 쌓인 허용 규칙이
+                        // 적용되어 canUseTool 이 호출되지 않고 샌드박스가 통째로 우회된다.
+                        // 실측으로 확인: PowerShell 툴이 승인 없이 실행됐다.
+                        settingSources: [],
                         abortController: this.controller!,
                         // env 는 병합이 아니라 교체다. process.env 를 반드시 펼쳐 준다.
                         env: {
@@ -75,8 +80,47 @@ export class SdkSessionAdapter implements SessionAdapter {
                         },
                         // 설치된 SDK(0.3.x)의 시그니처: (toolName, input, options) => PermissionResult.
                         // 공개 문서에는 다른 형태가 실려 있으나 패키지 타입 정의가 기준이다.
+                        // ── 툴 게이트 ───────────────────────────────────────────
+                        // canUseTool 은 "권한 흐름이 프롬프트로 떨어질 때만" 호출된다.
+                        // Claude Code 의 기본 정책이 안전하다고 판단한 툴(Read 등)이나
+                        // 설정의 허용 규칙에 걸린 툴은 canUseTool 을 거치지 않는다 —
+                        // 실측으로 permission_mode=default 에서도 Read 가 승인 없이
+                        // 실행되고 PowerShell·Agent 툴이 그냥 도는 것을 확인했다.
+                        //
+                        // 그래서 실제 강제는 PreToolUse 훅에서 한다. 이 훅은 권한 판단과
+                        // 무관하게 모든 툴 호출에서 발동한다. canUseTool 은 프롬프트가
+                        // 뜨는 경우를 위해 같은 게이트를 한 번 더 물려 둔다.
+                        hooks: {
+                            PreToolUse: [
+                                {
+                                    hooks: [
+                                        async (input: any) => {
+                                            const decision = await this.gate(
+                                                options,
+                                                String(input?.tool_name ?? ''),
+                                                (input?.tool_input ?? {}) as Record<string, unknown>,
+                                            );
+
+                                            if (decision.allowed) {
+                                                return { continue: true };
+                                            }
+
+                                            return {
+                                                continue: true,
+                                                hookSpecificOutput: {
+                                                    hookEventName: 'PreToolUse' as const,
+                                                    permissionDecision: 'deny' as const,
+                                                    permissionDecisionReason: decision.reason
+                                                        ?? '거부되었습니다.',
+                                                },
+                                            };
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
                         canUseTool: async (toolName: string, input: Record<string, unknown>) => {
-                            const decision = await options.canUseTool(toolName, input);
+                            const decision = await this.gate(options, toolName, input);
 
                             return decision.allowed
                                 ? { behavior: 'allow' as const, updatedInput: input }
@@ -105,6 +149,29 @@ export class SdkSessionAdapter implements SessionAdapter {
         this.pending = run();
     }
 
+    /**
+     * 툴 허용 판단 한 지점.
+     *
+     * 허용 목록은 여기서 강제한다. disallowedTools 로는 우리가 이름을 아는 툴만
+     * 열거할 수 있는데, Claude Code 는 환경에 따라 모르는 툴을 노출한다
+     * (Windows 의 PowerShell, 서브에이전트용 Agent 등).
+     */
+    private async gate(
+        options: SessionStartOptions,
+        toolName: string,
+        input: Record<string, unknown>,
+    ): Promise<{ allowed: boolean; reason?: string }> {
+        if (!options.allowedTools.includes(toolName)) {
+            return {
+                allowed: false,
+                reason: `이 작업 지시에서 허용된 툴이 아닙니다: ${toolName}. `
+                    + `허용 툴: ${options.allowedTools.join(', ')}`,
+            };
+        }
+
+        return options.canUseTool(toolName, input);
+    }
+
     private handleMessage(message: any, events: SessionEvents): void {
         switch (message?.type) {
             case 'system': {
@@ -116,9 +183,13 @@ export class SdkSessionAdapter implements SessionAdapter {
             }
 
             case 'assistant': {
-                this.captureUsage(message);
+                // 내용과 usage 는 래퍼가 아니라 message.message(BetaMessage) 안에 있다.
+                // 최상위 message.content 를 보면 항상 비어 있어 대화가 통째로 유실된다.
+                const inner = message.message ?? {};
 
-                const blocks: any[] = Array.isArray(message.content) ? message.content : [];
+                this.captureAssistantUsage(inner);
+
+                const blocks: any[] = Array.isArray(inner.content) ? inner.content : [];
 
                 for (const block of blocks) {
                     if (block?.type === 'text' && typeof block.text === 'string' && block.text.trim()) {
@@ -133,7 +204,6 @@ export class SdkSessionAdapter implements SessionAdapter {
             }
 
             case 'tool_result': {
-                this.captureUsage(message);
                 events.onLog('tool_result', summarize(message.content), message);
                 break;
             }
@@ -145,9 +215,14 @@ export class SdkSessionAdapter implements SessionAdapter {
             }
 
             case 'result': {
-                this.captureUsage(message);
+                // result 의 usage 는 세션 누적이라 컨텍스트 크기가 아니다. 비용만 가져온다.
+                if (typeof message?.total_cost_usd === 'number') {
+                    this.cumulativeCost = message.total_cost_usd;
+                }
+
                 events.onLog('result', String(message.subtype ?? 'result'), message);
-                events.onTurnEnd(this.usage());
+                // batch 에서 result 는 "작업이 끝났다"는 뜻이다. 완료 여부를 함께 알린다.
+                events.onTurnEnd(this.usage(), message?.subtype === 'success');
                 break;
             }
 
@@ -156,14 +231,15 @@ export class SdkSessionAdapter implements SessionAdapter {
         }
     }
 
-    private captureUsage(message: any): void {
-        if (message?.usage) {
-            this.lastUsage = message.usage as Usage;
-        }
-
-        if (typeof message?.total_cost_usd === 'number') {
-            // 누적 추정치다. 더하지 않고 덮어쓴다.
-            this.cumulativeCost = message.total_cost_usd;
+    /**
+     * 컨텍스트 크기는 assistant 메시지의 usage 로만 잰다.
+     *
+     * result 메시지의 usage 는 세션 전체 누적이라(특히 cache_read 가 턴마다 더해진다)
+     * 그걸 쓰면 작은 작업에서도 한도의 절반을 넘겨 인수인계가 헛돈다.
+     */
+    private captureAssistantUsage(inner: any): void {
+        if (inner?.usage) {
+            this.lastUsage = inner.usage as Usage;
         }
     }
 
@@ -185,7 +261,14 @@ export class SdkSessionAdapter implements SessionAdapter {
             const next = this.inputQueue.shift();
 
             if (next !== undefined) {
-                yield { type: 'user', content: next };
+                // SDKUserMessage 는 { type, message: MessageParam, parent_tool_use_id } 형태다.
+                // 공개 문서의 { type, content } 형태로 보내면 Claude Code 가 프롬프트를
+                // 받지 못해 아무 메시지도 내보내지 않은 채 대기한다.
+                yield {
+                    type: 'user' as const,
+                    message: { role: 'user' as const, content: next },
+                    parent_tool_use_id: null,
+                };
                 continue;
             }
 

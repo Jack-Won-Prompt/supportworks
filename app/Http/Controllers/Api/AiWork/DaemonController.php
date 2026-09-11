@@ -22,6 +22,7 @@ class DaemonController extends AgentApiController
         $validated = $request->validate([
             'capabilities'                     => ['nullable', 'array'],
             'capabilities.max_parallel_jobs'   => ['nullable', 'integer', 'min:1', 'max:16'],
+            'capabilities.auth_mode'           => ['nullable', 'in:api_key,subscription'],
         ]);
 
         $agent = $this->agent($request);

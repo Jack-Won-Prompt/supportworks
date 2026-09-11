@@ -63,6 +63,15 @@ export const config = {
 
     /** 승인 결정을 기다리는 동안 /inbox 를 폴링하는 주기. Reverb 유실 대비. */
     inboxPollSec: num('INBOX_POLL_SEC', 30),
+
+    /**
+     * Anthropic 자격.
+     *
+     * 값이 있으면 Claude Code 가 이 키를 쓰고(= 키 소유 계정으로 과금),
+     * 비어 있으면 이 PC 의 Claude Code 로그인(~/.claude.json)을 쓴다
+     * (= PC 사용자 계정으로 과금). 어느 쪽인지 기동 로그에 남긴다.
+     */
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || undefined,
 } as const;
 
 export type Config = typeof config;

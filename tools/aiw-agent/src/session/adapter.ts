@@ -25,8 +25,13 @@ export interface SessionEvents {
     /** 툴 호출·결과·시스템 이벤트 → 서버의 aiw_job_logs 로 간다. */
     onLog(type: 'system' | 'tool_use' | 'tool_result' | 'result' | 'error', content: string, raw?: unknown): void;
 
-    /** 한 턴이 끝났다. 게이지 갱신·인수인계 판정 시점. */
-    onTurnEnd(usage: TurnUsage): void;
+    /**
+     * 한 턴이 끝났다. 게이지 갱신·인수인계 판정 시점.
+     *
+     * @param completed batch 에서 작업이 끝났음을 뜻한다. 이때는 인수인계보다
+     *                  완료 처리가 우선이다 — 끝난 일을 정리해 넘길 이유가 없다.
+     */
+    onTurnEnd(usage: TurnUsage, completed?: boolean): void;
 
     /** 세션이 스스로 끝났다(batch 완료 또는 오류). */
     onFinished(error?: Error): void;
