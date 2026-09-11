@@ -142,6 +142,17 @@
         </div>
     </div>
 
+    @if ($blockingJob)
+        <div x-show="status === 'dispatched'" x-cloak
+             class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-sm text-amber-900">
+            같은 담당자의 작업
+            <a href="{{ route('projects.ai-works.show', [$project, $blockingJob->id]) }}"
+               class="font-medium underline">#{{ $blockingJob->id }} {{ $blockingJob->title }}</a>
+            이(가) 실행 중이라 대기하고 있습니다. 같은 작업 폴더에서 둘이 동시에 돌면
+            브랜치와 변경이 뒤섞이므로 끝나면 <span class="font-medium">자동으로 시작</span>합니다.
+        </div>
+    @endif
+
     {{-- ── 본문: 대화 + 활동 로그 ───────────────────────────────────── --}}
     <div class="grid gap-2 lg:grid-cols-3">
 

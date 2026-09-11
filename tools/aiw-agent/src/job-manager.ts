@@ -6,6 +6,7 @@ import { isJobSetupError, JobSetupError } from './errors.js';
 import { GitWorkspace } from './git.js';
 import { log } from './logger.js';
 import { SessionManager } from './session-manager.js';
+import { SdkSessionAdapter } from './session/sdk-adapter.js';
 
 /**
  * 실행 큐와 동시성.
@@ -22,6 +23,9 @@ export class JobManager {
     private readonly active = new Map<number, SessionManager>();
 
     private readonly known = new Set<number>();
+
+    /** 세션 시작 전에 job 별로 이미 쓴 로그 수. 시퀀스 충돌을 막는다. */
+    private readonly preLogCount = new Map<number, number>();
 
     constructor(private readonly api: ApiClient) {}
 
@@ -84,6 +88,22 @@ export class JobManager {
 
         if (queue.size > 0 || queue.pending > 0) {
             log('info', '같은 폴더의 작업이 끝나기를 기다립니다.', { jobId: spec.job_id, root });
+
+            // 화면에도 알린다. 이게 없으면 사용자에게는 "보냈는데 아무 일도
+            // 일어나지 않는" 상태로 보인다(실제로 그렇게 관측됐다).
+            // 세션이 아직 없어 SessionManager 의 로그 경로를 쓸 수 없으므로 직접 쓴다.
+            const written = await this.api.quiet('queued log', () =>
+                this.api.logs(spec.job_id, [{
+                    seq: 0,
+                    type: 'daemon',
+                    content: `같은 폴더(${root})에서 다른 작업이 실행 중입니다. 끝나면 자동으로 시작합니다.`,
+                }]),
+            );
+
+            if (written) {
+                // 세션 로그가 seq 0 을 다시 쓰면 이 줄이 덮여 사라진다.
+                this.preLogCount.set(spec.job_id, 1);
+            }
         }
 
         await queue.add(() => this.global.add(() => this.execute(spec, root)));
@@ -95,15 +115,22 @@ export class JobManager {
         let manager: SessionManager | null = null;
 
         const finished = new Promise<void>((resolve) => {
-            manager = new SessionManager(this.api, spec, {
-                onTerminal: (reason, detail) => {
-                    void this.report(spec, root, manager!, reason, detail).finally(() => {
-                        this.active.delete(spec.job_id);
-                        this.known.delete(spec.job_id);
-                        resolve();
-                    });
+            manager = new SessionManager(
+                this.api,
+                spec,
+                {
+                    onTerminal: (reason, detail) => {
+                        void this.report(spec, root, manager!, reason, detail).finally(() => {
+                            this.active.delete(spec.job_id);
+                            this.known.delete(spec.job_id);
+                            this.preLogCount.delete(spec.job_id);
+                            resolve();
+                        });
+                    },
                 },
-            });
+                () => new SdkSessionAdapter(),
+                this.preLogCount.get(spec.job_id) ?? 0,
+            );
         });
 
         this.active.set(spec.job_id, manager!);

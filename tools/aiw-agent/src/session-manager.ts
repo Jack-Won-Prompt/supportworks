@@ -73,7 +73,8 @@ export class SessionManager {
 
     private holding = false;
 
-    private logSeq = 0;
+    /** 세션 시작 전에 이미 쓴 로그가 있으면 그 뒤부터 번호를 매긴다. */
+    private logSeq: number;
 
     private messageSeq = 0;
 
@@ -100,8 +101,10 @@ export class SessionManager {
         private readonly job: JobSpec,
         private readonly hooks: SessionManagerHooks,
         private readonly createAdapter: AdapterFactory = () => new SdkSessionAdapter(),
+        startLogSeq = 0,
     ) {
         this.writer = new JobLogWriter(job.job_id);
+        this.logSeq = startLogSeq;
     }
 
     // ── 시작 ────────────────────────────────────────────────────────────────

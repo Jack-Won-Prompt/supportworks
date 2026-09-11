@@ -203,6 +203,14 @@ class AiwJobController extends Controller
             'canEdit'  => auth()->user()->can('sendMessage', $job),
             // 실패 복구 버튼 중 매핑 수정은 관리자만 할 수 있다.
             'canManageAgents' => auth()->user()->can('manageAgents', AiwJob::class),
+            // 같은 담당자가 다른 작업을 붙들고 있으면 이 작업은 줄 서 있다.
+            // 화면이 말해 주지 않으면 "보냈는데 아무 일도 없는" 상태로 보인다.
+            'blockingJob' => $job->status === AiwJobStatus::Dispatched
+                ? AiwJob::where('agent_id', $job->agent_id)
+                    ->whereIn('status', $this->activeStatuses())
+                    ->where('id', '!=', $job->id)
+                    ->first(['id', 'title'])
+                : null,
         ]);
     }
 

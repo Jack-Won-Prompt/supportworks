@@ -340,6 +340,31 @@ class AiwWebTest extends TestCase
         ]);
     }
 
+    public function test_대기_중인_이유를_화면이_알려준다(): void
+    {
+        $running = $this->job(['status' => AiwJobStatus::Running, 'title' => '먼저 온 작업']);
+        $queued = $this->job(['status' => AiwJobStatus::Dispatched]);
+
+        // 같은 폴더에서 둘이 동시에 돌 수 없어 직렬로 기다린다. 화면이 말해 주지
+        // 않으면 "보냈는데 아무 일도 없는" 상태로 보인다.
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $queued]))
+            ->assertOk()
+            ->assertSee('먼저 온 작업')
+            ->assertSee('자동으로 시작');
+    }
+
+    public function test_실행_중인_작업에는_대기_안내가_없다(): void
+    {
+        $this->job(['status' => AiwJobStatus::Running, 'title' => '먼저 온 작업']);
+        $running = $this->job(['status' => AiwJobStatus::Running]);
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $running]))
+            ->assertOk()
+            ->assertDontSee('자동으로 시작');
+    }
+
     public function test_미지원_툴은_422로_거부된다(): void
     {
         $this->actingAs($this->member)
