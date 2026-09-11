@@ -3,9 +3,11 @@
 namespace App\Services\AiWork;
 
 use App\Enums\AiWork\AiwJobStatus;
+use App\Events\AiWork\JobLogAppended;
 use App\Events\AiWork\JobStatusChanged;
 use App\Exceptions\AiWork\InvalidJobTransitionException;
 use App\Models\AiWork\AiwJob;
+use App\Models\AiWork\AiwJobLog;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -49,6 +51,7 @@ class JobStateMachine
 
         if ($to->isTerminal()) {
             $this->cleanUpTerminal($job);
+            $this->logTerminalReason($job, $context);
         }
 
         $this->emit($job);
@@ -99,6 +102,44 @@ class JobStateMachine
             'status'     => 'expired',
             'decided_at' => now(),
         ]);
+    }
+
+    /**
+     * 실패·취소 사유를 활동 로그에도 한 줄 남긴다.
+     *
+     * 화면의 활동 로그는 aiw_job_logs 만 그린다. 그런데 세션이 열리기 전에 실패하면
+     * (경로 없음·매핑 없음·더러운 워킹트리 등) 로그 행이 0건이라 화면이 텅 빈다.
+     * 사유는 error_message 에 있지만 그건 "결과" 카드에만 나오고 새로고침이 필요해서,
+     * 사용자에게는 "아무 일도 일어나지 않은 것"처럼 보인다. 실제로 그렇게 관측됐다.
+     *
+     * 로그 행으로 남기면 기존 log.appended 실시간 경로를 그대로 타고 바로 보인다.
+     *
+     * @param  array<string, mixed>  $context
+     */
+    private function logTerminalReason(AiwJob $job, array $context): void
+    {
+        $reason = $context['error_message'] ?? null;
+
+        if (! is_string($reason) || trim($reason) === '') {
+            return;
+        }
+
+        try {
+            $log = AiwJobLog::create([
+                'job_id'  => $job->id,
+                'seq'     => (int) AiwJobLog::where('job_id', $job->id)->max('seq') + 1,
+                'type'    => 'error',
+                'content' => $reason,
+            ]);
+
+            event(new JobLogAppended($log));
+        } catch (\Throwable $e) {
+            // 로그 한 줄 때문에 종료 처리가 실패하면 안 된다.
+            Log::warning('AI Works: 종료 사유 로그 기록 실패', [
+                'job_id' => $job->id,
+                'error'  => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

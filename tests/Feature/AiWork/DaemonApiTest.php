@@ -423,6 +423,33 @@ class DaemonApiTest extends TestCase
         $this->assertSame('터졌습니다', $this->job->fresh()->error_message);
     }
 
+    public function test_실패_사유가_활동_로그에도_남는다(): void
+    {
+        // 세션이 열리기 전에 실패하면 로그 행이 0건이라 화면이 텅 빈다.
+        // 사유가 error_message 에만 있으면 새로고침 전까지 보이지 않는다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", [
+            'error_message' => '로컬 경로를 찾을 수 없습니다: E:/none',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('aiw_job_logs', [
+            'job_id'  => $this->job->id,
+            'type'    => 'error',
+            'content' => '로컬 경로를 찾을 수 없습니다: E:/none',
+        ]);
+    }
+
+    public function test_완료는_사유_로그를_남기지_않는다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/complete", ['result_summary' => '끝'])
+            ->assertOk();
+
+        $this->assertDatabaseMissing('aiw_job_logs', [
+            'job_id' => $this->job->id,
+            'type'   => 'error',
+        ]);
+    }
+
     public function test_다른_종료상태와_충돌하면_여전히_409다(): void
     {
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
