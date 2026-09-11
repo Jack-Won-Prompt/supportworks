@@ -104,7 +104,7 @@
                 </div>
                 <p class="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-3">
                     <span>{{ $job->mode === 'interactive' ? '대화형' : '단발' }}</span>
-                    <span>{{ $job->agent?->name ?? '담당자 없음' }}</span>
+                    <span>{{ $agentName ?? '담당자 없음' }}</span>
                     @if ($job->branchName())<span><code>{{ $job->branchName() }}</code></span>@endif
                     <span>{{ $job->model ?: '기본 모델' }}</span>
                     @if ($job->parent)

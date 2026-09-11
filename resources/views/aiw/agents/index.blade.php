@@ -114,6 +114,11 @@
                 @foreach ($agent->agentProjects as $mapping)
                     <div class="flex items-center gap-2 text-xs text-gray-600 py-1">
                         <span class="font-medium">{{ $mapping->project?->name ?? '삭제된 프로젝트' }}</span>
+                        @if ($mapping->display_name)
+                            <span class="rounded bg-indigo-50 px-1.5 py-0.5 text-[11px] text-indigo-700">
+                                {{ $mapping->display_name }}
+                            </span>
+                        @endif
                         <code class="text-gray-500">{{ $mapping->local_path }}</code>
                         <span class="text-gray-400">{{ $mapping->default_branch ?: '기본 브랜치' }}</span>
                         <form method="POST" action="{{ route('settings.aiw-agents.mappings.destroy', [$agent, $mapping]) }}">
@@ -124,11 +129,16 @@
                 @endforeach
 
                 <form method="POST" action="{{ route('settings.aiw-agents.mappings.store', $agent) }}"
-                      class="mt-2 grid gap-2 md:grid-cols-4 items-end">
+                      class="mt-2 grid gap-2 md:grid-cols-5 items-end">
                     @csrf
                     <select name="project_id" required class="rounded-lg border-gray-200 text-xs">
                         @foreach ($projects as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
                     </select>
+                    {{-- 프로젝트마다 실제 책임자가 다를 수 있다. 데몬을 여러 개 띄우는
+                         대신 표시 이름만 나눈다. --}}
+                    <input type="text" name="display_name" maxlength="100"
+                           placeholder="표시 이름(비우면 {{ $agent->name }})"
+                           class="rounded-lg border-gray-200 text-xs">
                     {{-- 경로는 슬래시로 안내한다. 백슬래시는 전달 과정에서 이스케이프가 깨진 전례가 있다. --}}
                     <input type="text" name="local_path" required placeholder="E:/work/project"
                            class="rounded-lg border-gray-200 text-xs md:col-span-2">

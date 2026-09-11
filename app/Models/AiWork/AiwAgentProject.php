@@ -12,7 +12,13 @@ class AiwAgentProject extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['agent_id', 'project_id', 'local_path', 'default_branch'];
+    protected $fillable = ['agent_id', 'project_id', 'display_name', 'local_path', 'default_branch'];
+
+    /** 이 프로젝트에서 부를 이름. 비워 두면 담당자 본래 이름. */
+    public function displayName(): string
+    {
+        return $this->display_name ?: ($this->agent?->name ?? '담당자');
+    }
 
     public function agent(): BelongsTo
     {

@@ -178,6 +178,36 @@ class AiwWebTest extends TestCase
             ->assertDontSee('한 번도 접속한 적이 없습니다');
     }
 
+    public function test_매핑별_표시_이름을_쓴다(): void
+    {
+        // 담당자 하나(= PC 한 대)가 여러 프로젝트를 맡을 때, 프로젝트마다
+        // 실제 책임자가 다를 수 있다. 데몬을 늘리지 않고 이름만 나눈다.
+        AiwAgentProject::where('agent_id', $this->agent->id)
+            ->where('project_id', $this->projectId)
+            ->update(['display_name' => '이윤석']);
+
+        $job = $this->job(['status' => AiwJobStatus::Completed]);
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.index', $this->project()))
+            ->assertOk()
+            ->assertSee('이윤석')
+            ->assertDontSee('테스트 PC');
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('이윤석');
+    }
+
+    public function test_표시_이름이_없으면_담당자_이름을_쓴다(): void
+    {
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.index', $this->project()))
+            ->assertOk()
+            ->assertSee('테스트 PC');
+    }
+
     public function test_비멤버는_목록에_접근할_수_없다(): void
     {
         $this->actingAs($this->outsider)

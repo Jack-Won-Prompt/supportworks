@@ -100,6 +100,7 @@ class AiwAgentController extends Controller
 
         $validated = $request->validate([
             'project_id'     => ['required', 'integer', 'exists:projects,id'],
+            'display_name'   => ['nullable', 'string', 'max:100'],
             'local_path'     => ['required', 'string', 'max:500'],
             'default_branch' => ['nullable', 'string', 'max:100'],
         ]);
@@ -107,6 +108,8 @@ class AiwAgentController extends Controller
         AiwAgentProject::updateOrCreate(
             ['agent_id' => $agent->id, 'project_id' => $validated['project_id']],
             [
+                // 프로젝트마다 실제 책임자가 다를 수 있다. 비우면 담당자 본래 이름.
+                'display_name'   => trim((string) ($validated['display_name'] ?? '')) ?: null,
                 'local_path'     => trim($validated['local_path']),
                 'default_branch' => $validated['default_branch'] ?: null,
             ],

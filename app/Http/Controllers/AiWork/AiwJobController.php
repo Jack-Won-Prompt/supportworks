@@ -9,6 +9,7 @@ use App\Events\AiWork\JobEndRequested;
 use App\Events\AiWork\JobUserMessage;
 use App\Http\Controllers\Controller;
 use App\Models\AiWork\AiwAgent;
+use App\Models\AiWork\AiwAgentProject;
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwDeploy;
 use App\Models\AiWork\AiwDeployTarget;
@@ -81,6 +82,10 @@ class AiwJobController extends Controller
             // 소스 경로·등록자·소요·작업량은 운영 정보다. 지시하는 사람에게는
             // 필요 없고, 매핑과 비용을 실제로 다루는 관리자에게만 보인다.
             'isAdmin'        => auth()->user()->can('manageAgents', AiwJob::class),
+            // 담당자 하나가 여러 프로젝트를 맡을 때, 이 프로젝트에서 부를 이름.
+            'agentNames'     => $agents->mapWithKeys(fn ($a) => [
+                $a->id => $a->agentProjects->first()?->displayName() ?? $a->name,
+            ]),
         ]);
     }
 
@@ -92,6 +97,7 @@ class AiwJobController extends Controller
         $agents = AiwAgent::query()
             ->online()
             ->whereHas('agentProjects', fn ($q) => $q->where('project_id', $project->id))
+            ->with(['agentProjects' => fn ($q) => $q->where('project_id', $project->id)])
             ->get();
 
         // 후속 지시: 원 job 의 설정을 그대로 물려받되 원 job 은 건드리지 않는다.
@@ -235,6 +241,9 @@ class AiwJobController extends Controller
             // 실패 복구 버튼 중 매핑 수정은 관리자만 할 수 있다.
             'canManageAgents' => auth()->user()->can('manageAgents', AiwJob::class),
             'publishes' => $job->publishes()->with('requester:id,name')->latest('id')->get(),
+            'agentName' => AiwAgentProject::where('agent_id', $job->agent_id)
+                ->where('project_id', $job->project_id)->first()?->displayName()
+                ?? $job->agent?->name,
             // 배포 대상은 관리자가 미리 등록한 것만 고를 수 있다.
             'deployTargets' => AiwDeployTarget::where('project_id', $job->project_id)
                 ->where('enabled', true)->orderBy('name')->get(),

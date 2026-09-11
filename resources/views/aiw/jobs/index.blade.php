@@ -58,7 +58,7 @@
                 <div class="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs
                             {{ $agent->is_online ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50' }}">
                     <span class="inline-block h-2 w-2 rounded-full {{ $agent->is_online ? 'bg-emerald-500' : 'bg-gray-400' }}"></span>
-                    <span class="font-semibold text-gray-800">{{ $agent->name }}</span>
+                    <span class="font-semibold text-gray-800">{{ $agentNames[$agent->id] ?? $agent->name }}</span>
                     <span class="text-gray-500">
                         실행 중 {{ $runningByAgent[$agent->id] ?? 0 }}
                         / 상한 {{ $agent->capabilities['max_parallel_jobs'] ?? '—' }}
@@ -150,7 +150,7 @@
                                     {{ $job->mode === 'interactive' ? '대화형' : '단발' }}
                                 </span>
                             </td>
-                            <td class="py-2 pr-3 text-gray-600">{{ $job->agent?->name ?? '—' }}</td>
+                            <td class="py-2 pr-3 text-gray-600">{{ $agentNames[$job->agent_id] ?? $job->agent?->name ?? '—' }}</td>
                             <td class="py-2 pr-3">
                                 <x-aiw.status-badge :status="$job->status" />
                             </td>

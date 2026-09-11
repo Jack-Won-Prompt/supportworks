@@ -74,7 +74,9 @@
                     <label class="block text-xs font-semibold text-gray-700 mb-1">대상 담당자</label>
                     <select name="agent_id" x-model="agentId" required class="w-full rounded-lg border-gray-200 text-sm">
                         @foreach ($agents as $agent)
-                            <option value="{{ $agent->id }}">{{ $agent->name }}</option>
+                            <option value="{{ $agent->id }}">
+                                {{ $agent->agentProjects->first()?->displayName() ?? $agent->name }}
+                            </option>
                         @endforeach
                     </select>
                     <p x-show="busyJobId" x-cloak class="mt-1 text-xs text-amber-700">
