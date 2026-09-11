@@ -11,6 +11,7 @@ import {
 } from './handover.js';
 import { log, JobLogWriter } from './logger.js';
 import { PermissionGate } from './permissions.js';
+import { loadProjectRules } from './project-context.js';
 import { Sandbox } from './sandbox.js';
 import type { SessionAdapter, TurnUsage } from './session/adapter.js';
 import { SdkSessionAdapter } from './session/sdk-adapter.js';
@@ -23,9 +24,15 @@ const FIXED_HEADER = (jobId: number, root: string) =>
         'to keep them short. When you need a decision from the human, ask a clear question and stop.',
     ].join('\n');
 
+/** 프롬프트 조각 구분자. 헤더 / 규칙 / 본문을 빈 줄로 나눈다. */
+const SEPARATOR = String.fromCharCode(10, 10);
+
 export interface SessionManagerHooks {
     onTerminal(reason: 'completed' | 'failed' | 'cancelled', detail?: string): void;
 }
+
+/** 세션 실행기 생성자. 테스트가 가짜 어댑터를 끼울 수 있게 밖에서 받는다. */
+export type AdapterFactory = () => SessionAdapter;
 
 /**
  * job 하나의 세션 생애를 관리한다.
@@ -37,6 +44,9 @@ export class SessionManager {
     private adapter: SessionAdapter | null = null;
 
     private sandbox!: Sandbox;
+
+    /** CLAUDE.md 등 저장소 규칙. 세션을 교체해도 매번 다시 넣는다. */
+    private projectRules: string | null = null;
 
     private gate!: PermissionGate;
 
@@ -75,6 +85,7 @@ export class SessionManager {
         private readonly api: ApiClient,
         private readonly job: JobSpec,
         private readonly hooks: SessionManagerHooks,
+        private readonly createAdapter: AdapterFactory = () => new SdkSessionAdapter(),
     ) {
         this.writer = new JobLogWriter(job.job_id);
     }
@@ -101,9 +112,11 @@ export class SessionManager {
             },
         );
 
+        this.projectRules = await loadProjectRules(root);
+
         // 최초 프롬프트에 지시문을 담고, 이후 세션은 인수인계 문서로 잇는다.
         await this.startSession(
-            `${FIXED_HEADER(this.job.job_id, root)}\n\n${this.job.instruction}`,
+            this.compose(this.job.instruction),
             this.job.resume_session_id ?? null,
         );
 
@@ -112,8 +125,18 @@ export class SessionManager {
         );
     }
 
+    /**
+     * 고정 헤더 + 프로젝트 규칙 + 본문. 세션을 교체해도 헤더와 규칙은 다시 붙는다 —
+     * 새 세션은 이전 맥락을 물려받지 않기 때문이다.
+     */
+    private compose(body: string): string {
+        return [FIXED_HEADER(this.job.job_id, this.sandbox.root), this.projectRules, body]
+            .filter(Boolean)
+            .join(SEPARATOR);
+    }
+
     private async startSession(prompt: string, resumeSessionId: string | null): Promise<void> {
-        const adapter = new SdkSessionAdapter();
+        const adapter = this.createAdapter();
 
         this.adapter = adapter;
         this.startedAt = Date.now();
@@ -309,8 +332,7 @@ export class SessionManager {
         this.handoverInFlight = false;
 
         await this.startSession(
-            `${FIXED_HEADER(this.job.job_id, this.sandbox.root)}\n\n` +
-                resumePrompt(this.job.instruction, validation.content),
+            this.compose(resumePrompt(this.job.instruction, validation.content)),
             null,
         );
 

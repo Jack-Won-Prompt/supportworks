@@ -36,7 +36,25 @@ git pull --ff-only origin master
 composer install --optimize-autoloader --no-interaction   # --no-dev 금지 (dev 패키지 설치 상태 유지)
 ```
 
-`config/database.php`는 서버에 의도적 로컬 수정(DB host)이 있다. **`git stash`를 쓰지 말 것** — pop 없이 stash하면 운영 DB 호스트가 저장소값으로 되돌아간다.
+`config/database.php`는 서버에 의도적 로컬 수정(DB host)이 있다. **`git stash`를 쓰지 말 것** — pop 없이 stash하면 운영 DB 호스트가 저장소값으로 되돌아간다. 같은 이유로 `aws/gitpull.sh`도 쓰지 않는다(pop 없이 stash한다).
+
+## 1-1. 프런트엔드 자산 빌드
+
+`.env`를 채운 **뒤에** 실행한다. `VITE_REVERB_*`는 빌드 시점에 번들로 들어가므로, 값을 채우기 전에 빌드하면 브라우저가 빈 키로 Reverb에 접속해 즉시 끊긴다.
+
+```bash
+cd ~/www/supportworks
+npm ci
+npm run build
+```
+
+`npm ci`는 `package-lock.json`대로만 설치한다(`npm install`과 달리 lock을 갱신하지 않는다). RAM 957MB 서버에서 Vite 빌드가 OOM으로 죽으면 swap을 확인하고 다음으로 우회한다.
+
+```bash
+NODE_OPTIONS=--max-old-space-size=512 npm run build
+```
+
+> `REVERB_*` 값을 나중에 바꾸면 **반드시 이 단계를 다시 실행한다.** 서버 쪽 `.env`만 고치고 재빌드를 빠뜨리면, 백엔드는 새 키로 서명하는데 브라우저는 옛 키로 접속해 AI Works 화면만 조용히 실시간이 끊긴다(페이지는 정상으로 보인다).
 
 ## 2. `.env` 설정
 
@@ -197,6 +215,8 @@ php artisan test --filter=ReverbAuthTest
 | WebSocket 연결이 즉시 끊김 | 서명 불일치 | 브라우저가 `/broadcasting/auth`(pusher secret)를 쓰고 있지 않은지 확인. `/aiw/broadcasting/auth`여야 한다 |
 | Reverb 반복 재시작 | `MemoryMax` 초과 | `journalctl -u supportworks-reverb -n 50`. 상한을 올리기 전에 서버 여유 메모리를 먼저 본다 |
 | 채팅·협업까지 멈춤 | 누군가 `BROADCAST_CONNECTION`을 `reverb`로 바꿈 | `pusher`로 되돌리고 `php artisan config:clear` |
+| 화면은 정상인데 AI Works만 실시간 갱신 없음 | `REVERB_*` 변경 후 `npm run build` 누락 (번들에 옛 키가 박힘) | 1-1 단계 재실행 |
+| 승인 만료·좀비 job 정리가 안 됨 | 스케줄러 미동작 | `systemctl status supportworks-schedule`. `CACHE_STORE=file`이면 `routes/console.php`의 `Schedule::useCache('database')` 가드가 있는지 확인 — 파일 락은 샤딩 디렉터리를 만들지 않아 `schedule:run` 전체가 죽는다 |
 
 ## 8. 모니터링
 

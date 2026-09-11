@@ -12,9 +12,26 @@ SupportWorks 의 "AI 작업 지시" 화면에서 등록한 지시를 받아 Clau
 ## 요구사항
 
 - Node.js 20 이상
-- Claude Code 가 동작하는 환경 (`ANTHROPIC_API_KEY`)
-- Windows: Git Bash — Claude Code 의 Bash 툴이 이를 요구합니다
+- Windows: Git Bash — Claude Code 의 Bash 툴이 이를 요구합니다 (`SW_SHELL`)
 - git (브랜치 분리를 쓸 경우)
+
+**Claude Code 를 따로 설치할 필요는 없습니다.** `@anthropic-ai/claude-agent-sdk` 가
+optionalDependencies 로 실행 파일(`claude.exe`, 약 210MB)을 함께 내려받습니다.
+`npm ci` 가 느리고 `node_modules` 가 큰 이유입니다. VS Code 의 Claude Code 확장이나
+전역 `claude` 설치와는 무관하게 동작합니다.
+
+### 인증 — 두 가지 방식
+
+| 방식 | 설정 | 과금 | 화면 표기 |
+|---|---|---|---|
+| 구독 로그인 | `ANTHROPIC_API_KEY` **를 비워 둔다** | 이 PC 의 Claude Code 로그인 계정 | **예상 사용량** (추정치) |
+| API 키 | `ANTHROPIC_API_KEY=sk-...` | 키 소유 계정에 실제 청구 | **비용** (실제 금액) |
+
+어느 쪽인지 기동 로그 첫 줄에 남습니다. 데몬은 하트비트의 `capabilities.auth_mode`
+로 이를 서버에 알리고, 서버는 그에 맞춰 게이지 이름을 바꿉니다.
+
+> **현재 운영은 구독 로그인 방식입니다.** 따라서 화면의 사용량 숫자는 **추정치이며
+> 실제 청구액이 아닙니다.** 이 PC 에서 `claude` 에 한 번 로그인해 두면 됩니다.
 
 ## 설치
 
@@ -87,12 +104,34 @@ npm start
    통과하지 못해야 하는 것들입니다.
 2. `acceptEdits` 흉내 — `Read/Edit/Write/Glob/Grep` 만 자동 승인.
    **Bash 는 절대 포함되지 않습니다.**
-3. 서버 승인 요청 — 사람의 결정을 기다립니다.
+3. 서버 승인 요청 — 사람의 결정을 기다립니다. 서버에 물을 수 없으면 **거부**합니다.
 
-> **SDK 옵션에 주의**: `allowedTools` 를 쓰지 않고 빈 배열로 둡니다. 거기에 툴을
-> 넣으면 그 툴들이 `canUseTool` 을 건너뛰어 위 검사가 통째로 무력화됩니다.
-> 사용 가능 툴의 제한은 `disallowedTools`(컨텍스트에서 제거)로 합니다.
-> `permissionMode` 도 항상 `'default'` 입니다.
+#### 게이트를 SDK 에 연결하는 방법 — 실측으로 고친 부분
+
+초기 구현은 `canUseTool` 콜백만 썼고, **게이트가 통째로 동작하지 않았습니다.**
+실제 연결 테스트에서 `permission_mode: default` + `allowed_tools: ['Read']` 인데도
+`git status; git diff` 가 승인 없이 실행됐습니다. 원인이 둘이었습니다.
+
+1. `settingSources` 를 지정하지 않아 이 PC 의 `~/.claude/settings.json` 에 쌓인
+   허용 규칙이 적용됐습니다. 승인 흐름이 아예 발생하지 않으니 콜백도 불리지 않습니다.
+2. `canUseTool` 은 권한 흐름이 "프롬프트까지 내려오는" 경우에만 호출됩니다.
+   허용으로 판정되면 조용히 지나갑니다.
+
+그래서 현재는 이렇게 둡니다. **어느 한 줄도 편의를 위해 바꾸지 마세요.**
+
+```ts
+permissionMode: 'default',
+settingSources: [],        // ← 파일시스템 설정을 읽지 않는다(격리)
+allowedTools: [],          // ← 여기 넣은 툴은 게이트를 건너뛴다
+disallowedTools: disallowed,
+hooks: { PreToolUse: [ /* ← 실제 게이트는 여기 */ ] },
+canUseTool: async (...) => { /* 2차 방어선 */ },
+```
+
+`settingSources: []` 의 대가로 **`CLAUDE.md` 도 자동 로드되지 않습니다.**
+격리를 푸는 대신 `src/project-context.ts` 가 `CLAUDE.md`(없으면 `.claude/CLAUDE.md`)를
+직접 읽어 프롬프트에 넣습니다. 16KB 를 넘으면 앞부분만 싣고 잘렸음을 알립니다.
+세션을 교체해도 매번 다시 넣습니다 — 새 세션은 이전 맥락을 물려받지 않기 때문입니다.
 
 ### 3. 권한 모델
 
@@ -136,8 +175,19 @@ pm2 startup      # Windows 는 pm2-windows-startup 사용
 ```bash
 npm run dev      # tsx watch
 npm run build
-npm test         # 샌드박스 차단 규칙 단위 테스트
+npm test         # 빌드 후 dist/**/*.test.js 실행
 ```
+
+고정해 둔 것: 샌드박스 차단 목록, 승인 게이트(특히 **Bash 자동 승인 금지**와
+통신 실패 시 거부), 토큰 집계 산식(**덮어쓰기**), 인수인계 트리거 판정·문서 검증·
+데몬 폴백, 입력 큐 잠금/보류/재개, `CLAUDE.md` 주입.
+
+> **`npm test` 의 글로브를 `node --test dist` 로 바꾸지 마세요.** Node 가 디렉터리를
+> `dist/index.js` 로 해석해 테스트 대신 **진짜 데몬을 운영 서버에 붙여 기동합니다.**
+> (실제로 한 번 그렇게 떴습니다.)
+
+테스트는 `src/test-env.ts` 를 먼저 임포트해 필수 환경변수를 고정합니다. 이걸 빼면
+운영자의 실제 `.env` 를 읽어 PC 마다 결과가 달라집니다.
 
 ## 알려진 제약
 
