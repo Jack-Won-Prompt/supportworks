@@ -120,6 +120,40 @@ class AiwWebTest extends TestCase
             ->assertSee('테스트 PC');
     }
 
+    public function test_운영_정보는_관리자에게만_보인다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::Completed]);
+        $job->forceFill(['duration_ms' => 5000, 'cost_usd' => 0.42])->save();
+
+        $url = route('projects.ai-works.index', $this->project());
+
+        // 소스 경로는 담당자 PC 의 내부 구조다. 지시하는 사람에게는 필요 없다.
+        $this->actingAs($this->member)->get($url)
+            ->assertOk()
+            ->assertDontSee('E:\work\sample')
+            ->assertDontSee('등록자')
+            ->assertDontSee('소요')
+            ->assertDontSee('작업량')
+            ->assertSee('등록일');
+    }
+
+    public function test_관리자는_운영_정보를_본다(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        DB::table('project_members')->insert([
+            'project_id' => $this->projectId, 'user_id' => $admin->id,
+            'role' => 'manager', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->job(['status' => AiwJobStatus::Completed]);
+
+        $this->actingAs($admin)->get(route('projects.ai-works.index', $this->project()))
+            ->assertOk()
+            ->assertSee('등록자')
+            ->assertSee('작업량')
+            ->assertSee('E:\work\sample');
+    }
+
     public function test_비멤버는_목록에_접근할_수_없다(): void
     {
         $this->actingAs($this->outsider)

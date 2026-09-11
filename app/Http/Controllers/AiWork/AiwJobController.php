@@ -69,7 +69,15 @@ class AiwJobController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('aiw.jobs.index', compact('project', 'agents', 'jobs', 'runningByAgent'));
+        return view('aiw.jobs.index', [
+            'project'        => $project,
+            'agents'         => $agents,
+            'jobs'           => $jobs,
+            'runningByAgent' => $runningByAgent,
+            // 소스 경로·등록자·소요·작업량은 운영 정보다. 지시하는 사람에게는
+            // 필요 없고, 매핑과 비용을 실제로 다루는 관리자에게만 보인다.
+            'isAdmin'        => auth()->user()->can('manageAgents', AiwJob::class),
+        ]);
     }
 
     /** 화면 3: 새 지시 등록 폼 */

@@ -59,7 +59,9 @@
                         실행 중 {{ $runningByAgent[$agent->id] ?? 0 }}
                         / 상한 {{ $agent->capabilities['max_parallel_jobs'] ?? '—' }}
                     </span>
-                    @if ($mapping)
+                    {{-- 소스 경로는 담당자 PC 의 내부 구조다. 지시하는 사람에게는 필요 없고,
+                         매핑을 고칠 수 있는 관리자에게만 의미가 있다. --}}
+                    @if ($mapping && $isAdmin)
                         <span class="text-gray-400" title="{{ $mapping->local_path }}">
                             {{ \Illuminate\Support\Str::limit($mapping->local_path, 28) }}
                         </span>
@@ -104,11 +106,15 @@
                         <th class="py-2 pr-3 font-medium">모드</th>
                         <th class="py-2 pr-3 font-medium">담당자</th>
                         <th class="py-2 pr-3 font-medium">상태</th>
-                        <th class="py-2 pr-3 font-medium">등록자</th>
+                        @if ($isAdmin)
+                            <th class="py-2 pr-3 font-medium">등록자</th>
+                        @endif
                         <th class="py-2 pr-3 font-medium">등록일</th>
-                        <th class="py-2 pr-3 font-medium">소요</th>
-                        {{-- 담당자마다 과금 방식이 다를 수 있어 헤더는 중립어를 쓰고 행에서 구분한다. --}}
-                        <th class="py-2 pr-3 font-medium">작업량</th>
+                        @if ($isAdmin)
+                            <th class="py-2 pr-3 font-medium">소요</th>
+                            {{-- 담당자마다 과금 방식이 다를 수 있어 헤더는 중립어를 쓰고 행에서 구분한다. --}}
+                            <th class="py-2 pr-3 font-medium">작업량</th>
+                        @endif
                         <th class="py-2 pr-3 font-medium">세션</th>
                     </tr>
                 </thead>
@@ -131,23 +137,27 @@
                             <td class="py-2 pr-3">
                                 <x-aiw.status-badge :status="$job->status" />
                             </td>
-                            <td class="py-2 pr-3 text-gray-600">{{ $job->creator?->name ?? '—' }}</td>
+                            @if ($isAdmin)
+                                <td class="py-2 pr-3 text-gray-600">{{ $job->creator?->name ?? '—' }}</td>
+                            @endif
                             <td class="py-2 pr-3 text-gray-500">{{ $job->created_at?->format('m-d H:i') }}</td>
-                            <td class="py-2 pr-3 text-gray-500">
-                                {{ $job->duration_ms ? round($job->duration_ms / 1000).'초' : '—' }}
-                            </td>
-                            <td class="py-2 pr-3 text-gray-500" title="{{ $job->agent?->costHint() }}">
-                                ${{ number_format((float) $job->cost_usd, 2) }}
-                                <span class="text-gray-400">/ ${{ number_format((float) $job->cost_limit_usd, 2) }}</span>
-                                @if ($job->agent && ! $job->agent->usesApiKey())
-                                    <span class="text-[10px] text-gray-400">추정</span>
-                                @endif
-                            </td>
+                            @if ($isAdmin)
+                                <td class="py-2 pr-3 text-gray-500">
+                                    {{ $job->duration_ms ? round($job->duration_ms / 1000).'초' : '—' }}
+                                </td>
+                                <td class="py-2 pr-3 text-gray-500" title="{{ $job->agent?->costHint() }}">
+                                    ${{ number_format((float) $job->cost_usd, 2) }}
+                                    <span class="text-gray-400">/ ${{ number_format((float) $job->cost_limit_usd, 2) }}</span>
+                                    @if ($job->agent && ! $job->agent->usesApiKey())
+                                        <span class="text-[10px] text-gray-400">추정</span>
+                                    @endif
+                                </td>
+                            @endif
                             <td class="py-2 pr-3 text-gray-500">{{ $job->handover_count }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-8 text-center text-sm text-gray-400">
+                            <td colspan="{{ $isAdmin ? 9 : 6 }}" class="py-8 text-center text-sm text-gray-400">
                                 아직 등록된 지시가 없습니다.
                             </td>
                         </tr>
