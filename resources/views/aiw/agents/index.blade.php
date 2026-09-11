@@ -47,10 +47,6 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="mb-2">
             <h2 class="text-xl font-bold text-gray-900">담당자</h2>
-            <p class="text-sm text-gray-500 mt-1">
-                데몬이 설치된 PC 를 등록합니다. 토큰은 그 PC 에서 명령을 실행할 수 있는 자격이므로
-                <span class="font-medium">운영 서버·운영 DB 접근 권한이 있는 PC 에는 설치하지 마세요.</span>
-            </p>
         </div>
 
         <form method="POST" action="{{ route('settings.aiw-agents.store') }}" class="grid gap-3 md:grid-cols-4 items-end">
