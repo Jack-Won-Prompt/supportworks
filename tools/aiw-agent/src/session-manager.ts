@@ -52,6 +52,9 @@ export class SessionManager {
 
     private sessionId: string | null = null;
 
+    /** session_id 가 도착하기를 기다리는 쪽. system/init 이 오면 한꺼번에 깨운다. */
+    private sessionIdWaiters: ((id: string) => void)[] = [];
+
     private sessionIndex = 0;
 
     /** 인수인계 중에는 사용자 메시지를 여기 모았다가 교체 후 순서대로 주입한다. */
@@ -121,8 +124,15 @@ export class SessionManager {
             this.job.resume_session_id ?? null,
         );
 
+        // session_id 가 도착한 뒤에 보고한다. 이게 있어야 나중에 resume 이 성립한다.
+        const sessionId = await this.waitForSessionId();
+
+        if (!sessionId) {
+            this.pushLog('error', '세션 ID를 받지 못했습니다. 이 작업은 나중에 이어서 실행할 수 없습니다.');
+        }
+
         await this.api.quiet('start', () =>
-            this.api.start(this.job.job_id, this.sessionId ?? 'unknown', Boolean(this.job.resume_session_id)),
+            this.api.start(this.job.job_id, sessionId ?? 'unknown', Boolean(this.job.resume_session_id)),
         );
     }
 
@@ -134,6 +144,34 @@ export class SessionManager {
         return [FIXED_HEADER(this.job.job_id, this.sandbox.root), this.projectRules, body]
             .filter(Boolean)
             .join(SEPARATOR);
+    }
+
+    /**
+     * SDK 가 session_id 를 알려줄 때까지 기다린다.
+     *
+     * adapter.start() 는 스트림을 걸어 놓고 즉시 반환하고, session_id 는 그 뒤
+     * 첫 system/init 메시지에 실려 온다. 기다리지 않고 보고하면 'unknown' 이
+     * 저장되어 이후 어떤 resume 도 성립하지 않는다 — 실제로 그렇게 기록돼
+     * 재기동 복구가 "--resume unknown" 으로 실패했다.
+     */
+    private waitForSessionId(timeoutMs = 60_000): Promise<string | null> {
+        if (this.sessionId) {
+            return Promise.resolve(this.sessionId);
+        }
+
+        return new Promise((resolve) => {
+            const wake = (id: string) => {
+                clearTimeout(timer);
+                resolve(id);
+            };
+
+            const timer = setTimeout(() => {
+                this.sessionIdWaiters = this.sessionIdWaiters.filter((w) => w !== wake);
+                resolve(null);
+            }, timeoutMs);
+
+            this.sessionIdWaiters.push(wake);
+        });
     }
 
     private async startSession(prompt: string, resumeSessionId: string | null): Promise<void> {
@@ -154,6 +192,10 @@ export class SessionManager {
             {
                 onSessionId: (id) => {
                     this.sessionId = id;
+
+                    for (const wake of this.sessionIdWaiters.splice(0)) {
+                        wake(id);
+                    }
                 },
                 onAssistantText: (text) => this.onAssistantText(text),
                 onLog: (type, content, raw) => this.pushLog(type, content, raw),
@@ -332,15 +374,18 @@ export class SessionManager {
         this.recentAssistant = [];
         this.handoverInFlight = false;
 
+        this.sessionId = null;
         await this.startSession(
             this.compose(resumePrompt(this.job.instruction, validation.content)),
             null,
         );
 
+        const newSessionId = await this.waitForSessionId();
+
         await this.api.quiet('handover', () =>
             this.api.handover(this.job.job_id, {
                 ended_session_id: endedSessionId,
-                new_session_id: this.sessionId ?? 'unknown',
+                new_session_id: newSessionId ?? 'unknown',
                 document_path: docPath,
                 summary: validation.content,
                 seq: this.messageSeq++,

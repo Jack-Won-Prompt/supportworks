@@ -38,6 +38,12 @@
         </div>
     @endif
 
+    @if (session('error'))
+        <div class="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-800">
+            {{ session('error') }}
+        </div>
+    @endif
+
     {{-- ── 헤더 ─────────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-start justify-between gap-3 flex-wrap mb-2">

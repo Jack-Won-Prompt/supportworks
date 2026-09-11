@@ -196,8 +196,20 @@ class AiwJobController extends Controller
 
         $validated = $request->validate(['content' => ['required', 'string', 'max:20000']]);
 
-        abort_if($job->status->isTerminal(), 409, '종료된 작업에는 메시지를 보낼 수 없습니다.');
-        abort_if($job->mode !== 'interactive', 409, '대화형 작업에서만 메시지를 보낼 수 있습니다.');
+        // 화면에서 온 폼 전송이므로 abort() 로 끊지 않는다. 오류 페이지가 뜨면
+        // 사용자는 이유도 모르고 입력하던 내용도 잃는다. 상태가 어긋나는 건
+        // 예외 상황이 아니라 흔한 일이다 — 화면을 열어 둔 사이 작업이 끝난 경우.
+        if ($job->status->isTerminal()) {
+            return back()
+                ->withInput()
+                ->with('error', '이미 '.$job->status->label().'된 작업이라 메시지를 보낼 수 없습니다. 이어서 진행하려면 재전송으로 후속 지시를 만드세요.');
+        }
+
+        if ($job->mode !== 'interactive') {
+            return back()
+                ->withInput()
+                ->with('error', '단발 작업에는 메시지를 보낼 수 없습니다. 대화형으로 등록한 지시에서만 가능합니다.');
+        }
 
         $message = AiwJobMessage::create([
             'job_id'        => $job->id,
@@ -248,10 +260,24 @@ class AiwJobController extends Controller
         };
     }
 
+    /**
+     * 상태가 맞지 않아 실행할 수 없는 화면 동작.
+     *
+     * abort(409) 로 끊으면 Symfony 기본 오류 페이지가 뜨고 사용자는 이유를 못 본다.
+     * 화면을 열어 둔 사이 작업이 끝나는 건 흔한 일이라 예외 취급할 것이 아니다.
+     */
+    private function conflict(AiwJob $job, string $reason): RedirectResponse
+    {
+        return back()->with('error', $reason.' (현재 상태: '.$job->status->label().')');
+    }
+
     private function cancel(AiwJob $job): RedirectResponse
     {
         $this->authorize('cancel', $job);
-        abort_unless($job->status->isActive() || $job->status === AiwJobStatus::Dispatched, 409, '취소할 수 없는 상태입니다.');
+
+        if (! $job->status->isActive() && $job->status !== AiwJobStatus::Dispatched) {
+            return $this->conflict($job, '취소할 수 없는 상태입니다');
+        }
 
         $this->emit(new JobCancelRequested($job, 'user cancelled'), $job->id);
         $this->states->transition($job, AiwJobStatus::Cancelled, ['error_message' => '사용자가 취소했습니다.']);
@@ -262,7 +288,10 @@ class AiwJobController extends Controller
     private function end(AiwJob $job): RedirectResponse
     {
         $this->authorize('end', $job);
-        abort_unless($job->mode === 'interactive' && $job->status->isActive(), 409, '종료할 수 없는 상태입니다.');
+
+        if ($job->mode !== 'interactive' || ! $job->status->isActive()) {
+            return $this->conflict($job, '종료할 수 없는 상태입니다');
+        }
 
         // 상태는 데몬이 최종 결과를 보고할 때 completed 로 바뀐다. 여기서는 요청만 보낸다.
         $this->emit(new JobEndRequested($job), $job->id);
@@ -273,12 +302,11 @@ class AiwJobController extends Controller
     private function handover(AiwJob $job): RedirectResponse
     {
         $this->authorize('handover', $job);
-        abort_unless(
-            $job->mode === 'interactive'
-                && in_array($job->status, [AiwJobStatus::Running, AiwJobStatus::WaitingInput], true),
-            409,
-            '컨텍스트 정리를 요청할 수 없는 상태입니다.',
-        );
+
+        if ($job->mode !== 'interactive'
+            || ! in_array($job->status, [AiwJobStatus::Running, AiwJobStatus::WaitingInput], true)) {
+            return $this->conflict($job, '컨텍스트 정리를 요청할 수 없는 상태입니다');
+        }
 
         $this->emit(new HandoverRequested($job), $job->id);
 

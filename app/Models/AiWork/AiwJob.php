@@ -164,12 +164,24 @@ class AiwJob extends Model
     // ── 세션 ────────────────────────────────────────────────────────────────
 
     /** 현재 세션 id. session_chain 의 마지막 요소. */
+    /**
+     * 이어붙이기에 쓸 수 있는 마지막 세션 ID.
+     *
+     * 데몬이 session_id 를 받기 전에 보고하면 'unknown' 이 기록된다(과거 버그).
+     * 그 값으로 resume 을 시도하면 Claude Code 가
+     * "--resume ... is not a UUID" 로 죽으므로, 쓸 수 없는 값은 없는 것으로 본다.
+     */
     public function currentSessionId(): ?string
     {
         $chain = $this->session_chain ?? [];
         $last = end($chain);
+        $id = is_array($last) ? ($last['session_id'] ?? null) : null;
 
-        return is_array($last) ? ($last['session_id'] ?? null) : null;
+        if (! is_string($id) || $id === '' || $id === 'unknown') {
+            return null;
+        }
+
+        return $id;
     }
 
     public function currentSessionIndex(): int

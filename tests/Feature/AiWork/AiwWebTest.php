@@ -227,9 +227,28 @@ class AiwWebTest extends TestCase
     {
         $job = $this->job(['status' => AiwJobStatus::Completed]);
 
+        // 화면을 열어 둔 사이 작업이 끝나는 건 흔한 일이다. 오류 페이지로 끊으면
+        // 사용자는 이유도 모르고 입력하던 내용도 잃는다.
+        $this->actingAs($this->member)
+            ->post(route('projects.ai-works.message', [$this->project(), $job]), ['content' => '이어서 해주세요'])
+            ->assertRedirect()
+            ->assertSessionHas('error')
+            ->assertSessionHasInput('content', '이어서 해주세요');
+
+        $this->assertDatabaseMissing('aiw_job_messages', [
+            'job_id'  => $job->id,
+            'content' => '이어서 해주세요',
+        ]);
+    }
+
+    public function test_단발_job에는_메시지를_보낼_수_없다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::Running, 'mode' => 'batch']);
+
         $this->actingAs($this->member)
             ->post(route('projects.ai-works.message', [$this->project(), $job]), ['content' => 'x'])
-            ->assertStatus(409);
+            ->assertRedirect()
+            ->assertSessionHas('error');
     }
 
     public function test_viewer는_메시지를_보낼_수_없다(): void
@@ -262,7 +281,8 @@ class AiwWebTest extends TestCase
         $batch = $this->job(['status' => AiwJobStatus::Running, 'mode' => 'batch']);
         $this->actingAs($this->member)
             ->post(route('projects.ai-works.action', [$this->project(), $batch, 'handover']))
-            ->assertStatus(409);
+            ->assertRedirect()
+            ->assertSessionHas('error');
 
         $interactive = $this->job(['status' => AiwJobStatus::Running, 'mode' => 'interactive']);
         $this->actingAs($this->member)
