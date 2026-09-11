@@ -154,6 +154,30 @@ class AiwWebTest extends TestCase
             ->assertSee('E:\work\sample');
     }
 
+    public function test_담당자가_오프라인이면_이유를_알려준다(): void
+    {
+        // 매핑은 있는데 접속한 적이 없다 = 설치가 안 된 것.
+        $this->agent->forceFill(['last_seen_at' => null])->saveQuietly();
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.index', $this->project()))
+            ->assertOk()
+            ->assertSee('모두 오프라인')
+            ->assertSee('한 번도 접속한 적이 없습니다');
+    }
+
+    public function test_오래전_접속했으면_실행_여부를_묻는다(): void
+    {
+        $this->agent->forceFill(['last_seen_at' => now()->subDay()])->saveQuietly();
+
+        // 설치는 됐는데 지금 꺼져 있는 것이라 조치가 다르다.
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.index', $this->project()))
+            ->assertOk()
+            ->assertSee('데몬이 실행 중인지 확인하세요')
+            ->assertDontSee('한 번도 접속한 적이 없습니다');
+    }
+
     public function test_비멤버는_목록에_접근할_수_없다(): void
     {
         $this->actingAs($this->outsider)

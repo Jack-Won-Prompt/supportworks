@@ -43,8 +43,12 @@
                     새 지시
                 </a>
             @else
+                {{-- 왜 못 누르는지가 상황마다 다르다. 같은 문구를 쓰면 무엇을 해야
+                     하는지 알 수 없다(매핑이 없는 것과 오프라인인 것은 조치가 다르다). --}}
                 <span class="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 cursor-not-allowed"
-                      title="온라인 상태인 담당자가 없습니다">새 지시</span>
+                      title="{{ $agents->isEmpty()
+                          ? '이 프로젝트에 매핑된 담당자가 없습니다'
+                          : '매핑된 담당자가 모두 오프라인입니다' }}">새 지시</span>
             @endif
         </div>
 
@@ -79,6 +83,19 @@
                 </p>
             @endforelse
         </div>
+
+        @if ($agents->isNotEmpty() && $online->isEmpty())
+            <p class="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
+                매핑된 담당자가 모두 오프라인이라 새 지시를 등록할 수 없습니다.
+                @if ($agents->every(fn ($a) => $a->last_seen_at === null))
+                    {{-- 한 번도 접속한 적이 없다면 설치 자체가 안 된 것이다. --}}
+                    <span class="font-medium">아직 한 번도 접속한 적이 없습니다</span> —
+                    해당 PC 에서 데몬을 설치·기동해야 합니다.
+                @else
+                    해당 PC 에서 데몬이 실행 중인지 확인하세요.
+                @endif
+            </p>
+        @endif
     </div>
 
     {{-- 지시 목록 --}}
