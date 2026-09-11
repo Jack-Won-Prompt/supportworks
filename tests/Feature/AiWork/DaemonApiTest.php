@@ -438,6 +438,45 @@ class DaemonApiTest extends TestCase
         ]);
     }
 
+    public function test_실패_코드와_상세가_저장된다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", [
+            'error_message' => '작업 폴더가 깨끗하지 않습니다.',
+            'error_code'    => 'dirty_tree',
+            'error_detail'  => ['files' => ['a.php', 'b.php'], 'count' => 2],
+        ])->assertOk();
+
+        $job = $this->job->fresh();
+        $this->assertSame('dirty_tree', $job->error_code);
+        $this->assertSame(['a.php', 'b.php'], $job->error_detail['files']);
+        // 화면은 이 코드로 "브랜치 없이 다시 지시" 버튼을 고른다.
+        $this->assertTrue($job->failureCode()->retryableWithoutBranch());
+    }
+
+    public function test_모르는_실패_코드는_422로_거부된다(): void
+    {
+        // 조용히 무시되면 화면은 그릴 수 없는 코드를 받고도 알 수 없다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", [
+            'error_message' => '무언가 잘못됨',
+            'error_code'    => 'made_up_code',
+        ])->assertStatus(422);
+
+        $this->assertSame('dispatched', $this->job->fresh()->status->value);
+    }
+
+    public function test_코드_없는_실패도_그대로_받는다(): void
+    {
+        // 세션 도중 실패는 분류되지 않는다. 코드가 없어도 종료 처리는 되어야 한다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", [
+            'error_message' => '알 수 없는 오류',
+        ])->assertOk();
+
+        $job = $this->job->fresh();
+        $this->assertSame('failed', $job->status->value);
+        $this->assertNull($job->error_code);
+        $this->assertNull($job->failureCode());
+    }
+
     public function test_완료는_사유_로그를_남기지_않는다(): void
     {
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);

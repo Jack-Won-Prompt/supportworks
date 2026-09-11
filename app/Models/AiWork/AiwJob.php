@@ -2,6 +2,7 @@
 
 namespace App\Models\AiWork;
 
+use App\Enums\AiWork\AiwFailureCode;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Models\Project;
 use App\Models\User;
@@ -33,6 +34,7 @@ class AiwJob extends Model
         'allowed_tools', 'permission_mode', 'cost_limit_usd', 'use_branch',
         'status', 'session_chain', 'handover_count', 'context_tokens',
         'result_summary', 'changed_files', 'git_diff', 'git_diff_path',
+        'error_code', 'error_detail',
         'cost_usd', 'duration_ms', 'error_message',
         'created_by', 'dispatched_at', 'started_at', 'finished_at',
     ];
@@ -54,6 +56,7 @@ class AiwJob extends Model
 
     protected $casts = [
         'status'               => AiwJobStatus::class,
+        'error_detail'         => 'array',
         'allowed_tools'        => 'array',
         'session_chain'        => 'array',
         'changed_files'        => 'array',
@@ -209,6 +212,12 @@ class AiwJob extends Model
         $limit = (float) $this->cost_limit_usd;
 
         return $limit > 0 ? min(1.0, (float) $this->cost_usd / $limit) : 0.0;
+    }
+
+    /** 실패 사유 코드. 화면이 복구 버튼을 고르는 데 쓴다. */
+    public function failureCode(): ?AiwFailureCode
+    {
+        return $this->error_code ? AiwFailureCode::tryFrom($this->error_code) : null;
     }
 
     public function branchName(): ?string

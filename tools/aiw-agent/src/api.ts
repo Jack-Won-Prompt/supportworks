@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, isAxiosError } from 'axios';
 import { config } from './config.js';
+import { FailureCode } from './errors.js';
 import { log } from './logger.js';
 
 export interface JobSpec {
@@ -188,7 +189,19 @@ export class ApiClient {
         return this.send<ControlFlags>(() => this.http.post(`/jobs/${jobId}/complete`, payload));
     }
 
-    fail(jobId: number, errorMessage: string, extra: { cost_usd?: number; duration_ms?: number } = {}) {
+    /**
+     * @param extra error_code 는 화면이 복구 버튼을 고르는 데 쓴다(서버가 화이트리스트로 검증).
+     */
+    fail(
+        jobId: number,
+        errorMessage: string,
+        extra: {
+            cost_usd?: number;
+            duration_ms?: number;
+            error_code?: FailureCode;
+            error_detail?: Record<string, unknown>;
+        } = {},
+    ) {
         return this.send<ControlFlags>(() =>
             this.http.post(`/jobs/${jobId}/fail`, { error_message: errorMessage, ...extra }),
         );

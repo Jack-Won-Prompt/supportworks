@@ -24,6 +24,7 @@
         agentId: @js(old('agent_id', $parent?->agent_id ?? ($agents->first()->id ?? null))),
         busy: @js($busyByPath),
         permissionMode: @js(old('permission_mode', $parent->permission_mode ?? 'acceptEdits')),
+        useBranch: @js((bool) old('use_branch', $prefillUseBranch)),
         get bashSelected() { return this.tools.includes('Bash'); },
         // Bash 를 고른 채 acceptEdits 면 사람이 명령을 보는 지점이 없다.
         get bashUnattended() { return this.bashSelected && this.permissionMode === 'acceptEdits'; },
@@ -158,13 +159,18 @@
                         {{-- 체크 해제 시 브라우저는 아무것도 보내지 않는다. 이 hidden 이 없으면
                              서버가 "값 없음"을 기본값(켬)으로 해석해 끌 방법이 사라진다. --}}
                         <input type="hidden" name="use_branch" value="0">
-                        <input type="checkbox" name="use_branch" value="1"
-                               @checked(old('use_branch', $parent->use_branch ?? true))
+                        <input type="checkbox" name="use_branch" value="1" x-model="useBranch"
                                class="rounded border-gray-300">
                         별도 브랜치에서 작업 (<code class="text-xs">aiw/job-{id}</code>)
                     </label>
                 </div>
             </div>
+
+            <p x-show="! useBranch" x-cloak
+               class="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-600">
+                브랜치 분리를 끄면 <span class="font-medium">현재 브랜치에 직접</span> 씁니다.
+                작업 폴더가 깨끗하지 않아도 진행되지만, 변경이 기존 작업물과 섞일 수 있습니다.
+            </p>
 
             <div class="pt-2">
                 <button type="submit"

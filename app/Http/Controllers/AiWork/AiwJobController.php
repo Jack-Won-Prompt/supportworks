@@ -102,6 +102,11 @@ class AiwJobController extends Controller
             'defaultCost'   => (float) config('aiw.default_cost_limit_usd', 2.0),
             'contextLimits' => (array) config('aiw.model_context_limits', []),
             'defaultContext' => (int) config('aiw.default_context_limit_tokens', 200000),
+            // 실패 화면의 "브랜치 없이 다시 지시" 가 ?use_branch=0 으로 보낸다.
+            // 쿼리가 없으면 원 job 설정을, 그것도 없으면 켬(안전한 기본값)을 쓴다.
+            'prefillUseBranch' => $request->has('use_branch')
+                ? $request->boolean('use_branch')
+                : (bool) ($parent->use_branch ?? true),
         ]);
     }
 
@@ -188,6 +193,8 @@ class AiwJobController extends Controller
             'decided'  => $job->permissionRequests()->whereIn('status', ['allowed', 'denied', 'expired'])
                 ->with('decider:id,name')->orderBy('id')->get(),
             'canEdit'  => auth()->user()->can('sendMessage', $job),
+            // 실패 복구 버튼 중 매핑 수정은 관리자만 할 수 있다.
+            'canManageAgents' => auth()->user()->can('manageAgents', AiwJob::class),
         ]);
     }
 

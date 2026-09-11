@@ -28,7 +28,9 @@ export async function recoverActiveJobs(
 
     const abandon = async (jobId: number, reason: string) => {
         log('info', '재기동 복구 — 실패 처리', { jobId, reason });
-        await api.quiet('fail', () => api.fail(jobId, reason));
+        await api.quiet('fail', () =>
+            api.fail(jobId, reason, { error_code: 'daemon_restarted' }),
+        );
     };
 
     if (!config.resumeOnRestart) {

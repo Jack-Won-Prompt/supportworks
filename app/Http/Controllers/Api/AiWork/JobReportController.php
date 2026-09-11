@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\AiWork;
 
+use App\Enums\AiWork\AiwFailureCode;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Events\AiWork\JobLogAppended;
 use App\Events\AiWork\JobMessageAppended;
@@ -13,6 +14,7 @@ use App\Models\AiWork\AiwJobMessage;
 use App\Models\AiWork\AiwPermissionRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\AiWork\InvalidJobTransitionException;
 use App\Services\AiWork\CostGuard;
@@ -298,11 +300,17 @@ class JobReportController extends AgentApiController
             'error_message' => ['required', 'string'],
             'cost_usd'      => ['nullable', 'numeric', 'min:0'],
             'duration_ms'   => ['nullable', 'integer', 'min:0'],
+            // 화이트리스트로 검증한다. 데몬이 서버가 모르는 코드를 보내면 조용히
+            // 무시되는 대신 422 로 드러나야 한다 — 화면은 아는 코드만 그릴 수 있다.
+            'error_code'    => ['nullable', Rule::enum(AiwFailureCode::class)],
+            'error_detail'  => ['nullable', 'array'],
         ]);
 
         try {
             $this->states->reportTerminal($job, AiwJobStatus::Failed, [
                 'error_message' => $validated['error_message'],
+                'error_code'    => $validated['error_code'] ?? null,
+                'error_detail'  => $validated['error_detail'] ?? null,
                 'cost_usd'      => $validated['cost_usd'] ?? $job->cost_usd,
                 'duration_ms'   => $validated['duration_ms'] ?? null,
             ]);

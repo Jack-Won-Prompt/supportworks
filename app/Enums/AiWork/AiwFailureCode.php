@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Enums\AiWork;
+
+/**
+ * 데몬이 보고하는 실패 사유 코드.
+ *
+ * 문자열 메시지는 사람이 읽는 것이고, 코드는 화면이 읽는 것이다. 코드가 있어야
+ * "무엇을 할 수 있는지"(브랜치 없이 재실행, 매핑 수정)를 버튼으로 제시할 수 있다.
+ *
+ * 데몬의 src/errors.ts 가 같은 문자열을 쓴다. 여기 없는 코드는 서버가 거부하므로,
+ * 한쪽만 바꾸면 조용히 무시되는 대신 422 로 드러난다.
+ */
+enum AiwFailureCode: string
+{
+    /** 브랜치 분리를 켰는데 작업 폴더에 커밋되지 않은 변경이 있다. */
+    case DirtyTree = 'dirty_tree';
+
+    /** 매핑에 적힌 기본 브랜치가 저장소에 없다. */
+    case MissingBranch = 'missing_branch';
+
+    /** 이 담당자에 해당 프로젝트의 로컬 경로가 매핑되어 있지 않다. */
+    case NoMapping = 'no_mapping';
+
+    /** 매핑된 경로가 그 PC 에 없다. */
+    case PathMissing = 'path_missing';
+
+    /** 데몬 재시작으로 세션을 이어갈 수 없다. */
+    case DaemonRestarted = 'daemon_restarted';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::DirtyTree       => '작업 폴더 정리 필요',
+            self::MissingBranch   => '기본 브랜치 없음',
+            self::NoMapping       => '폴더 매핑 없음',
+            self::PathMissing     => '경로 없음',
+            self::DaemonRestarted => '담당자 재시작',
+        };
+    }
+
+    /** 설정을 고쳐야 풀리는가(관리자 화면으로 보내야 하는가). */
+    public function needsMappingFix(): bool
+    {
+        return in_array($this, [self::MissingBranch, self::NoMapping, self::PathMissing], true);
+    }
+
+    /** 브랜치 분리를 끄고 다시 시도하면 풀리는가. */
+    public function retryableWithoutBranch(): bool
+    {
+        return $this === self::DirtyTree;
+    }
+
+    /** 같은 설정으로 다시 보내면 되는가. */
+    public function retryableAsIs(): bool
+    {
+        return $this === self::DaemonRestarted;
+    }
+}

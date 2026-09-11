@@ -266,8 +266,73 @@
 
             @if ($job->error_message)
                 <div class="mb-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+                    @if ($code = $job->failureCode())
+                        <div class="font-semibold mb-0.5">{{ $code->label() }}</div>
+                    @endif
                     {{ $job->error_message }}
                 </div>
+
+                {{-- 복구 안내: 사유를 코드로 받았을 때만 "무엇을 할 수 있는지" 제시할 수 있다.
+                     버튼은 바로 실행하지 않고 프리필된 등록 폼으로 보낸다 — 사용자가
+                     내용을 보고 확인한 뒤 실행하게 한다. --}}
+                @if ($code)
+                    @php $detail = $job->error_detail ?? []; @endphp
+                    <div class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                        <div class="text-xs font-semibold text-amber-900 mb-1.5">이렇게 해결할 수 있습니다</div>
+
+                        @if ($code->retryableWithoutBranch() && ! empty($detail['files']))
+                            <div class="mb-2 text-xs text-amber-900">
+                                정리되지 않은 항목 {{ $detail['count'] ?? count($detail['files']) }}건:
+                                <ul class="mt-0.5 ml-3 list-disc space-y-0.5">
+                                    @foreach (array_slice($detail['files'], 0, 10) as $file)
+                                        <li><code>{{ $file }}</code></li>
+                                    @endforeach
+                                </ul>
+                                @if (count($detail['files']) > 10)
+                                    <div class="ml-3 text-amber-700">외 {{ count($detail['files']) - 10 }}건</div>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if ($code === \App\Enums\AiWork\AiwFailureCode::MissingBranch && ! empty($detail['available']))
+                            <div class="mb-2 text-xs text-amber-900">
+                                이 저장소에 있는 브랜치:
+                                @foreach ($detail['available'] as $branch)
+                                    <code class="mr-1">{{ $branch }}</code>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <div class="flex flex-wrap gap-2">
+                            @if ($code->retryableWithoutBranch())
+                                <a href="{{ route('projects.ai-works.create', [$project, 'parent' => $job->id, 'use_branch' => 0]) }}"
+                                   class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+                                    브랜치 없이 다시 지시
+                                </a>
+                            @endif
+
+                            @if ($code->retryableAsIs())
+                                <a href="{{ route('projects.ai-works.create', [$project, 'parent' => $job->id]) }}"
+                                   class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+                                    같은 설정으로 다시 지시
+                                </a>
+                            @endif
+
+                            @if ($code->needsMappingFix())
+                                @if ($canManageAgents)
+                                    <a href="{{ route('settings.aiw-agents.index') }}"
+                                       class="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100">
+                                        담당자 매핑 수정
+                                    </a>
+                                @else
+                                    <span class="text-xs text-amber-800">
+                                        관리자에게 <span class="font-medium">관리자 › 담당자</span> 매핑 수정을 요청하세요.
+                                    </span>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                @endif
             @endif
 
             @if ($job->result_summary)

@@ -218,6 +218,57 @@ class AiwWebTest extends TestCase
         $this->assertTrue((bool) AiwJob::latest('id')->first()->use_branch);
     }
 
+    public function test_실패_화면이_복구_버튼을_보여준다(): void
+    {
+        $job = $this->job([
+            'status'        => AiwJobStatus::Failed,
+            'error_message' => '작업 폴더가 깨끗하지 않습니다.',
+            'error_code'    => 'dirty_tree',
+            'error_detail'  => ['files' => ['app/Foo.php'], 'count' => 1],
+        ]);
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('작업 폴더 정리 필요')
+            ->assertSee('app/Foo.php')
+            ->assertSee('브랜치 없이 다시 지시')
+            // 버튼은 바로 실행하지 않고 프리필된 등록 폼으로 보낸다.
+            // href 안의 & 는 HTML 이스케이프되므로 파라미터로 확인한다.
+            ->assertSee('use_branch=0', false)
+            ->assertSee('parent='.$job->id, false);
+    }
+
+    public function test_코드_없는_실패에는_복구_버튼이_없다(): void
+    {
+        $job = $this->job([
+            'status'        => AiwJobStatus::Failed,
+            'error_message' => '알 수 없는 오류',
+        ]);
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('알 수 없는 오류')
+            ->assertDontSee('이렇게 해결할 수 있습니다');
+    }
+
+    public function test_use_branch_쿼리로_체크박스를_미리_끈다(): void
+    {
+        $parent = $this->job(['status' => AiwJobStatus::Failed, 'use_branch' => true]);
+
+        // 실패 화면의 "브랜치 없이 다시 지시" 가 보내는 링크다.
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.create', [$this->project(), 'parent' => $parent->id, 'use_branch' => 0]))
+            ->assertOk()
+            ->assertSee("useBranch: false", false);
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.create', [$this->project(), 'parent' => $parent->id]))
+            ->assertOk()
+            ->assertSee("useBranch: true", false);
+    }
+
     public function test_미지원_툴은_422로_거부된다(): void
     {
         $this->actingAs($this->member)

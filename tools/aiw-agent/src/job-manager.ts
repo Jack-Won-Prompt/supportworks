@@ -2,6 +2,7 @@ import { realpath } from 'node:fs/promises';
 import PQueue from 'p-queue';
 import { ApiClient, JobSpec } from './api.js';
 import { config } from './config.js';
+import { isJobSetupError, JobSetupError } from './errors.js';
 import { GitWorkspace } from './git.js';
 import { log } from './logger.js';
 import { SessionManager } from './session-manager.js';
@@ -48,7 +49,11 @@ export class JobManager {
     private async schedule(spec: JobSpec): Promise<void> {
         if (!spec.local_path) {
             await this.api.quiet('fail', () =>
-                this.api.fail(spec.job_id, '이 작업 PC 에 프로젝트 로컬 경로가 매핑되어 있지 않습니다.'),
+                this.api.fail(
+                    spec.job_id,
+                    '이 담당자에 해당 프로젝트의 로컬 경로가 매핑되어 있지 않습니다.',
+                    { error_code: 'no_mapping', error_detail: { project_id: spec.project_id } },
+                ),
             );
             this.known.delete(spec.job_id);
 
@@ -62,7 +67,11 @@ export class JobManager {
             root = await realpath(spec.local_path);
         } catch {
             await this.api.quiet('fail', () =>
-                this.api.fail(spec.job_id, `로컬 경로를 찾을 수 없습니다: ${spec.local_path}`),
+                this.api.fail(
+                    spec.job_id,
+                    `매핑된 경로를 이 PC 에서 찾을 수 없습니다: ${spec.local_path}`,
+                    { error_code: 'path_missing', error_detail: { local_path: spec.local_path } },
+                ),
             );
             this.known.delete(spec.job_id);
 
@@ -112,13 +121,18 @@ export class JobManager {
 
             await manager!.run(root);
         } catch (error) {
+            const setup: JobSetupError | null = isJobSetupError(error) ? error : null;
             const reason = String((error as Error).message ?? error);
 
             // 콘솔에도 남긴다. 이게 없으면 서버에만 실패가 기록되고 데몬 화면은
             // "작업 시작" 에서 멈춘 것처럼 보여, 멈춘 건지 실패한 건지 알 수 없다.
-            log('error', '작업을 시작하지 못했습니다.', { jobId: spec.job_id, reason });
+            log('error', '작업을 시작하지 못했습니다.', { jobId: spec.job_id, code: setup?.code, reason });
 
-            await this.api.quiet('fail', () => this.api.fail(spec.job_id, reason));
+            await this.api.quiet('fail', () =>
+                this.api.fail(spec.job_id, reason, setup
+                    ? { error_code: setup.code, error_detail: setup.detail }
+                    : {}),
+            );
             this.active.delete(spec.job_id);
             this.known.delete(spec.job_id);
 

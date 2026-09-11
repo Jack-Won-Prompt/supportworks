@@ -1,4 +1,5 @@
 import { simpleGit, SimpleGit } from 'simple-git';
+import { JobSetupError } from './errors.js';
 
 const DIFF_MAX_BYTES = 500 * 1024;
 
@@ -25,16 +26,17 @@ export class GitWorkspace {
         if (!status.isClean()) {
             // 무엇이 걸렸는지 보여 준다. "정리하세요" 만으로는 어느 파일인지 알 수 없어
             // 같은 실패를 반복하게 된다.
-            const sample = [...new Set([...status.files.map((f) => f.path), ...status.not_added])]
-                .slice(0, 5)
-                .join(', ');
+            const dirty = [...new Set([...status.files.map((f) => f.path), ...status.not_added])];
+            const sample = dirty.slice(0, 5).join(', ');
 
-            throw new Error(
+            throw new JobSetupError(
+                'dirty_tree',
                 `브랜치 분리를 켜면 작업 폴더가 깨끗해야 합니다. 지금 정리되지 않은 항목이 `
                 + `${status.files.length}건 있습니다: ${sample}`
                 + (status.files.length > 5 ? ' 외' : '')
                 + '. 커밋하거나 .gitignore 에 넣어 정리하세요. '
                 + '또는 새 지시를 등록할 때 "별도 브랜치에서 작업" 체크를 해제하면 현재 브랜치에서 바로 진행합니다.',
+                { files: dirty.slice(0, 30), count: status.files.length },
             );
         }
 
@@ -44,11 +46,13 @@ export class GitWorkspace {
             const local = await this.git.branchLocal();
 
             if (!local.all.includes(defaultBranch)) {
-                throw new Error(
+                throw new JobSetupError(
+                    'missing_branch',
                     `설정된 기본 브랜치 '${defaultBranch}' 가 이 저장소에 없습니다. `
                     + `있는 브랜치: ${local.all.join(', ')}. `
                     + '관리자 › 담당자 화면에서 매핑의 기본 브랜치를 고치거나 비워 두세요'
                     + `(비우면 현재 브랜치 '${local.current}' 에서 분기합니다).`,
+                    { configured: defaultBranch, available: local.all, current: local.current },
                 );
             }
 
