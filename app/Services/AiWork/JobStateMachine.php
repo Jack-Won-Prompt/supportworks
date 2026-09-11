@@ -58,22 +58,29 @@ class JobStateMachine
     }
 
     /**
-     * 데몬의 종료 보고. 같은 종료 상태로의 재보고는 아무 일도 하지 않고 성공으로 친다.
+     * 데몬의 종료 보고. 이미 끝난 job 에 대한 보고는 확인으로 받고 아무 일도 하지 않는다.
      *
-     * 데몬은 응답이 유실되면 같은 보고를 재시도한다(at-least-once). 서버가 이미
-     * 처리한 보고를 409 로 거절하면 정상적으로 끝난 작업마다 데몬 로그에 경고가
-     * 쌓여, 진짜 실패를 가린다. 실제로 그렇게 관측됐다.
+     * 두 가지 경우가 여기로 온다.
+     *
+     * 1. 같은 보고의 재시도 — 데몬은 응답이 유실되면 다시 보낸다(at-least-once).
+     * 2. 서버가 먼저 끝낸 작업의 확인 — 사용자가 취소하면 서버가 cancelled 로
+     *    바꾸고 데몬에 알리는데, 데몬은 세션을 멈춘 뒤 fail 로 보고한다.
+     *    상태 이름은 다르지만 모순이 아니라 "그 지시대로 멈췄다"는 확인이다.
+     *
+     * 둘 다 409 로 거절할 이유가 없다. 종료는 최종 상태라 데몬이 달리 할 수 있는
+     * 일이 없고, 거절하면 정상 흐름마다 경고만 쌓여 진짜 실패를 가린다.
+     * 실제로 완료와 취소 양쪽에서 그렇게 관측됐다.
      *
      * 재보고의 payload 는 버린다 — 첫 보고가 이미 결과를 다 기록했고, 뒤늦게
      * 덮어쓰면 중간에 사람이 본 내용이 바뀔 수 있다.
      *
-     * 다른 종료 상태와 충돌하면(예: 취소된 job 에 완료 보고) 그대로 예외를 던진다.
-     * 그건 재시도가 아니라 진짜 모순이다.
+     * 다만 보고된 상태가 저장된 것과 다르면 서버 로그에 남긴다. 사용자가 볼
+     * 것은 아니지만, 운영자가 불일치를 추적할 수는 있어야 한다.
      *
      * @param  array<string, mixed>  $context
      * @return bool 이번 호출이 실제로 상태를 바꿨는가
      *
-     * @throws InvalidJobTransitionException
+     * @throws InvalidJobTransitionException 아직 끝나지 않은 job 에 허용되지 않는 전이일 때
      */
     public function reportTerminal(AiwJob $job, AiwJobStatus $to, array $context = []): bool
     {
@@ -81,7 +88,15 @@ class JobStateMachine
             throw new \InvalidArgumentException("종료 상태가 아닙니다: {$to->value}");
         }
 
-        if ($job->status === $to) {
+        if ($job->status->isTerminal()) {
+            if ($job->status !== $to) {
+                Log::warning('AI Works: 이미 종료된 작업에 다른 상태의 종료 보고가 왔습니다(무시).', [
+                    'job_id'   => $job->id,
+                    'stored'   => $job->status->value,
+                    'reported' => $to->value,
+                ]);
+            }
+
             return false;
         }
 

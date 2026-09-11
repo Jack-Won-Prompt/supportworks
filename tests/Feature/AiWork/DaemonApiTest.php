@@ -489,16 +489,37 @@ class DaemonApiTest extends TestCase
         ]);
     }
 
-    public function test_다른_종료상태와_충돌하면_여전히_409다(): void
+    public function test_취소된_job의_실패_보고는_확인으로_받는다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+
+        // 사용자가 취소하면 서버가 먼저 cancelled 로 바꾸고 데몬에 알린다.
+        app(\App\Services\AiWork\JobStateMachine::class)->transition(
+            $this->job, AiwJobStatus::Cancelled, ['error_message' => '사용자가 취소했습니다.'],
+        );
+
+        // 데몬은 세션을 멈춘 뒤 fail 로 보고한다. 이름은 다르지만 모순이 아니라
+        // "지시대로 멈췄다"는 확인이다. 409 로 거절하면 취소할 때마다 경고가 쌓인다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", ['error_message' => '취소되었습니다.'])
+            ->assertOk()
+            ->assertJsonPath('status', 'cancelled');
+
+        $job = $this->job->fresh();
+        $this->assertSame('cancelled', $job->status->value, '뒤늦은 보고가 상태를 덮으면 안 된다.');
+        $this->assertSame('사용자가 취소했습니다.', $job->error_message);
+    }
+
+    public function test_종료된_job에_완료_보고가_와도_결과를_덮지_않는다(): void
     {
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", ['error_message' => '실패'])->assertOk();
 
-        // 재시도가 아니라 진짜 모순이다. 조용히 넘기면 안 된다.
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/complete", ['result_summary' => '끝'])
-            ->assertStatus(409);
+            ->assertOk();
 
-        $this->assertSame('failed', $this->job->fresh()->status->value);
+        $job = $this->job->fresh();
+        $this->assertSame('failed', $job->status->value);
+        $this->assertNull($job->result_summary, '끝난 뒤 도착한 결과로 기록을 바꾸지 않는다.');
     }
 
     public function test_큰_diff는_파일로_옮겨진다(): void

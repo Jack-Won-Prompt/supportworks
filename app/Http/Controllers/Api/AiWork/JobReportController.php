@@ -274,8 +274,11 @@ class JobReportController extends AgentApiController
             'duration_ms'    => ['nullable', 'integer', 'min:0'],
         ]);
 
-        // 재보고라면 diff 를 다시 저장하지 않는다. 첫 보고가 이미 기록했다.
-        if ($job->status === AiwJobStatus::Completed) {
+        // 이미 끝난 job 이면 diff 를 다시 저장하지 않는다. 첫 보고가 이미 기록했고,
+        // 취소된 job 이라면 애초에 결과를 남길 이유가 없다.
+        if ($job->status->isTerminal()) {
+            $this->states->reportTerminal($job, AiwJobStatus::Completed);
+
             return response()->json($this->controlFlags($job));
         }
 
