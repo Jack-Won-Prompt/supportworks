@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\Log;
  */
 class HandoverService
 {
-    public function __construct(private JobStateMachine $states) {}
+    public function __construct(
+        private JobStateMachine $states,
+        private MessageWriter $messages,
+    ) {}
 
     /**
      * 데몬의 세션 교체 보고를 반영한다.
@@ -23,7 +26,7 @@ class HandoverService
      * 들고 시작하므로 이전 세션의 컨텍스트 크기를 물려받지 않는다.
      * cost_usd 는 리셋하지 않는다 — 비용은 job 전체의 누적이다.
      *
-     * @param array{ended_session_id:string,new_session_id:string,summary:string,seq:int,reason?:string} $payload
+     * @param array{ended_session_id:string,new_session_id:string,summary:string,reason?:string} $payload
      */
     public function record(AiwJob $job, array $payload): AiwJobMessage
     {
@@ -50,16 +53,23 @@ class HandoverService
             'context_tokens' => 0,
         ])->save();
 
-        $message = AiwJobMessage::create([
-            'job_id'        => $job->id,
-            'seq'           => $payload['seq'],
+        // 번호는 MessageWriter 가 매긴다. 데몬이 자기 카운터로 보내던 시절에는
+        // 사람이 보낸 메시지와 번호가 부딪혀 인수인계 요약이 사라질 수 있었다.
+        $key = substr('handover:'.$payload['new_session_id'], 0, 64);
+
+        $message = $this->messages->appendOne($job, [
             'role'          => 'handover',
             'content'       => $payload['summary'],
+            'client_key'    => $key,
             'session_index' => max(0, count($chain) - 2),
-            'created_at'    => now(),
         ]);
 
-        $this->emit(new JobMessageAppended($message), $job->id);
+        if ($message === null) {
+            // 같은 교체 보고를 두 번 받았다. 이미 남긴 요약을 그대로 쓰고 다시 알리지 않는다.
+            $message = AiwJobMessage::where('job_id', $job->id)->where('client_key', $key)->firstOrFail();
+        } else {
+            $this->emit(new JobMessageAppended($message), $job->id);
+        }
 
         // 교체가 끝났으니 다시 실행 상태로 돌린다(상태 전이는 상태머신이 담당).
         // 이미 running 이어도 no-op 전이가 허용되므로 분기할 필요가 없다.

@@ -41,7 +41,8 @@ export async function flushOutbox(
     api: ApiClient,
     jobId: number,
     root: string,
-    seq: number,
+    /** 파일을 붙일 발언. messages() 응답으로 받은 id 다. */
+    messageId: number,
 ): Promise<OutboxResult> {
     const dir = join(root, OUTBOX_DIR);
     let entries: string[];
@@ -75,7 +76,7 @@ export async function flushOutbox(
 
         try {
             const data = await readFile(path);
-            await api.uploadAttachment(jobId, seq, name, MIME_BY_EXT[extname(name).toLowerCase()]!, data);
+            await api.uploadAttachment(jobId, messageId, name, MIME_BY_EXT[extname(name).toLowerCase()]!, data);
             result.uploaded++;
         } catch (error) {
             log('warn', '결과물 업로드 실패 — 이 파일은 건너뜁니다.', { jobId, file: name, error: String(error) });

@@ -16,7 +16,8 @@ class AiwJobMessage extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'job_id', 'seq', 'role', 'content', 'choices', 'user_id', 'session_index', 'delivered_at',
+        'job_id', 'seq', 'client_key', 'role', 'content', 'choices',
+        'user_id', 'session_index', 'delivered_at', 'created_at',
     ];
 
     protected $casts = [

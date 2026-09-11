@@ -84,7 +84,11 @@ export class SessionManager {
     /** 세션 시작 전에 이미 쓴 로그가 있으면 그 뒤부터 번호를 매긴다. */
     private logSeq: number;
 
+    /** 서버에 보낼 메시지의 순번. 번호가 아니라 중복 판별용 키의 재료다. */
     private messageSeq = 0;
+
+    /** 재시작해도 같은 키가 나오지 않게 섞는 값. */
+    private readonly startedAtMs = Date.now();
 
     private logBuffer: { seq: number; type: any; content: string; raw?: unknown }[] = [];
 
@@ -257,13 +261,14 @@ export class SessionManager {
         // 모델이 선택지를 제시했으면 버튼으로 만들 수 있게 분리해 보낸다.
         const { text: body, choices } = parseChoices(text);
 
-        const seq = this.messageSeq++;
+        // 번호는 서버가 매긴다. 여기서는 재전송 판별용 키만 만든다.
+        const clientKey = this.nextClientKey();
 
         void this.api
             .quiet('messages', () =>
                 this.api.messages(this.job.job_id, [
                     {
-                        seq,
+                        client_key: clientKey,
                         role: 'assistant',
                         // 블록만 있고 본문이 비면 질문이 사라진다. 최소한의 문구를 남긴다.
                         content: body || '아래에서 선택해 주세요.',
@@ -271,13 +276,37 @@ export class SessionManager {
                     },
                 ]),
             )
-            // 메시지가 먼저 있어야 그 seq 로 파일을 붙일 수 있다.
-            .then(() => this.flushOutbox(seq));
+            // 메시지가 먼저 있어야 그 id 로 파일을 붙일 수 있다. 저장에 실패했으면
+            // 붙일 곳이 없으니 출력함은 그대로 두고 다음 턴에 다시 시도한다.
+            .then((response) => {
+                const id = response?.messages?.find((m) => m.client_key === clientKey)?.id;
+
+                if (id !== undefined) {
+                    return this.flushOutbox(id);
+                }
+
+                if (response) {
+                    log('warn', '메시지 id 를 받지 못해 결과물을 붙이지 못했습니다.', {
+                        jobId: this.job.job_id,
+                        clientKey,
+                    });
+                }
+            });
+    }
+
+    /**
+     * 이 데몬이 보낸 메시지를 구별하는 키.
+     *
+     * 같은 job 안에서만 유일하면 된다. 세션 번호와 순번을 쓰면 재시작 뒤에도
+     * 겹치지 않는다 — 세션이 바뀌면 앞자리가 달라지기 때문이다.
+     */
+    private nextClientKey(): string {
+        return `d${this.sessionIndex}-${this.messageSeq++}-${this.startedAtMs}`;
     }
 
     /** 담당자가 출력함에 놓은 화면 캡처를 그 발언에 붙인다. */
-    private async flushOutbox(seq: number): Promise<void> {
-        const result = await flushOutbox(this.api, this.job.job_id, this.sandbox.root, seq);
+    private async flushOutbox(messageId: number): Promise<void> {
+        const result = await flushOutbox(this.api, this.job.job_id, this.sandbox.root, messageId);
 
         if (result.skipped.length > 0) {
             this.pushLog(
@@ -458,7 +487,6 @@ export class SessionManager {
                 new_session_id: newSessionId ?? 'unknown',
                 document_path: docPath,
                 summary: validation.content,
-                seq: this.messageSeq++,
                 reason,
             }),
         );

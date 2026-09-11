@@ -8,14 +8,14 @@ import type { ApiClient } from './api.js';
 import { flushOutbox, OUTBOX_DIR } from './outbox.js';
 
 class FakeApi {
-    readonly uploaded: { seq: number; filename: string; mime: string; bytes: number }[] = [];
+    readonly uploaded: { messageId: number; filename: string; mime: string; bytes: number }[] = [];
 
     /** 이 파일 이름은 업로드가 실패한다. */
     failing = new Set<string>();
 
     async uploadAttachment(
         _jobId: number,
-        seq: number,
+        messageId: number,
         filename: string,
         mime: string,
         data: Buffer,
@@ -24,7 +24,7 @@ class FakeApi {
             throw new Error('업로드 실패');
         }
 
-        this.uploaded.push({ seq, filename, mime, bytes: data.length });
+        this.uploaded.push({ messageId, filename, mime, bytes: data.length });
 
         return { attachment_id: this.uploaded.length };
     }
@@ -44,8 +44,8 @@ async function workspace(files: Record<string, string> = {}): Promise<string> {
     return root;
 }
 
-const flush = (api: FakeApi, root: string, seq = 3) =>
-    flushOutbox(api as unknown as ApiClient, 1, root, seq);
+const flush = (api: FakeApi, root: string, messageId = 3) =>
+    flushOutbox(api as unknown as ApiClient, 1, root, messageId);
 
 const remaining = (root: string) => readdir(join(root, OUTBOX_DIR)).catch(() => []);
 
@@ -58,14 +58,14 @@ test('출력함이 없으면 아무 일도 하지 않는다', async () => {
     assert.deepEqual(api.uploaded, []);
 });
 
-test('이미지를 올리고 그 발언의 seq 를 붙인다', async () => {
+test('이미지를 올리고 그 발언에 붙인다', async () => {
     const api = new FakeApi();
     const root = await workspace({ 'after.png': 'PNG-DATA' });
 
     const result = await flush(api, root, 7);
 
     assert.equal(result.uploaded, 1);
-    assert.equal(api.uploaded[0]?.seq, 7, '메시지가 먼저 있어야 거기 붙는다.');
+    assert.equal(api.uploaded[0]?.messageId, 7, '메시지가 먼저 있어야 그 id 로 붙일 수 있다.');
     assert.equal(api.uploaded[0]?.mime, 'image/png');
     assert.equal(api.uploaded[0]?.filename, 'after.png');
 });

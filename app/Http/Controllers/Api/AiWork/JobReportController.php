@@ -19,11 +19,12 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\AiWork\InvalidJobTransitionException;
-use App\Services\AiWork\AttachmentService;
+use App\Services\AiWork\AttachmentService;
 use App\Services\AiWork\AutoPipeline;
 use App\Services\AiWork\CostGuard;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobStateMachine;
+use App\Services\AiWork\MessageWriter;
 use App\Services\AiWork\PermissionService;
 use Illuminate\Support\Facades\Storage;
 
@@ -41,6 +42,7 @@ class JobReportController extends AgentApiController
         private HandoverService $handovers,
         private CostGuard $costGuard,
         private AutoPipeline $autoPipeline,
+        private MessageWriter $messages,
     ) {}
 
     /** 세션 시작 보고. session_chain 에 새 세션을 push 하고 running 으로 만든다. */
@@ -116,49 +118,62 @@ class JobReportController extends AgentApiController
         return response()->json(['accepted' => $inserted->count()] + $this->controlFlags($job));
     }
 
-    /** assistant / handover 메시지 배치 저장. */
+    /**
+     * assistant / handover 메시지 배치 저장.
+     *
+     * 번호(seq)는 **서버가 매긴다.** 데몬은 재전송 판별용 client_key 만 보낸다.
+     * 예전에는 데몬이 자기 카운터로 번호를 보냈는데, 서버가 지시문을 이미 seq 0
+     * 으로 저장해 둔 탓에 첫 답변이 unique 제약에 걸려 조용히 버려졌다.
+     *
+     * 응답에 만들어진 id 와 seq 를 돌려준다 — 데몬이 그 id 로 첨부를 붙인다.
+     */
     public function messages(Request $request, AiwJob $job): JsonResponse
     {
         $job = $this->ownedJob($request, $job);
 
         $validated = $request->validate([
             'messages'           => ['required', 'array', 'min:1', 'max:50'],
-            'messages.*.seq'     => ['required', 'integer', 'min:0'],
             'messages.*.role'    => ['required', 'in:assistant,handover'],
             'messages.*.content' => ['required', 'string'],
+            // 같은 메시지를 두 번 받았는지 가리는 키. 데몬이 만든다.
+            'messages.*.client_key' => ['nullable', 'string', 'max:64'],
             // 모델이 제시한 선택지. 화면이 버튼으로 그린다.
             'messages.*.choices'   => ['nullable', 'array', 'max:6'],
             'messages.*.choices.*' => ['required', 'string', 'max:200'],
         ]);
 
         $sessionIndex = $job->currentSessionIndex();
-        $now = now();
 
-        DB::table('aiw_job_messages')->insertOrIgnore(
-            collect($validated['messages'])->map(fn (array $m) => [
-                'job_id'        => $job->id,
-                'seq'           => $m['seq'],
-                'role'          => $m['role'],
-                'content'       => $m['content'],
-                'choices'       => isset($m['choices'])
-                    ? json_encode(array_values($m['choices']), JSON_UNESCAPED_UNICODE)
-                    : null,
-                'session_index' => $sessionIndex,
-                'created_at'    => $now,
-            ])->all()
-        );
+        $created = $this->messages->append($job, collect($validated['messages'])->map(fn (array $m) => [
+            'role'          => $m['role'],
+            'content'       => $m['content'],
+            'client_key'    => $m['client_key'] ?? null,
+            'choices'       => isset($m['choices']) ? array_values($m['choices']) : null,
+            'session_index' => $sessionIndex,
+        ])->all());
 
-        $inserted = AiwJobMessage::query()
-            ->where('job_id', $job->id)
-            ->whereIn('seq', array_column($validated['messages'], 'seq'))
-            ->where('created_at', $now)
-            ->get();
-
-        foreach ($inserted as $message) {
+        foreach ($created as $message) {
             $this->emit(new JobMessageAppended($message));
         }
 
-        return response()->json(['accepted' => $inserted->count()] + $this->controlFlags($job));
+        // 재전송이라 새로 만들지 않은 것도 알려줘야 데몬이 첨부를 붙일 수 있다.
+        $keys = array_values(array_filter(array_map(
+            fn (array $m) => $m['client_key'] ?? null,
+            $validated['messages'],
+        )));
+
+        $resolved = $keys === []
+            ? $created
+            : AiwJobMessage::where('job_id', $job->id)->whereIn('client_key', $keys)->get();
+
+        return response()->json([
+            'accepted' => $created->count(),
+            'messages' => $resolved->map(fn (AiwJobMessage $m) => [
+                'client_key' => $m->client_key,
+                'id'         => (int) $m->id,
+                'seq'        => (int) $m->seq,
+            ])->values()->all(),
+        ] + $this->controlFlags($job));
     }
 
     /**
@@ -168,19 +183,20 @@ class JobReportController extends AgentApiController
      * 있는 것은 답변에 쓰면 되고, 이 경로는 "보여 줘야 아는 것"을 위한 것이다.
      * 사람이 화면을 눈으로 확인한 뒤 배포를 결정할 수 있게 하는 것이 목적이다.
      *
-     * 어느 발언에 붙일지는 seq 로 지정한다 — 데몬은 메시지를 먼저 보내고
-     * 그 seq 로 파일을 올리므로 id 를 알 필요가 없다.
+     * 어느 발언에 붙일지는 message_id 로 지정한다 — 데몬은 메시지를 먼저 보내고
+     * 응답으로 받은 id 를 그대로 쓴다. 예전에는 seq 로 지정했는데, 번호를 서버가
+     * 매기게 바꾼 뒤로는 데몬이 그 번호를 미리 알 수 없다.
      */
     public function attachments(Request $request, AiwJob $job): JsonResponse
     {
         $job = $this->ownedJob($request, $job);
 
         $validated = $request->validate([
-            'seq'  => ['required', 'integer', 'min:0'],
-            'file' => ['required', 'image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
+            'message_id' => ['required', 'integer', 'min:1'],
+            'file'       => ['required', 'image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
         ]);
 
-        $message = $job->messages()->where('seq', $validated['seq'])->firstOrFail();
+        $message = $job->messages()->whereKey($validated['message_id'])->firstOrFail();
 
         // 담당자는 사람이 아니다. 이 job 을 만든 사람의 것으로 귀속시킨다.
         $owner = $job->creator ?? User::findOrFail($job->created_by);
@@ -286,7 +302,6 @@ class JobReportController extends AgentApiController
             'new_session_id'   => ['required', 'string', 'max:191'],
             'document_path'    => ['required', 'string', 'max:512'],
             'summary'          => ['required', 'string'],
-            'seq'              => ['required', 'integer', 'min:0'],
             'reason'           => ['nullable', 'string', 'max:191'],
         ]);
 

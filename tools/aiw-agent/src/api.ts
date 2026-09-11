@@ -140,19 +140,28 @@ export class ApiClient {
         );
     }
 
+    /**
+     * 대화 메시지 저장. **번호는 서버가 매긴다.**
+     *
+     * 예전에는 여기서 seq 를 보냈는데, 서버도 사람의 메시지에 자기 번호를 매기고
+     * 있어 둘이 부딪혔다. unique(job_id, seq) 에 걸린 답변은 조용히 사라졌다.
+     * 지금은 재전송 판별용 client_key 만 보내고, 응답으로 id 와 seq 를 받는다.
+     */
     messages(
         jobId: number,
         messages: {
-            seq: number;
+            /** 같은 메시지를 두 번 보냈는지 서버가 가리는 키. */
+            client_key: string;
             role: 'assistant' | 'handover';
             content: string;
             /** 모델이 제시한 선택지. 화면이 버튼으로 그린다. */
             choices?: string[];
         }[],
     ) {
-        return this.send<{ accepted: number } & ControlFlags>(() =>
-            this.http.post(`/jobs/${jobId}/messages`, { messages }),
-        );
+        return this.send<{
+            accepted: number;
+            messages: { client_key: string | null; id: number; seq: number }[];
+        } & ControlFlags>(() => this.http.post(`/jobs/${jobId}/messages`, { messages }));
     }
 
     /** 커밋·푸시 진행/결과 보고. */
@@ -166,17 +175,22 @@ export class ApiClient {
         );
     }
 
-    /** 담당자가 만든 결과물(스크린샷)을 그 발언에 붙인다. */
+    /**
+     * 담당자가 만든 결과물(스크린샷)을 그 발언에 붙인다.
+     *
+     * 붙일 곳은 messages() 응답으로 받은 id 로 지정한다 — 번호를 서버가 매기므로
+     * 데몬은 seq 를 미리 알 수 없다.
+     */
     async uploadAttachment(
         jobId: number,
-        seq: number,
+        messageId: number,
         filename: string,
         mime: string,
         data: Buffer,
     ): Promise<{ attachment_id: number | null }> {
         const form = new FormData();
 
-        form.append('seq', String(seq));
+        form.append('message_id', String(messageId));
         form.append('file', new Blob([new Uint8Array(data)], { type: mime }), filename);
 
         const response = await this.http.post(`/jobs/${jobId}/attachments`, form, {
@@ -226,7 +240,6 @@ export class ApiClient {
             new_session_id: string;
             document_path: string;
             summary: string;
-            seq: number;
             reason?: string;
         },
     ) {

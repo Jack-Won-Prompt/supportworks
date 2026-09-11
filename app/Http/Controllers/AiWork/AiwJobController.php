@@ -22,6 +22,7 @@ use App\Services\AiWork\PublishService;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobDispatcher;
 use App\Services\AiWork\JobStateMachine;
+use App\Services\AiWork\MessageWriter;
 use App\Services\AiWork\PermissionService;
 use App\Services\AiWork\ToolPolicy;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +46,7 @@ class AiwJobController extends Controller
         private ToolPolicy $tools,
         private AttachmentService $attachments,
         private PublishService $publishes,
+        private MessageWriter $messages,
     ) {}
 
     /** 화면 2: 지시 목록 */
@@ -287,9 +289,9 @@ class AiwJobController extends Controller
                 ->with('error', '단발 작업에는 메시지를 보낼 수 없습니다. 대화형으로 등록한 지시에서만 가능합니다.');
         }
 
-        $message = AiwJobMessage::create([
-            'job_id'        => $job->id,
-            'seq'           => (int) $job->messages()->max('seq') + 1,
+        // 번호는 MessageWriter 가 잠금을 잡고 매긴다. 여기서 max+1 을 직접
+        // 계산하면 같은 순간에 답하는 담당자와 번호가 겹친다.
+        $message = $this->messages->appendOne($job, [
             'role'          => 'user',
             'content'       => $validated['content'],
             'user_id'       => $request->user()->id,

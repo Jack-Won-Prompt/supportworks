@@ -349,7 +349,6 @@ class DaemonApiTest extends TestCase
             'new_session_id' => 's2',
             'document_path' => 'docs/aiw/handover/job-1-1.md',
             'summary' => '## 작업 목표 ...',
-            'seq' => 10,
         ])->assertOk()->assertJsonPath('handover_count', 1);
 
         $job = $this->job->fresh();
@@ -357,6 +356,72 @@ class DaemonApiTest extends TestCase
         $this->assertSame('s2', $job->currentSessionId());
         $this->assertNotNull($job->session_chain[0]['ended_at']);
         $this->assertDatabaseHas('aiw_job_messages', ['job_id' => $job->id, 'role' => 'handover']);
+    }
+
+    // ── 메시지 번호 ─────────────────────────────────────────────────────────
+
+    public function test_지시문_다음_답변이_사라지지_않는다(): void
+    {
+        // 서버가 지시문을 seq 0 으로 저장해 둔 상태에서 담당자가 답한다.
+        // 예전에는 데몬도 자기 카운터의 0 을 보내 unique 제약에 걸렸고,
+        // insertOrIgnore 가 답변을 조용히 버렸다(#19 에서 537자가 그렇게 사라졌다).
+        AiwJobMessage::create([
+            'job_id' => $this->job->id, 'seq' => 0, 'role' => 'user',
+            'content' => $this->job->instruction,
+        ]);
+
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/messages", [
+            'messages' => [[
+                'client_key' => 'd0-0-1',
+                'role'       => 'assistant',
+                'content'    => '요청하신 대로 고쳤습니다.',
+            ]],
+        ])->assertOk()->assertJsonPath('accepted', 1);
+
+        $answer = AiwJobMessage::where('job_id', $this->job->id)->where('role', 'assistant')->first();
+
+        $this->assertNotNull($answer, '답변이 저장돼야 한다.');
+        $this->assertSame(1, $answer->seq, '번호는 서버가 지시문 다음으로 매긴다.');
+    }
+
+    public function test_같은_client_key는_두_번_저장되지_않는다(): void
+    {
+        $payload = ['messages' => [[
+            'client_key' => 'd0-3-1',
+            'role'       => 'assistant',
+            'content'    => '재전송 시험',
+        ]]];
+
+        $first = $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/messages", $payload)->assertOk();
+        $again = $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/messages", $payload)->assertOk();
+
+        $this->assertSame(1, AiwJobMessage::where('job_id', $this->job->id)->count());
+        // 두 번째 응답도 같은 id 를 돌려줘야 데몬이 거기 첨부를 붙일 수 있다.
+        $this->assertSame(0, $again->json('accepted'));
+        $this->assertSame($first->json('messages.0.id'), $again->json('messages.0.id'));
+    }
+
+    public function test_사람과_담당자의_번호가_겹치지_않는다(): void
+    {
+        $writer = app(\App\Services\AiWork\MessageWriter::class);
+
+        $writer->appendOne($this->job, ['role' => 'user', 'content' => '지시문']);
+
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/messages", [
+            'messages' => [['client_key' => 'a', 'role' => 'assistant', 'content' => '답1']],
+        ])->assertOk();
+
+        $writer->appendOne($this->job, ['role' => 'user', 'content' => '추가 지시']);
+
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/messages", [
+            'messages' => [['client_key' => 'b', 'role' => 'assistant', 'content' => '답2']],
+        ])->assertOk();
+
+        $this->assertSame(
+            [0, 1, 2, 3],
+            AiwJobMessage::where('job_id', $this->job->id)->orderBy('seq')->pluck('seq')->all(),
+            '두 출처가 번갈아 써도 번호는 하나씩 이어져야 한다.',
+        );
     }
 
     public function test_complete는_결과를_기록하고_대기승인을_만료시킨다(): void
