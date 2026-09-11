@@ -294,12 +294,20 @@
                     <span class="text-amber-700">새로고침하면 진행 상황이 갱신됩니다.</span>
                 </div>
             @else
+                {{-- 확인 문구는 고른 대상의 이름이다. 대상이 여러 개면 어느 이름인지
+                     헷갈리므로, 고른 것에 따라 안내와 placeholder 가 함께 바뀐다. --}}
                 <form method="POST" action="{{ route('projects.ai-works.deploy', [$project, $job]) }}"
-                      class="mt-3 flex flex-wrap items-end gap-2">
+                      class="mt-3 flex flex-wrap items-end gap-2"
+                      x-data="{
+                          targets: @js($deployTargets->pluck('name', 'id')),
+                          id: @js((string) $deployTargets->first()->id),
+                          get name() { return this.targets[this.id] ?? ''; },
+                          get typed() { return this.$refs.confirm?.value ?? ''; },
+                      }">
                     @csrf
                     <div>
                         <label class="block text-[11px] font-semibold text-gray-600 mb-1">배포 대상</label>
-                        <select name="target_id" required class="rounded-lg border-gray-200 text-xs">
+                        <select name="target_id" x-model="id" required class="rounded-lg border-gray-200 text-xs">
                             @foreach ($deployTargets as $target)
                                 <option value="{{ $target->id }}">{{ $target->name }} — {{ $target->command }}</option>
                             @endforeach
@@ -307,10 +315,10 @@
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-gray-600 mb-1">
-                            확인을 위해 대상 이름을 입력하세요
+                            확인을 위해 <span class="font-mono font-bold text-amber-700" x-text="name"></span> 을(를) 그대로 입력하세요
                         </label>
-                        <input type="text" name="confirmation" required maxlength="100" autocomplete="off"
-                               placeholder="{{ $deployTargets->first()->name }}"
+                        <input type="text" name="confirmation" x-ref="confirm" required maxlength="100" autocomplete="off"
+                               :placeholder="name"
                                class="w-56 rounded-lg border-gray-200 text-xs">
                     </div>
                     <button class="rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700">

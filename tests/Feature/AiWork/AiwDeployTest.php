@@ -207,6 +207,18 @@ class AiwDeployTest extends TestCase
             ->assertSee('운영 배포');
     }
 
+    public function test_어느_이름을_입력해야_하는지_화면이_알려준다(): void
+    {
+        $this->target(['name' => '운영 배포']);
+
+        // "대상 이름을 입력하세요" 만으로는 어느 이름인지 알 수 없다.
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->projectId, $this->publishedJob()]))
+            ->assertOk()
+            ->assertSee('그대로 입력하세요')
+            ->assertSee('운영 배포');
+    }
+
     // ── 실제 실행 ───────────────────────────────────────────────────────────
 
     public function test_명령을_실행하고_출력과_종료코드를_남긴다(): void
