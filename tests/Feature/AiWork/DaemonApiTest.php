@@ -351,6 +351,58 @@ class DaemonApiTest extends TestCase
         $this->assertSame('expired', AiwPermissionRequest::first()->status);
     }
 
+    public function test_complete_재보고는_409가_아니라_성공으로_처리된다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+
+        $payload = ['result_summary' => '끝', 'cost_usd' => 0.42, 'duration_ms' => 1234];
+
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/complete", $payload)->assertOk();
+
+        // 데몬은 응답이 유실되면 같은 보고를 재시도한다. 409 로 거절하면
+        // 정상 종료한 작업마다 경고가 쌓여 진짜 실패를 가린다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/complete", $payload)
+            ->assertOk()
+            ->assertJsonPath('status', 'completed');
+
+        $finishedAt = $this->job->fresh()->finished_at;
+
+        // 재보고가 뒤늦게 값을 덮어쓰지 않는다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/complete", [
+            'result_summary' => '덮어쓰기 시도',
+        ])->assertOk();
+
+        $job = $this->job->fresh();
+        $this->assertSame('끝', $job->result_summary);
+        $this->assertEquals($finishedAt, $job->finished_at);
+    }
+
+    public function test_fail_재보고도_성공으로_처리된다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+
+        $payload = ['error_message' => '터졌습니다'];
+
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", $payload)->assertOk();
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", $payload)
+            ->assertOk()
+            ->assertJsonPath('status', 'failed');
+
+        $this->assertSame('터졌습니다', $this->job->fresh()->error_message);
+    }
+
+    public function test_다른_종료상태와_충돌하면_여전히_409다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/fail", ['error_message' => '실패'])->assertOk();
+
+        // 재시도가 아니라 진짜 모순이다. 조용히 넘기면 안 된다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/complete", ['result_summary' => '끝'])
+            ->assertStatus(409);
+
+        $this->assertSame('failed', $this->job->fresh()->status->value);
+    }
+
     public function test_큰_diff는_파일로_옮겨진다(): void
     {
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);

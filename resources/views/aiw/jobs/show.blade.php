@@ -207,7 +207,7 @@
             @if ($job->mode === 'interactive' && $canEdit)
                 <div x-show="! isTerminal" x-cloak class="mt-3 border-t border-gray-100 pt-3">
                     <p x-show="status === 'waiting_input'" x-cloak class="mb-1 text-xs font-medium text-amber-700">
-                        Claude 가 답변을 기다리고 있습니다.
+                        담당자가 답변을 기다리고 있습니다.
                     </p>
                     <p x-show="status === 'handover'" x-cloak class="mb-1 text-xs text-violet-700">
                         컨텍스트 정리 중 — 보낸 메시지는 세션 교체 후 전달됩니다.
@@ -217,7 +217,7 @@
                         <textarea name="content" rows="2" required maxlength="20000"
                                   class="flex-1 rounded-lg border-gray-200 text-sm"
                                   :class="status === 'waiting_input' ? 'ring-2 ring-amber-300' : ''"
-                                  placeholder="Claude 에게 보낼 메시지"></textarea>
+                                  placeholder="담당자에게 보낼 메시지"></textarea>
                         <button class="self-end rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">전송</button>
                     </form>
                 </div>
@@ -367,7 +367,7 @@ function aiwJob(initial) {
         get costTone() { return this.costPct >= 80 ? 'bg-red-500' : 'bg-emerald-500'; },
 
         render(text) { return window.aiwRenderMarkdown ? window.aiwRenderMarkdown(text) : text; },
-        roleLabel(role) { return { user: '나', assistant: 'Claude', handover: '인수인계' }[role] ?? role; },
+        roleLabel(role) { return { user: '나', assistant: '담당자', handover: '인수인계' }[role] ?? role; },
         logTone(type) {
             return { error: 'bg-red-50 text-red-700', daemon: 'bg-slate-100 text-slate-700', handover: 'bg-violet-50 text-violet-700' }[type] ?? 'text-gray-600';
         },

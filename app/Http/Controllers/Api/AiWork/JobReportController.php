@@ -266,10 +266,15 @@ class JobReportController extends AgentApiController
             'duration_ms'    => ['nullable', 'integer', 'min:0'],
         ]);
 
+        // 재보고라면 diff 를 다시 저장하지 않는다. 첫 보고가 이미 기록했다.
+        if ($job->status === AiwJobStatus::Completed) {
+            return response()->json($this->controlFlags($job));
+        }
+
         [$inline, $path] = $this->storeDiff($job, $validated['git_diff'] ?? null);
 
         try {
-            $this->states->transition($job, AiwJobStatus::Completed, [
+            $this->states->reportTerminal($job, AiwJobStatus::Completed, [
                 'result_summary' => $validated['result_summary'] ?? null,
                 'changed_files'  => $validated['changed_files'] ?? null,
                 'git_diff'       => $inline,
@@ -296,7 +301,7 @@ class JobReportController extends AgentApiController
         ]);
 
         try {
-            $this->states->transition($job, AiwJobStatus::Failed, [
+            $this->states->reportTerminal($job, AiwJobStatus::Failed, [
                 'error_message' => $validated['error_message'],
                 'cost_usd'      => $validated['cost_usd'] ?? $job->cost_usd,
                 'duration_ms'   => $validated['duration_ms'] ?? null,

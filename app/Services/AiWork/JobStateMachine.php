@@ -55,6 +55,39 @@ class JobStateMachine
     }
 
     /**
+     * 데몬의 종료 보고. 같은 종료 상태로의 재보고는 아무 일도 하지 않고 성공으로 친다.
+     *
+     * 데몬은 응답이 유실되면 같은 보고를 재시도한다(at-least-once). 서버가 이미
+     * 처리한 보고를 409 로 거절하면 정상적으로 끝난 작업마다 데몬 로그에 경고가
+     * 쌓여, 진짜 실패를 가린다. 실제로 그렇게 관측됐다.
+     *
+     * 재보고의 payload 는 버린다 — 첫 보고가 이미 결과를 다 기록했고, 뒤늦게
+     * 덮어쓰면 중간에 사람이 본 내용이 바뀔 수 있다.
+     *
+     * 다른 종료 상태와 충돌하면(예: 취소된 job 에 완료 보고) 그대로 예외를 던진다.
+     * 그건 재시도가 아니라 진짜 모순이다.
+     *
+     * @param  array<string, mixed>  $context
+     * @return bool 이번 호출이 실제로 상태를 바꿨는가
+     *
+     * @throws InvalidJobTransitionException
+     */
+    public function reportTerminal(AiwJob $job, AiwJobStatus $to, array $context = []): bool
+    {
+        if (! $to->isTerminal()) {
+            throw new \InvalidArgumentException("종료 상태가 아닙니다: {$to->value}");
+        }
+
+        if ($job->status === $to) {
+            return false;
+        }
+
+        $this->transition($job, $to, $context);
+
+        return true;
+    }
+
+    /**
      * 종료된 job 뒷정리.
      *
      * 승인 대기가 남아 있으면 사용자가 이미 끝난 작업의 카드를 누르게 되고,
