@@ -19,7 +19,7 @@ class ToolPolicy
         return (array) config('aiw.supported_tools', []);
     }
 
-    /** permission_mode=acceptEdits 일 때 자동 승인되는 툴. Bash 는 의도적으로 빠져 있다. */
+    /** permission_mode=acceptEdits 일 때 자동 승인되는 툴. config/aiw.php 가 단일 출처다. */
     public static function autoApprovable(): array
     {
         return (array) config('aiw.auto_approvable', []);
@@ -63,9 +63,9 @@ class ToolPolicy
     /**
      * 이 툴 호출이 사람의 승인 없이 진행돼도 되는가.
      *
-     * Bash 는 permission_mode 와 무관하게 항상 false 다. acceptEdits 의 자동 허용
-     * 범위는 파일 편집·읽기로 고정한다 — 임의 명령 실행까지 자동 승인되면
-     * 승인 카드라는 방어선 자체가 사라진다.
+     * permission_mode=default 는 목록과 무관하게 항상 false 다 — 매번 사람이 본다.
+     * acceptEdits 의 허용 범위는 config('aiw.auto_approvable') 이 정하며, 현재
+     * Bash 를 포함한다. 그 선택의 의미는 config/aiw.php 주석에 적어 두었다.
      */
     public function isAutoApprovable(string $tool, string $permissionMode): bool
     {

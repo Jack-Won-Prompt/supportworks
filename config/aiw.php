@@ -41,12 +41,19 @@ return [
     | 툴 화이트리스트
     |---------------------------------------------------------------------------
     | 서버가 강제한다. 웹에서 들어온 allowed_tools 가 이 집합을 벗어나면 거부한다.
-    | auto_approvable 은 permission_mode=acceptEdits 일 때 자동 승인되는 툴이며
-    | Bash 는 의도적으로 빠져 있다 — 승인 모드와 무관하게 매번 사람이 승인한다.
+    | auto_approvable 은 permission_mode=acceptEdits 일 때 자동 승인되는 툴이다.
+    |
+    | Bash 포함은 의식적인 선택이다(운영자 결정, 2026-09-11). acceptEdits 를 고른
+    | job 은 임의 명령을 사람 확인 없이 실행한다. 이 모드에서 남는 방어선은
+    | 데몬의 샌드박스 차단 목록(git push·광범위 삭제·자격증명 접근 등)과 작업
+    | 폴더 경계뿐이며, 둘 다 셸 우회를 전부 막지는 못한다.
+    |
+    | 매번 확인이 필요한 작업은 permission_mode=default 로 등록한다 — 그쪽은
+    | 이 목록과 무관하게 모든 툴이 승인을 거친다.
     */
     'supported_tools' => ['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep', 'WebFetch', 'WebSearch'],
     'default_tools'   => ['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep'],
-    'auto_approvable' => ['Read', 'Edit', 'Write', 'Glob', 'Grep'],
+    'auto_approvable' => ['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep'],
 
     /*
     |---------------------------------------------------------------------------

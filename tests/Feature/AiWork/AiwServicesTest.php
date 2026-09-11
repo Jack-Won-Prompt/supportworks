@@ -161,17 +161,37 @@ class AiwServicesTest extends TestCase
         $this->assertSame(['Read', 'Grep'], $out);
     }
 
-    public function test_acceptEdits여도_Bash는_자동승인되지_않는다(): void
+    public function test_default_모드는_어떤_툴도_자동승인하지_않는다(): void
     {
         $policy = app(ToolPolicy::class);
 
-        $this->assertTrue($policy->isAutoApprovable('Edit', 'acceptEdits'));
-        $this->assertTrue($policy->isAutoApprovable('Write', 'acceptEdits'));
+        // 매번 사람이 확인해야 하는 작업은 이 모드로 등록한다.
+        // auto_approvable 목록과 무관하게 전부 승인을 거쳐야 한다.
+        foreach (['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep'] as $tool) {
+            $this->assertFalse($policy->isAutoApprovable($tool, 'default'), $tool);
+        }
+    }
 
-        // 임의 명령 실행까지 자동 승인되면 승인 카드라는 방어선이 사라진다.
-        $this->assertFalse($policy->isAutoApprovable('Bash', 'acceptEdits'));
-        $this->assertFalse($policy->isAutoApprovable('Bash', 'default'));
-        $this->assertFalse($policy->isAutoApprovable('Edit', 'default'));
+    public function test_acceptEdits는_설정된_목록만_자동승인한다(): void
+    {
+        $policy = app(ToolPolicy::class);
+
+        foreach (config('aiw.auto_approvable') as $tool) {
+            $this->assertTrue($policy->isAutoApprovable($tool, 'acceptEdits'), $tool);
+        }
+
+        // 목록 밖은 acceptEdits 여도 승인을 거친다.
+        $this->assertFalse($policy->isAutoApprovable('WebFetch', 'acceptEdits'));
+        $this->assertFalse($policy->isAutoApprovable('PowerShell', 'acceptEdits'));
+    }
+
+    public function test_자동승인_목록은_지원_툴의_부분집합이다(): void
+    {
+        // 목록에 오타가 있으면 조용히 "승인 필요"로 떨어져 아무도 눈치채지 못한다.
+        $this->assertSame(
+            [],
+            array_diff(config('aiw.auto_approvable'), ToolPolicy::supported()),
+        );
     }
 
     public function test_Bash_선택시_경고대상이다(): void

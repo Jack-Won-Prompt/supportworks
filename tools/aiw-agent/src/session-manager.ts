@@ -100,8 +100,9 @@ export class SessionManager {
             this.job.job_id,
             this.sandbox,
             this.job.permission_mode,
-            // Bash 는 의도적으로 빠져 있다. 서버 ToolPolicy 와 같은 규칙이다.
-            ['Read', 'Edit', 'Write', 'Glob', 'Grep'],
+            // 서버 config('aiw.auto_approvable') 와 같은 목록을 유지한다(이중 방어).
+            // Bash 포함은 운영자 결정이다 — config/aiw.php 주석 참고.
+            ['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep'],
             {
                 onWaiting: () => this.pushLog('daemon', '사용자 승인 대기 중'),
                 onResumed: () => void this.api.quiet('status running', () =>

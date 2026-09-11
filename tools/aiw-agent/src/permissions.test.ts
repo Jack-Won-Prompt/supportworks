@@ -8,8 +8,8 @@ import type { ApiClient } from './api.js';
 import { PermissionGate } from './permissions.js';
 import { Sandbox } from './sandbox.js';
 
-/** 서버 ToolPolicy 와 같은 목록. Bash 는 의도적으로 빠져 있다. */
-const AUTO_APPROVABLE = ['Read', 'Edit', 'Write', 'Glob', 'Grep'];
+/** 서버 config('aiw.auto_approvable') 와 같은 목록. Bash 포함은 운영자 결정이다. */
+const AUTO_APPROVABLE = ['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep'];
 
 interface AskRecord {
     toolName: string;
@@ -85,20 +85,7 @@ async function build(mode: 'acceptEdits' | 'default'): Promise<Built> {
 
 // ── 자동 승인 경계 ──────────────────────────────────────────────────────────
 
-test('acceptEdits 라도 Bash 는 자동 승인되지 않는다', async () => {
-    const b = await build('acceptEdits');
-
-    const decision = await b.gate.check('Bash', { command: 'npm test' });
-
-    assert.equal(decision.allowed, true, '서버가 허용했으므로 결과는 허용이다.');
-    assert.deepEqual(
-        b.api.asked.map((a) => a.toolName),
-        ['Bash'],
-        '임의 명령 실행은 반드시 승인 카드를 거쳐야 한다.',
-    );
-});
-
-test('acceptEdits 에서 편집 계열 툴은 서버에 묻지 않는다', async () => {
+test('acceptEdits 에서 목록에 있는 툴은 서버에 묻지 않는다', async () => {
     const b = await build('acceptEdits');
 
     for (const tool of AUTO_APPROVABLE) {
@@ -110,26 +97,47 @@ test('acceptEdits 에서 편집 계열 툴은 서버에 묻지 않는다', async
     assert.deepEqual(b.api.asked, [], '자동 승인은 서버 왕복이 없어야 한다.');
 });
 
-test('default 모드에서는 편집 툴도 매번 서버에 묻는다', async () => {
+test('acceptEdits 라도 목록 밖의 툴은 승인을 거친다', async () => {
+    const b = await build('acceptEdits');
+
+    await b.gate.check('WebFetch', { url: 'https://example.com' });
+
+    assert.deepEqual(b.api.asked.map((a) => a.toolName), ['WebFetch']);
+});
+
+test('default 모드에서는 어떤 툴도 자동 승인되지 않는다', async () => {
     const b = await build('default');
 
-    await b.gate.check('Read', { file_path: join(b.root, 'a.txt') });
+    for (const tool of AUTO_APPROVABLE) {
+        await b.gate.check(tool, { file_path: join(b.root, 'a.txt') });
+    }
 
-    assert.deepEqual(b.api.asked.map((a) => a.toolName), ['Read']);
+    // 매번 확인이 필요한 작업은 이 모드로 등록한다. 목록과 무관하게 전부 묻는다.
+    assert.deepEqual(b.api.asked.map((a) => a.toolName), AUTO_APPROVABLE);
+});
+
+test('자동 승인이어도 샌드박스는 먼저 걸린다', async () => {
+    const b = await build('acceptEdits');
+
+    // Bash 가 자동 승인 목록에 있어도 차단 규칙은 그대로 살아 있다.
+    // acceptEdits 에서 사람이 보는 지점이 없으므로 남는 방어선이 이것뿐이다.
+    const blocked = ['git push origin master', 'rm -rf /', 'cat ~/.ssh/id_rsa'];
+
+    for (const command of blocked) {
+        const decision = await b.gate.check('Bash', { command });
+
+        assert.equal(decision.allowed, false, `막혀야 함: ${command}`);
+    }
+
+    assert.deepEqual(b.api.asked, [], '샌드박스에 걸리면 서버에 묻지도 않는다.');
+    assert.deepEqual(b.blocked.map((x) => x.tool), ['Bash', 'Bash', 'Bash']);
+
+    // 평범한 명령은 자동 승인으로 통과한다.
+    assert.equal((await b.gate.check('Bash', { command: 'npm test' })).allowed, true);
+    assert.deepEqual(b.api.asked, []);
 });
 
 // ── 샌드박스 우선 ───────────────────────────────────────────────────────────
-
-test('샌드박스에 걸리면 서버에 묻지도 않고 거부한다', async () => {
-    const b = await build('acceptEdits');
-
-    const decision = await b.gate.check('Bash', { command: 'git push origin master' });
-
-    assert.equal(decision.allowed, false);
-    assert.deepEqual(b.api.asked, [], '사람이 실수로 허용을 눌러도 통과하면 안 되는 것들이다.');
-    assert.equal(b.blocked.length, 1);
-    assert.equal(b.blocked[0]?.tool, 'Bash');
-});
 
 test('작업 폴더 밖 경로는 자동 승인 목록에 있어도 거부한다', async () => {
     const b = await build('acceptEdits');

@@ -23,7 +23,10 @@
         tools: @js(old('allowed_tools', $parent?->allowed_tools ?? $defaultTools)),
         agentId: @js(old('agent_id', $parent?->agent_id ?? ($agents->first()->id ?? null))),
         busy: @js($busyByPath),
+        permissionMode: @js(old('permission_mode', $parent->permission_mode ?? 'acceptEdits')),
         get bashSelected() { return this.tools.includes('Bash'); },
+        // Bash 를 고른 채 acceptEdits 면 사람이 명령을 보는 지점이 없다.
+        get bashUnattended() { return this.bashSelected && this.permissionMode === 'acceptEdits'; },
         get busyJobId() { return this.busy[this.agentId] ?? null; },
      }">
 
@@ -128,19 +131,21 @@
                         </label>
                     @endforeach
                 </div>
-                <p x-show="bashSelected" x-cloak
+                <p x-show="bashUnattended" x-cloak
                    class="mt-2 rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-xs text-orange-800">
-                    <span class="font-semibold">Bash 는 승인 모드와 무관하게 매 실행마다 승인이 필요합니다.</span>
-                    임의 명령 실행까지 자동 승인되면 승인 카드라는 방어선이 사라지기 때문입니다.
+                    <span class="font-semibold">이 설정에서는 명령이 확인 없이 실행됩니다.</span>
+                    Bash 를 선택한 채 <span class="font-medium">파일 편집 자동 승인</span> 을 고르면
+                    임의 명령까지 자동으로 실행됩니다. 명령을 하나씩 확인하려면 승인 모드를
+                    <span class="font-medium">모든 툴 승인 요청</span> 으로 바꾸세요.
                 </p>
             </div>
 
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">승인 모드</label>
-                    <select name="permission_mode" class="w-full rounded-lg border-gray-200 text-sm">
+                    <select name="permission_mode" x-model="permissionMode" class="w-full rounded-lg border-gray-200 text-sm">
                         <option value="acceptEdits" @selected(old('permission_mode', $parent->permission_mode ?? 'acceptEdits') === 'acceptEdits')>
-                            파일 편집 자동 승인 (Read/Edit/Write/Glob/Grep)
+                            자동 승인 ({{ implode('/', $autoApprovable) }})
                         </option>
                         <option value="default" @selected(old('permission_mode', $parent->permission_mode ?? '') === 'default')>
                             모든 툴 승인 요청

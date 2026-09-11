@@ -43,7 +43,7 @@ npm run build
 npm start
 ```
 
-`.env` 의 `SW_AGENT_TOKEN` 은 웹의 **설정 › AI 작업 PC** 에서 작업 PC 를 등록할 때
+`.env` 의 `SW_AGENT_TOKEN` 은 웹의 **관리자 › 담당자** 에서 담당자를 등록할 때
 **한 번만** 표시됩니다. 다시 볼 수 없고 재발급만 가능합니다.
 
 `REVERB_*` 는 서버 `.env` 와 같은 값을 씁니다. `agent_id` 는 하트비트 응답으로
@@ -102,9 +102,14 @@ npm start
 
 1. 샌드박스 — 걸리면 서버에 묻지도 않고 거부. 사람이 실수로 [허용]을 눌러도
    통과하지 못해야 하는 것들입니다.
-2. `acceptEdits` 흉내 — `Read/Edit/Write/Glob/Grep` 만 자동 승인.
-   **Bash 는 절대 포함되지 않습니다.**
+2. `acceptEdits` 흉내 — 서버 `config('aiw.auto_approvable')` 와 같은 목록만 자동 승인.
+   현재 `Read/Edit/Write/`**`Bash`**`/Glob/Grep` 입니다.
 3. 서버 승인 요청 — 사람의 결정을 기다립니다. 서버에 물을 수 없으면 **거부**합니다.
+
+> **`acceptEdits` 는 이제 임의 명령까지 자동 승인합니다**(운영자 결정, 2026-09-11).
+> 이 모드에서 사람이 명령을 보는 지점은 없고, 남는 방어선은 1번의 샌드박스와
+> 작업 폴더 경계뿐입니다. 확인이 필요한 작업은 `permission_mode=default` 로
+> 등록하세요 — 그쪽은 이 목록과 무관하게 모든 툴이 승인을 거칩니다.
 
 #### 게이트를 SDK 에 연결하는 방법 — 실측으로 고친 부분
 
@@ -152,7 +157,7 @@ pm2 startup      # Windows 는 pm2-windows-startup 사용
 
 ### 토큰 재발급
 
-웹의 **설정 › AI 작업 PC › 토큰 재발급**. 기존 토큰은 즉시 무효가 되므로
+웹의 **관리자 › 담당자 › 토큰 재발급**. 기존 토큰은 즉시 무효가 되므로
 `.env` 를 고치고 데몬을 재시작해야 합니다. 만료 D-7 이내면 목록에 경고가 뜹니다.
 
 ### 로그
@@ -178,7 +183,7 @@ npm run build
 npm test         # 빌드 후 dist/**/*.test.js 실행
 ```
 
-고정해 둔 것: 샌드박스 차단 목록, 승인 게이트(특히 **Bash 자동 승인 금지**와
+고정해 둔 것: 샌드박스 차단 목록, 승인 게이트(자동 승인 목록 경계와
 통신 실패 시 거부), 토큰 집계 산식(**덮어쓰기**), 인수인계 트리거 판정·문서 검증·
 데몬 폴백, 입력 큐 잠금/보류/재개, `CLAUDE.md` 주입.
 
@@ -194,7 +199,8 @@ npm test         # 빌드 후 dist/**/*.test.js 실행
 - **CLI 폴백 미구현.** 명세는 `@anthropic-ai/claude-agent-sdk` 설치 불가 시
   `claude -p --output-format stream-json` 을 child_process 로 띄우는 어댑터를
   대안으로 두었습니다. 현재 SDK 가 정상 설치되므로 만들지 않았습니다.
-  `SessionAdapter` 인터페이스는 그대로라 필요해지면 추가할 수 있고, 그 경우
-  승인 게이트는 지원되지 않으므로 Bash 를 제외한 acceptEdits 전용으로만 써야 합니다.
+  `SessionAdapter` 인터페이스는 그대로라 필요해지면 추가할 수 있습니다. 다만 그
+  어댑터는 승인 게이트를 지원하지 못하므로(`supportsPermissions = false`),
+  `permission_mode=default` job 은 아예 받을 수 없습니다.
 - **같은 폴더 동시 실행 불가.** `git worktree` 가 필요하며 v4 범위입니다.
 - **IPv6 CIDR 미지원.** 허용 IP 목록의 CIDR 표기는 IPv4 만 계산합니다.
