@@ -88,8 +88,14 @@ export class ApiClient {
         }>(() => this.http.post('/heartbeat', { capabilities }));
     }
 
-    pendingJobs() {
-        return this.send<{ jobs: JobSpec[] }>(() => this.http.get('/jobs/pending'));
+    /**
+     * @param includeActive 재기동 복구용. 활성 job 의 스펙도 함께 받는다
+     *                      (resume_session_id 가 실려 온다).
+     */
+    pendingJobs(includeActive = false) {
+        return this.send<{ jobs: JobSpec[] }>(() =>
+            this.http.get('/jobs/pending', includeActive ? { params: { resume: 1 } } : undefined),
+        );
     }
 
     inbox(jobId: number) {

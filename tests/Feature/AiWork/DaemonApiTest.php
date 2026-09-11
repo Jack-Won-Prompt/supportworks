@@ -151,6 +151,38 @@ class DaemonApiTest extends TestCase
             ->assertJsonPath('jobs.0.default_branch', 'master');
     }
 
+    public function test_기본_pending은_활성_job을_내려주지_않는다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+
+        $this->daemon()->getJson('/api/aiw/jobs/pending')
+            ->assertOk()
+            ->assertJsonCount(0, 'jobs');
+    }
+
+    public function test_resume이면_활성_job도_스펙과_함께_내려준다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 'sess-1']);
+
+        // 데몬이 재기동하면 세션은 사라지지만 서버 상태는 running 그대로다.
+        // 스펙을 받지 못하면 그 job 은 아무도 돌보지 않는 고아가 된다.
+        $this->daemon()->getJson('/api/aiw/jobs/pending?resume=1')
+            ->assertOk()
+            ->assertJsonPath('jobs.0.job_id', $this->job->id)
+            ->assertJsonPath('jobs.0.resume_session_id', 'sess-1')
+            ->assertJsonPath('jobs.0.local_path', 'E:\\work\\sample');
+    }
+
+    public function test_resume이어도_종료된_job은_내려주지_않는다(): void
+    {
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/complete", [])->assertOk();
+
+        $this->daemon()->getJson('/api/aiw/jobs/pending?resume=1')
+            ->assertOk()
+            ->assertJsonCount(0, 'jobs');
+    }
+
     // ── 브로드캐스트 인가 ───────────────────────────────────────────────────
 
     public function test_자기_채널만_인가받는다(): void

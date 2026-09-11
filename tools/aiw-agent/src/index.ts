@@ -4,6 +4,7 @@ import { config } from './config.js';
 import { JobManager } from './job-manager.js';
 import { log } from './logger.js';
 import { Realtime } from './realtime.js';
+import { recoverActiveJobs } from './recover.js';
 
 async function main(): Promise<void> {
     log('info', 'AI Works 데몬을 시작합니다.', {
@@ -53,16 +54,7 @@ async function main(): Promise<void> {
         active: first.active_job_ids.length,
     });
 
-    // 재기동 복구: 세션은 프로세스와 함께 사라졌으므로 그대로 이어갈 수 없다.
-    // interactive 는 resume 을 시도하고(서버가 resume_session_id 를 준다),
-    // batch 는 재실행이 부작용을 낳을 수 있어 즉시 실패 처리한다.
-    for (const jobId of first.active_job_ids) {
-        if (!config.resumeOnRestart) {
-            await api.quiet('fail', () =>
-                api.fail(jobId, '데몬이 재시작되어 세션을 이어갈 수 없습니다. 후속 지시로 진행하세요.'),
-            );
-        }
-    }
+    await recoverActiveJobs(api, jobs, first.active_job_ids);
 
     // agent_id 는 하트비트가 알려준다 — 사람이 화면에서 번호를 옮겨 적을 필요가 없다.
     const agentId = first.agent_id;

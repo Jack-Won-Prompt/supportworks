@@ -88,14 +88,30 @@ class DaemonController extends AgentApiController
         return response()->json(['auth' => $reverb['key'].':'.$signature]);
     }
 
-    /** 실행 대기 중인 job 전체. 데몬 기동·재접속 시 누락을 보충한다. */
+    /**
+     * 실행 대기 중인 job 전체. 데몬 기동·재접속 시 누락을 보충한다.
+     *
+     * `?resume=1` 이면 활성 job 도 함께 내려준다. 데몬이 재기동하면 세션은
+     * 사라지는데 서버 상태는 running 그대로라, 스펙을 받지 못하면 그 job 은
+     * 아무도 돌보지 않는 고아가 된다. 스펙에는 resume_session_id 가 실려 있어
+     * 데몬이 이어붙이기를 시도할 수 있다.
+     */
     public function pendingJobs(Request $request): JsonResponse
     {
         $agent = $this->agent($request);
 
+        $statuses = [AiwJobStatus::Queued, AiwJobStatus::Dispatched];
+
+        if ($request->boolean('resume')) {
+            $statuses = array_merge($statuses, array_filter(
+                AiwJobStatus::cases(),
+                fn (AiwJobStatus $s) => $s->isActive(),
+            ));
+        }
+
         $jobs = AiwJob::query()
             ->where('agent_id', $agent->id)
-            ->whereIn('status', [AiwJobStatus::Queued, AiwJobStatus::Dispatched])
+            ->whereIn('status', $statuses)
             ->orderBy('id')
             ->get();
 
