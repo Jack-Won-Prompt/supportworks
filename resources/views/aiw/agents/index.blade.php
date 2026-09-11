@@ -133,10 +133,17 @@
                     <input type="text" name="local_path" required placeholder="E:/work/project"
                            class="rounded-lg border-gray-200 text-xs md:col-span-2">
                     <div class="flex gap-2">
-                        <input type="text" name="default_branch" placeholder="master" class="flex-1 rounded-lg border-gray-200 text-xs">
+                        {{-- 예전 placeholder 는 "master" 였다. main 을 쓰는 저장소에서
+                             그대로 받아 적으면 없는 브랜치가 저장되어 작업이 실패한다. --}}
+                        <input type="text" name="default_branch" placeholder="기본 브랜치(비우면 현재 브랜치)"
+                               class="flex-1 rounded-lg border-gray-200 text-xs">
                         <button class="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-900">추가</button>
                     </div>
                 </form>
+                <p class="mt-1 text-[11px] text-gray-400">
+                    기본 브랜치는 작업 브랜치를 분기할 기준입니다. 저장소에 실제로 있는 이름이어야 하며
+                    (<code>main</code> / <code>master</code>는 저장소마다 다릅니다), 비워 두면 현재 브랜치에서 분기합니다.
+                </p>
             </div>
         </div>
     @empty

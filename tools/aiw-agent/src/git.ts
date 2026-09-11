@@ -39,6 +39,19 @@ export class GitWorkspace {
         }
 
         if (defaultBranch) {
+            // 없는 브랜치로 checkout 하면 raw git 오류가 그대로 화면에 나간다
+            // ("pathspec 'master' did not match ..."). 설정이 틀렸다는 것을 알아볼 수 없다.
+            const local = await this.git.branchLocal();
+
+            if (!local.all.includes(defaultBranch)) {
+                throw new Error(
+                    `설정된 기본 브랜치 '${defaultBranch}' 가 이 저장소에 없습니다. `
+                    + `있는 브랜치: ${local.all.join(', ')}. `
+                    + '관리자 › 담당자 화면에서 매핑의 기본 브랜치를 고치거나 비워 두세요'
+                    + `(비우면 현재 브랜치 '${local.current}' 에서 분기합니다).`,
+                );
+            }
+
             await this.git.checkout(defaultBranch);
 
             try {
