@@ -4,6 +4,7 @@ import { ApiClient } from './api.js';
 import { config } from './config.js';
 import { JobManager } from './job-manager.js';
 import { log } from './logger.js';
+import { Publisher } from './publisher.js';
 
 /**
  * Reverb 구독.
@@ -31,6 +32,7 @@ export class Realtime {
         private readonly jobs: JobManager,
         private readonly agentId: number,
         private readonly onReconnect: () => void,
+        private readonly publisher: Publisher,
     ) {}
 
     connect(): void {
@@ -69,6 +71,10 @@ export class Realtime {
         channel.bind('job.dispatched', (payload: any) => {
             log('info', '지시 수신', { jobId: payload?.job_id });
             this.jobs.enqueue(payload);
+        });
+
+        channel.bind('publish.requested', (payload: any) => {
+            this.publisher.handle(payload);
         });
 
         channel.bind('job.user-message', (payload: any) => {

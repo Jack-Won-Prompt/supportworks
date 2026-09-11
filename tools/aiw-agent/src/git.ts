@@ -86,6 +86,110 @@ export class GitWorkspace {
         }
     }
 
+    /**
+     * 작업 브랜치를 기본 브랜치에 합치고 원격으로 올린다.
+     *
+     * 이 메서드는 Claude 가 아니라 데몬이 직접 호출한다. 샌드박스는 Claude 의
+     * 툴 호출을 통제하는 것이고, 사람이 화면에서 누른 버튼은 다른 신뢰 경로다.
+     *
+     * 실패하면 저장소를 원래 자리로 되돌린다 — 충돌 상태로 남겨 두면 다음 작업이
+     * 시작조차 못 하고, 사람이 그 PC 앞에 가야만 풀 수 있다.
+     */
+    async publish(options: {
+        sourceBranch: string;
+        targetBranch: string;
+        commitMessage: string;
+        onProgress?: (line: string) => void;
+    }): Promise<{ commitSha: string | null; output: string }> {
+        const out: string[] = [];
+        const say = (line: string) => {
+            out.push(line);
+            options.onProgress?.(line);
+        };
+
+        const local = await this.git.branchLocal();
+
+        if (!local.all.includes(options.sourceBranch)) {
+            throw new Error(`작업 브랜치 '${options.sourceBranch}' 가 없습니다. 이미 정리되었을 수 있습니다.`);
+        }
+
+        // HEAD 는 "기본 브랜치를 지정하지 않았다"는 뜻. 지금 기본 브랜치를 쓴다.
+        const target = options.targetBranch === 'HEAD'
+            ? await this.defaultBranch(local.all)
+            : options.targetBranch;
+
+        if (!local.all.includes(target)) {
+            throw new Error(`기본 브랜치 '${target}' 가 없습니다. 있는 브랜치: ${local.all.join(', ')}`);
+        }
+
+        if (target === options.sourceBranch) {
+            throw new Error('작업 브랜치와 기본 브랜치가 같습니다.');
+        }
+
+        let commitSha: string | null = null;
+
+        // 1) 작업 브랜치의 변경을 커밋한다.
+        await this.git.checkout(options.sourceBranch);
+        const status = await this.git.status();
+
+        if (status.isClean()) {
+            say('커밋할 변경이 없습니다. 기존 커밋만 합칩니다.');
+        } else {
+            await this.git.add(['-A']);
+            const commit = await this.git.commit(options.commitMessage);
+            commitSha = commit.commit || null;
+            say(`커밋: ${commitSha ?? '(없음)'} — ${status.files.length}개 파일`);
+        }
+
+        // 2) 기본 브랜치로 옮겨 최신화한다.
+        await this.git.checkout(target);
+        say(`기본 브랜치로 전환: ${target}`);
+
+        try {
+            await this.git.pull();
+            say('원격 최신화 완료');
+        } catch (error) {
+            // 원격이 없거나 접근 불가일 수 있다. 머지는 계속한다.
+            say(`원격 최신화 건너뜀: ${String(error).slice(0, 200)}`);
+        }
+
+        // 3) 합친다. 충돌하면 되돌리고 사람에게 넘긴다.
+        try {
+            await this.git.merge(['--no-ff', options.sourceBranch, '-m', options.commitMessage]);
+            say(`머지 완료: ${options.sourceBranch} → ${target}`);
+        } catch (error) {
+            await this.git.raw(['merge', '--abort']).catch(() => undefined);
+            await this.git.checkout(options.sourceBranch).catch(() => undefined);
+
+            throw new Error(
+                `머지 충돌로 중단했습니다(변경은 그대로 있습니다). ${String(error).slice(0, 500)}`,
+            );
+        }
+
+        // 4) 올린다.
+        try {
+            await this.git.push('origin', target);
+            say(`푸시 완료: origin/${target}`);
+        } catch (error) {
+            throw new Error(
+                `푸시에 실패했습니다(머지는 로컬에 남아 있습니다). ${String(error).slice(0, 500)}`,
+            );
+        }
+
+        return { commitSha, output: out.join('\n') };
+    }
+
+    /** main / master 중 실제로 있는 것. 둘 다 없으면 현재 브랜치. */
+    private async defaultBranch(all: string[]): Promise<string> {
+        for (const name of ['main', 'master']) {
+            if (all.includes(name)) {
+                return name;
+            }
+        }
+
+        return (await this.git.branchLocal()).current;
+    }
+
     async changedFiles(): Promise<string[]> {
         const status = await this.git.status();
 

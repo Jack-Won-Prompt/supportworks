@@ -393,5 +393,6 @@ Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function 
         Route::post('handover',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'handover'])->name('handover');
         Route::post('complete',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'complete'])->name('complete');
         Route::post('fail',        [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'fail'])->name('fail');
+        Route::post('publishes/{publish}', [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'publishResult'])->name('publishes.result');
     });
 });

@@ -155,6 +155,17 @@ export class ApiClient {
         );
     }
 
+    /** 커밋·푸시 진행/결과 보고. */
+    publishResult(
+        jobId: number,
+        publishId: number,
+        payload: { status: 'running' | 'succeeded' | 'failed'; output?: string; commit_sha?: string },
+    ) {
+        return this.send<{ status: string }>(() =>
+            this.http.post(`/jobs/${jobId}/publishes/${publishId}`, payload),
+        );
+    }
+
     /** 담당자가 만든 결과물(스크린샷)을 그 발언에 붙인다. */
     async uploadAttachment(
         jobId: number,

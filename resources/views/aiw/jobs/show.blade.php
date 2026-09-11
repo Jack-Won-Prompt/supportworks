@@ -202,6 +202,78 @@
         </div>
     @endif
 
+    {{-- ── 결과 반영(커밋·푸시) ──────────────────────────────────────
+         담당자는 push 를 할 수 없다. 사람이 결과를 확인하고 누른 이 버튼만이
+         커밋·머지·푸시를 시킨다. --}}
+    @if ($canEdit && $job->branchName())
+        @php
+            $lastPublish = $publishes->first();
+            $published   = $publishes->firstWhere('status', 'succeeded');
+        @endphp
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-start justify-between gap-3 flex-wrap">
+                <div class="min-w-0">
+                    <h3 class="text-sm font-bold text-gray-900">결과 반영</h3>
+                    <p class="mt-1 text-xs text-gray-500">
+                        작업 브랜치 <code>{{ $job->branchName() }}</code> 를 커밋하고 기본 브랜치에 합쳐 원격에 올립니다.
+                        <span class="text-gray-400">결과를 확인한 뒤 눌러 주세요.</span>
+                    </p>
+                </div>
+
+                @if ($published)
+                    <span class="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-800">
+                        반영 완료 · {{ $published->created_at?->format('m-d H:i') }}
+                    </span>
+                @elseif ($lastPublish && $lastPublish->isRunning())
+                    <span class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-800">
+                        {{ $lastPublish->statusLabel() }}…
+                    </span>
+                @elseif ($job->status->isTerminal())
+                    <form method="POST" action="{{ route('projects.ai-works.publish', [$project, $job]) }}"
+                          class="flex items-end gap-2 flex-wrap"
+                          onsubmit="return confirm('원격 저장소에 올립니다. 되돌리려면 git 으로 직접 작업해야 합니다. 진행할까요?')">
+                        @csrf
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-600 mb-1">커밋 메시지 (비우면 제목)</label>
+                            <input type="text" name="commit_message" maxlength="480"
+                                   value="{{ old('commit_message') }}"
+                                   placeholder="{{ $job->title }} (작업 지시 #{{ $job->id }})"
+                                   class="w-80 max-w-full rounded-lg border-gray-200 text-xs">
+                        </div>
+                        <button class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+                            커밋 &amp; 푸시
+                        </button>
+                    </form>
+                @else
+                    <span class="text-xs text-gray-400">작업이 끝나면 반영할 수 있습니다.</span>
+                @endif
+            </div>
+
+            @foreach ($publishes as $publish)
+                <div class="mt-3 rounded-lg border px-3 py-2 text-xs
+                            {{ $publish->status === 'succeeded' ? 'border-emerald-200 bg-emerald-50'
+                               : ($publish->status === 'failed' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50') }}">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="font-semibold">{{ $publish->statusLabel() }}</span>
+                        <span class="text-gray-500">{{ $publish->source_branch }} → {{ $publish->target_branch }}</span>
+                        <span class="text-gray-400">{{ $publish->requester?->name }}</span>
+                        <span class="text-gray-400">{{ $publish->created_at?->format('m-d H:i') }}</span>
+                        @if ($publish->commit_sha)
+                            <code class="text-gray-500">{{ \Illuminate\Support\Str::limit($publish->commit_sha, 10, '') }}</code>
+                        @endif
+                    </div>
+                    @if ($publish->output)
+                        <details class="mt-1">
+                            <summary class="cursor-pointer text-gray-500">실행 내용 보기</summary>
+                            <pre class="mt-1 overflow-x-auto whitespace-pre-wrap rounded bg-white p-2 text-[11px] text-gray-700">{{ $publish->output }}</pre>
+                        </details>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     {{-- ── 본문: 대화 + 활동 로그 ───────────────────────────────────── --}}
     <div class="grid gap-2 lg:grid-cols-3">
 

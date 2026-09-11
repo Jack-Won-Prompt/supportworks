@@ -15,6 +15,7 @@ use App\Models\AiWork\AiwJobMessage;
 use App\Models\AiWork\AiwPermissionRequest;
 use App\Models\Project;
 use App\Services\AiWork\AttachmentService;
+use App\Services\AiWork\PublishService;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobDispatcher;
 use App\Services\AiWork\JobStateMachine;
@@ -40,6 +41,7 @@ class AiwJobController extends Controller
         private HandoverService $handovers,
         private ToolPolicy $tools,
         private AttachmentService $attachments,
+        private PublishService $publishes,
     ) {}
 
     /** 화면 2: 지시 목록 */
@@ -211,6 +213,7 @@ class AiwJobController extends Controller
             'canEdit'  => auth()->user()->can('sendMessage', $job),
             // 실패 복구 버튼 중 매핑 수정은 관리자만 할 수 있다.
             'canManageAgents' => auth()->user()->can('manageAgents', AiwJob::class),
+            'publishes' => $job->publishes()->with('requester:id,name')->latest('id')->get(),
             // 같은 담당자가 다른 작업을 붙들고 있으면 이 작업은 줄 서 있다.
             // 화면이 말해 주지 않으면 "보냈는데 아무 일도 없는" 상태로 보인다.
             'blockingJob' => $job->status === AiwJobStatus::Dispatched
@@ -284,6 +287,30 @@ class AiwJobController extends Controller
             // 내용이 바뀌지 않는 파일이다. 다만 비공개이므로 공유 캐시는 막는다.
             'Cache-Control'       => 'private, max-age=86400',
         ]);
+    }
+
+    /**
+     * 결과를 원격 저장소에 올린다.
+     *
+     * 담당자는 push 를 할 수 없다. 사람이 결과를 확인하고 누른 이 버튼만이
+     * 데몬에게 커밋·머지·푸시를 시킨다.
+     */
+    public function publish(Request $request, Project $project, AiwJob $job): RedirectResponse
+    {
+        $this->authorize('cancel', $job);   // 결과 반영도 편집 권한
+        abort_unless((int) $job->project_id === (int) $project->id, 404);
+
+        $validated = $request->validate([
+            'commit_message' => ['nullable', 'string', 'max:480'],
+        ]);
+
+        try {
+            $this->publishes->request($job, $request->user(), $validated['commit_message'] ?? null);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('status', '담당자에게 커밋·푸시를 요청했습니다. 결과가 화면에 표시됩니다.');
     }
 
     /** 승인 카드 결정 */

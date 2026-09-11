@@ -12,6 +12,7 @@ use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobLog;
 use App\Models\AiWork\AiwJobMessage;
 use App\Models\AiWork\AiwPermissionRequest;
+use App\Models\AiWork\AiwPublish;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -334,6 +335,64 @@ class JobReportController extends AgentApiController
         }
 
         return response()->json($this->controlFlags($job));
+    }
+
+    /**
+     * 커밋·푸시 결과 보고.
+     *
+     * 원격을 바꾸는 동작이라 출력을 통째로 남긴다 — 실패했을 때 화면에서
+     * 이유(충돌·거부 등)를 그대로 볼 수 있어야 한다.
+     */
+    public function publishResult(Request $request, AiwJob $job, AiwPublish $publish): JsonResponse
+    {
+        $job = $this->ownedJob($request, $job);
+
+        abort_unless((int) $publish->job_id === (int) $job->id, 404);
+
+        $validated = $request->validate([
+            'status'     => ['required', 'in:running,succeeded,failed'],
+            'output'     => ['nullable', 'string'],
+            'commit_sha' => ['nullable', 'string', 'max:60'],
+        ]);
+
+        // 이미 끝난 건은 덮지 않는다. 재시도 보고가 결과를 바꾸면 안 된다.
+        if ($publish->isFinished()) {
+            return response()->json(['status' => $publish->status] + $this->controlFlags($job));
+        }
+
+        $publish->forceFill(array_filter([
+            'status'      => $validated['status'],
+            'output'      => AiwPublish::truncateOutput($validated['output'] ?? null),
+            'commit_sha'  => $validated['commit_sha'] ?? null,
+            'finished_at' => $validated['status'] === 'running' ? null : now(),
+        ], fn ($v) => $v !== null))->save();
+
+        // 진행 상황이 화면에 바로 보이도록 활동 로그로도 남긴다.
+        if ($validated['status'] !== 'running') {
+            $this->appendPublishLog($job, $publish);
+        }
+
+        return response()->json(['status' => $publish->status] + $this->controlFlags($job));
+    }
+
+    private function appendPublishLog(AiwJob $job, AiwPublish $publish): void
+    {
+        $text = $publish->status === 'succeeded'
+            ? sprintf('원격에 올렸습니다: %s → %s (%s)', $publish->source_branch, $publish->target_branch, $publish->commit_sha ?: '커밋 없음')
+            : '커밋·푸시 실패: '.\Illuminate\Support\Str::limit((string) $publish->output, 300);
+
+        try {
+            $log = AiwJobLog::create([
+                'job_id'  => $job->id,
+                'seq'     => (int) AiwJobLog::where('job_id', $job->id)->max('seq') + 1,
+                'type'    => $publish->status === 'succeeded' ? 'daemon' : 'error',
+                'content' => $text,
+            ]);
+
+            $this->emit(new JobLogAppended($log));
+        } catch (\Throwable $e) {
+            // 로그 한 줄 때문에 결과 기록이 실패하면 안 된다.
+        }
     }
 
     /** 실패 보고. */

@@ -159,6 +159,11 @@ class AiwJob extends Model
         return $this->hasMany(AiwJobMessage::class, 'job_id');
     }
 
+    public function publishes(): HasMany
+    {
+        return $this->hasMany(AiwPublish::class, 'job_id');
+    }
+
     public function attachments(): HasMany
     {
         return $this->hasMany(AiwJobAttachment::class, 'job_id');
