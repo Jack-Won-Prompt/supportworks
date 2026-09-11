@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $job->title.' — AI 작업 지시')
+@section('title', $job->title.' — 작업 지시')
 
 @section('header-actions')
 @endsection
@@ -10,7 +10,7 @@
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<a href="{{ route('projects.ai-works.index', $project) }}" class="hover:text-indigo-500 transition-colors">AI 작업 지시</a>
+<a href="{{ route('projects.ai-works.index', $project) }}" class="hover:text-indigo-500 transition-colors">작업 지시</a>
 <span>›</span>
 <span style="color:var(--color-text-secondary);font-weight:500;">#{{ $job->id }}</span>
 @endsection
@@ -49,7 +49,7 @@
                 </div>
                 <p class="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-3">
                     <span>{{ $job->mode === 'interactive' ? '대화형' : '단발' }}</span>
-                    <span>{{ $job->agent?->name ?? '작업 PC 없음' }}</span>
+                    <span>{{ $job->agent?->name ?? '담당자 없음' }}</span>
                     @if ($job->branchName())<span><code>{{ $job->branchName() }}</code></span>@endif
                     <span>{{ $job->model ?: '기본 모델' }}</span>
                     @if ($job->parent)

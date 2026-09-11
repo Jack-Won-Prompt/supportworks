@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '새 AI 작업 지시 — '.$project->name)
+@section('title', '새 작업 지시 — '.$project->name)
 
 @section('header-actions')
 @endsection
@@ -10,7 +10,7 @@
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<a href="{{ route('projects.ai-works.index', $project) }}" class="hover:text-indigo-500 transition-colors">AI 작업 지시</a>
+<a href="{{ route('projects.ai-works.index', $project) }}" class="hover:text-indigo-500 transition-colors">작업 지시</a>
 <span>›</span>
 <span style="color:var(--color-text-secondary);font-weight:500;">새 지시</span>
 @endsection
@@ -30,7 +30,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-start justify-between gap-3 flex-wrap mb-2">
             <div>
-                <h2 class="text-xl font-bold text-gray-900">새 AI 작업 지시</h2>
+                <h2 class="text-xl font-bold text-gray-900">새 작업 지시</h2>
                 @if ($parent)
                     <p class="text-sm text-gray-500 mt-1">
                         작업 <span class="font-medium">#{{ $parent->id }} {{ $parent->title }}</span> 의 후속 지시입니다.
@@ -65,7 +65,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">대상 작업 PC</label>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">대상 담당자</label>
                     <select name="agent_id" x-model="agentId" required class="w-full rounded-lg border-gray-200 text-sm">
                         @foreach ($agents as $agent)
                             <option value="{{ $agent->id }}">{{ $agent->name }}</option>

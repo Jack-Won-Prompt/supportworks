@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'AI 작업 지시 — '.$project->name)
+@section('title', '작업 지시 — '.$project->name)
 
 @section('header-actions')
 @endsection
@@ -10,7 +10,7 @@
 <span>›</span>
 <a href="{{ route('projects.show', $project) }}" class="hover:text-indigo-500 transition-colors">{{ $project->name }}</a>
 <span>›</span>
-<span style="color:var(--color-text-secondary);font-weight:500;">AI 작업 지시</span>
+<span style="color:var(--color-text-secondary);font-weight:500;">작업 지시</span>
 @endsection
 
 @section('content')
@@ -28,13 +28,13 @@
         </div>
     @endif
 
-    {{-- 작업 PC 상태 --}}
+    {{-- 담당자 상태 --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-start justify-between gap-3 flex-wrap mb-1">
             <div>
-                <h2 class="text-xl font-bold text-gray-900">AI 작업 지시</h2>
+                <h2 class="text-xl font-bold text-gray-900">작업 지시</h2>
                 <p class="text-sm text-gray-500 mt-1">
-                    지시를 등록하면 작업 PC 의 데몬이 Claude Code 로 실행하고 진행 상황을 실시간으로 보고합니다.
+                    지시를 등록하면 작업 담당자에게 전달하고 진행 상황을 실시간으로 확인합니다.
                 </p>
             </div>
             @if ($online->isNotEmpty())
@@ -44,7 +44,7 @@
                 </a>
             @else
                 <span class="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 cursor-not-allowed"
-                      title="온라인 상태인 작업 PC 가 없습니다">새 지시</span>
+                      title="온라인 상태인 담당자가 없습니다">새 지시</span>
             @endif
         </div>
 
@@ -72,8 +72,8 @@
                 </div>
             @empty
                 <p class="text-sm text-gray-500">
-                    이 프로젝트에 매핑된 작업 PC 가 없습니다.
-                    관리자가 <span class="font-medium">설정 › AI 작업 PC</span> 에서 등록·매핑해야 합니다.
+                    이 프로젝트에 매핑된 담당자가 없습니다.
+                    관리자가 <span class="font-medium">설정 › 담당자</span> 에서 등록·매핑해야 합니다.
                 </p>
             @endforelse
         </div>
@@ -102,13 +102,13 @@
                     <tr class="text-left text-xs text-gray-500 border-b border-gray-100">
                         <th class="py-2 pr-3 font-medium">제목</th>
                         <th class="py-2 pr-3 font-medium">모드</th>
-                        <th class="py-2 pr-3 font-medium">작업 PC</th>
+                        <th class="py-2 pr-3 font-medium">담당자</th>
                         <th class="py-2 pr-3 font-medium">상태</th>
                         <th class="py-2 pr-3 font-medium">등록자</th>
                         <th class="py-2 pr-3 font-medium">등록일</th>
                         <th class="py-2 pr-3 font-medium">소요</th>
-                        {{-- 작업 PC 마다 과금 방식이 다를 수 있어 헤더는 중립어를 쓰고 행에서 구분한다. --}}
-                        <th class="py-2 pr-3 font-medium">비용/사용량</th>
+                        {{-- 담당자마다 과금 방식이 다를 수 있어 헤더는 중립어를 쓰고 행에서 구분한다. --}}
+                        <th class="py-2 pr-3 font-medium">작업량</th>
                         <th class="py-2 pr-3 font-medium">세션</th>
                     </tr>
                 </thead>

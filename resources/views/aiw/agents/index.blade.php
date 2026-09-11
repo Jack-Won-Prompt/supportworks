@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'AI 작업 PC')
+@section('title', '담당자')
 
 @section('header-actions')
 @endsection
 
 @section('breadcrumb')
-<span style="color:var(--color-text-secondary);font-weight:500;">설정 › AI 작업 PC</span>
+<span style="color:var(--color-text-secondary);font-weight:500;">설정 › 담당자</span>
 @endsection
 
 @section('content')
@@ -46,7 +46,7 @@
     {{-- 등록 --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="mb-2">
-            <h2 class="text-xl font-bold text-gray-900">AI 작업 PC</h2>
+            <h2 class="text-xl font-bold text-gray-900">담당자</h2>
             <p class="text-sm text-gray-500 mt-1">
                 데몬이 설치된 PC 를 등록합니다. 토큰은 그 PC 에서 명령을 실행할 수 있는 자격이므로
                 <span class="font-medium">운영 서버·운영 DB 접근 권한이 있는 PC 에는 설치하지 마세요.</span>
@@ -105,7 +105,7 @@
                         <button class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">토큰 재발급</button>
                     </form>
                     <form method="POST" action="{{ route('settings.aiw-agents.destroy', $agent) }}"
-                          onsubmit="return confirm('작업 PC 와 관련 지시가 모두 삭제됩니다. 진행할까요?')">
+                          onsubmit="return confirm('담당자와 관련 지시가 모두 삭제됩니다. 진행할까요?')">
                         @csrf @method('DELETE')
                         <button class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">삭제</button>
                     </form>
@@ -144,7 +144,7 @@
         </div>
     @empty
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center text-sm text-gray-400">
-            등록된 작업 PC 가 없습니다.
+            등록된 담당자가 없습니다.
         </div>
     @endforelse
 </div>
