@@ -272,6 +272,9 @@ class AiwJobController extends Controller
             'content'  => ['required', 'string', 'max:20000'],
             'images'   => ['nullable', 'array', 'max:'.AttachmentService::MAX_PER_MESSAGE],
             'images.*' => ['image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
+            // 대화 도중에도 "배포까지 자동으로" 를 켜고 끌 수 있다.
+            'auto_deploy'           => ['nullable', 'boolean'],
+            'auto_deploy_target_id' => ['nullable', 'integer'],
         ]);
 
         // 화면에서 온 폼 전송이므로 abort() 로 끊지 않는다. 오류 페이지가 뜨면
@@ -289,6 +292,10 @@ class AiwJobController extends Controller
                 ->with('error', '단발 작업에는 메시지를 보낼 수 없습니다. 대화형으로 등록한 지시에서만 가능합니다.');
         }
 
+        // 메시지보다 먼저 반영한다. 담당자가 곧바로 끝내 버려도 이 설정이
+        // 제때 적용되도록 — 순서가 뒤집히면 켠 적 없는 것처럼 보인다.
+        [$autoNote, $autoWarning] = $this->applyAutoDeploy($request, $project, $job);
+
         // 번호는 MessageWriter 가 잠금을 잡고 매긴다. 여기서 max+1 을 직접
         // 계산하면 같은 순간에 답하는 담당자와 번호가 겹친다.
         $message = $this->messages->appendOne($job, [
@@ -302,7 +309,60 @@ class AiwJobController extends Controller
 
         $this->emit(new JobUserMessage($message->fresh(), $job->agent_id), $job->id);
 
-        return back()->with('status', '메시지를 보냈습니다.');
+        $redirect = back()->with('status', trim('메시지를 보냈습니다. '.($autoNote ?? '')));
+
+        return $autoWarning ? $redirect->with('error', $autoWarning) : $redirect;
+    }
+
+    /**
+     * 대화 도중 "배포까지 자동으로" 를 켜고 끈다.
+     *
+     * 등록할 때 한 번만 정하게 하면, 결과를 보고 마음이 바뀐 사람은 새 지시를
+     * 만드는 수밖에 없다. 대화를 이어 가면서 정할 수 있어야 한다.
+     *
+     * 폼이 이 값을 아예 보내지 않았으면(배포 대상이 없어 체크박스를 그리지 않은
+     * 경우) 손대지 않는다. 보내지 않은 것을 "끔" 으로 읽으면 켜 둔 설정이
+     * 조용히 꺼진다.
+     *
+     * 켜지 못할 때 말없이 무시하지 않는다 — 사용자는 켰다고 믿고 기다리게 된다.
+     *
+     * @return array{0: ?string, 1: ?string}  [안내 문구, 경고 문구]
+     */
+    private function applyAutoDeploy(Request $request, Project $project, AiwJob $job): array
+    {
+        if (! $request->has('auto_deploy')) {
+            return [null, null];
+        }
+
+        if (! $request->boolean('auto_deploy')) {
+            if ($job->auto_deploy) {
+                $job->forceFill(['auto_deploy' => false, 'auto_deploy_target_id' => null])->save();
+
+                return ['자동 배포는 껐습니다.', null];
+            }
+
+            return [null, null];
+        }
+
+        // 브랜치 분리가 없으면 이 작업의 변경만 골라 올릴 수 없다.
+        if (! $job->use_branch) {
+            return [null, '자동 배포를 켜지 못했습니다 — 이 지시는 브랜치 분리 없이 등록돼'
+                .' 이 작업의 변경만 골라 올릴 수 없습니다. 메시지는 전달했습니다.'];
+        }
+
+        // 배포 대상도 서버가 확인한다. 다른 프로젝트의 대상을 끼워 넣을 수 없다.
+        $target = AiwDeployTarget::where('project_id', $project->id)
+            ->where('enabled', true)
+            ->find($request->integer('auto_deploy_target_id'));
+
+        if (! $target) {
+            return [null, '자동 배포를 켜지 못했습니다 — 배포 대상을 고르지 않았거나'
+                .' 사용할 수 없는 대상입니다. 메시지는 전달했습니다.'];
+        }
+
+        $job->forceFill(['auto_deploy' => true, 'auto_deploy_target_id' => $target->id])->save();
+
+        return [sprintf('작업이 끝나면 커밋·푸시 후 배포까지 자동으로 진행합니다 (%s).', $target->name), null];
     }
 
     /**

@@ -471,6 +471,35 @@
                         <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif" multiple
                                class="block w-full text-xs text-gray-500 file:mr-3 file:rounded file:border-0
                                       file:bg-gray-100 file:px-2 file:py-1 file:text-[11px] file:text-gray-700">
+
+                        {{-- 배포까지 자동으로 — 대화 도중에도 켜고 끌 수 있다.
+                             브랜치 분리가 없으면 이 작업의 변경만 골라 올릴 수 없으므로 그리지 않는다. --}}
+                        @if ($deployTargets->isNotEmpty() && $job->use_branch)
+                            <div class="flex flex-wrap items-center gap-2"
+                                 x-data="{ autoDeploy: @js((bool) $job->auto_deploy) }">
+                                <label class="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-900 cursor-pointer">
+                                    {{-- 체크를 풀면 폼은 아무것도 보내지 않는다. 숨은 값이 "끔" 을 대신 보낸다. --}}
+                                    <input type="hidden" name="auto_deploy" value="0">
+                                    <input type="checkbox" name="auto_deploy" value="1" x-model="autoDeploy"
+                                           class="rounded border-amber-300">
+                                    <span class="font-medium">배포까지 자동으로</span>
+                                </label>
+
+                                <select name="auto_deploy_target_id" x-show="autoDeploy" x-cloak
+                                        class="rounded-lg border-gray-200 py-1 text-[11px]">
+                                    @foreach ($deployTargets as $target)
+                                        <option value="{{ $target->id }}"
+                                                @selected((int) $job->auto_deploy_target_id === (int) $target->id)>
+                                            {{ $target->name }} — {{ $target->command }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <span x-show="autoDeploy" x-cloak class="text-[11px] text-amber-700">
+                                    작업이 끝나면 커밋·푸시 후 <span class="font-medium">bash deploy.sh</span> 까지 사람 확인 없이 실행합니다.
+                                </span>
+                            </div>
+                        @endif
                     </form>
                 </div>
             @endif

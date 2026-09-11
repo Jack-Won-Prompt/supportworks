@@ -161,6 +161,130 @@ class AiwAutoDeployTest extends TestCase
         $this->assertFalse(AiwJob::latest('id')->first()->auto_deploy);
     }
 
+    // ── 대화 도중 전환 ──────────────────────────────────────────────────────
+
+    /** 대화형 작업 하나. 메시지를 보낼 수 있는 상태로 만든다. */
+    private function talking(array $overrides = []): AiwJob
+    {
+        return $this->job(array_merge([
+            'mode' => 'interactive', 'auto_deploy' => false, 'auto_deploy_target_id' => null,
+        ], $overrides));
+    }
+
+    private function say(AiwJob $job, array $extra = [])
+    {
+        return $this->actingAs($this->member)->post(
+            route('projects.ai-works.message', [$this->projectId, $job]),
+            array_merge(['content' => '이어서 해주세요'], $extra),
+        );
+    }
+
+    public function test_대화_도중_체크하면_켜진다(): void
+    {
+        Event::fake();
+        $job = $this->talking();
+
+        // 등록할 때 한 번만 정하게 하면, 결과를 보고 마음이 바뀐 사람은
+        // 새 지시를 만드는 수밖에 없다.
+        $this->say($job, ['auto_deploy' => '1', 'auto_deploy_target_id' => $this->target->id])
+            ->assertRedirect()
+            ->assertSessionHas('status');
+
+        $job->refresh();
+
+        $this->assertTrue($job->auto_deploy);
+        $this->assertSame($this->target->id, $job->auto_deploy_target_id);
+        $this->assertDatabaseHas('aiw_job_messages', ['job_id' => $job->id, 'content' => '이어서 해주세요']);
+    }
+
+    public function test_대화_도중_체크를_풀면_꺼진다(): void
+    {
+        Event::fake();
+        $job = $this->talking(['auto_deploy' => true, 'auto_deploy_target_id' => $this->target->id]);
+
+        // 해제한 체크박스는 아무것도 보내지 않으므로 폼의 숨은 값이 "0" 을 보낸다.
+        $this->say($job, ['auto_deploy' => '0'])->assertRedirect();
+
+        $job->refresh();
+
+        $this->assertFalse($job->auto_deploy);
+        $this->assertNull($job->auto_deploy_target_id);
+    }
+
+    public function test_체크박스를_보내지_않으면_설정을_건드리지_않는다(): void
+    {
+        Event::fake();
+        $job = $this->talking(['auto_deploy' => true, 'auto_deploy_target_id' => $this->target->id]);
+
+        // 배포 대상이 없는 프로젝트에서는 체크박스를 그리지 않는다. 그때 폼이
+        // 보내지 않은 것을 "끔" 으로 읽으면 켜 둔 설정이 조용히 꺼진다.
+        $this->say($job)->assertRedirect();
+
+        $this->assertTrue($job->refresh()->auto_deploy);
+    }
+
+    public function test_브랜치_분리가_없으면_켜지지_않고_알려준다(): void
+    {
+        Event::fake();
+        $job = $this->talking(['use_branch' => false]);
+
+        $this->say($job, ['auto_deploy' => '1', 'auto_deploy_target_id' => $this->target->id])
+            ->assertRedirect()
+            // 말없이 무시하면 사용자는 켰다고 믿고 기다린다.
+            ->assertSessionHas('error');
+
+        $this->assertFalse($job->refresh()->auto_deploy);
+        // 경고가 떠도 메시지 자체는 전달돼야 한다.
+        $this->assertDatabaseHas('aiw_job_messages', ['job_id' => $job->id, 'content' => '이어서 해주세요']);
+    }
+
+    public function test_대화에서도_남의_배포_대상은_받지_않는다(): void
+    {
+        Event::fake();
+
+        $otherProject = DB::table('projects')->insertGetId([
+            'name' => '남의 것', 'created_by' => $this->member->id,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $otherTarget = AiwDeployTarget::create([
+            'project_id' => $otherProject, 'name' => '남의 배포',
+            'working_dir' => sys_get_temp_dir(), 'command' => 'echo no',
+            'timeout_sec' => 60, 'enabled' => true, 'created_by' => $this->member->id,
+        ]);
+
+        $job = $this->talking();
+
+        $this->say($job, ['auto_deploy' => '1', 'auto_deploy_target_id' => $otherTarget->id])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertFalse($job->refresh()->auto_deploy);
+    }
+
+    public function test_대화창에_체크박스가_그려진다(): void
+    {
+        $job = $this->talking();
+
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->projectId, $job]))
+            ->assertOk()
+            ->assertSee('배포까지 자동으로')
+            // 해제한 체크박스는 아무것도 보내지 않는다. 숨은 값이 있어야 끌 수 있다.
+            ->assertSee('name="auto_deploy" value="0"', false);
+    }
+
+    public function test_브랜치_분리가_없으면_체크박스를_그리지_않는다(): void
+    {
+        $job = $this->talking(['use_branch' => false]);
+
+        // 켤 수 없는 것을 보여 주면 사용자는 켰다고 믿는다.
+        $this->actingAs($this->member)
+            ->get(route('projects.ai-works.show', [$this->projectId, $job]))
+            ->assertOk()
+            ->assertDontSee('배포까지 자동으로');
+    }
+
     // ── 1단계: 완료 → 커밋·푸시 ─────────────────────────────────────────────
 
     public function test_완료되면_커밋_푸시가_자동으로_시작된다(): void
