@@ -593,6 +593,13 @@
                             <span class="gsb-hide" style="margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;flex-shrink:0;">{{ $adminUnresolvedErrors > 99 ? '99+' : $adminUnresolvedErrors }}</span>
                             @endif
                         </a>
+                        {{-- 작업 지시를 수행할 담당자(데몬 PC) 등록·매핑. 토큰 발급이 걸려 있어 관리자 전용이다. --}}
+                        <a href="{{ route('settings.aiw-agents.index') }}" class="sidebar-item {{ request()->routeIs('settings.aiw-agents.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="gsb-hide">담당자</span>
+                        </a>
                     </div>
                     <div class="sidebar-divider"></div>
                     @endif

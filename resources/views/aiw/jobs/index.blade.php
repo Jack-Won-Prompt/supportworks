@@ -73,7 +73,7 @@
             @empty
                 <p class="text-sm text-gray-500">
                     이 프로젝트에 매핑된 담당자가 없습니다.
-                    관리자가 <span class="font-medium">설정 › 담당자</span> 에서 등록·매핑해야 합니다.
+                    <span class="font-medium">관리자 › 담당자</span> 메뉴에서 등록·매핑해야 합니다.
                 </p>
             @endforelse
         </div>

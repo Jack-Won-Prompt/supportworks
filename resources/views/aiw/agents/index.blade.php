@@ -6,7 +6,7 @@
 @endsection
 
 @section('breadcrumb')
-<span style="color:var(--color-text-secondary);font-weight:500;">설정 › 담당자</span>
+<span style="color:var(--color-text-secondary);font-weight:500;">관리자 › 담당자</span>
 @endsection
 
 @section('content')
@@ -133,7 +133,8 @@
                     <select name="project_id" required class="rounded-lg border-gray-200 text-xs">
                         @foreach ($projects as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
                     </select>
-                    <input type="text" name="local_path" required placeholder="E:\work\project"
+                    {{-- 경로는 슬래시로 안내한다. 백슬래시는 전달 과정에서 이스케이프가 깨진 전례가 있다. --}}
+                    <input type="text" name="local_path" required placeholder="E:/work/project"
                            class="rounded-lg border-gray-200 text-xs md:col-span-2">
                     <div class="flex gap-2">
                         <input type="text" name="default_branch" placeholder="master" class="flex-1 rounded-lg border-gray-200 text-xs">
