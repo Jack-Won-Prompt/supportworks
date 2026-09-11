@@ -42,6 +42,19 @@
             <div class="prose prose-sm max-w-none" x-html="render(@js($message->content))"></div>
         @endif
 
+        @if ($message->attachments->isNotEmpty())
+            <div class="mt-2 flex flex-wrap gap-2">
+                @foreach ($message->attachments as $attachment)
+                    @php $src = route('projects.ai-works.attachment', [$project, $job, $attachment]); @endphp
+                    <a href="{{ $src }}" target="_blank" rel="noopener"
+                       title="{{ $attachment->original_name }} · {{ $attachment->humanSize() }}">
+                        <img src="{{ $src }}" alt="{{ $attachment->original_name }}"
+                             class="h-24 w-auto rounded border border-gray-200 object-cover hover:border-indigo-400">
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
         @if ($showChoices)
             {{-- 한 번 클릭으로 답한다. 누르면 그 문구가 그대로 사용자 메시지로 전송된다. --}}
             <div class="mt-2 flex flex-wrap gap-2 border-t border-gray-200 pt-2">

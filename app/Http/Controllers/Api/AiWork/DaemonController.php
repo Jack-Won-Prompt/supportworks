@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\AiWork;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Models\AiWork\AiwAgentProject;
 use App\Models\AiWork\AiwJob;
+use App\Models\AiWork\AiwJobAttachment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -89,6 +90,25 @@ class DaemonController extends AgentApiController
     }
 
     /**
+     * 첨부 이미지 원본. 담당자가 프롬프트에 넣기 위해 내려받는다.
+     *
+     * 이벤트에 base64 로 실어 보내지 않는 이유: Reverb 메시지가 수 MB 로 불어나고,
+     * 재전송·폴링마다 같은 양이 다시 흐른다. 담당자가 필요할 때 한 번만 가져간다.
+     */
+    public function attachment(Request $request, AiwJob $job, AiwJobAttachment $attachment)
+    {
+        $job = $this->ownedJob($request, $job);
+
+        abort_unless((int) $attachment->job_id === (int) $job->id, 404);
+        abort_unless($attachment->exists(), 404);
+
+        return response($attachment->contents(), 200, [
+            'Content-Type'   => $attachment->mime,
+            'Content-Length' => (string) $attachment->bytes,
+        ]);
+    }
+
+    /**
      * 실행 대기 중인 job 전체. 데몬 기동·재접속 시 누락을 보충한다.
      *
      * `?resume=1` 이면 활성 job 도 함께 내려준다. 데몬이 재기동하면 세션은
@@ -141,6 +161,12 @@ class DaemonController extends AgentApiController
                     'cost_limit_usd'       => (float) $job->cost_limit_usd,
                     'resume_session_id'    => $job->currentSessionId(),
                     'status'               => $job->status->value,
+                    // 최초 지시문에 붙은 이미지. 담당자가 id 로 내려받는다.
+                    'attachments'          => $job->attachments()
+                        ->whereHas('message', fn ($q) => $q->where('seq', 0))
+                        ->get(['id', 'mime'])
+                        ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime])
+                        ->values(),
                 ];
             })->values(),
         ]);
@@ -156,6 +182,7 @@ class DaemonController extends AgentApiController
 
         $messages = $job->messages()
             ->undelivered()
+            ->with('attachments:id,message_id,mime')
             ->orderBy('seq')
             ->get(['id', 'seq', 'content']);
 
@@ -166,9 +193,12 @@ class DaemonController extends AgentApiController
 
         return response()->json([
             'messages'    => $messages->map(fn ($m) => [
-                'message_id' => $m->id,
-                'seq'        => (int) $m->seq,
-                'content'    => $m->content,
+                'message_id'  => $m->id,
+                'seq'         => (int) $m->seq,
+                'content'     => $m->content,
+                'attachments' => $m->attachments
+                    ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime])
+                    ->values(),
             ])->values(),
             'permissions' => $decided->map(fn ($p) => [
                 'request_key' => $p->request_key,

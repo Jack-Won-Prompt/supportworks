@@ -18,6 +18,8 @@ export interface JobSpec {
     cost_limit_usd: number;
     resume_session_id: string | null;
     status?: string;
+    /** 최초 지시문에 붙은 이미지. 내용은 id 로 따로 받는다. */
+    attachments?: { id: number; mime: string }[];
 }
 
 /** 모든 상태성 응답에 실리는 중단 신호. Reverb 이벤트를 놓쳐도 이걸로 따라잡는다. */
@@ -99,10 +101,26 @@ export class ApiClient {
         );
     }
 
+    /** 첨부 원본을 base64 로 받는다. 파일로 떨어뜨리지 않는다. */
+    async attachment(jobId: number, attachmentId: number): Promise<string> {
+        const response = await this.http.get(`/jobs/${jobId}/attachments/${attachmentId}`, {
+            responseType: 'arraybuffer',
+            // 이미지는 20초로 부족할 수 있다.
+            timeout: 60000,
+        });
+
+        return Buffer.from(response.data as ArrayBuffer).toString('base64');
+    }
+
     inbox(jobId: number) {
         return this.send<
             {
-                messages: { message_id: number; seq: number; content: string }[];
+                messages: {
+                    message_id: number;
+                    seq: number;
+                    content: string;
+                    attachments?: { id: number; mime: string }[];
+                }[];
                 permissions: { request_key: string; status: string; deny_reason: string | null }[];
             } & ControlFlags
         >(() => this.http.get(`/jobs/${jobId}/inbox`));

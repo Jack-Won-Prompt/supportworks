@@ -41,6 +41,11 @@ class JobDispatched extends AiwEvent
             'context_limit_tokens' => (int) $this->job->context_limit_tokens,
             'cost_limit_usd'       => (float) $this->job->cost_limit_usd,
             'resume_session_id'    => $this->resumeSessionId,
+            'attachments'          => $this->job->attachments()
+                ->whereHas('message', fn ($q) => $q->where('seq', 0))
+                ->get(['id', 'mime'])
+                ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime])
+                ->values(),
         ];
     }
 }

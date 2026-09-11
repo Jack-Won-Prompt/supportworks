@@ -1374,6 +1374,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/',                 [\App\Http\Controllers\AiWork\AiwJobController::class, 'store'])->name('store');
         Route::get ('{job}',             [\App\Http\Controllers\AiWork\AiwJobController::class, 'show'])->name('show');
         Route::post('{job}/messages',    [\App\Http\Controllers\AiWork\AiwJobController::class, 'message'])->name('message');
+        Route::get ('{job}/attachments/{attachment}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'attachment'])->name('attachment');
         Route::post('{job}/permissions/{permission}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'decide'])->name('decide');
         Route::post('{job}/promote',     [\App\Http\Controllers\AiWork\AiwJobController::class, 'promote'])->name('promote');
         Route::post('{job}/{action}',    [\App\Http\Controllers\AiWork\AiwJobController::class, 'action'])

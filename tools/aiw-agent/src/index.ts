@@ -86,7 +86,11 @@ async function main(): Promise<void> {
                 const session = jobs.session(jobId);
 
                 for (const message of inbox.messages) {
-                    await session?.deliver(message.message_id, message.content);
+                    await session?.deliver(
+                        message.message_id,
+                        message.content,
+                        message.attachments ?? [],
+                    );
                 }
 
                 for (const permission of inbox.permissions) {

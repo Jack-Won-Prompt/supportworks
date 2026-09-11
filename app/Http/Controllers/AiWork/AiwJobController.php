@@ -10,9 +10,11 @@ use App\Events\AiWork\JobUserMessage;
 use App\Http\Controllers\Controller;
 use App\Models\AiWork\AiwAgent;
 use App\Models\AiWork\AiwJob;
+use App\Models\AiWork\AiwJobAttachment;
 use App\Models\AiWork\AiwJobMessage;
 use App\Models\AiWork\AiwPermissionRequest;
 use App\Models\Project;
+use App\Services\AiWork\AttachmentService;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobDispatcher;
 use App\Services\AiWork\JobStateMachine;
@@ -37,6 +39,7 @@ class AiwJobController extends Controller
         private PermissionService $permissions,
         private HandoverService $handovers,
         private ToolPolicy $tools,
+        private AttachmentService $attachments,
     ) {}
 
     /** 화면 2: 지시 목록 */
@@ -125,6 +128,8 @@ class AiwJobController extends Controller
             'cost_limit_usd'  => ['required', 'numeric', 'gt:0', 'max:1000'],
             'use_branch'      => ['nullable', 'boolean'],
             'parent_job_id'   => ['nullable', 'integer'],
+            'images'          => ['nullable', 'array', 'max:'.AttachmentService::MAX_PER_MESSAGE],
+            'images.*'        => ['image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
         ]);
 
         $agent = AiwAgent::query()
@@ -154,7 +159,7 @@ class AiwJobController extends Controller
         ]);
 
         // 최초 지시문을 대화의 첫 메시지로 남긴다(화면 4 의 첫 말풍선).
-        AiwJobMessage::create([
+        $first = AiwJobMessage::create([
             'job_id'        => $job->id,
             'seq'           => 0,
             'role'          => 'user',
@@ -163,6 +168,9 @@ class AiwJobController extends Controller
             'session_index' => 0,
             'delivered_at'  => now(),   // 지시문은 JobDispatched 로 함께 전달된다
         ]);
+
+        // 첨부는 dispatch 전에 저장해야 담당자가 받는 payload 에 함께 실린다.
+        $this->attachments->attach($first, $request->file('images', []), $request->user());
 
         $sent = $job->parent_job_id
             ? $this->dispatcher->dispatchFollowUp($job)
@@ -186,7 +194,7 @@ class AiwJobController extends Controller
         return view('aiw.jobs.show', [
             'project'  => $project,
             'job'      => $job,
-            'messages' => $job->messages()->orderBy('seq')->with('author:id,name')->get(),
+            'messages' => $job->messages()->orderBy('seq')->with(['author:id,name', 'attachments'])->get(),
             'logs'     => $job->logs()->orderBy('seq')->get(),
             // pending 카드는 새로고침해도 유지돼야 한다.
             'pending'  => $job->permissionRequests()->pending()->orderBy('id')->get(),
@@ -204,7 +212,11 @@ class AiwJobController extends Controller
         $this->authorize('sendMessage', $job);
         abort_unless((int) $job->project_id === (int) $project->id, 404);
 
-        $validated = $request->validate(['content' => ['required', 'string', 'max:20000']]);
+        $validated = $request->validate([
+            'content'  => ['required', 'string', 'max:20000'],
+            'images'   => ['nullable', 'array', 'max:'.AttachmentService::MAX_PER_MESSAGE],
+            'images.*' => ['image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
+        ]);
 
         // 화면에서 온 폼 전송이므로 abort() 로 끊지 않는다. 오류 페이지가 뜨면
         // 사용자는 이유도 모르고 입력하던 내용도 잃는다. 상태가 어긋나는 건
@@ -230,9 +242,32 @@ class AiwJobController extends Controller
             'session_index' => $job->currentSessionIndex(),
         ]);
 
-        $this->emit(new JobUserMessage($message, $job->agent_id), $job->id);
+        $this->attachments->attach($message, $request->file('images', []), $request->user());
+
+        $this->emit(new JobUserMessage($message->fresh(), $job->agent_id), $job->id);
 
         return back()->with('status', '메시지를 보냈습니다.');
+    }
+
+    /**
+     * 첨부 이미지 열람.
+     *
+     * 비공개 디스크에 있으므로 URL 로 바로 접근할 수 없다. 이 라우트가 권한을
+     * 확인하고 내보낸다 — 프로젝트 멤버만 자기 프로젝트의 첨부를 볼 수 있다.
+     */
+    public function attachment(Project $project, AiwJob $job, AiwJobAttachment $attachment)
+    {
+        $this->authorize('view', $job);
+        abort_unless((int) $job->project_id === (int) $project->id, 404);
+        abort_unless((int) $attachment->job_id === (int) $job->id, 404);
+        abort_unless($attachment->exists(), 404);
+
+        return response($attachment->contents(), 200, [
+            'Content-Type'        => $attachment->mime,
+            'Content-Disposition' => 'inline; filename="'.addslashes($attachment->original_name).'"',
+            // 내용이 바뀌지 않는 파일이다. 다만 비공개이므로 공유 캐시는 막는다.
+            'Cache-Control'       => 'private, max-age=86400',
+        ]);
     }
 
     /** 승인 카드 결정 */

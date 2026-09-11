@@ -1,4 +1,8 @@
+import type { ContentBlock } from '../attachments.js';
 import type { PermissionDecision } from '../permissions.js';
+
+/** 모델에 보내는 한 번의 입력. 이미지가 붙으면 블록 배열이 된다. */
+export type PromptInput = string | ContentBlock[];
 
 /** 한 턴이 끝날 때 집계되는 값. */
 export interface TurnUsage {
@@ -38,7 +42,8 @@ export interface SessionEvents {
 }
 
 export interface SessionStartOptions {
-    prompt: string;
+    /** 문자열이거나, 이미지가 붙었으면 content 블록 배열. */
+    prompt: PromptInput;
     cwd: string;
     model?: string | null;
     /** 이 job 이 쓸 수 있는 툴. 나머지는 컨텍스트에서 제거한다. */
@@ -62,7 +67,7 @@ export interface SessionAdapter {
     start(options: SessionStartOptions, events: SessionEvents): Promise<void>;
 
     /** 대화형: 실행 중 사용자 메시지 주입. */
-    send(text: string): void;
+    send(input: PromptInput): void;
 
     /** 진행 중인 턴을 끊는다. */
     interrupt(): void;

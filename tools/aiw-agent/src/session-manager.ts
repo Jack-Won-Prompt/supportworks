@@ -1,6 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { ApiClient, JobSpec } from './api.js';
+import { buildContent } from './attachments.js';
 import { parseChoices } from './choices.js';
 import { config } from './config.js';
 import {
@@ -14,7 +15,7 @@ import { log, JobLogWriter } from './logger.js';
 import { PermissionGate } from './permissions.js';
 import { loadProjectRules } from './project-context.js';
 import { Sandbox } from './sandbox.js';
-import type { SessionAdapter, TurnUsage } from './session/adapter.js';
+import type { PromptInput, SessionAdapter, TurnUsage } from './session/adapter.js';
 import { SdkSessionAdapter } from './session/sdk-adapter.js';
 
 const FIXED_HEADER = (jobId: number, root: string) =>
@@ -68,7 +69,7 @@ export class SessionManager {
     private sessionIndex = 0;
 
     /** 인수인계 중에는 사용자 메시지를 여기 모았다가 교체 후 순서대로 주입한다. */
-    private heldMessages: { id: number; content: string }[] = [];
+    private heldMessages: { id: number; content: string; attachments: { id: number; mime: string }[] }[] = [];
 
     private holding = false;
 
@@ -130,7 +131,7 @@ export class SessionManager {
 
         // 최초 프롬프트에 지시문을 담고, 이후 세션은 인수인계 문서로 잇는다.
         await this.startSession(
-            this.compose(this.job.instruction),
+            await this.composeWithImages(this.job.instruction),
             this.job.resume_session_id ?? null,
         );
 
@@ -154,6 +155,20 @@ export class SessionManager {
         return [FIXED_HEADER(this.job.job_id, this.sandbox.root), this.projectRules, body]
             .filter(Boolean)
             .join(SEPARATOR);
+    }
+
+    /**
+     * 고정 헤더·규칙·본문에 지시문 첨부 이미지를 더한다.
+     *
+     * 세션을 교체해도 다시 넣는다 — 인수인계 문서는 글이라 그림을 옮기지 못한다.
+     */
+    private async composeWithImages(body: string) {
+        return buildContent(
+            this.api,
+            this.job.job_id,
+            this.compose(body),
+            this.job.attachments ?? [],
+        );
     }
 
     /**
@@ -184,7 +199,7 @@ export class SessionManager {
         });
     }
 
-    private async startSession(prompt: string, resumeSessionId: string | null): Promise<void> {
+    private async startSession(prompt: PromptInput, resumeSessionId: string | null): Promise<void> {
         const adapter = this.createAdapter();
 
         this.adapter = adapter;
@@ -311,15 +326,21 @@ export class SessionManager {
     // ── 외부 입력 ───────────────────────────────────────────────────────────
 
     /** 웹에서 온 사용자 메시지. 인수인계 중이면 보류했다가 교체 후 주입한다. */
-    async deliver(messageId: number, content: string): Promise<void> {
+    async deliver(
+        messageId: number,
+        content: string,
+        attachments: { id: number; mime: string }[] = [],
+    ): Promise<void> {
         if (this.holding) {
-            this.heldMessages.push({ id: messageId, content });
+            this.heldMessages.push({ id: messageId, content, attachments });
             this.pushLog('daemon', '컨텍스트 정리 중 — 메시지를 보류합니다.');
 
             return;
         }
 
-        this.adapter?.send(content);
+        this.adapter?.send(
+            await buildContent(this.api, this.job.job_id, content, attachments),
+        );
         await this.api.quiet('delivered', () => this.api.markDelivered(this.job.job_id, messageId));
         await this.api.quiet('running', () => this.api.status(this.job.job_id, 'running'));
     }
@@ -394,8 +415,9 @@ export class SessionManager {
         this.handoverInFlight = false;
 
         this.sessionId = null;
+        // 새 세션은 이전 맥락을 물려받지 않으므로 지시문에 붙었던 이미지도 다시 넣는다.
         await this.startSession(
-            this.compose(resumePrompt(this.job.instruction, validation.content)),
+            await this.composeWithImages(resumePrompt(this.job.instruction, validation.content)),
             null,
         );
 
@@ -417,7 +439,7 @@ export class SessionManager {
         const held = this.heldMessages.splice(0);
 
         for (const message of held) {
-            await this.deliver(message.id, message.content);
+            await this.deliver(message.id, message.content, message.attachments);
         }
     }
 

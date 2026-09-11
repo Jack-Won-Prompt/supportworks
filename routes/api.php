@@ -380,6 +380,7 @@ Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function 
     Route::post('broadcasting/auth', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'broadcastingAuth'])->name('broadcasting.auth');
     Route::get ('jobs/pending',      [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'pendingJobs'])->name('jobs.pending');
     Route::get ('jobs/{job}/inbox',  [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'inbox'])->name('jobs.inbox');
+    Route::get ('jobs/{job}/attachments/{attachment}', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'attachment'])->name('jobs.attachment');
 
     Route::prefix('jobs/{job}')->name('jobs.')->group(function () {
         Route::post('start',       [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'start'])->name('start');

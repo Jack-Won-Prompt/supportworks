@@ -237,13 +237,19 @@
                     <p x-show="status === 'handover'" x-cloak class="mb-1 text-xs text-violet-700">
                         컨텍스트 정리 중 — 보낸 메시지는 세션 교체 후 전달됩니다.
                     </p>
-                    <form method="POST" action="{{ route('projects.ai-works.message', [$project, $job]) }}" class="flex gap-2">
+                    <form method="POST" action="{{ route('projects.ai-works.message', [$project, $job]) }}"
+                          enctype="multipart/form-data" class="space-y-2">
                         @csrf
-                        <textarea name="content" rows="2" required maxlength="20000"
-                                  class="flex-1 rounded-lg border-gray-200 text-sm"
-                                  :class="status === 'waiting_input' ? 'ring-2 ring-amber-300' : ''"
-                                  placeholder="담당자에게 보낼 메시지"></textarea>
-                        <button class="self-end rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">전송</button>
+                        <div class="flex gap-2">
+                            <textarea name="content" rows="2" required maxlength="20000"
+                                      class="flex-1 rounded-lg border-gray-200 text-sm"
+                                      :class="status === 'waiting_input' ? 'ring-2 ring-amber-300' : ''"
+                                      placeholder="담당자에게 보낼 메시지">{{ old('content') }}</textarea>
+                            <button class="self-end rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">전송</button>
+                        </div>
+                        <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif" multiple
+                               class="block w-full text-xs text-gray-500 file:mr-3 file:rounded file:border-0
+                                      file:bg-gray-100 file:px-2 file:py-1 file:text-[11px] file:text-gray-700">
                     </form>
                 </div>
             @endif

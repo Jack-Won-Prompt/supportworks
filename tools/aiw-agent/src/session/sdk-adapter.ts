@@ -1,7 +1,7 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { config } from '../config.js';
 import { log } from '../logger.js';
-import type { SessionAdapter, SessionEvents, SessionStartOptions, TurnUsage } from './adapter.js';
+import type { PromptInput, SessionAdapter, SessionEvents, SessionStartOptions, TurnUsage } from './adapter.js';
 
 /** 이 job 이 못 쓰는 툴은 컨텍스트에서 아예 제거한다. */
 const ALL_TOOLS = ['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep', 'WebFetch', 'WebSearch'];
@@ -36,7 +36,7 @@ export class SdkSessionAdapter implements SessionAdapter {
 
     private controller: AbortController | null = null;
 
-    private inputQueue: string[] = [];
+    private inputQueue: PromptInput[] = [];
 
     private notifyInput: (() => void) | null = null;
 
@@ -289,8 +289,8 @@ export class SdkSessionAdapter implements SessionAdapter {
         }
     }
 
-    send(text: string): void {
-        this.inputQueue.push(text);
+    send(input: PromptInput): void {
+        this.inputQueue.push(input);
         this.notifyInput?.();
         this.notifyInput = null;
     }

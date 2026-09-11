@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** 대화 흐름. logs 와는 별도 시퀀스를 쓴다. */
 class AiwJobMessage extends Model
@@ -25,6 +26,11 @@ class AiwJobMessage extends Model
         'delivered_at'  => 'datetime',
         'created_at'    => 'datetime',
     ];
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(AiwJobAttachment::class, 'message_id');
+    }
 
     public function job(): BelongsTo
     {

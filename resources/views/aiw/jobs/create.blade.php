@@ -54,7 +54,8 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('projects.ai-works.store', $project) }}" class="space-y-4">
+        <form method="POST" action="{{ route('projects.ai-works.store', $project) }}"
+              enctype="multipart/form-data" class="space-y-4">
             @csrf
             @if ($parent)
                 <input type="hidden" name="parent_job_id" value="{{ $parent->id }}">
@@ -86,6 +87,17 @@
                 <textarea name="instruction" rows="8" required
                           class="w-full rounded-lg border-gray-200 text-sm font-mono"
                           placeholder="예) README.md 맨 아래에 오늘 날짜를 한 줄 추가해 주세요.">{{ old('instruction') }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">이미지 첨부 (선택)</label>
+                <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif" multiple
+                       class="block w-full text-xs text-gray-600 file:mr-3 file:rounded-lg file:border-0
+                              file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gray-700">
+                <p class="mt-1 text-xs text-gray-400">
+                    화면 캡처처럼 말로 설명하기 어려운 것을 붙입니다. 최대 5장·장당 10MB.
+                    긴 변 1568px 로 줄여서 전달합니다 — 이미지 한 장이 컨텍스트를 1,000~1,600 토큰 정도 씁니다.
+                </p>
             </div>
 
             <div class="grid gap-4 md:grid-cols-3">

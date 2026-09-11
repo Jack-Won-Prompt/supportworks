@@ -74,7 +74,7 @@ export class Realtime {
         channel.bind('job.user-message', (payload: any) => {
             void this.jobs
                 .session(payload?.job_id)
-                ?.deliver(payload.message_id, payload.content);
+                ?.deliver(payload.message_id, payload.content, payload.attachments ?? []);
         });
 
         channel.bind('permission.decided', (payload: any) => {
