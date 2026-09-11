@@ -18,7 +18,7 @@ class ReapStaleJobsCommand extends Command
 {
     protected $signature = 'aiw:reap-stale-jobs';
 
-    protected $description = 'AI Works: 무응답 작업 PC 의 활성 job 을 실패 처리한다';
+    protected $description = 'AI Works: 무응답 담당자의 활성 job 을 실패 처리한다';
 
     public function handle(JobStateMachine $states): int
     {
@@ -40,7 +40,7 @@ class ReapStaleJobsCommand extends Command
 
         foreach ($jobs as $job) {
             $states->transition($job, AiwJobStatus::Failed, [
-                'error_message' => '작업 PC 가 응답하지 않아 중단되었습니다. 후속 지시로 이어서 진행하세요.',
+                'error_message' => '담당자가 응답하지 않아 중단되었습니다. 후속 지시로 이어서 진행하세요.',
             ]);
 
             $this->warn("작업 #{$job->id} 를 실패 처리했습니다 (agent unreachable).");

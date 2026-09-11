@@ -90,7 +90,7 @@ class AiwAgentController extends Controller
 
         $agent->delete();
 
-        return back()->with('status', '작업 PC 를 삭제했습니다.');
+        return back()->with('status', '담당자를 삭제했습니다.');
     }
 
     /** 프로젝트 매핑 추가 — local_path 가 데몬의 작업 루트(샌드박스 ROOT)가 된다. */

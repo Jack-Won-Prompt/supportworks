@@ -71,7 +71,7 @@ class JobDispatcher
 
         if (! $mapping) {
             // 매핑이 없으면 데몬은 어느 폴더에서 실행할지 알 수 없다.
-            throw new RuntimeException('이 작업 PC 에 해당 프로젝트의 로컬 경로가 매핑되어 있지 않습니다.');
+            throw new RuntimeException('이 담당자에 해당 프로젝트의 로컬 경로가 매핑되어 있지 않습니다.');
         }
 
         return $mapping;

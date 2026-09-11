@@ -216,8 +216,8 @@ class AiwJobController extends Controller
         return redirect()
             ->route('projects.ai-works.show', [$project, $job])
             ->with('status', $sent
-                ? '지시를 작업 PC 로 보냈습니다.'
-                : '작업 PC 가 오프라인입니다. 접속하면 자동으로 시작됩니다.');
+                ? '지시를 담당자에게 보냈습니다.'
+                : '담당자가 오프라인입니다. 접속하면 자동으로 시작됩니다.');
     }
 
     /** 화면 4: 지시 상세 */
@@ -447,7 +447,7 @@ class AiwJobController extends Controller
 
         $sent = $this->dispatcher->redispatch($job);
 
-        return back()->with('status', $sent ? '지시를 다시 보냈습니다.' : '작업 PC 가 아직 오프라인입니다.');
+        return back()->with('status', $sent ? '지시를 다시 보냈습니다.' : '담당자가 아직 오프라인입니다.');
     }
 
     /** 인수인계 항목을 CLAUDE.md 로 승격 — 후속 job 을 만든다(파일을 직접 쓰지 않는다). */
