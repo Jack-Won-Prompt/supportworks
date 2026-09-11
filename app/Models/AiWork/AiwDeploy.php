@@ -15,11 +15,12 @@ class AiwDeploy extends Model
     public const MAX_OUTPUT = 200000;
 
     protected $fillable = [
-        'target_id', 'job_id', 'requested_by', 'status',
+        'target_id', 'job_id', 'requested_by', 'automatic', 'status',
         'exit_code', 'output', 'started_at', 'finished_at',
     ];
 
     protected $casts = [
+        'automatic'   => 'boolean',
         'exit_code'   => 'integer',
         'created_at'  => 'datetime',
         'started_at'  => 'datetime',

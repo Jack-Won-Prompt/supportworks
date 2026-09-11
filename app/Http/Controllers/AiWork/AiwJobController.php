@@ -119,6 +119,9 @@ class AiwJobController extends Controller
             'defaultContext' => (int) config('aiw.default_context_limit_tokens', 200000),
             // 실패 화면의 "브랜치 없이 다시 지시" 가 ?use_branch=0 으로 보낸다.
             // 쿼리가 없으면 원 job 설정을, 그것도 없으면 켬(안전한 기본값)을 쓴다.
+            // "배포까지 자동으로" 체크박스는 등록된 배포 대상이 있을 때만 뜬다.
+            'deployTargets' => AiwDeployTarget::where('project_id', $project->id)
+                ->where('enabled', true)->orderBy('name')->get(),
             'prefillUseBranch' => $request->has('use_branch')
                 ? $request->boolean('use_branch')
                 : (bool) ($parent->use_branch ?? true),
@@ -140,6 +143,8 @@ class AiwJobController extends Controller
             'cost_limit_usd'  => ['required', 'numeric', 'gt:0', 'max:1000'],
             'use_branch'      => ['nullable', 'boolean'],
             'parent_job_id'   => ['nullable', 'integer'],
+            'auto_deploy'     => ['nullable', 'boolean'],
+            'auto_deploy_target_id' => ['nullable', 'integer'],
             'images'          => ['nullable', 'array', 'max:'.AttachmentService::MAX_PER_MESSAGE],
             'images.*'        => ['image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
         ]);
@@ -150,6 +155,16 @@ class AiwJobController extends Controller
 
         // 툴 목록은 서버가 강제한다. 클라이언트가 보낸 값을 그대로 쓰지 않는다.
         $tools = $this->tools->sanitize($validated['allowed_tools']);
+
+        // 배포 대상도 서버가 확인한다. 다른 프로젝트의 대상을 끼워 넣을 수 없다.
+        $autoTarget = $request->filled('auto_deploy_target_id')
+            ? AiwDeployTarget::where('project_id', $project->id)->where('enabled', true)
+                ->find($request->integer('auto_deploy_target_id'))
+            : null;
+
+        $autoDeploy = $request->boolean('auto_deploy')
+            && $request->boolean('use_branch')
+            && $autoTarget !== null;
 
         $job = AiwJob::create([
             'project_id'           => $project->id,
@@ -167,6 +182,10 @@ class AiwJobController extends Controller
             // 값이 없으면 true 로 봤는데, 해제한 체크박스는 아무것도 보내지 않아
             // 브랜치 분리를 끌 수 없었다.
             'use_branch'           => $request->boolean('use_branch'),
+            // 자동 배포는 브랜치 분리가 켜져 있어야 성립한다 — 변경이 현재
+            // 브랜치에 섞이면 이 작업만 골라 올릴 수 없다.
+            'auto_deploy'          => $autoDeploy,
+            'auto_deploy_target_id' => $autoDeploy ? $autoTarget?->id : null,
             'created_by'           => $request->user()->id,
         ]);
 

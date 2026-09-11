@@ -15,11 +15,12 @@ class AiwPublish extends Model
     public const MAX_OUTPUT = 20000;
 
     protected $fillable = [
-        'job_id', 'requested_by', 'source_branch', 'target_branch',
+        'job_id', 'requested_by', 'automatic', 'source_branch', 'target_branch',
         'commit_message', 'status', 'output', 'commit_sha', 'finished_at',
     ];
 
     protected $casts = [
+        'automatic'   => 'boolean',
         'created_at'  => 'datetime',
         'finished_at' => 'datetime',
     ];

@@ -19,7 +19,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\AiWork\InvalidJobTransitionException;
-use App\Services\AiWork\AttachmentService;
+use App\Services\AiWork\AttachmentService;
+use App\Services\AiWork\AutoPipeline;
 use App\Services\AiWork\CostGuard;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobStateMachine;
@@ -39,6 +40,7 @@ class JobReportController extends AgentApiController
         private PermissionService $permissions,
         private HandoverService $handovers,
         private CostGuard $costGuard,
+        private AutoPipeline $autoPipeline,
     ) {}
 
     /** 세션 시작 보고. session_chain 에 새 세션을 push 하고 running 으로 만든다. */
@@ -334,6 +336,9 @@ class JobReportController extends AgentApiController
             abort(409, $e->getMessage());
         }
 
+        // "배포까지 자동으로" 를 켰다면 여기서 다음 단계가 시작된다.
+        $this->autoPipeline->afterComplete($job->refresh());
+
         return response()->json($this->controlFlags($job));
     }
 
@@ -370,6 +375,7 @@ class JobReportController extends AgentApiController
         // 진행 상황이 화면에 바로 보이도록 활동 로그로도 남긴다.
         if ($validated['status'] !== 'running') {
             $this->appendPublishLog($job, $publish);
+            $this->autoPipeline->afterPublish($job, $publish->refresh());
         }
 
         return response()->json(['status' => $publish->status] + $this->controlFlags($job));

@@ -27,13 +27,15 @@ class DeployService
         User $user,
         string $confirmation,
         ?AiwJob $job = null,
+        bool $automatic = false,
     ): AiwDeploy {
         if (! $target->enabled) {
             throw new RuntimeException('비활성 상태인 배포 대상입니다.');
         }
 
         // 되돌리기 비용이 큰 동작이다. 누르는 순간 무엇이 도는지 알고 있어야 한다.
-        if (trim($confirmation) !== $target->confirmPhrase()) {
+        // 자동 실행은 지시를 등록할 때 이미 동의한 것이므로 이 확인을 건너뛴다.
+        if (! $automatic && trim($confirmation) !== $target->confirmPhrase()) {
             throw new RuntimeException(
                 sprintf('확인을 위해 대상 이름 "%s" 을(를) 정확히 입력하세요.', $target->confirmPhrase()),
             );
@@ -51,6 +53,7 @@ class DeployService
             'target_id'    => $target->id,
             'job_id'       => $job?->id,
             'requested_by' => $user->id,
+            'automatic'    => $automatic,
             'status'       => 'queued',
             'created_at'   => now(),
         ]);

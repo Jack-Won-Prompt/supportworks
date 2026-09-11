@@ -22,8 +22,12 @@ class PublishService
     /**
      * @throws RuntimeException 지금 올릴 수 없는 상태일 때
      */
-    public function request(AiwJob $job, User $user, ?string $message = null): AiwPublish
-    {
+    public function request(
+        AiwJob $job,
+        User $user,
+        ?string $message = null,
+        bool $automatic = false,
+    ): AiwPublish {
         $branch = $job->branchName();
 
         if ($branch === null) {
@@ -66,6 +70,7 @@ class PublishService
             // 기본 브랜치가 비어 있으면 데몬이 현재 기본 브랜치를 쓴다.
             'target_branch'  => $mapping->default_branch ?: 'HEAD',
             'commit_message' => $this->message($job, $message),
+            'automatic'      => $automatic,
             'status'         => 'pending',
             'created_at'     => now(),
         ]);

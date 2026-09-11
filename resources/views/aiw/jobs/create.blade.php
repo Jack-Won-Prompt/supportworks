@@ -25,6 +25,7 @@
         busy: @js($busyByPath),
         permissionMode: @js(old('permission_mode', $parent->permission_mode ?? 'acceptEdits')),
         useBranch: @js((bool) old('use_branch', $prefillUseBranch)),
+        autoDeploy: @js((bool) old('auto_deploy', false)),
         get bashSelected() { return this.tools.includes('Bash'); },
         // Bash 를 고른 채 acceptEdits 면 사람이 명령을 보는 지점이 없다.
         get bashUnattended() { return this.bashSelected && this.permissionMode === 'acceptEdits'; },
@@ -184,12 +185,39 @@
                 작업 폴더가 깨끗하지 않아도 진행되지만, 변경이 기존 작업물과 섞일 수 있습니다.
             </p>
 
-            <div class="pt-2">
+            <div class="flex flex-wrap items-center gap-3 pt-2">
+                @if ($deployTargets->isNotEmpty())
+                    {{-- 결과를 사람이 보지 않고 운영까지 보낸다. 기본은 꺼짐. --}}
+                    <label class="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 cursor-pointer">
+                        <input type="hidden" name="auto_deploy" value="0">
+                        <input type="checkbox" name="auto_deploy" value="1" x-model="autoDeploy"
+                               class="rounded border-amber-300">
+                        <span class="font-medium">배포까지 자동으로</span>
+                    </label>
+
+                    <div x-show="autoDeploy" x-cloak>
+                        <select name="auto_deploy_target_id" class="rounded-lg border-gray-200 text-xs">
+                            @foreach ($deployTargets as $target)
+                                <option value="{{ $target->id }}">{{ $target->name }} — {{ $target->command }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+
                 <button type="submit"
                         class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
                     지시 등록
                 </button>
             </div>
+
+            <p x-show="autoDeploy" x-cloak
+               class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
+                <span class="font-semibold">결과를 확인하지 않고 운영까지 반영합니다.</span>
+                작업이 <span class="font-medium">성공</span>하면 커밋·푸시 후 배포 스크립트가 자동으로 실행됩니다
+                (대개 <code>migrate</code> 를 포함해 DB 스키마까지 바뀝니다).
+                단계가 하나라도 실패하면 거기서 멈추고, 무엇이 실행됐는지는 작업 화면에 남습니다.
+                브랜치 분리를 켜 두어야 이 작업의 변경만 골라 올릴 수 있습니다.
+            </p>
         </form>
     </div>
 </div>

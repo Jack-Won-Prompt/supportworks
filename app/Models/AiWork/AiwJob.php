@@ -32,6 +32,7 @@ class AiwJob extends Model
         'project_id', 'agent_id', 'parent_job_id',
         'title', 'instruction', 'mode', 'model', 'context_limit_tokens',
         'allowed_tools', 'permission_mode', 'cost_limit_usd', 'use_branch',
+        'auto_deploy', 'auto_deploy_target_id',
         'status', 'session_chain', 'handover_count', 'context_tokens',
         'result_summary', 'changed_files', 'git_diff', 'git_diff_path',
         'error_code', 'error_detail',
@@ -61,6 +62,7 @@ class AiwJob extends Model
         'session_chain'        => 'array',
         'changed_files'        => 'array',
         'use_branch'           => 'boolean',
+        'auto_deploy'          => 'boolean',
         'cost_limit_usd'       => 'decimal:4',
         'cost_usd'             => 'decimal:4',
         'context_limit_tokens' => 'integer',
@@ -157,6 +159,11 @@ class AiwJob extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(AiwJobMessage::class, 'job_id');
+    }
+
+    public function autoDeployTarget(): BelongsTo
+    {
+        return $this->belongsTo(AiwDeployTarget::class, 'auto_deploy_target_id');
     }
 
     public function publishes(): HasMany
