@@ -5,6 +5,7 @@ import { JobManager } from './job-manager.js';
 import { log } from './logger.js';
 import { Realtime } from './realtime.js';
 import { recoverActiveJobs } from './recover.js';
+import { AlreadyRunningError, acquireLock, releaseLock } from './single-instance.js';
 
 async function main(): Promise<void> {
     log('info', 'AI Works 데몬을 시작합니다.', {
@@ -19,6 +20,18 @@ async function main(): Promise<void> {
         // 다만 이 모드에서는 서버에 보고되는 cost_usd 가 실제 청구액이 아니라
         // "API 로 썼다면 얼마였을지"의 추정치라는 점을 분명히 해 둔다.
         log('info', '이 PC 의 Claude Code 로그인으로 실행합니다. 보고되는 비용은 실제 청구액이 아니라 추정치입니다.');
+    }
+
+    // 여러 인스턴스가 같은 지시를 받으면 같은 폴더에서 git 이 충돌한다.
+    try {
+        await acquireLock();
+    } catch (error) {
+        if (error instanceof AlreadyRunningError) {
+            log('error', error.message);
+            process.exit(1);
+        }
+
+        throw error;
     }
 
     const api = new ApiClient();
@@ -114,6 +127,7 @@ async function main(): Promise<void> {
 
         // 네트워크가 막혀도 매달리지 않도록 시간 제한을 둔다.
         await Promise.race([jobs.shutdown(), new Promise((r) => setTimeout(r, 5000))]);
+        await releaseLock();
         process.exit(0);
     };
 

@@ -65,8 +65,20 @@ export class GitWorkspace {
 
         if (branches.all.includes(branch)) {
             await this.git.checkout(branch);
-        } else {
+
+            return;
+        }
+
+        try {
             await this.git.checkoutLocalBranch(branch);
+        } catch (error) {
+            // 같은 job 의 브랜치가 이미 있는 것은 오류가 아니다. 앞선 시도가 남겼거나,
+            // 목록을 읽은 뒤 만들어졌을 수 있다. 그대로 이어서 쓴다.
+            if (!/already exists/i.test(String(error))) {
+                throw error;
+            }
+
+            await this.git.checkout(branch);
         }
     }
 
