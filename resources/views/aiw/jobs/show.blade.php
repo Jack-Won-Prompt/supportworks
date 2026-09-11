@@ -19,6 +19,55 @@
     @vite(['resources/js/aiw-echo.js', 'resources/js/aiw-markdown.js'])
 @endpush
 
+@push('styles')
+<style>
+/*
+ * 담당자 답변의 마크다운 서식.
+ *
+ * Tailwind preflight 가 p·ul·h* 의 여백을 모두 지우기 때문에, 마크다운을
+ * 렌더해도 문단 구분이 없는 한 덩어리로 보인다. typography 플러그인을
+ * 들이는 대신 이 화면에 필요한 만큼만 되살린다.
+ */
+.aiw-md { font-size: 13.5px; line-height: 1.7; color: #374151; word-break: break-word; }
+.aiw-md > :first-child { margin-top: 0; }
+.aiw-md > :last-child { margin-bottom: 0; }
+.aiw-md p { margin: 0 0 0.7em; }
+.aiw-md strong { font-weight: 700; color: #111827; }
+.aiw-md em { font-style: italic; }
+.aiw-md ul, .aiw-md ol { margin: 0 0 0.7em; padding-left: 1.25em; }
+.aiw-md ul { list-style: disc; }
+.aiw-md ol { list-style: decimal; }
+.aiw-md li { margin: 0.2em 0; }
+.aiw-md li > ul, .aiw-md li > ol { margin: 0.2em 0; }
+.aiw-md h1, .aiw-md h2, .aiw-md h3, .aiw-md h4 {
+    margin: 1.1em 0 0.5em; font-weight: 700; color: #111827; line-height: 1.35;
+}
+.aiw-md h1 { font-size: 1.25em; }
+.aiw-md h2 { font-size: 1.15em; }
+.aiw-md h3 { font-size: 1.05em; }
+.aiw-md h4 { font-size: 1em; }
+.aiw-md code {
+    background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 4px;
+    padding: 0.1em 0.35em; font-size: 0.88em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.aiw-md pre {
+    background: #1f2937; color: #f9fafb; border-radius: 8px;
+    padding: 0.75em 0.9em; margin: 0 0 0.7em; overflow-x: auto; font-size: 0.85em;
+}
+.aiw-md pre code { background: none; border: 0; padding: 0; color: inherit; }
+.aiw-md a { color: #4f46e5; text-decoration: underline; }
+.aiw-md blockquote {
+    margin: 0 0 0.7em; padding: 0.1em 0 0.1em 0.8em;
+    border-left: 3px solid #e5e7eb; color: #6b7280;
+}
+.aiw-md hr { margin: 1em 0; border: 0; border-top: 1px solid #e5e7eb; }
+.aiw-md table { width: 100%; margin: 0 0 0.7em; border-collapse: collapse; font-size: 0.92em; }
+.aiw-md th, .aiw-md td { border: 1px solid #e5e7eb; padding: 0.35em 0.6em; text-align: left; }
+.aiw-md th { background: #f9fafb; font-weight: 600; }
+</style>
+@endpush
+
 @section('content')
 @include('partials.project-nav', ['project' => $project, 'active' => 'ai-works'])
 
@@ -169,27 +218,43 @@
                     @include('aiw.jobs.partials.message', ['message' => $message, 'project' => $project, 'job' => $job, 'latestChoiceId' => $latestChoiceId, 'canEdit' => $canEdit])
                 @endforeach
 
-                {{-- 실시간으로 도착한 메시지 --}}
+                {{-- 실시간으로 도착한 메시지. 새로고침 후 모습과 같아야 한다. --}}
                 <template x-for="m in liveMessages" :key="m.id">
-                    <div class="rounded-lg px-3 py-2 text-sm"
-                         :class="m.role === 'user' ? 'bg-indigo-50 ml-8' : (m.role === 'handover' ? 'bg-violet-50 border border-violet-200' : 'bg-gray-50 mr-8')">
-                        <div class="text-[11px] text-gray-500 mb-1" x-text="roleLabel(m.role)"></div>
-                        <div class="prose prose-sm max-w-none" x-html="render(m.content)"></div>
+                    <div class="flex gap-2" :class="m.role === 'user' ? 'flex-row-reverse' : ''">
+                        <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
+                             :class="m.role === 'user' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'"
+                             x-text="roleLabel(m.role).slice(0, 1)"></div>
 
-                        @if ($job->mode === 'interactive' && $canEdit)
-                            {{-- 실시간으로 도착한 질문의 선택지. 마지막 것만 띄운다. --}}
-                            <div x-show="m.choices && m.choices.length && m.id === latestLiveChoiceId && ! isTerminal" x-cloak
-                                 class="mt-2 flex flex-wrap gap-2 border-t border-gray-200 pt-2">
-                                <template x-for="c in (m.choices || [])" :key="c">
-                                    <form method="POST" action="{{ route('projects.ai-works.message', [$project, $job]) }}">
-                                        @csrf
-                                        <input type="hidden" name="content" :value="c">
-                                        <button class="rounded-lg border border-indigo-300 bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
-                                                x-text="c"></button>
-                                    </form>
-                                </template>
+                        <div class="flex min-w-0 max-w-[85%] flex-col" :class="m.role === 'user' ? 'items-end' : ''">
+                            <div class="mb-0.5 flex items-center gap-2 text-[11px] text-gray-500"
+                                 :class="m.role === 'user' ? 'flex-row-reverse' : ''">
+                                <span class="font-medium text-gray-700" x-text="roleLabel(m.role)"></span>
                             </div>
-                        @endif
+
+                            <div class="rounded-2xl px-3.5 py-2.5 text-left"
+                                 :class="m.role === 'user'
+                                     ? 'rounded-tr-sm bg-indigo-500 text-white'
+                                     : (m.role === 'handover'
+                                         ? 'rounded-tl-sm border border-violet-200 bg-violet-50'
+                                         : 'rounded-tl-sm border border-gray-200 bg-white')">
+                                <div class="aiw-md" x-html="render(m.content)"></div>
+                            </div>
+
+                            @if ($job->mode === 'interactive' && $canEdit)
+                                {{-- 실시간으로 도착한 질문의 선택지. 마지막 것만 띄운다. --}}
+                                <div x-show="m.choices && m.choices.length && m.id === latestLiveChoiceId && ! isTerminal" x-cloak
+                                     class="mt-1.5 flex flex-wrap gap-1.5">
+                                    <template x-for="c in (m.choices || [])" :key="c">
+                                        <form method="POST" action="{{ route('projects.ai-works.message', [$project, $job]) }}">
+                                            @csrf
+                                            <input type="hidden" name="content" :value="c">
+                                            <button class="rounded-full border border-indigo-300 bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                                                    x-text="c"></button>
+                                        </form>
+                                    </template>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </template>
 
@@ -372,7 +437,7 @@
             @endif
 
             @if ($job->result_summary)
-                <div class="prose prose-sm max-w-none mb-3" x-html="render(@js($job->result_summary))"></div>
+                <div class="aiw-md mb-3" x-html="render(@js($job->result_summary))"></div>
             @endif
 
             @if ($job->changed_files)
@@ -406,11 +471,21 @@ function aiwJob(initial) {
     return {
         ...initial,
         liveMessages: [],
+        markdownReady: typeof window.aiwRenderMarkdown === 'function',
         liveLogs: [],
         livePermissions: [],
         autoScroll: true,
 
         init() {
+            // 렌더러가 아직 안 올라왔으면 올라온 뒤 다시 그린다.
+            if (! this.markdownReady) {
+                window.addEventListener(
+                    'aiw:markdown-ready',
+                    () => { this.markdownReady = true; },
+                    { once: true },
+                );
+            }
+
             // Reverb 미설정 환경에서는 EchoAiw 가 null 이다. 화면은 정적으로 동작한다.
             if (!window.EchoAiw) return;
 
@@ -479,7 +554,27 @@ function aiwJob(initial) {
         get costPct() { return this.costLimit > 0 ? Math.min(100, (this.costUsd / this.costLimit) * 100) : 0; },
         get costTone() { return this.costPct >= 80 ? 'bg-red-500' : 'bg-emerald-500'; },
 
-        render(text) { return window.aiwRenderMarkdown ? window.aiwRenderMarkdown(text) : text; },
+        /**
+         * 마크다운 렌더.
+         *
+         * Vite 가 내보내는 모듈은 defer 라 Alpine 이 먼저 뜰 수 있다(주석에 at-vite 를
+         * 쓰면 Blade 가 디렉티브로 컴파일한다). 그때 원문이 그대로 남아 ** 같은 기호가
+         * 보인다. markdownReady 를 참조해 두면 모듈이
+         * 올라온 뒤 x-html 이 자동으로 다시 그려진다.
+         *
+         * 폴백은 반드시 이스케이프한다 — 렌더러가 없다고 원문을 innerHTML 에
+         * 그대로 넣으면 담당자가 만든 텍스트가 스크립트가 된다.
+         */
+        render(text) {
+            if (this.markdownReady && window.aiwRenderMarkdown) {
+                return window.aiwRenderMarkdown(text);
+            }
+
+            const div = document.createElement('div');
+            div.textContent = String(text ?? '');
+
+            return div.innerHTML;
+        },
         roleLabel(role) { return { user: '나', assistant: '담당자', handover: '인수인계' }[role] ?? role; },
         logTone(type) {
             return { error: 'bg-red-50 text-red-700', daemon: 'bg-slate-100 text-slate-700', handover: 'bg-violet-50 text-violet-700' }[type] ?? 'text-gray-600';
