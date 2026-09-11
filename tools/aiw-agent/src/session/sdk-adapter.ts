@@ -47,6 +47,9 @@ export class SdkSessionAdapter implements SessionAdapter {
 
     private cumulativeCost = 0;
 
+    /** 이번 턴에 assistant 텍스트가 한 번이라도 나왔는가. result 폴백 판단에 쓴다. */
+    private textThisTurn = false;
+
     private pending: Promise<void> | null = null;
 
     async start(options: SessionStartOptions, events: SessionEvents): Promise<void> {
@@ -193,6 +196,7 @@ export class SdkSessionAdapter implements SessionAdapter {
 
                 for (const block of blocks) {
                     if (block?.type === 'text' && typeof block.text === 'string' && block.text.trim()) {
+                        this.textThisTurn = true;
                         events.onAssistantText(block.text);
                     }
 
@@ -220,9 +224,16 @@ export class SdkSessionAdapter implements SessionAdapter {
                     this.cumulativeCost = message.total_cost_usd;
                 }
 
+                // 최종 답변이 assistant 블록 없이 result 에만 실려 오는 턴이 있다.
+                // 그걸 흘리면 사용자 화면의 대화가 통째로 비어 답이 사라진다(실측).
+                if (!this.textThisTurn && typeof message?.result === 'string' && message.result.trim()) {
+                    events.onAssistantText(message.result);
+                }
+
                 events.onLog('result', String(message.subtype ?? 'result'), message);
                 // batch 에서 result 는 "작업이 끝났다"는 뜻이다. 완료 여부를 함께 알린다.
                 events.onTurnEnd(this.usage(), message?.subtype === 'success');
+                this.textThisTurn = false;
                 break;
             }
 
