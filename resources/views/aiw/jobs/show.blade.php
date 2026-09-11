@@ -617,6 +617,7 @@ function aiwJob(initial) {
         ...initial,
         liveMessages: [],
         markdownReady: typeof window.aiwRenderMarkdown === 'function',
+        subscribed: false,
         liveLogs: [],
         livePermissions: [],
         autoScroll: true,
@@ -631,8 +632,20 @@ function aiwJob(initial) {
                 );
             }
 
+            // Echo 도 defer 모듈이라 Alpine 이 먼저 뜰 수 있다. 그때 그냥 return 하면
+            // 영영 구독하지 않아 실시간이 통째로 죽는다(실측으로 확인했다 —
+            // WS 는 연결됐는데 구독 채널이 0개였다).
+            if (window.EchoAiw) {
+                this.subscribe();
+            } else {
+                window.addEventListener('aiw:echo-ready', () => this.subscribe(), { once: true });
+            }
+        },
+
+        subscribe() {
             // Reverb 미설정 환경에서는 EchoAiw 가 null 이다. 화면은 정적으로 동작한다.
-            if (!window.EchoAiw) return;
+            if (!window.EchoAiw || this.subscribed) return;
+            this.subscribed = true;
 
             const ch = window.EchoAiw.private('aiw.job.' + this.jobId);
 

@@ -23,6 +23,10 @@ window.EchoAiw = key
     })
     : null;
 
+// 이 모듈은 defer 로 실행되므로 Alpine 이 먼저 떠 있을 수 있다. 그 경우 화면은
+// window.EchoAiw 가 없다고 보고 구독을 건너뛴 상태이므로, 준비됐음을 알린다.
+window.dispatchEvent(new Event('aiw:echo-ready'));
+
 if (!window.EchoAiw) {
     console.warn('AI Works: VITE_REVERB_APP_KEY 미설정 — 실시간 구독이 비활성화됩니다.');
 }
