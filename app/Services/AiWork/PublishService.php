@@ -2,6 +2,7 @@
 
 namespace App\Services\AiWork;
 
+use App\Enums\AiWork\AiwJobStatus;
 use App\Events\AiWork\PublishRequested;
 use App\Models\AiWork\AiwAgentProject;
 use App\Models\AiWork\AiwJob;
@@ -39,6 +40,16 @@ class PublishService
 
         if (! $job->status->isTerminal()) {
             throw new RuntimeException('작업이 끝난 뒤에 올릴 수 있습니다.');
+        }
+
+        // 중단된 작업의 변경은 '고치다 만 것'이다. 데몬이 작업 폴더를 되돌리면서
+        // 그 시점 내용을 작업 브랜치에 보관 커밋으로 남기는데, 그것을 그대로
+        // 기본 브랜치에 합치면 반쯤 고친 코드가 올라간다.
+        if ($job->status !== AiwJobStatus::Completed) {
+            throw new RuntimeException(
+                '중단된 작업은 올릴 수 없습니다. 중단 시점의 내용은 '
+                .$branch.' 브랜치에 남아 있으니, 확인한 뒤 후속 지시로 마무리하세요.'
+            );
         }
 
         // 같은 저장소에 두 번 밀어 넣으면 서로를 덮거나 충돌한다.

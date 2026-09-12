@@ -194,7 +194,7 @@
                     <span class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-800">
                         {{ $lastPublish->statusLabel() }}…
                     </span>
-                @elseif ($job->status->isTerminal())
+                @elseif ($job->status === \App\Enums\AiWork\AiwJobStatus::Completed)
                     <form method="POST" action="{{ route('projects.ai-works.publish', [$project, $job]) }}"
                           class="flex items-end gap-2 flex-wrap"
                           onsubmit="return confirm('원격 저장소에 올립니다. 되돌리려면 git 으로 직접 작업해야 합니다. 진행할까요?')">
@@ -210,6 +210,13 @@
                             커밋 &amp; 푸시
                         </button>
                     </form>
+                @elseif ($job->status->isTerminal())
+                    {{-- 중단된 작업의 변경은 '고치다 만 것'이다. 한 번의 클릭으로
+                         기본 브랜치에 올라가면 안 된다. --}}
+                    <span class="text-xs text-gray-400">
+                        중단된 작업이라 반영할 수 없습니다.
+                        내용은 <code>{{ $job->branchName() }}</code> 브랜치에 있습니다.
+                    </span>
                 @else
                     <span class="text-xs text-gray-400">작업이 끝나면 반영할 수 있습니다.</span>
                 @endif

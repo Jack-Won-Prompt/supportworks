@@ -114,6 +114,23 @@ class AiwPublishTest extends TestCase
         $this->assertStringContainsString('버튼 위치 변경', AiwPublish::firstOrFail()->commit_message);
     }
 
+    public function test_중단된_작업은_올릴_수_없다(): void
+    {
+        // 중단 시점의 내용은 작업 브랜치에 보관 커밋으로 남는다. 그것을 한 번의
+        // 클릭으로 기본 브랜치에 합치면 반쯤 고친 코드가 올라간다.
+        foreach ([AiwJobStatus::Cancelled, AiwJobStatus::Failed] as $status) {
+            $job = $this->job();
+            $job->forceFill(['status' => $status])->save();
+
+            $this->actingAs($this->member)
+                ->post(route('projects.ai-works.publish', [$this->projectId, $job]))
+                ->assertRedirect()
+                ->assertSessionHas('error');
+
+            $this->assertSame(0, $job->publishes()->count(), $status->value);
+        }
+    }
+
     public function test_끝나지_않은_작업은_올릴_수_없다(): void
     {
         Event::fake([PublishRequested::class]);
