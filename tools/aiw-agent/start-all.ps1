@@ -101,10 +101,16 @@ foreach ($m in $res.mappings) {
         continue
     }
 
-    Start-Process -FilePath 'powershell.exe' `
-        -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden',
-                      '-File', (Join-Path $PSScriptRoot 'start-agent.ps1'),
-                      '-ProjectId', $m.project_id, '-Label', $m.project_name `
+    # 프로젝트 이름에 공백이 있으면 인수가 쪼개진다("Mango Shop" → 두 개).
+    # -ArgumentList 는 배열을 그대로 공백으로 이어 붙이므로 여기서 따옴표를 씌운다.
+    $args = @(
+        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden',
+        '-File', ('"{0}"' -f (Join-Path $PSScriptRoot 'start-agent.ps1')),
+        '-ProjectId', $m.project_id,
+        '-Label', ('"{0}"' -f $m.project_name)
+    )
+
+    Start-Process -FilePath 'powershell.exe' -ArgumentList $args `
         -WorkingDirectory $PSScriptRoot -WindowStyle Hidden
 
     Write-Host "  기동: $($m.project_name) (#$($m.project_id))" -ForegroundColor Green
