@@ -79,3 +79,16 @@ test('평범한 개발 명령은 모두 통과한다', () => {
         assert.equal(findBlockedRule(cmd), null, `막히면 안 됨: ${cmd}`);
     }
 });
+
+test('개인키 파일은 경로와 무관하게 막는다', () => {
+    // ~/.ssh 만 보던 규칙으로는 바탕화면의 .ppk 가 걸리지 않았다.
+    // Bash 는 폴더 경계 검사를 받지 않으므로 확장자로 막아야 한다.
+    assert.equal(findBlockedRule('cat "E:/work/aws/lcpoint.ppk"')?.id, 'private-key-file');
+    assert.equal(findBlockedRule('type D:/keys/prod.pem')?.id, 'private-key-file');
+    assert.equal(findBlockedRule('plink -i deploy.ppk ubuntu@host ls')?.id, 'private-key-file');
+    assert.equal(findBlockedRule('echo "-----BEGIN RSA PRIVATE KEY-----"')?.id, 'private-key-file');
+
+    // 평범한 명령까지 막으면 안 된다.
+    assert.equal(findBlockedRule('npm run build'), null);
+    assert.equal(findBlockedRule('git status'), null);
+});

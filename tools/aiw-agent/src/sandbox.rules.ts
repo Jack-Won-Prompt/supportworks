@@ -63,6 +63,17 @@ export const BLOCK_RULES: BlockRule[] = [
         reason: 'SSH 키에는 접근할 수 없습니다.',
     },
     {
+        // 확장자만 보고 막는다. 경로는 어디든 될 수 있다 — 실제로 이 PC 에는
+        // 운영 서버 11대의 .ppk 가 바탕화면 폴더에 있었고, ~/.ssh 만 보던
+        // 규칙으로는 하나도 걸리지 않았다.
+        //
+        // Bash 는 폴더 경계 검사를 받지 않는다(그건 파일 툴 전용이다). 그래서
+        // 자동 승인된 Bash 가 지시 한 줄로 개인키를 읽어낼 수 있었다.
+        id: 'private-key-file',
+        pattern: /\.(?:ppk|pem|p12|pfx|key)\b|BEGIN\s+(?:[A-Z ]+)?PRIVATE\s+KEY/i,
+        reason: '개인키 파일에는 접근할 수 없습니다.',
+    },
+    {
         id: 'cloud-credentials',
         pattern: /(?:~|\$HOME|%USERPROFILE%)[\\/]\.(?:aws|azure|gcloud|kube)\b/i,
         reason: '클라우드 자격증명에는 접근할 수 없습니다.',
