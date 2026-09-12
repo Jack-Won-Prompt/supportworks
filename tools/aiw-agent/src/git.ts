@@ -107,37 +107,79 @@ export class GitWorkspace {
      * 'could not write index / stash failed' 로 온 경합을 놓쳐 실패로 남았다.
      * 실제로 그렇게 배포가 멈췄다.
      */
-    private static readonly LOCK_SIGNS = [
-        'index.lock',
-        'could not write index',
-        'stash failed',
-        'Unable to create',
-    ];
-
-    private async retryOnLock<T>(task: () => Promise<T>, attempts = 4): Promise<T> {
-        for (let i = 0; ; i++) {
-            try {
-                return await task();
-            } catch (error) {
-                const message = String((error as Error)?.message ?? error);
-                const transient = GitWorkspace.LOCK_SIGNS.some((s) => message.includes(s));
-
-                if (i >= attempts - 1 || !transient) {
-                    throw error;
-                }
-
-                await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
-            }
-        }
-    }
-
+    /**
+     * 커밋·머지·푸시는 여러 단계가 이어진 일이라 통째로 다시 돌릴 수 없다.
+     * (실제로 그렇게 했다가 이미 커밋된 상태에서 재실행되어
+     *  "cannot lock ref 'HEAD'" 로 더 나빠졌다.)
+     *
+     * 대신 실패했다고 보고하기 전에 **결과를 확인한다.** 인덱스 경합처럼
+     * 잠깐 부딪힌 경우, 앞 단계는 이미 끝나 있고 반영 자체는 완료된 채로
+     * 뒤 단계만 오류를 낸 것일 수 있다. 그때 실패로 적으면 자동 배포가
+     * "푸시가 실패해 배포하지 않습니다" 로 멈춘다 — 실제로 그렇게 멈췄다.
+     */
     async publish(options: {
         sourceBranch: string;
         targetBranch: string;
         commitMessage: string;
         onProgress?: (line: string) => void;
     }): Promise<{ commitSha: string | null; output: string }> {
-        return this.retryOnLock(() => this.publishOnce(options));
+        try {
+            return await this.publishOnce(options);
+        } catch (error) {
+            const landed = await this.alreadyLanded(options).catch(() => null);
+
+            if (!landed) {
+                throw error;
+            }
+
+            return {
+                commitSha: landed,
+                output: [
+                    `진행 중 오류가 있었지만 확인 결과 반영은 완료되었습니다: ${landed}`,
+                    `오류: ${String((error as Error)?.message ?? error).slice(0, 300)}`,
+                ].join('\n'),
+            };
+        }
+    }
+
+    /**
+     * 작업 브랜치가 기본 브랜치에 합쳐졌고 원격까지 같은가.
+     *
+     * @return 반영됐으면 기본 브랜치의 커밋, 아니면 null
+     */
+    private async alreadyLanded(options: {
+        sourceBranch: string;
+        targetBranch: string;
+    }): Promise<string | null> {
+        const local = await this.git.branchLocal();
+        const target = options.targetBranch === 'HEAD'
+            ? await this.defaultBranch(local.all)
+            : options.targetBranch;
+
+        if (!local.all.includes(target) || !local.all.includes(options.sourceBranch)) {
+            return null;
+        }
+
+        // 작업 브랜치가 기본 브랜치 안에 들어 있는가.
+        try {
+            await this.git.raw(['merge-base', '--is-ancestor', options.sourceBranch, target]);
+        } catch {
+            return null;
+        }
+
+        const head = (await this.git.revparse([target])).trim();
+
+        // 원격까지 같아야 "올렸다" 고 말할 수 있다. 로컬만 합쳐 두고 성공이라
+        // 적으면 서버는 옛 코드를 받아 가면서 배포는 성공한 것처럼 보인다.
+        try {
+            await this.git.fetch('origin', target);
+        } catch {
+            return null;
+        }
+
+        const remote = (await this.git.revparse([`origin/${target}`])).trim();
+
+        return head === remote ? head : null;
     }
 
     private async publishOnce(options: {

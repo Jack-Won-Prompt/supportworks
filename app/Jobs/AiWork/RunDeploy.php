@@ -64,8 +64,7 @@ class RunDeploy implements ShouldQueue
         $process = Process::fromShellCommandline(
             $target->command,
             $target->working_dir,
-            // 웹 요청 환경변수를 그대로 물려주면 예기치 않게 동작한다. 최소만 넘긴다.
-            ['PATH' => getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin', 'HOME' => getenv('HOME') ?: '/home/ubuntu'],
+            $this->childEnvironment(),
             null,
             $target->timeout_sec,
         );
@@ -87,6 +86,44 @@ class RunDeploy implements ShouldQueue
             // 시간 초과 포함. 여기까지 모은 출력이 원인 추적의 전부다.
             $this->finish($deploy, 'failed', $process->getExitCode(), $output."\n\n[중단] ".$e->getMessage());
         }
+    }
+
+    /**
+     * 배포 스크립트에 넘길 환경.
+     *
+     * **이 앱의 설정이 새어 들어가면 안 된다.** Symfony Process 는 넘긴 배열을
+     * 부모 환경에 *덧씌울* 뿐 대체하지 않는다. 그런데 Laravel 은 .env 를 읽으며
+     * putenv 로 값을 프로세스 환경에 올리므로, 큐 워커의 DB_DATABASE 가 그대로
+     * 자식에게 간다. 대상 앱의 env() 는 파일보다 실제 환경변수를 먼저 보기 때문에
+     * **자기 .env 를 무시하고 이 앱의 DB 를 쓰게 된다.**
+     *
+     * 실제로 그렇게 mangoshop 배포가 supportworks DB 에 자기 테이블 20개를
+     * 만들었다(2026-09-11). 다행히 전부 빈 테이블이었지만, 한 끗 차이로
+     * 남의 운영 데이터를 고칠 수 있었다.
+     *
+     * 값을 false 로 주면 Symfony 가 그 변수를 자식 환경에서 지운다.
+     *
+     * @return array<string, string|false>
+     */
+    private function childEnvironment(): array
+    {
+        $env = [
+            'PATH' => getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin',
+            'HOME' => getenv('HOME') ?: '/home/ubuntu',
+        ];
+
+        // 앱 설정으로 보이는 것은 모두 지운다. 대상 앱이 자기 .env 를 읽게 한다.
+        $appConfig = '/^(APP|DB|CACHE|SESSION|QUEUE|MAIL|REDIS|BROADCAST|PUSHER|REVERB'
+            .'|AWS|VITE|LOG|FILESYSTEM|MEMCACHED|SCOUT|SENTRY|TELESCOPE|NIGHTWATCH'
+            .'|FCM|FIREBASE|OPENAI|ANTHROPIC|SW)_/';
+
+        foreach (array_keys($_ENV + $_SERVER) as $key) {
+            if (is_string($key) && preg_match($appConfig, $key)) {
+                $env[$key] = false;
+            }
+        }
+
+        return $env;
     }
 
     public function failed(\Throwable $e): void
