@@ -17,7 +17,10 @@
 @include('partials.project-nav', ['project' => $project, 'active' => 'ai-works'])
 
 @php
-    $online = $agents->filter(fn ($a) => $a->is_online);
+    // 온라인 판정은 이 프로젝트를 맡은 프로세스 기준이다. 한 PC 가 프로젝트마다
+    // 따로 띄우면 그중 하나만 죽을 수 있어, 담당자 전체로 보면 멈춘 프로젝트가
+    // 온라인으로 보인다.
+    $online = $agents->filter(fn ($a) => $a->agentProjects->first()?->is_online ?? $a->is_online);
 @endphp
 
 <div class="space-y-3">
@@ -54,10 +57,14 @@
 
         <div class="mt-4 flex flex-wrap gap-2">
             @forelse ($agents as $agent)
-                @php $mapping = $agent->agentProjects->first(); @endphp
+                @php
+                    $mapping = $agent->agentProjects->first();
+                    $isOnline = $mapping?->is_online ?? $agent->is_online;
+                    $lastSeen = $mapping?->last_seen_at ?? $agent->last_seen_at;
+                @endphp
                 <div class="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs
-                            {{ $agent->is_online ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50' }}">
-                    <span class="inline-block h-2 w-2 rounded-full {{ $agent->is_online ? 'bg-emerald-500' : 'bg-gray-400' }}"></span>
+                            {{ $isOnline ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50' }}">
+                    <span class="inline-block h-2 w-2 rounded-full {{ $isOnline ? 'bg-emerald-500' : 'bg-gray-400' }}"></span>
                     <span class="font-semibold text-gray-800">{{ $agentNames[$agent->id] ?? $agent->name }}</span>
                     <span class="text-gray-500">
                         실행 중 {{ $runningByAgent[$agent->id] ?? 0 }}
@@ -70,9 +77,9 @@
                             {{ \Illuminate\Support\Str::limit($mapping->local_path, 28) }}
                         </span>
                     @endif
-                    @unless ($agent->is_online)
+                    @unless ($isOnline)
                         <span class="text-gray-400">
-                            {{ $agent->last_seen_at ? $agent->last_seen_at->diffForHumans() : '접속 이력 없음' }}
+                            {{ $lastSeen ? $lastSeen->diffForHumans() : '접속 이력 없음' }}
                         </span>
                     @endunless
                 </div>
@@ -87,7 +94,7 @@
         @if ($agents->isNotEmpty() && $online->isEmpty())
             <p class="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
                 매핑된 담당자가 모두 오프라인이라 새 지시를 등록할 수 없습니다.
-                @if ($agents->every(fn ($a) => $a->last_seen_at === null))
+                @if ($agents->every(fn ($a) => ($a->agentProjects->first()?->last_seen_at ?? $a->last_seen_at) === null))
                     {{-- 한 번도 접속한 적이 없다면 설치 자체가 안 된 것이다. --}}
                     <span class="font-medium">아직 한 번도 접속한 적이 없습니다</span> —
                     해당 PC 에서 데몬을 설치·기동해야 합니다.

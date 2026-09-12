@@ -377,6 +377,8 @@ Route::prefix('mobile')->group(function () {
 */
 Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function () {
     Route::post('heartbeat',         [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'heartbeat'])->name('heartbeat');
+    // 셋업 데몬이 "내가 맡은 프로젝트" 를 묻는다. 프로젝트마다 프로세스를 띄우는 근거.
+    Route::get ('mappings',          [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'mappings'])->name('mappings');
     Route::post('broadcasting/auth', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'broadcastingAuth'])->name('broadcasting.auth');
     Route::get ('jobs/pending',      [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'pendingJobs'])->name('jobs.pending');
     Route::get ('jobs/{job}/inbox',  [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'inbox'])->name('jobs.inbox');

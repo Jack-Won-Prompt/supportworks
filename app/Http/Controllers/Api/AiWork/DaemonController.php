@@ -15,6 +15,38 @@ use Illuminate\Http\Request;
 class DaemonController extends AgentApiController
 {
     /**
+     * 이 PC 가 맡은 프로젝트 목록.
+     *
+     * 셋업 데몬이 이걸 보고 프로젝트마다 프로세스를 띄운다. 프로젝트가 늘어도
+     * 사람이 PC 에 와서 설정 파일을 만들 필요가 없다 — 매핑이 곧 목록이다.
+     *
+     * 토큰을 새로 내주지 않는다. PC 당 토큰 하나로 모든 프로젝트를 맡고,
+     * 프로세스만 나눈다. 프로젝트마다 토큰을 만들면 그 토큰을 PC 에 전달할
+     * 방법이 필요해지고, 그 경로가 곧 자격증명 유출 통로가 된다.
+     */
+    public function mappings(Request $request): JsonResponse
+    {
+        $agent = $this->agent($request);
+
+        $mappings = AiwAgentProject::query()
+            ->where('agent_id', $agent->id)
+            ->with('project:id,name')
+            ->orderBy('project_id')
+            ->get();
+
+        return response()->json([
+            'agent_id' => $agent->id,
+            'mappings' => $mappings->map(fn (AiwAgentProject $m) => [
+                'project_id'     => (int) $m->project_id,
+                'project_name'   => $m->project?->name,
+                'display_name'   => $m->displayName(),
+                'local_path'     => $m->local_path,
+                'default_branch' => $m->default_branch,
+            ])->values(),
+        ]);
+    }
+
+    /**
      * 하트비트. last_seen_at 과 capabilities 를 갱신하고, 데몬이 놓쳤을 수 있는
      * 작업 목록을 함께 돌려준다(Reverb 유실 대비 폴백의 1차 관문).
      */
@@ -24,6 +56,8 @@ class DaemonController extends AgentApiController
             'capabilities'                     => ['nullable', 'array'],
             'capabilities.max_parallel_jobs'   => ['nullable', 'integer', 'min:1', 'max:16'],
             'capabilities.auth_mode'           => ['nullable', 'in:api_key,subscription'],
+            // 프로젝트마다 프로세스를 나눠 띄운 경우, 자기가 맡은 프로젝트를 밝힌다.
+            'project_id'                       => ['nullable', 'integer'],
         ]);
 
         $agent = $this->agent($request);
@@ -33,8 +67,19 @@ class DaemonController extends AgentApiController
             'capabilities' => $validated['capabilities'] ?? $agent->capabilities,
         ])->saveQuietly();
 
+        // 매핑 단위로도 남긴다. 프로젝트 하나만 멈췄을 때 화면이 그걸 말할 수 있어야 한다.
+        $projectId = $validated['project_id'] ?? null;
+
+        if ($projectId !== null) {
+            AiwAgentProject::where('agent_id', $agent->id)
+                ->where('project_id', $projectId)
+                ->update(['last_seen_at' => now()]);
+        }
+
         $jobs = AiwJob::query()
             ->where('agent_id', $agent->id)
+            // 프로세스를 나눴으면 남의 프로젝트 일감을 집어가면 안 된다.
+            ->when($projectId !== null, fn ($q) => $q->where('project_id', $projectId))
             ->whereIn('status', [
                 AiwJobStatus::Queued, AiwJobStatus::Dispatched, AiwJobStatus::Running,
                 AiwJobStatus::WaitingInput, AiwJobStatus::WaitingPermission, AiwJobStatus::Handover,
@@ -131,6 +176,9 @@ class DaemonController extends AgentApiController
 
         $jobs = AiwJob::query()
             ->where('agent_id', $agent->id)
+            // 프로젝트별로 프로세스를 나눈 경우. 걸러 주지 않으면 셋이 같은 일감을
+            // 동시에 집어가 같은 폴더에서 git 이 부딪힌다.
+            ->when($request->filled('project_id'), fn ($q) => $q->where('project_id', $request->integer('project_id')))
             ->whereIn('status', $statuses)
             ->orderBy('id')
             ->get();

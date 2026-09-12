@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     저장소에서 빌드해 데몬 실행 폴더로 내보낸다.
 
@@ -15,15 +15,15 @@
     .\sync-to-home.ps1 -Restart      # 동기화 후 데몬까지 다시 띄운다
 #>
 param(
-    [string]$Home = 'E:\xampp\htdocs\00.al_demon',
+    [string]$DaemonHome = 'E:\xampp\htdocs\00.al_demon',
     [switch]$Restart
 )
 
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
-if (-not (Test-Path $Home)) {
-    Write-Error "$Home 이 없습니다."
+if (-not (Test-Path $DaemonHome)) {
+    Write-Error "$DaemonHome 이 없습니다."
     exit 1
 }
 
@@ -36,30 +36,30 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # dist 는 통째로 갈아 끼운다. 지운 파일이 남아 있으면 옛 코드가 섞인다.
-if (Test-Path "$Home\dist") { Remove-Item "$Home\dist" -Recurse -Force }
-Copy-Item 'dist' "$Home\dist" -Recurse -Force
-Write-Host "  dist → $Home\dist" -ForegroundColor Green
+if (Test-Path "$DaemonHome\dist") { Remove-Item "$DaemonHome\dist" -Recurse -Force }
+Copy-Item 'dist' "$DaemonHome\dist" -Recurse -Force
+Write-Host "  dist → $DaemonHome\dist" -ForegroundColor Green
 
 # 실행 스크립트와 의존성 목록도 저장소 쪽이 원본이다.
-foreach ($f in @('package.json', 'package-lock.json', 'start-agent.ps1', 'setup-autostart.ps1')) {
-    Copy-Item $f "$Home\$f" -Force
+foreach ($f in @('package.json', 'package-lock.json', 'start-agent.ps1', 'start-all.ps1', 'setup-autostart.ps1')) {
+    Copy-Item $f "$DaemonHome\$f" -Force
     Write-Host "  $f"
 }
 
 # 의존성이 바뀌었으면 알려 준다. 말없이 넘어가면 실행 폴더만 옛 버전으로 남는다.
 $repoLock = (Get-FileHash 'package-lock.json').Hash
-$homeMods = Join-Path $Home 'node_modules'
+$homeMods = Join-Path $DaemonHome 'node_modules'
 
 if (-not (Test-Path $homeMods)) {
     Write-Host ''
-    Write-Host "$Home 에서 npm ci --omit=dev 를 실행하세요." -ForegroundColor Yellow
+    Write-Host "$DaemonHome 에서 npm ci --omit=dev 를 실행하세요." -ForegroundColor Yellow
 }
 
 if ($Restart) {
     Write-Host ''
     Write-Host '데몬을 다시 띄웁니다...' -ForegroundColor Cyan
 
-    foreach ($d in Get-ChildItem $Home -Directory -Filter 'logs*') {
+    foreach ($d in Get-ChildItem $DaemonHome -Directory -Filter 'logs*') {
         $pidFile = Join-Path $d.FullName 'daemon.pid'
 
         if (Test-Path $pidFile) {
@@ -70,12 +70,8 @@ if ($Restart) {
 
     Start-Sleep -Seconds 3
 
-    foreach ($slug in @('mangoshop', 'leefriends', 'unicorn')) {
-        if (Test-Path "$Home\.env.$slug") {
-            Start-ScheduledTask -TaskName "AIW Agent - $slug" -ErrorAction SilentlyContinue
-            Write-Host "  기동: $slug"
-        }
-    }
+    # 어느 프로젝트를 띄울지는 서버가 안다. 여기서 목록을 들고 있지 않는다.
+    & (Join-Path $DaemonHome 'start-all.ps1')
 } else {
     Write-Host ''
     Write-Host '데몬은 아직 옛 코드로 돌고 있습니다. -Restart 를 붙이거나 직접 다시 띄우세요.' -ForegroundColor Yellow

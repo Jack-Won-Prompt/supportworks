@@ -358,6 +358,77 @@ class DaemonApiTest extends TestCase
         $this->assertDatabaseHas('aiw_job_messages', ['job_id' => $job->id, 'role' => 'handover']);
     }
 
+    // ── 프로젝트별 프로세스 ─────────────────────────────────────────────────
+
+    public function test_매핑_목록을_돌려준다(): void
+    {
+        // 셋업 데몬이 이걸 보고 프로젝트마다 프로세스를 띄운다.
+        $this->daemon()->getJson('/api/aiw/mappings')
+            ->assertOk()
+            ->assertJsonPath('agent_id', $this->agent->id)
+            ->assertJsonPath('mappings.0.project_id', $this->job->project_id)
+            ->assertJsonPath('mappings.0.local_path', 'E:\work\sample');
+    }
+
+    public function test_하트비트가_매핑에도_생존을_남긴다(): void
+    {
+        $this->daemon()->postJson('/api/aiw/heartbeat', [
+            'project_id' => $this->job->project_id,
+        ])->assertOk();
+
+        $mapping = AiwAgentProject::where('agent_id', $this->agent->id)
+            ->where('project_id', $this->job->project_id)->first();
+
+        // 담당자 전체의 생존만 보면 멈춘 프로젝트가 온라인으로 보인다.
+        $this->assertNotNull($mapping->last_seen_at);
+        $this->assertTrue($mapping->is_online);
+    }
+
+    public function test_매핑_생존이_없으면_담당자_것으로_판단한다(): void
+    {
+        // 프로세스를 나누기 전에 만들어진 매핑은 이 값이 비어 있다.
+        $this->agent->forceFill(['last_seen_at' => now()])->save();
+
+        $mapping = AiwAgentProject::where('agent_id', $this->agent->id)->first();
+
+        $this->assertNull($mapping->last_seen_at);
+        $this->assertTrue($mapping->fresh()->is_online);
+    }
+
+    public function test_프로젝트를_지정하면_남의_일감은_주지_않는다(): void
+    {
+        $otherProject = DB::table('projects')->insertGetId([
+            'name' => '다른 프로젝트', 'created_by' => $this->job->created_by,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        AiwAgentProject::create([
+            'agent_id' => $this->agent->id, 'project_id' => $otherProject,
+            'local_path' => 'E:/work/other', 'default_branch' => 'main',
+        ]);
+
+        $otherJob = AiwJob::create([
+            'project_id' => $otherProject, 'agent_id' => $this->agent->id,
+            'title' => '남의 일', 'instruction' => 'x', 'context_limit_tokens' => 200000,
+            'allowed_tools' => ['Read'], 'cost_limit_usd' => 2.0,
+            'created_by' => $this->job->created_by, 'status' => AiwJobStatus::Dispatched,
+        ]);
+
+        // 걸러 주지 않으면 프로세스 둘이 같은 일감을 동시에 집어간다.
+        $ids = collect($this->daemon()
+            ->getJson('/api/aiw/jobs/pending?project_id='.$this->job->project_id)
+            ->assertOk()->json('jobs'))->pluck('job_id');
+
+        $this->assertContains($this->job->id, $ids);
+        $this->assertNotContains($otherJob->id, $ids);
+
+        // 지정하지 않으면 예전처럼 전부 받는다(한 프로세스가 다 맡는 경우).
+        $all = collect($this->daemon()->getJson('/api/aiw/jobs/pending')->assertOk()->json('jobs'))
+            ->pluck('job_id');
+
+        $this->assertContains($otherJob->id, $all);
+    }
+
     // ── 메시지 번호 ─────────────────────────────────────────────────────────
 
     public function test_지시문_다음_답변이_사라지지_않는다(): void

@@ -88,7 +88,26 @@ export class ApiClient {
             server_time: string;
             pending_job_ids: number[];
             active_job_ids: number[];
-        }>(() => this.http.post('/heartbeat', { capabilities }));
+        }>(() => this.http.post('/heartbeat', {
+            capabilities,
+            // 프로젝트별로 나눠 띄운 경우, 어느 프로젝트가 살아 있는지 매핑에 남긴다.
+            // 담당자 전체의 생존만 보면 멈춘 프로젝트가 온라인으로 보인다.
+            ...(config.projectId !== null ? { project_id: config.projectId } : {}),
+        }));
+    }
+
+    /** 이 PC 가 맡은 프로젝트 목록. 셋업 데몬이 프로세스를 몇 개 띄울지 정하는 근거. */
+    mappings() {
+        return this.send<{
+            agent_id: number;
+            mappings: {
+                project_id: number;
+                project_name: string | null;
+                display_name: string;
+                local_path: string;
+                default_branch: string | null;
+            }[];
+        }>(() => this.http.get('/mappings'));
     }
 
     /**
@@ -96,8 +115,15 @@ export class ApiClient {
      *                      (resume_session_id 가 실려 온다).
      */
     pendingJobs(includeActive = false) {
+        const params: Record<string, unknown> = {};
+
+        if (includeActive) { params.resume = 1; }
+
+        // 남의 프로젝트 일감을 집어가면 같은 폴더에서 git 이 부딪힌다.
+        if (config.projectId !== null) { params.project_id = config.projectId; }
+
         return this.send<{ jobs: JobSpec[] }>(() =>
-            this.http.get('/jobs/pending', includeActive ? { params: { resume: 1 } } : undefined),
+            this.http.get('/jobs/pending', Object.keys(params).length ? { params } : undefined),
         );
     }
 

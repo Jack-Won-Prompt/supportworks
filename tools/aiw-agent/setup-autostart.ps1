@@ -1,111 +1,97 @@
-<#
+﻿<#
 .SYNOPSIS
-    PC 가 켜지면 사람이 로그인하지 않아도 데몬이 뜨도록 작업을 등록한다.
+    로그인하면 이 폴더의 데몬이 전부 자동으로 뜨도록 작업 하나를 등록한다.
 
 .DESCRIPTION
-    "로그온 시" 트리거만으로는 부족하다. 새벽에 Windows 업데이트로 재부팅되면
-    PC 는 로그인 화면에서 멈추고, 아무도 앉지 않는 한 담당자는 계속 오프라인이다.
-    화면에는 "온라인 상태인 담당자가 없습니다" 로만 보여 이유를 알 수 없다.
+    프로젝트마다 작업을 따로 만들지 않는다. 그러면 프로젝트를 붙일 때마다
+    작업 스케줄러를 다시 손대야 하고, 빠뜨리면 그 담당자만 조용히 오프라인이
+    된다 — 화면에는 "담당자 없음" 으로만 보여 이유를 찾기 어렵다.
 
-    그래서 트리거를 "시스템 시작 시" 로 두고, 로그온 여부와 무관하게 실행한다.
-    이 방식은 Windows 가 비밀번호를 LSA 비밀 저장소에 넣는다 — 자동 로그온처럼
-    레지스트리에 평문으로 남기지 않는다.
+    작업은 하나만 두고, 그 하나가 start-all.ps1 을 부른다. start-all 은
+    `.env.<이름>` 을 훑어 있는 만큼 띄운다. 그래서 새 프로젝트는 `.env.<이름>`
+    하나만 만들면 되고 여기는 다시 건드릴 필요가 없다.
 
-    로그온 트리거도 함께 남긴다. 둘 다 걸려 두 번 떠도 문제가 없다 —
-    LOG_DIR 별 PID 잠금이 두 번째를 스스로 물러나게 한다.
+    같은 작업을 10분마다 다시 부른다. 이미 떠 있는 것은 건너뛰므로 부담이 없고,
+    그 사이에 추가된 데몬이나 죽은 데몬이 저절로 살아난다.
 
-.NOTES
-    관리자 권한 PowerShell 에서 실행해야 한다.
-    비밀번호는 이 창에만 입력되고 파일이나 로그에 남지 않는다.
+    비밀번호를 묻지 않고 관리자 권한도 필요 없다 — 자기 계정으로 자기 세션에서
+    도는 작업이기 때문이다. 데몬은 구독 로그인(C:\Users\<계정>\.claude)으로
+    Claude Code 를 실행하므로 어차피 그 사용자 세션에서 도는 것이 맞다.
 
 .EXAMPLE
     .\setup-autostart.ps1
+    .\setup-autostart.ps1 -StartNow
 #>
 param(
-    [string[]]$Slugs = @('mangoshop', 'leefriends', 'unicorn')
+    [switch]$StartNow,
+    [int]$RepeatMinutes = 10
 )
 
 $ErrorActionPreference = 'Stop'
 
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
-    ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+try { [Console]::OutputEncoding = [Text.Encoding]::UTF8 } catch { }
 
-if (-not $isAdmin) {
-    Write-Host '관리자 권한이 필요합니다.' -ForegroundColor Red
-    Write-Host '시작 → PowerShell 을 마우스 오른쪽 → "관리자 권한으로 실행" 후 다시 실행하세요.'
-    exit 1
-}
-
-$dir  = $PSScriptRoot
-$user = "$env:USERDOMAIN\$env:USERNAME"
+$dir      = $PSScriptRoot
+$user     = "$env:USERDOMAIN\$env:USERNAME"
+$taskName = 'AIW Agents'
 
 Write-Host "대상 계정 : $user"
 Write-Host "데몬 폴더 : $dir"
 Write-Host ''
-Write-Host '이 계정의 Windows 로그인 비밀번호를 입력하세요.' -ForegroundColor Cyan
-Write-Host 'Windows 가 LSA 에 보관하며, 파일이나 로그에는 남지 않습니다.'
 
-$secure = Read-Host '비밀번호' -AsSecureString
+Write-Host '찾은 데몬:' -ForegroundColor Cyan
+& (Join-Path $dir 'start-all.ps1') -List
 
-if ($secure.Length -eq 0) {
-    Write-Host '입력이 비어 있어 중단합니다.' -ForegroundColor Red
+# 프로젝트별로 만들어 두었던 옛 작업은 치운다. 남겨 두면 같은 데몬을 두 곳에서
+# 띄우려 하고, 프로젝트를 지운 뒤에도 실패한 작업만 계속 남는다.
+Get-ScheduledTask | Where-Object { $_.TaskName -like 'AIW Agent - *' } | ForEach-Object {
+    Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false
+    Write-Host "  옛 작업 제거: $($_.TaskName)" -ForegroundColor DarkGray
+}
+
+$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$dir\start-all.ps1`"" `
+    -WorkingDirectory $dir
+
+# 로그인 직후엔 네트워크가 아직 올라오지 않았을 수 있다. 1분 늦춰
+# 첫 하트비트가 실패하지 않게 한다.
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User $user
+$trigger.Delay = 'PT1M'
+
+# 주기 반복은 트리거에서 직접 만들 수 없어, 일회성 트리거의 설정을 빌려 온다.
+$repeat = New-ScheduledTaskTrigger -Once -At (Get-Date) `
+    -RepetitionInterval (New-TimeSpan -Minutes $RepeatMinutes)
+$trigger.Repetition = $repeat.Repetition
+
+$settings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+    -StartWhenAvailable `
+    -MultipleInstances IgnoreNew `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 5)   # start-all 은 띄우고 바로 끝난다
+
+# 권한을 올리지 않는다. 데몬이 여는 것은 매핑된 작업 폴더뿐이다.
+$principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
+
+# 실패했는데 성공으로 찍으면 재부팅해 봐야 안 뜬 이유를 찾게 된다.
+try {
+    Register-ScheduledTask -TaskName $taskName `
+        -Action $action -Trigger $trigger -Settings $settings -Principal $principal `
+        -Force -ErrorAction Stop | Out-Null
+
+    Write-Host ''
+    Write-Host "등록: $taskName  (로그온 시 + $RepeatMinutes 분마다)" -ForegroundColor Green
+} catch {
+    Write-Host ''
+    Write-Host "실패: $taskName  —  $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 
-# Register-ScheduledTask 는 평문만 받는다. 메모리에서만 쓰고 바로 지운다.
-$bstr  = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-$plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
-
-try {
-    foreach ($slug in $Slugs) {
-        $envFile = Join-Path $dir ".env.$slug"
-
-        if (-not (Test-Path $envFile)) {
-            Write-Host "  건너뜀: $envFile 이 없습니다." -ForegroundColor Yellow
-            continue
-        }
-
-        $name = "AIW Agent - $slug"
-
-        $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-            -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$dir\start-agent.ps1`" $slug" `
-            -WorkingDirectory $dir
-
-        # 부팅 직후엔 네트워크가 아직 올라오지 않았다. 1분 늦춰 첫 하트비트를 살린다.
-        $atStartup = New-ScheduledTaskTrigger -AtStartup
-        $atStartup.Delay = 'PT1M'
-
-        $atLogon = New-ScheduledTaskTrigger -AtLogOn -User $user
-        $atLogon.Delay = 'PT1M'
-
-        $settings = New-ScheduledTaskSettingsSet `
-            -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
-            -StartWhenAvailable `
-            -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2) `
-            -ExecutionTimeLimit (New-TimeSpan -Seconds 0)   # 기본 3일 제한을 없앤다
-
-        Register-ScheduledTask -TaskName $name `
-            -Action $action -Trigger @($atStartup, $atLogon) -Settings $settings `
-            -User $user -Password $plain -RunLevel Limited -Force | Out-Null
-
-        Write-Host "  등록: $name  (시작 시 + 로그온 시, 로그온 여부 무관)" -ForegroundColor Green
-    }
-}
-finally {
-    # 평문 비밀번호를 메모리에 남기지 않는다.
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
-    $plain = $null
-    [GC]::Collect()
-}
+if ($StartNow) { Start-ScheduledTask -TaskName $taskName }
 
 Write-Host ''
-Write-Host '=== 등록 결과 ===' -ForegroundColor Cyan
-
 Get-ScheduledTask | Where-Object { $_.TaskName -like 'AIW Agent*' } | ForEach-Object {
-    $t = $_
-    $triggers = ($t.Triggers | ForEach-Object { $_.CimClass.CimClassName -replace 'MSFT_Task|Trigger', '' }) -join ', '
-    '{0,-26} {1,-8} 트리거: {2}  실행계정: {3}' -f $t.TaskName, $t.State, $triggers, $t.Principal.UserId
+    '{0,-14} {1,-9} 로그온유형={2}' -f $_.TaskName, $_.State, $_.Principal.LogonType
 }
 
 Write-Host ''
-Write-Host '재부팅 후 로그인하지 않은 상태에서도 담당자가 온라인인지 확인하세요.' -ForegroundColor Yellow
+Write-Host "이제 .env.<이름> 을 만들면 다음 실행($RepeatMinutes 분 안)에 저절로 뜹니다." -ForegroundColor Yellow

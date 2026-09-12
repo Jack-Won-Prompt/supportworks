@@ -41,6 +41,15 @@ export const config = {
      */
     shell: process.env.SW_SHELL || undefined,
 
+    /**
+     * 이 프로세스가 맡은 프로젝트. 비우면 이 PC 의 모든 프로젝트를 맡는다.
+     *
+     * 프로젝트마다 프로세스를 나눠 띄우면 하나가 죽어도 나머지는 계속 돈다.
+     * 그때 이 값이 없으면 셋이 같은 일감을 동시에 집어가 같은 폴더에서
+     * git 이 부딪힌다. 토큰은 PC 당 하나이므로 구분은 이 값으로만 된다.
+     */
+    projectId: process.env.SW_PROJECT_ID ? Number(process.env.SW_PROJECT_ID) : null,
+
     heartbeatSec: num('HEARTBEAT_SEC', 30),
 
     /**

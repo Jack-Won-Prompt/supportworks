@@ -69,6 +69,13 @@ export class Realtime {
         });
 
         channel.bind('job.dispatched', (payload: any) => {
+            // 토큰이 PC 당 하나라 채널도 하나다. 프로젝트별로 나눠 띄운 프로세스는
+            // 남의 일감까지 받으므로 여기서 걸러야 한다. 걸러 주지 않으면 셋이
+            // 같은 작업을 동시에 실행한다.
+            if (config.projectId !== null && Number(payload?.project_id) !== config.projectId) {
+                return;
+            }
+
             log('info', '지시 수신', { jobId: payload?.job_id });
             this.jobs.enqueue(payload);
         });

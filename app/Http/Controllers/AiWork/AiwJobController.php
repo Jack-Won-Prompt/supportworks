@@ -96,11 +96,14 @@ class AiwJobController extends Controller
     {
         $this->authorize('create', [AiwJob::class, $project]);
 
+        // 온라인 판정은 담당자 전체가 아니라 **이 프로젝트를 맡은 프로세스** 기준이다.
+        // 한 PC 가 프로젝트마다 따로 띄우면 그중 하나만 죽을 수 있다.
         $agents = AiwAgent::query()
-            ->online()
             ->whereHas('agentProjects', fn ($q) => $q->where('project_id', $project->id))
             ->with(['agentProjects' => fn ($q) => $q->where('project_id', $project->id)])
-            ->get();
+            ->get()
+            ->filter(fn (AiwAgent $a) => $a->agentProjects->first()?->is_online ?? $a->is_online)
+            ->values();
 
         // 후속 지시: 원 job 의 설정을 그대로 물려받되 원 job 은 건드리지 않는다.
         $parent = null;
