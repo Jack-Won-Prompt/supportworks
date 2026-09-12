@@ -16,12 +16,12 @@ use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwDeploy;
 use App\Models\AiWork\AiwDeployTarget;
 use App\Models\AiWork\AiwJobAttachment;
-use App\Models\AiWork\AiwJobMessage;
 use App\Models\AiWork\AiwPermissionRequest;
 use App\Models\Project;
 use App\Services\AiWork\AttachmentService;
 use App\Services\AiWork\PublishService;
 use App\Services\AiWork\HandoverService;
+use App\Services\AiWork\JobCreator;
 use App\Services\AiWork\JobDispatcher;
 use App\Services\AiWork\JobStateMachine;
 use App\Services\AiWork\MessageWriter;
@@ -46,10 +46,10 @@ class AiwJobController extends Controller
         private JobStateMachine $states,
         private PermissionService $permissions,
         private HandoverService $handovers,
-        private ToolPolicy $tools,
         private AttachmentService $attachments,
         private PublishService $publishes,
         private MessageWriter $messages,
+        private JobCreator $creator,
     ) {}
 
     /** 화면 2: 지시 목록 */
@@ -166,66 +166,29 @@ class AiwJobController extends Controller
             'images.*'        => ['image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
         ]);
 
-        $agent = AiwAgent::query()
-            ->whereHas('agentProjects', fn ($q) => $q->where('project_id', $project->id))
-            ->findOrFail($validated['agent_id']);
-
-        // 툴 목록은 서버가 강제한다. 클라이언트가 보낸 값을 그대로 쓰지 않는다.
-        $tools = $this->tools->sanitize($validated['allowed_tools']);
-
-        // 배포 대상도 서버가 확인한다. 다른 프로젝트의 대상을 끼워 넣을 수 없다.
-        $autoTarget = $request->filled('auto_deploy_target_id')
-            ? AiwDeployTarget::where('project_id', $project->id)->where('enabled', true)
-                ->find($request->integer('auto_deploy_target_id'))
-            : null;
-
-        $autoDeploy = $request->boolean('auto_deploy')
-            && $request->boolean('use_branch')
-            && $autoTarget !== null;
-
-        $job = AiwJob::create([
-            'project_id'           => $project->id,
-            'agent_id'             => $agent->id,
-            'parent_job_id'        => $validated['parent_job_id'] ?? null,
-            'title'                => $validated['title'],
-            'instruction'          => $validated['instruction'],
-            'mode'                 => $validated['mode'],
-            'model'                => $validated['model'] ?? null,
-            'context_limit_tokens' => $this->contextLimitFor($validated['model'] ?? null),
-            'allowed_tools'        => $tools,
-            'permission_mode'      => $validated['permission_mode'],
+        // 등록 절차는 모바일 앱과 같은 서비스를 탄다. 여기서는 폼 값을 해석만 한다.
+        [$job, $sent] = $this->creator->create($project, $request->user(), [
+            'title'                 => $validated['title'],
+            'agent_id'              => (int) $validated['agent_id'],
+            'instruction'           => $validated['instruction'],
+            'mode'                  => $validated['mode'],
+            'model'                 => $validated['model'] ?? null,
+            'allowed_tools'         => $validated['allowed_tools'],
+            'permission_mode'       => $validated['permission_mode'],
             // 체크하면 상한 없이 돈다. 숫자가 비어 있어도 같은 뜻으로 본다.
-            'cost_limit_usd'       => $request->boolean('no_cost_limit')
+            'cost_limit_usd'        => $request->boolean('no_cost_limit')
                 ? null
                 : ($validated['cost_limit_usd'] ?? null),
             // 폼의 hidden 이 "0" 을 보내므로 여기서 그대로 해석한다. 예전에는
             // 값이 없으면 true 로 봤는데, 해제한 체크박스는 아무것도 보내지 않아
             // 브랜치 분리를 끌 수 없었다.
-            'use_branch'           => $request->boolean('use_branch'),
-            // 자동 배포는 브랜치 분리가 켜져 있어야 성립한다 — 변경이 현재
-            // 브랜치에 섞이면 이 작업만 골라 올릴 수 없다.
-            'auto_deploy'          => $autoDeploy,
-            'auto_deploy_target_id' => $autoDeploy ? $autoTarget?->id : null,
-            'created_by'           => $request->user()->id,
-        ]);
-
-        // 최초 지시문을 대화의 첫 메시지로 남긴다(화면 4 의 첫 말풍선).
-        $first = AiwJobMessage::create([
-            'job_id'        => $job->id,
-            'seq'           => 0,
-            'role'          => 'user',
-            'content'       => $job->instruction,
-            'user_id'       => $request->user()->id,
-            'session_index' => 0,
-            'delivered_at'  => now(),   // 지시문은 JobDispatched 로 함께 전달된다
-        ]);
-
-        // 첨부는 dispatch 전에 저장해야 담당자가 받는 payload 에 함께 실린다.
-        $this->attachments->attach($first, $request->file('images', []), $request->user());
-
-        $sent = $job->parent_job_id
-            ? $this->dispatcher->dispatchFollowUp($job)
-            : $this->dispatcher->dispatch($job);
+            'use_branch'            => $request->boolean('use_branch'),
+            'parent_job_id'         => $validated['parent_job_id'] ?? null,
+            'auto_deploy'           => $request->boolean('auto_deploy'),
+            'auto_deploy_target_id' => $request->filled('auto_deploy_target_id')
+                ? $request->integer('auto_deploy_target_id')
+                : null,
+        ], $request->file('images', []));
 
         return redirect()
             ->route('projects.ai-works.show', [$project, $job])
@@ -596,13 +559,6 @@ class AiwJobController extends Controller
             ->whereHas('agent.agentProjects', fn ($q) => $q->where('project_id', $project->id))
             ->pluck('id', 'agent_id')
             ->all();
-    }
-
-    private function contextLimitFor(?string $model): int
-    {
-        $limits = (array) config('aiw.model_context_limits', []);
-
-        return (int) ($limits[$model] ?? config('aiw.default_context_limit_tokens', 200000));
     }
 
     private function emit(object $event, int $jobId): void

@@ -487,5 +487,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\AiWork\AiwJob::class,
             \App\Policies\AiWork\AiwJobPolicy::class,
         );
+
+        // AI Works 모바일 푸시(회신·승인 요청·완료·실패·자동 배포 결과).
+        // 브로드캐스트가 아니라 모델 저장에 붙는다 — 이유는 AiwNotifier 주석 참조.
+        \App\Services\AiWork\AiwNotifier::register();
     }
 }

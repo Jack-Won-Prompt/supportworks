@@ -364,6 +364,18 @@ Route::prefix('mobile')->group(function () {
         Route::get ('ai-fix-jobs/{aiFixJob}',         [MobileAiFixJobController::class, 'show']);
         Route::post('ai-fix-jobs/{aiFixJob}/approve', [MobileAiFixJobController::class, 'approve']);
         Route::post('ai-fix-jobs/{aiFixJob}/reject',  [MobileAiFixJobController::class, 'reject']);
+
+        // AI Works (작업 지시, 관리자 전용) — 등록·회신·승인·종료. 실시간 스트림 대신 푸시로 알린다.
+        Route::get ('ai-works/projects',                                    [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'projects']);
+        Route::get ('ai-works/attention',                                   [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'attention']);
+        Route::get ('projects/{project}/ai-works/options',                  [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'options']);
+        Route::get ('projects/{project}/ai-works',                          [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'index']);
+        Route::post('projects/{project}/ai-works',                          [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'store']);
+        Route::get ('projects/{project}/ai-works/{job}',                    [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'show'])->whereNumber('job');
+        Route::post('projects/{project}/ai-works/{job}/messages',           [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'message'])->whereNumber('job');
+        Route::post('projects/{project}/ai-works/{job}/permissions/{permission}', [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'decide'])->whereNumber('job');
+        Route::post('projects/{project}/ai-works/{job}/{action}',           [\App\Http\Controllers\Api\Mobile\AiwJobController::class, 'action'])
+            ->whereNumber('job')->whereIn('action', ['cancel', 'end']);
     });
 });
 
