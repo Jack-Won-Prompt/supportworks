@@ -447,6 +447,28 @@ class DaemonApiTest extends TestCase
         $this->assertFalse($mapping->isReady());
     }
 
+    public function test_작업이_시작되면_낡은_준비_경고가_지워진다(): void
+    {
+        // 준비 상태는 10분마다 도는 점검이 갱신한다. 그 사이에 사람이 고쳐도
+        // 화면은 낡은 경고를 계속 보여 줘, 고쳤는데 아직 막혔다고 읽힌다.
+        $mapping = AiwAgentProject::where('agent_id', $this->agent->id)
+            ->where('project_id', $this->job->project_id)->first();
+
+        $mapping->forceFill([
+            'setup_status'  => AiwSetupStatus::DirtyTree,
+            'setup_message' => '커밋되지 않은 변경 6건',
+        ])->save();
+
+        // 작업이 시작됐다는 것은 그 폴더가 쓸 수 있었다는 증거다.
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's1'])->assertOk();
+
+        $mapping->refresh();
+
+        $this->assertSame(AiwSetupStatus::Ok, $mapping->setup_status);
+        $this->assertNull($mapping->setup_message);
+        $this->assertTrue($mapping->isReady());
+    }
+
     public function test_모르는_셋업_상태는_거부한다(): void
     {
         $this->daemon()->postJson('/api/aiw/mappings/setup', [

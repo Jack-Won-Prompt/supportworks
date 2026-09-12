@@ -8,6 +8,7 @@ use App\Events\AiWork\JobLogAppended;
 use App\Events\AiWork\JobMessageAppended;
 use App\Events\AiWork\JobStatusChanged;
 use App\Events\AiWork\PermissionRequested;
+use App\Models\AiWork\AiwAgentProject;
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobLog;
 use App\Models\AiWork\AiwJobMessage;
@@ -63,6 +64,11 @@ class JobReportController extends AgentApiController
             'reason'     => null,
         ];
 
+        // 작업이 시작됐다는 것은 그 폴더가 쓸 수 있는 상태였다는 증거다.
+        // 준비 상태는 10분마다 도는 점검이 갱신하는데, 그 사이에 사람이 고쳐도
+        // 화면은 낡은 경고를 계속 보여 준다 — 고쳤는데 아직 막혔다고 읽힌다.
+        $this->markSetupOk($job);
+
         // 복구된 세션은 툴 호출을 처음부터 다시 시도하므로 새 request_key 가 생긴다.
         // 옛 pending 을 남겨두면 사용자가 무효한 카드를 누르게 된다.
         if ($request->boolean('resumed')) {
@@ -116,6 +122,19 @@ class JobReportController extends AgentApiController
         }
 
         return response()->json(['accepted' => $inserted->count()] + $this->controlFlags($job));
+    }
+
+    /** 작업이 시작됐으면 그 매핑은 준비된 상태다. 낡은 경고를 지운다. */
+    private function markSetupOk(AiwJob $job): void
+    {
+        AiwAgentProject::where('agent_id', $job->agent_id)
+            ->where('project_id', $job->project_id)
+            ->where(fn ($q) => $q->whereNull('setup_status')->orWhere('setup_status', '!=', 'ok'))
+            ->update([
+                'setup_status'     => 'ok',
+                'setup_message'    => null,
+                'setup_checked_at' => now(),
+            ]);
     }
 
     /**

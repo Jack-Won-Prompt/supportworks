@@ -110,9 +110,14 @@ foreach ($m in $res.mappings) {
     if ($NoReport) { continue }
 
     try {
+        # 본문을 **바이트로** 보낸다. 문자열로 주면 PowerShell 5.1 이 기본 인코딩으로
+        # 바꿔 한글이 전부 '?' 가 된다 — 실제로 화면에 "???? ?? ?? 6?" 로 떴다.
+        # 무엇을 고쳐야 하는지 알려 주는 문장이 읽을 수 없게 되면 있으나 마나다.
+        $json = @{ project_id = $m.project_id; status = $status; message = $message } | ConvertTo-Json
+        $body = [System.Text.Encoding]::UTF8.GetBytes($json)
+
         Invoke-RestMethod -Uri "$baseUrl/api/aiw/mappings/setup" -Method Post -Headers $headers -TimeoutSec 20 `
-            -ContentType 'application/json' `
-            -Body (@{ project_id = $m.project_id; status = $status; message = $message } | ConvertTo-Json) | Out-Null
+            -ContentType 'application/json; charset=utf-8' -Body $body | Out-Null
     } catch {
         Write-Host "         보고 실패: $($_.Exception.Message)" -ForegroundColor Red
     }

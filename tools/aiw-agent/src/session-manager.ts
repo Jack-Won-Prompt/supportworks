@@ -22,6 +22,10 @@ import { SdkSessionAdapter } from './session/sdk-adapter.js';
 const FIXED_HEADER = (jobId: number, root: string) =>
     [
         `You are executing work order #${jobId} from SupportWorks.`,
+        // 읽는 사람은 한국어 사용자다. 지시문이 영어라도 답은 한국어여야 한다 —
+        // 실제로 같은 종류의 지시에 어떤 때는 한국어로, 어떤 때는 영어로 답했다.
+        'Write every reply to the human in Korean, including questions, choice options,',
+        'and the final summary. Keep file paths, commands, code, and identifiers as they are.',
         `Working directory ${root} is enforced by the daemon; access outside it is blocked.`,
         'Never push to remote. When reading long outputs (test logs, large files) use head/tail/grep',
         'to keep them short. When you need a decision from the human, ask a clear question and stop.',
