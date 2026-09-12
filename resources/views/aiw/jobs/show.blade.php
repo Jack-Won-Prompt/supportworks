@@ -202,6 +202,10 @@
         </div>
     @endif
 
+    {{-- 커밋·푸시와 배포 카드. 상태가 바뀌면 이 덩어리만 다시 받아 갈아 끼운다
+         (job.artifacts 신호). 배포 카드는 처음엔 없다가 생기므로 함께 감싼다. --}}
+    <div id="aiw-artifacts" class="contents">
+
     {{-- ── 결과 반영(커밋·푸시) ──────────────────────────────────────
          담당자는 push 를 할 수 없다. 사람이 결과를 확인하고 누른 이 버튼만이
          커밋·머지·푸시를 시킨다. --}}
@@ -291,7 +295,7 @@
                 <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                     <span class="font-semibold">{{ $runningDeploy->statusLabel() }}</span> —
                     {{ $runningDeploy->target?->name }} · {{ $runningDeploy->requester?->name }}
-                    <span class="text-amber-700">새로고침하면 진행 상황이 갱신됩니다.</span>
+                    <span class="text-amber-700">진행 상황은 저절로 갱신됩니다.</span>
                 </div>
             @else
                 {{-- 확인 문구는 고른 대상의 이름이다. 대상이 여러 개면 어느 이름인지
@@ -346,6 +350,8 @@
             @endforeach
         </div>
     @endif
+
+    </div>{{-- /#aiw-artifacts --}}
 
     {{-- ── 본문: 대화 + 활동 로그 ───────────────────────────────────── --}}
     <div class="grid gap-2 lg:grid-cols-3">
@@ -651,6 +657,10 @@ function aiwJob(initial) {
         livePermissions: [],
         autoScroll: true,
 
+        /** 커밋·푸시/배포 카드를 다시 받아 오는 중인가. 신호가 몰려 와도 한 번만 받는다. */
+        artifactsPending: false,
+        artifactsAgain: false,
+
         init() {
             // 렌더러가 아직 안 올라왔으면 올라온 뒤 다시 그린다.
             if (! this.markdownReady) {
@@ -668,6 +678,47 @@ function aiwJob(initial) {
                 this.subscribe();
             } else {
                 window.addEventListener('aiw:echo-ready', () => this.subscribe(), { once: true });
+            }
+        },
+
+        /**
+         * 카드 부분만 다시 받아 갈아 끼운다.
+         *
+         * 내용을 이벤트에 싣지 않는 이유: 카드 모양이 바뀔 때마다 이벤트까지
+         * 고쳐야 하고, 배포 카드는 처음엔 없다가 생긴다. 서버가 그린 그대로
+         * 받아 오는 편이 어긋날 일이 없다.
+         */
+        async refreshArtifacts() {
+            if (this.artifactsPending) { this.artifactsAgain = true; return; }
+            this.artifactsPending = true;
+
+            try {
+                const res = await fetch(window.location.href, {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+
+                if (!res.ok) return;
+
+                const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+                const fresh = doc.getElementById('aiw-artifacts');
+                const current = document.getElementById('aiw-artifacts');
+
+                if (!fresh || !current) return;
+
+                current.innerHTML = fresh.innerHTML;
+
+                // 새로 들어온 조각 안의 x-data 를 살린다. 없으면 배포 폼이 죽는다.
+                window.Alpine?.initTree(current);
+            } catch (error) {
+                // 실패해도 화면은 그대로 둔다. 다음 신호에 다시 시도한다.
+            } finally {
+                this.artifactsPending = false;
+
+                if (this.artifactsAgain) {
+                    this.artifactsAgain = false;
+                    this.refreshArtifacts();
+                }
             }
         },
 
@@ -690,6 +741,10 @@ function aiwJob(initial) {
                     setTimeout(() => window.location.reload(), 1200);
                 }
             });
+
+            // 커밋·푸시와 배포 카드는 서버가 그린다. 활동 로그만 흐르고 카드가
+            // 멈춰 있어 성공을 실패로 오해하는 일이 잦았다.
+            ch.listen('.job.artifacts', () => this.refreshArtifacts());
 
             ch.listen('.message.appended', (e) => {
                 if (!this.liveMessages.some((m) => m.id === e.id)) this.liveMessages.push(e);

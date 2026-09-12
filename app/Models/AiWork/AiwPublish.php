@@ -2,6 +2,8 @@
 
 namespace App\Models\AiWork;
 
+use App\Events\AiWork\JobArtifactsChanged;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +26,37 @@ class AiwPublish extends Model
         'created_at'  => 'datetime',
         'finished_at' => 'datetime',
     ];
+
+    /**
+     * 화면의 카드가 멈춰 있지 않게 한다.
+     *
+     * 이 표의 상태가 바뀌는 경로는 여러 개다(사람이 누른 버튼, 자동 진행,
+     * 담당자 보고, 큐 작업). 각 경로에서 따로 알리면 언젠가 하나를 빠뜨린다 —
+     * 실제로 로그만 흐르고 카드는 "진행 중…" 인 채로 남았다.
+     */
+    protected static function booted(): void
+    {
+        $notify = function (self $row) {
+            if (! $row->job_id) {
+                return;
+            }
+
+            // 알림이 실패해도 저장은 지켜야 한다. Reverb 가 꺼져 있거나 닿지
+            // 않으면 event() 가 예외를 던지는데, 그게 배포·푸시 기록 저장까지
+            // 무너뜨리면 안 된다(이 저장소가 쓰는 방식과 같다).
+            try {
+                event(new JobArtifactsChanged((int) $row->job_id));
+            } catch (\Throwable $e) {
+                Log::warning('AI Works: 카드 갱신 알림 실패(기록은 저장됨)', [
+                    'job_id' => $row->job_id,
+                    'error'  => $e->getMessage(),
+                ]);
+            }
+        };
+
+        static::created($notify);
+        static::updated($notify);
+    }
 
     public function job(): BelongsTo
     {
