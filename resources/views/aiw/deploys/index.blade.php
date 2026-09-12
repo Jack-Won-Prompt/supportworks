@@ -62,6 +62,19 @@
                 <input type="text" name="command" required maxlength="500" value="{{ old('command') }}"
                        placeholder="bash deploy.sh" class="w-full rounded-lg border-gray-200 text-xs">
             </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">실행 위치</label>
+                <select name="runs_on" class="w-full rounded-lg border-gray-200 text-xs">
+                    <option value="server" @selected(old('runs_on') === 'server')>이 서버 — 작업 폴더가 supportworks 서버에 있을 때</option>
+                    <option value="agent" @selected(old('runs_on') === 'agent')>담당자 PC — 운영 서버가 따로일 때</option>
+                </select>
+                {{-- 운영 서버가 다른 프로젝트는 이 서버에 작업 폴더가 아예 없다.
+                     그 경우 담당자 PC 가 실행한다 — 각 서버 접속 키를 이미 들고 있다. --}}
+                <p class="mt-1 text-[11px] text-gray-500">
+                    담당자 PC 를 고르면 그 PC 에서 명령이 실행됩니다. 원격 서버로 보내려면
+                    명령에 <code>ssh</code> 나 <code>plink</code> 를 직접 적으세요.
+                </p>
+            </div>
             <div class="flex gap-2">
                 <input type="number" name="timeout_sec" min="30" max="3600" value="{{ old('timeout_sec', 900) }}"
                        title="제한 시간(초)" class="w-24 rounded-lg border-gray-200 text-xs">
@@ -81,6 +94,9 @@
                 </span>
                 <span class="font-semibold text-gray-800">{{ $target->name }}</span>
                 <span class="text-gray-500">{{ $target->project?->name ?? '삭제된 프로젝트' }}</span>
+                <span class="rounded px-1.5 py-0.5 text-[11px] {{ $target->runsOnAgent() ? 'bg-violet-50 text-violet-700' : 'bg-gray-100 text-gray-600' }}">
+                    {{ $target->runsOnAgent() ? '담당자 PC' : '이 서버' }}
+                </span>
                 <code class="text-gray-500">{{ $target->working_dir }}</code>
                 <code class="text-indigo-700">{{ $target->command }}</code>
                 <span class="text-gray-400">{{ $target->timeout_sec }}초</span>

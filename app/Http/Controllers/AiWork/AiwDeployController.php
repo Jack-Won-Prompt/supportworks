@@ -47,10 +47,13 @@ class AiwDeployController extends Controller
             'name'        => ['required', 'string', 'max:100'],
             'working_dir' => ['required', 'string', 'max:500'],
             'command'     => ['required', 'string', 'max:500'],
+            // 운영 서버가 이 서버와 다르면 담당자 PC 가 실행해야 한다.
+            'runs_on'     => ['nullable', 'in:server,agent'],
             'timeout_sec' => ['nullable', 'integer', 'min:30', 'max:3600'],
         ]);
 
         AiwDeployTarget::create($validated + [
+            'runs_on'     => $validated['runs_on'] ?? 'server',
             'timeout_sec' => $validated['timeout_sec'] ?? 900,
             'enabled'     => true,
             'created_by'  => $request->user()->id,
