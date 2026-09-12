@@ -332,7 +332,18 @@
 
                 {{-- 실시간으로 도착한 메시지. 새로고침 후 모습과 같아야 한다. --}}
                 <template x-for="m in liveMessages" :key="m.id">
-                    <div class="flex gap-2" :class="m.role === 'user' ? 'flex-row-reverse' : ''">
+                  <div>
+                    {{-- 데몬이 알리는 사실. 새로고침 후 partials/message.blade.php 와 같은 모습이어야 한다. --}}
+                    <template x-if="m.role === 'system'">
+                        <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                            <div class="mb-1 flex items-center gap-2 text-[11px]">
+                                <span class="font-semibold text-amber-800">시스템</span>
+                            </div>
+                            <div class="aiw-md text-amber-900" x-html="render(m.content)"></div>
+                        </div>
+                    </template>
+
+                    <div x-show="m.role !== 'system'" class="flex gap-2" :class="m.role === 'user' ? 'flex-row-reverse' : ''">
                         <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
                              :class="m.role === 'user' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'"
                              x-text="roleLabel(m.role).slice(0, 1)"></div>
@@ -368,6 +379,7 @@
                             @endif
                         </div>
                     </div>
+                  </div>
                 </template>
 
                 {{-- 승인 요청 카드 (pending 은 새로고침해도 유지된다) --}}
@@ -814,7 +826,7 @@ function aiwJob(initial) {
 
             return div.innerHTML;
         },
-        roleLabel(role) { return { user: '나', assistant: '담당자', handover: '인수인계' }[role] ?? role; },
+        roleLabel(role) { return { user: '나', assistant: '담당자', handover: '인수인계', system: '시스템' }[role] ?? role; },
         logTone(type) {
             return { error: 'bg-red-50 text-red-700', daemon: 'bg-slate-100 text-slate-700', handover: 'bg-violet-50 text-violet-700' }[type] ?? 'text-gray-600';
         },

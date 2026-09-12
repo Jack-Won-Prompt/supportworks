@@ -179,7 +179,8 @@ export class ApiClient {
         messages: {
             /** 같은 메시지를 두 번 보냈는지 서버가 가리는 키. */
             client_key: string;
-            role: 'assistant' | 'handover';
+            /** system 은 데몬이 알리는 사실(중단·복구)이다. 모델의 말이 아니다. */
+            role: 'assistant' | 'handover' | 'system';
             content: string;
             /** 모델이 제시한 선택지. 화면이 버튼으로 그린다. */
             choices?: string[];

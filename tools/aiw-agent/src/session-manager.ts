@@ -16,6 +16,7 @@ import { log, JobLogWriter } from './logger.js';
 import { PermissionGate } from './permissions.js';
 import { loadProjectRules } from './project-context.js';
 import { Sandbox } from './sandbox.js';
+import { describeExpiry, TimeLimits } from './time-limits.js';
 import type { PromptInput, SessionAdapter, TurnUsage } from './session/adapter.js';
 import { SdkSessionAdapter } from './session/sdk-adapter.js';
 
@@ -104,6 +105,18 @@ export class SessionManager {
 
     private startedAt = Date.now();
 
+    /**
+     * 시간 제한. 비용 상한을 끄면 자동 정지 장치가 이것뿐이라 항상 켜 둔다.
+     * 사람을 기다리는 구간은 재지 않는다 — pause/resume 을 붙이는 곳 참고.
+     */
+    private readonly limits = new TimeLimits({
+        jobSec: config.jobTimeoutSec,
+        idleSec: config.idleTimeoutSec,
+        sessionSec: config.sessionMaxSec,
+    });
+
+    private limitTimer: NodeJS.Timeout | null = null;
+
     private stopped = false;
 
     private handoverInFlight = false;
@@ -128,6 +141,11 @@ export class SessionManager {
     async run(root: string): Promise<void> {
         this.sandbox = await Sandbox.create(root);
 
+        this.limits.start(Date.now());
+        // 5 초마다 본다. 제한이 분 단위라 이보다 촘촘할 이유가 없다.
+        this.limitTimer = setInterval(() => void this.enforceLimits(), 5_000);
+        this.limitTimer.unref?.();
+
         this.gate = new PermissionGate(
             this.api,
             this.job.job_id,
@@ -137,10 +155,17 @@ export class SessionManager {
             // Bash 포함은 운영자 결정이다 — config/aiw.php 주석 참고.
             ['Read', 'Edit', 'Write', 'Bash', 'Glob', 'Grep'],
             {
-                onWaiting: () => this.pushLog('daemon', '사용자 승인 대기 중'),
-                onResumed: () => void this.api.quiet('status running', () =>
-                    this.api.status(this.job.job_id, 'running'),
-                ),
+                onWaiting: () => {
+                    this.limits.pause(Date.now());
+                    this.pushLog('daemon', '사용자 승인 대기 중');
+                },
+                onResumed: () => {
+                    this.limits.resume(Date.now());
+
+                    return void this.api.quiet('status running', () =>
+                        this.api.status(this.job.job_id, 'running'),
+                    );
+                },
                 onBlocked: (tool, reason) =>
                     this.pushLog('error', `샌드박스 차단: ${tool} — ${reason}`),
             },
@@ -362,6 +387,10 @@ export class SessionManager {
         }
 
         if (this.job.mode === 'interactive') {
+            // 답을 기다리는 시간은 작업 시간이 아니다. 점심 먹고 와서 답하는 것을
+            // 폭주로 세면 대화형 작업을 쓸 수 없다.
+            this.limits.pause(Date.now());
+
             await this.api.quiet('waiting_input', () =>
                 this.api.status(this.job.job_id, 'waiting_input'),
             );
@@ -399,6 +428,8 @@ export class SessionManager {
 
             return;
         }
+
+        this.limits.resume(Date.now());
 
         this.adapter?.send(
             await buildContent(this.api, this.job.job_id, content, attachments),
@@ -523,12 +554,45 @@ export class SessionManager {
 
     // ── 종료 ────────────────────────────────────────────────────────────────
 
+    /**
+     * 시간 제한을 넘겼으면 멈춘다.
+     *
+     * 취소와 같은 경로로 끝낸다 — 코드가 잘못된 것이 아니라 자동으로 중단한
+     * 것이므로 '실패' 보다 '중단' 이 사실에 가깝다. 이유는 error_message 에 남아
+     * 화면에 그대로 보인다.
+     */
+    private async enforceLimits(): Promise<void> {
+        if (this.stopped) {
+            return;
+        }
+
+        const expiry = this.limits.check(Date.now());
+
+        if (!expiry) {
+            return;
+        }
+
+        const reason = describeExpiry(expiry);
+
+        log('warn', '시간 제한으로 중단합니다.', { jobId: this.job.job_id, kind: expiry.kind });
+        this.pushLog('daemon', reason);
+        this.adapter?.interrupt();
+        await this.stop('cancelled', reason);
+    }
+
     async stop(reason: 'completed' | 'failed' | 'cancelled', detail?: string): Promise<void> {
         if (this.stopped) {
             return;
         }
 
         this.stopped = true;
+        this.limits.stop();
+
+        if (this.limitTimer) {
+            clearInterval(this.limitTimer);
+            this.limitTimer = null;
+        }
+
         this.gate?.abortAll('작업이 종료되었습니다.');
         await this.flushLogs();
         await this.adapter?.close();
@@ -547,6 +611,9 @@ export class SessionManager {
     // ── 로그 배치 ───────────────────────────────────────────────────────────
 
     pushLog(type: 'system' | 'tool_use' | 'tool_result' | 'result' | 'error' | 'daemon' | 'handover', content: string, raw?: unknown): void {
+        // 출력이 있다 = 멎지 않았다. 무응답 시계를 되돌린다.
+        this.limits.activity(Date.now());
+
         void this.writer.write({ type, content, raw });
 
         this.logBuffer.push({ seq: this.logSeq++, type, content, raw });

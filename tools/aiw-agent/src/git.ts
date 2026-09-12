@@ -3,6 +3,18 @@ import { JobSetupError } from './errors.js';
 
 const DIFF_MAX_BYTES = 500 * 1024;
 
+/** 작업 브랜치가 어디서 갈라져 나왔는지. 중단 시 되돌릴 자리다. */
+export interface BranchBase {
+    baseBranch: string;
+    baseSha: string;
+}
+
+/** 중단 복구 결과. 화면에 그대로 알려 줄 수 있는 형태로 돌려준다. */
+export type RestoreResult =
+    | { kind: 'restored'; branch: string; baseBranch: string; files: string[]; commitSha: string | null }
+    | { kind: 'nothing'; baseBranch: string }
+    | { kind: 'skipped'; reason: string };
+
 export class GitWorkspace {
     private readonly git: SimpleGit;
 
@@ -20,7 +32,7 @@ export class GitWorkspace {
      * dirty 면 진행하지 않는다 — 남의 미커밋 변경 위에 AI 가 작업하면 diff 가
      * 뒤섞여 무엇이 이 작업의 결과인지 구분할 수 없다.
      */
-    async prepareBranch(branch: string, defaultBranch: string | null): Promise<void> {
+    async prepareBranch(branch: string, defaultBranch: string | null): Promise<BranchBase> {
         const status = await this.git.status();
 
         if (!status.isClean()) {
@@ -39,6 +51,9 @@ export class GitWorkspace {
                 { files: dirty.slice(0, 30), count: status.files.length },
             );
         }
+
+        // 되돌릴 자리. 기본 브랜치가 비어 있으면 지금 브랜치에서 갈라져 나간다.
+        const baseBranch = defaultBranch ?? (await this.git.branchLocal()).current;
 
         if (defaultBranch) {
             // 없는 브랜치로 checkout 하면 raw git 오류가 그대로 화면에 나간다
@@ -65,12 +80,15 @@ export class GitWorkspace {
             }
         }
 
+        // 갈라져 나오기 직전의 커밋. 중단 시 여기로 되돌린다.
+        const baseSha = (await this.git.revparse(['HEAD'])).trim();
+
         const branches = await this.git.branchLocal();
 
         if (branches.all.includes(branch)) {
             await this.git.checkout(branch);
 
-            return;
+            return { baseBranch, baseSha };
         }
 
         try {
@@ -84,6 +102,8 @@ export class GitWorkspace {
 
             await this.git.checkout(branch);
         }
+
+        return { baseBranch, baseSha };
     }
 
     /**
@@ -290,6 +310,73 @@ export class GitWorkspace {
         }
 
         return (await this.git.branchLocal()).current;
+    }
+
+    /**
+     * 중단된 작업의 변경을 작업 브랜치에 남기고, 작업 폴더를 원래대로 되돌린다.
+     *
+     * **아무것도 버리지 않는다.** 되돌리기 전에 그 시점의 변경을 작업 브랜치에
+     * 커밋으로 남기므로, 나중에 `git checkout aiw/job-N` 으로 그대로 꺼내 볼 수
+     * 있다. 그 뒤 기본 브랜치로 돌아오면 작업 폴더는 수정 이전 상태가 된다 —
+     * `reset --hard` 도 `clean` 도 쓰지 않는다.
+     *
+     * 이 정리가 없으면 미커밋 변경이 그대로 남아, 다음 지시가 dirty_tree 로
+     * 시작조차 못 한다(실제로 네 개 저장소를 사람이 손으로 정리해야 했다).
+     *
+     * 안전 조건 — 아래 중 하나라도 어긋나면 아무것도 하지 않고 이유를 돌려준다.
+     * 확신이 없을 때 남의 작업을 건드리는 것이 가장 나쁜 결과다.
+     *  - 지금 체크아웃된 브랜치가 그 작업의 브랜치여야 한다(사람이 옮겼을 수 있다)
+     *  - 기준 브랜치가 아직 있어야 한다
+     */
+    async restoreAfterAbort(options: {
+        branch: string;
+        base: BranchBase;
+        commitMessage: string;
+    }): Promise<RestoreResult> {
+        const { branch, base } = options;
+        const current = (await this.git.branchLocal()).current;
+
+        if (current !== branch) {
+            return {
+                kind: 'skipped',
+                reason: `작업 폴더가 '${current}' 브랜치로 옮겨져 있어 건드리지 않았습니다.`,
+            };
+        }
+
+        const local = await this.git.branchLocal();
+
+        if (!local.all.includes(base.baseBranch)) {
+            return {
+                kind: 'skipped',
+                reason: `돌아갈 브랜치 '${base.baseBranch}' 를 찾지 못해 건드리지 않았습니다.`,
+            };
+        }
+
+        const files = await this.changedFiles();
+        const head = (await this.git.revparse(['HEAD'])).trim();
+
+        if (files.length === 0 && head === base.baseSha) {
+            await this.git.checkout(base.baseBranch);
+
+            return { kind: 'nothing', baseBranch: base.baseBranch };
+        }
+
+        let commitSha: string | null = null;
+
+        if (files.length > 0) {
+            // -A 는 추적되지 않는 파일까지 담는다. .gitignore 에 걸린 것은 그대로 두는데,
+            // 애초에 저장소가 무시하기로 한 파일이라 되돌릴 대상이 아니다.
+            await this.git.add(['-A']);
+
+            const commit = await this.git.commit(options.commitMessage);
+
+            commitSha = commit.commit || null;
+        }
+
+        // 여기서 작업 폴더가 수정 이전 상태로 돌아온다. 변경은 브랜치에 남아 있다.
+        await this.git.checkout(base.baseBranch);
+
+        return { kind: 'restored', branch, baseBranch: base.baseBranch, files, commitSha };
     }
 
     async changedFiles(): Promise<string[]> {

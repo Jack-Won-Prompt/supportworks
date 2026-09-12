@@ -218,8 +218,8 @@ class AiwJob extends Model
      * 상한을 넘었는가. **상한이 없으면(null) 영원히 false 다.**
      *
      * 구독 로그인으로 도는 담당자는 화면의 금액이 실제 청구가 아니라 환산값이다.
-     * 그래서 상한을 비워 두는 선택을 허용한다 — 폭주는 데몬의 시간 제한
-     * (JOB_TIMEOUT_SEC / SESSION_MAX_SEC)이 막는다.
+     * 그래서 상한을 비워 두는 선택을 허용한다 — 폭주는 데몬의 시간 제한이 막는다
+     * (tools/aiw-agent/src/time-limits.ts: 실행 누적·무응답·총 수명).
      */
     public function isOverCostLimit(): bool
     {

@@ -13,9 +13,11 @@ use Illuminate\Support\Facades\Schema;
  * 아니라 폭주를 막는 것뿐인데, 기본값 $2 로는 테스트 실행처럼 조금만 무거운
  * 작업도 중간에 끊겼다.
  *
- * 폭주 방어가 사라지는 것은 아니다 — 데몬의 JOB_TIMEOUT_SEC(30분)과
- * SESSION_MAX_SEC(2시간)이 시간으로 같은 일을 한다. 상한은 그 위에 얹는
- * 선택 장치로 남긴다.
+ * 폭주 방어가 사라지는 것은 아니다 — 데몬의 시간 제한(실행 누적 30분·무응답
+ * 5분·총 2시간)이 같은 일을 한다. 상한은 그 위에 얹는 선택 장치로 남긴다.
+ *
+ * (이 주석을 처음 쓸 때는 그 시간 제한이 설정만 있고 실제로는 돌지 않았다.
+ *  2026-09-12 에 구현했다 — tools/aiw-agent/src/time-limits.ts)
  */
 return new class extends Migration
 {

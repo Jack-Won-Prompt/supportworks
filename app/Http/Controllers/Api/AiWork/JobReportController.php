@@ -152,7 +152,8 @@ class JobReportController extends AgentApiController
 
         $validated = $request->validate([
             'messages'           => ['required', 'array', 'min:1', 'max:50'],
-            'messages.*.role'    => ['required', 'in:assistant,handover'],
+            // system 은 데몬이 알리는 사실(중단·작업 폴더 복구)이다. 모델의 말이 아니다.
+            'messages.*.role'    => ['required', 'in:assistant,handover,system'],
             'messages.*.content' => ['required', 'string'],
             // 같은 메시지를 두 번 받았는지 가리는 키. 데몬이 만든다.
             'messages.*.client_key' => ['nullable', 'string', 'max:64'],

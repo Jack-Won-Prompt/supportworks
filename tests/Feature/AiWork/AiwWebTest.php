@@ -699,6 +699,42 @@ class AiwWebTest extends TestCase
         $this->assertSame('예상 사용량', $this->agent->fresh()->costLabel());
     }
 
+    // ── 중단 안내(system 메시지) ───────────────────────────────────────────
+
+    public function test_데몬이_중단_안내를_대화에_남긴다(): void
+    {
+        // 중단되면 데몬이 작업 폴더를 되돌리고 그 사실을 여기로 알린다.
+        // assistant 로 보내면 모델이 한 말처럼 보이므로 역할을 나눈다.
+        $job = $this->job(['status' => AiwJobStatus::Cancelled]);
+        $agent = $this->agent->fresh();
+        $token = AiwAgent::generateToken();
+        $agent->forceFill(['token_hash' => AiwAgent::hashToken($token)])->saveQuietly();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson(route('api.aiw.jobs.messages', $job), [
+                'messages' => [[
+                    'role' => 'system',
+                    'content' => '작업 폴더를 수정 이전 상태(`master`)로 되돌렸습니다.',
+                    'client_key' => 'restore-'.$job->id,
+                ]],
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('aiw_job_messages', [
+            'job_id' => $job->id,
+            'role' => 'system',
+        ]);
+
+        // 화면에도 그대로 보여야 한다.
+        $this->actingAs($this->operator)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('시스템')
+            // 본문은 @js 를 거쳐 JSON 으로 들어가므로 한글은 유니코드 이스케이프로 바뀐다.
+            // 화면에 들어갔는지는 ASCII 부분으로 확인한다.
+            ->assertSee('master', false);
+    }
+
     // ── 작업 PC 관리 ────────────────────────────────────────────────────────
 
     public function test_관리자만_작업PC_화면에_접근한다(): void

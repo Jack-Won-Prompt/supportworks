@@ -1,6 +1,8 @@
 @php
     $isUser     = $message->role === 'user';
     $isHandover = $message->role === 'handover';
+    // 데몬이 알리는 사실(중단·작업 폴더 복구). 사람도 모델도 아니라 말풍선이 아니다.
+    $isSystem   = $message->role === 'system';
 
     // 선택지는 "지금 답을 기다리는" 마지막 질문에만 띄운다. 지난 질문의 버튼이
     // 남아 있으면 이미 답한 것을 다시 누르게 된다.
@@ -14,7 +16,16 @@
     $author = $isUser ? ($message->author?->name ?? '나') : '담당자';
 @endphp
 
-@if ($isHandover)
+@if ($isSystem)
+    {{-- 가운데 정렬된 안내. 대화의 흐름을 끊되 사람의 말로 읽히지 않게 한다. --}}
+    <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+        <div class="mb-1 flex items-center gap-2 text-[11px]">
+            <span class="font-semibold text-amber-800">시스템</span>
+            <span class="text-amber-600">{{ $message->created_at?->format('m-d H:i') }}</span>
+        </div>
+        <div class="aiw-md text-amber-900" x-html="render(@js($message->content))"></div>
+    </div>
+@elseif ($isHandover)
     {{-- 세션 교체 구분선 + 접힌 인수인계 요약 --}}
     <div class="relative py-2">
         <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-violet-200"></div></div>

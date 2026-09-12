@@ -3,7 +3,7 @@ import PQueue from 'p-queue';
 import { ApiClient, JobSpec } from './api.js';
 import { config } from './config.js';
 import { isJobSetupError, JobSetupError } from './errors.js';
-import { GitWorkspace } from './git.js';
+import { BranchBase, GitWorkspace } from './git.js';
 import { log } from './logger.js';
 import { SessionManager } from './session-manager.js';
 import { SdkSessionAdapter } from './session/sdk-adapter.js';
@@ -26,6 +26,9 @@ export class JobManager {
 
     /** 세션 시작 전에 job 별로 이미 쓴 로그 수. 시퀀스 충돌을 막는다. */
     private readonly preLogCount = new Map<number, number>();
+
+    /** 작업 브랜치가 갈라져 나온 자리. 중단됐을 때 되돌릴 곳이다. */
+    private readonly branchBase = new Map<number, BranchBase>();
 
     constructor(private readonly api: ApiClient) {}
 
@@ -145,6 +148,7 @@ export class JobManager {
                             this.active.delete(spec.job_id);
                             this.known.delete(spec.job_id);
                             this.preLogCount.delete(spec.job_id);
+                            this.branchBase.delete(spec.job_id);
                             resolve();
                         });
                     },
@@ -161,7 +165,11 @@ export class JobManager {
                 const git = new GitWorkspace(root);
 
                 if (await git.isRepo()) {
-                    await git.prepareBranch(`aiw/job-${spec.job_id}`, spec.default_branch);
+                    // 어디서 갈라져 나왔는지 기억해 둔다. 중단되면 여기로 되돌린다.
+                    this.branchBase.set(
+                        spec.job_id,
+                        await git.prepareBranch(`aiw/job-${spec.job_id}`, spec.default_branch),
+                    );
                 } else {
                     manager!.pushLog('daemon', 'git 저장소가 아니라 브랜치 분리를 건너뜁니다.');
                 }
@@ -183,6 +191,7 @@ export class JobManager {
             );
             this.active.delete(spec.job_id);
             this.known.delete(spec.job_id);
+            this.branchBase.delete(spec.job_id);
 
             return;
         }
@@ -226,12 +235,95 @@ export class JobManager {
             return;
         }
 
+        // 중간에 끊긴 작업은 고치다 만 파일을 남긴다. 먼저 정리하고 보고한다 —
+        // 보고가 먼저 가면 화면은 '중단됨' 인데 작업 폴더는 아직 어질러진 상태다.
+        const restored = await this.restoreWorkspace(spec, root, manager);
+
         await this.api.quiet('fail', () =>
             this.api.fail(spec.job_id, detail ?? (reason === 'cancelled' ? '취소되었습니다.' : '실패했습니다.'), {
                 cost_usd: costUsd,
                 duration_ms: durationMs,
             }),
         );
+
+        if (restored) {
+            await this.api.quiet('messages', () =>
+                this.api.messages(spec.job_id, [{
+                    client_key: `restore-${spec.job_id}`,
+                    role: 'system',
+                    content: restored,
+                }]),
+            );
+        }
+    }
+
+    /**
+     * 중단된 작업의 작업 폴더를 수정 이전 상태로 되돌린다.
+     *
+     * 브랜치 분리를 켠 작업만 손댄다. 끈 작업은 시작 시점에 폴더가 깨끗했다는
+     * 보장이 없어, 되돌리면 사람이 하던 작업까지 지운다.
+     *
+     * 돌려주는 값은 채팅창에 그대로 띄울 문구다. null 이면 알릴 것이 없다.
+     */
+    private async restoreWorkspace(
+        spec: JobSpec,
+        root: string,
+        manager: SessionManager,
+    ): Promise<string | null> {
+        const base = this.branchBase.get(spec.job_id);
+
+        if (!spec.use_branch) {
+            return '작업 폴더는 되돌리지 않았습니다 — 브랜치 분리를 끈 작업이라'
+                + ' 이 작업의 변경과 원래 있던 변경을 구분할 수 없습니다.'
+                + ' 필요하면 작업 PC 에서 직접 확인해 주세요.';
+        }
+
+        if (!base) {
+            // 저장소가 아니거나 준비 전에 끝났다. 되돌릴 것도 없다.
+            return null;
+        }
+
+        const branch = `aiw/job-${spec.job_id}`;
+
+        try {
+            const result = await new GitWorkspace(root).restoreAfterAbort({
+                branch,
+                base,
+                commitMessage: `wip(aiw): 작업 지시 #${spec.job_id} 중단 시점 보관`,
+            });
+
+            switch (result.kind) {
+                case 'nothing':
+                    return `작업 폴더는 그대로입니다 — 되돌릴 변경이 없었습니다.`
+                        + ` (\`${result.baseBranch}\` 브랜치)`;
+                case 'skipped':
+                    manager.pushLog('daemon', `작업 폴더 복구 건너뜀 — ${result.reason}`);
+
+                    return `작업 폴더를 되돌리지 않았습니다 — ${result.reason}`;
+                case 'restored': {
+                    const sample = result.files.slice(0, 10).join(', ');
+                    const more = result.files.length > 10 ? ` 외 ${result.files.length - 10}건` : '';
+
+                    manager.pushLog('daemon', `작업 폴더를 ${result.baseBranch} 상태로 되돌렸습니다.`);
+
+                    return `작업 폴더를 수정 이전 상태(\`${result.baseBranch}\`)로 되돌렸습니다.`
+                        + ` 되돌린 파일 ${result.files.length}개: ${sample}${more}.`
+                        + `
+
+중단 시점의 내용은 버리지 않고 \`${branch}\` 브랜치에 남겨 뒀습니다`
+                        + `${result.commitSha ? ` (커밋 \`${result.commitSha.slice(0, 8)}\`)` : ''}.`
+                        + ' 확인하려면 작업 PC 에서 그 브랜치를 체크아웃하세요.';
+                }
+            }
+        } catch (error) {
+            const reason = String((error as Error).message ?? error);
+
+            log('warn', '작업 폴더 복구 실패', { jobId: spec.job_id, error: reason });
+            manager.pushLog('error', `작업 폴더 복구 실패: ${reason}`);
+
+            return `작업 폴더를 되돌리지 못했습니다: ${reason}`
+                + ' 다음 지시가 시작되지 않을 수 있으니 작업 PC 에서 정리해 주세요.';
+        }
     }
 
     /** SIGINT/SIGTERM. 세션은 프로세스와 함께 사라지므로 서버에 알리고 끝낸다. */
