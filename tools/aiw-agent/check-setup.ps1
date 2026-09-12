@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     매핑된 폴더가 지시를 받을 수 있는 상태인지 확인하고 supportworks 에 보고한다.
 
@@ -68,21 +68,24 @@ foreach ($m in $res.mappings) {
         Push-Location -LiteralPath $path
 
         try {
-            $branch = (git rev-parse --abbrev-ref HEAD 2>$null)
+            # --no-optional-locks: 인덱스 잠금을 잡지 않는다. 이게 없으면 점검이
+            # 데몬의 커밋·푸시와 부딪혀 index.lock 오류를 낸다 — 실제로 그렇게
+            # 푸시가 실패했다. 점검은 읽기만 하므로 잠글 이유가 없다.
+            $branch = (git --no-optional-locks rev-parse --abbrev-ref HEAD 2>$null)
             $want   = $m.default_branch
 
             if ($want) {
-                $exists = (git rev-parse --verify --quiet "refs/heads/$want" 2>$null)
+                $exists = (git --no-optional-locks rev-parse --verify --quiet "refs/heads/$want" 2>$null)
 
                 if (-not $exists) {
-                    $available = ((git branch --format='%(refname:short)' 2>$null) -join ', ')
+                    $available = ((git --no-optional-locks branch --format='%(refname:short)' 2>$null) -join ', ')
                     $status  = 'branch_missing'
                     $message = "기본 브랜치 '$want' 가 없습니다. 현재 '$branch', 있는 브랜치: $available"
                 }
             }
 
             if ($status -eq 'ok') {
-                $dirty = @(git status --porcelain 2>$null)
+                $dirty = @(git --no-optional-locks status --porcelain 2>$null)
 
                 if ($dirty.Count -gt 0) {
                     # 커밋되지 않은 변경은 새 브랜치로 따라와 작업 결과와 섞인다.

@@ -95,7 +95,52 @@ export class GitWorkspace {
      * 실패하면 저장소를 원래 자리로 되돌린다 — 충돌 상태로 남겨 두면 다음 작업이
      * 시작조차 못 하고, 사람이 그 PC 앞에 가야만 풀 수 있다.
      */
+    /**
+     * 인덱스를 쓰지 못해 실패했을 때만 다시 시도한다.
+     *
+     * 작업 폴더는 사람도 쓰는 곳이다 — 편집기가 상태를 읽거나, 백신이 파일을
+     * 훑거나, 누군가 명령을 하나 돌리는 것만으로 인덱스가 잠긴다. 그 순간에
+     * 부딪혔다고 커밋·푸시를 실패로 끝내면, 사람은 버튼을 다시 눌러야 하는
+     * 이유를 알 수 없다.
+     *
+     * 같은 원인인데 git 이 내는 말이 여러 가지다. 'index.lock' 만 보고 있었더니
+     * 'could not write index / stash failed' 로 온 경합을 놓쳐 실패로 남았다.
+     * 실제로 그렇게 배포가 멈췄다.
+     */
+    private static readonly LOCK_SIGNS = [
+        'index.lock',
+        'could not write index',
+        'stash failed',
+        'Unable to create',
+    ];
+
+    private async retryOnLock<T>(task: () => Promise<T>, attempts = 4): Promise<T> {
+        for (let i = 0; ; i++) {
+            try {
+                return await task();
+            } catch (error) {
+                const message = String((error as Error)?.message ?? error);
+                const transient = GitWorkspace.LOCK_SIGNS.some((s) => message.includes(s));
+
+                if (i >= attempts - 1 || !transient) {
+                    throw error;
+                }
+
+                await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+            }
+        }
+    }
+
     async publish(options: {
+        sourceBranch: string;
+        targetBranch: string;
+        commitMessage: string;
+        onProgress?: (line: string) => void;
+    }): Promise<{ commitSha: string | null; output: string }> {
+        return this.retryOnLock(() => this.publishOnce(options));
+    }
+
+    private async publishOnce(options: {
         sourceBranch: string;
         targetBranch: string;
         commitMessage: string;

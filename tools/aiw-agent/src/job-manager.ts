@@ -33,6 +33,27 @@ export class JobManager {
         return [...this.active.keys()];
     }
 
+    /** 폴더 키. Windows 는 대소문자를 구분하지 않으므로 낮춰서 맞춘다. */
+    private folderKey(root: string): string {
+        return process.platform === 'win32' ? root.toLowerCase() : root;
+    }
+
+    /**
+     * 같은 작업 폴더의 git 작업을 한 줄로 세운다.
+     *
+     * 작업 실행만 직렬로 두면 부족하다. 완료 보고가 변경 파일과 diff 를 모으는
+     * 동안 커밋·푸시가 끼어들면 index.lock 이 부딪힌다 — 실제로 그렇게 깨졌고,
+     * 푸시는 성공했는데 기록은 실패로 남았다.
+     */
+    runInFolder<T>(root: string, task: () => Promise<T>): Promise<T> {
+        const key = this.folderKey(root);
+        const queue = this.folderQueues.get(key) ?? new PQueue({ concurrency: 1 });
+
+        this.folderQueues.set(key, queue);
+
+        return queue.add(task) as Promise<T>;
+    }
+
     session(jobId: number): SessionManager | undefined {
         return this.active.get(jobId);
     }
@@ -82,7 +103,7 @@ export class JobManager {
             return;
         }
 
-        const key = process.platform === 'win32' ? root.toLowerCase() : root;
+        const key = this.folderKey(root);
         const queue = this.folderQueues.get(key) ?? new PQueue({ concurrency: 1 });
         this.folderQueues.set(key, queue);
 

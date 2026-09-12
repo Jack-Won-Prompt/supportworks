@@ -58,10 +58,16 @@ $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $user
 $trigger.Delay = 'PT1M'
 
-# 주기 반복은 트리거에서 직접 만들 수 없어, 일회성 트리거의 설정을 빌려 온다.
-$repeat = New-ScheduledTaskTrigger -Once -At (Get-Date) `
+# 주기 반복은 로그온 트리거에 붙이면 안 된다. 로그온은 이미 지나간 사건이라
+# 반복 창이 열리지 않고, 다음 로그인 때까지 한 번도 돌지 않는다. 등록은
+# 성공한 것처럼 보여서 새 프로젝트가 왜 안 뜨는지 찾기 어렵다. 실제로 겪었다.
+# 그래서 시작 시각이 과거인 일회성 트리거를 따로 둔다 — 즉시 시작해 계속 반복한다.
+$sweep = New-ScheduledTaskTrigger -Once -At (Get-Date).Date `
     -RepetitionInterval (New-TimeSpan -Minutes $RepeatMinutes)
-$trigger.Repetition = $repeat.Repetition
+
+# Duration 이 비어 있는데 StopAtDurationEnd 가 켜져 있으면 Windows 는 "즉시 끝"
+# 으로 읽어 반복이 일어나지 않는다.
+$sweep.Repetition.StopAtDurationEnd = $false
 
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
@@ -75,7 +81,7 @@ $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -Ru
 # 실패했는데 성공으로 찍으면 재부팅해 봐야 안 뜬 이유를 찾게 된다.
 try {
     Register-ScheduledTask -TaskName $taskName `
-        -Action $action -Trigger $trigger -Settings $settings -Principal $principal `
+        -Action $action -Trigger @($trigger, $sweep) -Settings $settings -Principal $principal `
         -Force -ErrorAction Stop | Out-Null
 
     Write-Host ''

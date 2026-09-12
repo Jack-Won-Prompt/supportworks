@@ -109,7 +109,7 @@ async function main(): Promise<void> {
         }
     };
 
-    const realtime = new Realtime(api, jobs, agentId, () => void sync(), new Publisher(api));
+    const realtime = new Realtime(api, jobs, agentId, () => void sync(), new Publisher(api, jobs));
     realtime.connect();
 
     await sync();

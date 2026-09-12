@@ -1,6 +1,7 @@
 import { realpath } from 'node:fs/promises';
 import { ApiClient } from './api.js';
 import { GitWorkspace } from './git.js';
+import type { JobManager } from './job-manager.js';
 import { log } from './logger.js';
 
 /** 서버가 보내는 커밋·푸시 요청. */
@@ -20,13 +21,21 @@ export interface PublishRequest {
  * 것이고(그래서 Claude 는 여전히 push 할 수 없다), 사람이 화면에서 누른 버튼은
  * 다른 신뢰 경로다.
  *
- * 같은 폴더에서 둘이 동시에 git 을 돌리면 index.lock 이 충돌한다. 한 번에 하나만
- * 처리하고, 이미 처리 중인 요청은 무시한다(Reverb 재전송·폴링 중복 대비).
+ * 같은 폴더에서 둘이 동시에 git 을 돌리면 index.lock 이 충돌한다. 같은 요청이
+ * 두 번 오는 것은 여기서 막고(Reverb 재전송·폴링 중복 대비), **작업 쪽 git 과의
+ * 충돌은 JobManager 의 폴더 큐에 실어 막는다.**
+ *
+ * 요청 중복만 막는 것으로는 부족했다. 완료 보고가 변경 파일과 diff 를 모으는
+ * 동안 커밋·푸시가 끼어들어 index.lock 이 부딪혔고, 푸시는 성공했는데 기록은
+ * 실패로 남았다. 화면에는 "진행 중" 인 채로 멈춰 보였다.
  */
 export class Publisher {
     private readonly inFlight = new Set<number>();
 
-    constructor(private readonly api: ApiClient) {}
+    constructor(
+        private readonly api: ApiClient,
+        private readonly jobs: JobManager,
+    ) {}
 
     handle(request: PublishRequest): void {
         if (this.inFlight.has(request.publish_id)) {
@@ -70,12 +79,13 @@ export class Publisher {
         }
 
         try {
-            const result = await git.publish({
+            // 같은 폴더의 작업 git 과 한 줄로 세운다. 끼어들면 index.lock 이 부딪힌다.
+            const result = await this.jobs.runInFolder(root, () => git.publish({
                 sourceBranch: request.source_branch,
                 targetBranch: request.target_branch,
                 commitMessage: request.commit_message,
                 onProgress: (line) => log('info', `[publish ${id}] ${line}`),
-            });
+            }));
 
             await this.report(jobId, id, 'succeeded', result.output, result.commitSha);
             log('info', '커밋·푸시 완료', { publishId: id, jobId, commit: result.commitSha });
