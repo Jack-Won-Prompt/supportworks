@@ -82,6 +82,22 @@
                             {{ $lastSeen ? $lastSeen->diffForHumans() : '접속 이력 없음' }}
                         </span>
                     @endunless
+
+                    {{-- 준비 상태는 담당자 PC 가 점검해 보고한 것이다. 예전에는 지시를
+                         넣어 봐야 드러나서, 화면에는 이유 없이 멈춘 것처럼 보였다. --}}
+                    @if ($mapping?->setup_status && ! $mapping->setup_status->isReady())
+                        {{-- Tailwind 는 조립한 클래스명을 못 찾는다. 전체 이름을 그대로 적는다. --}}
+                        @php
+                            $badge = match ($mapping->setup_status->tone()) {
+                                'amber' => 'bg-amber-100 text-amber-800',
+                                default => 'bg-red-100 text-red-800',
+                            };
+                        @endphp
+                        <span class="rounded px-1.5 py-0.5 font-medium {{ $badge }}"
+                              title="{{ $mapping->setup_message }}">
+                            {{ $mapping->setup_status->label() }}
+                        </span>
+                    @endif
                 </div>
             @empty
                 <p class="text-sm text-gray-500">
@@ -90,6 +106,25 @@
                 </p>
             @endforelse
         </div>
+
+        @foreach ($agents as $agent)
+            @php $m = $agent->agentProjects->first(); @endphp
+            @if ($m?->setup_status && ! $m->setup_status->isReady())
+                @php
+                    $panel = match ($m->setup_status->tone()) {
+                        'amber' => 'border-amber-200 bg-amber-50 text-amber-900',
+                        default => 'border-red-200 bg-red-50 text-red-900',
+                    };
+                @endphp
+                <div class="mt-3 rounded-lg border px-3 py-2 text-xs {{ $panel }}">
+                    <span class="font-semibold">{{ $m->setup_status->label() }}</span> —
+                    {{ $m->setup_message ?: '담당자 PC 에서 소스 폴더를 확인해야 합니다.' }}
+                    @if ($m->setup_checked_at)
+                        <span class="text-gray-500">({{ $m->setup_checked_at->diffForHumans() }} 점검)</span>
+                    @endif
+                </div>
+            @endif
+        @endforeach
 
         @if ($agents->isNotEmpty() && $online->isEmpty())
             <p class="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">

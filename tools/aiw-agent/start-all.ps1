@@ -68,6 +68,14 @@ if (-not $res.mappings -or $res.mappings.Count -eq 0) {
     exit 0
 }
 
+# 띄우기 전에 폴더 상태를 점검해 supportworks 에 알린다. 예전에는 지시를 넣어
+# 봐야 드러나서, 화면에는 이유 없이 멈춘 것처럼 보였다.
+if (-not $List) {
+    try { & (Join-Path $PSScriptRoot 'check-setup.ps1') } catch {
+        Write-Host "  셋업 점검을 건너뜁니다: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 foreach ($m in $res.mappings) {
     $logDir  = "logs-$($m.project_id)"
     $pidFile = Join-Path $PSScriptRoot (Join-Path $logDir 'daemon.pid')

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\AiWork;
 
 use App\Enums\AiWork\AiwJobStatus;
+use App\Enums\AiWork\AiwSetupStatus;
 use App\Models\AiWork\AiwAgentProject;
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobAttachment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * 데몬 ↔ 서버 공통 엔드포인트: 하트비트, 브로드캐스트 인가, 대기 job 조회.
@@ -42,7 +44,42 @@ class DaemonController extends AgentApiController
                 'display_name'   => $m->displayName(),
                 'local_path'     => $m->local_path,
                 'default_branch' => $m->default_branch,
+                'setup_status'   => $m->setup_status?->value,
             ])->values(),
+        ]);
+    }
+
+    /**
+     * 셋업 점검 결과 보고.
+     *
+     * 담당자 PC 만 알 수 있는 것들이다 — 폴더가 있는지, git 저장소인지, 매핑에
+     * 적은 브랜치가 실제로 있는지, 작업트리가 깨끗한지. 지금까지는 지시를 넣어
+     * 봐야 드러났고 화면에는 이유 없이 멈춘 것처럼 보였다.
+     */
+    public function reportSetup(Request $request): JsonResponse
+    {
+        $agent = $this->agent($request);
+
+        $validated = $request->validate([
+            'project_id' => ['required', 'integer'],
+            'status'     => ['required', Rule::enum(AiwSetupStatus::class)],
+            'message'    => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $mapping = AiwAgentProject::where('agent_id', $agent->id)
+            ->where('project_id', $validated['project_id'])
+            ->firstOrFail();
+
+        $mapping->forceFill([
+            'setup_status'     => $validated['status'],
+            'setup_message'    => $validated['message'] ?? null,
+            'setup_checked_at' => now(),
+        ])->saveQuietly();
+
+        return response()->json([
+            'project_id' => (int) $mapping->project_id,
+            'status'     => $mapping->setup_status->value,
+            'ready'      => $mapping->setup_status->isReady(),
         ]);
     }
 

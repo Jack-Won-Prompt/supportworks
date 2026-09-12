@@ -3,6 +3,7 @@
 namespace Tests\Feature\AiWork;
 
 use App\Enums\AiWork\AiwJobStatus;
+use App\Enums\AiWork\AiwSetupStatus;
 use App\Events\AiWork\JobLogAppended;
 use App\Events\AiWork\JobMessageAppended;
 use App\Events\AiWork\JobStatusChanged;
@@ -427,6 +428,52 @@ class DaemonApiTest extends TestCase
             ->pluck('job_id');
 
         $this->assertContains($otherJob->id, $all);
+    }
+
+    public function test_셋업_점검_결과를_매핑에_남긴다(): void
+    {
+        $this->daemon()->postJson('/api/aiw/mappings/setup', [
+            'project_id' => $this->job->project_id,
+            'status'     => 'dirty_tree',
+            'message'    => '커밋되지 않은 변경 70건',
+        ])->assertOk()->assertJsonPath('ready', false);
+
+        $mapping = AiwAgentProject::where('agent_id', $this->agent->id)
+            ->where('project_id', $this->job->project_id)->first();
+
+        $this->assertSame(AiwSetupStatus::DirtyTree, $mapping->setup_status);
+        $this->assertSame('커밋되지 않은 변경 70건', $mapping->setup_message);
+        $this->assertNotNull($mapping->setup_checked_at);
+        $this->assertFalse($mapping->isReady());
+    }
+
+    public function test_모르는_셋업_상태는_거부한다(): void
+    {
+        $this->daemon()->postJson('/api/aiw/mappings/setup', [
+            'project_id' => $this->job->project_id,
+            'status'     => '아무거나',
+        ])->assertStatus(422);
+    }
+
+    public function test_점검_전에는_막지_않는다(): void
+    {
+        // 보고를 받기 전에는 판단할 근거가 없다. 여기서 막으면 새 매핑이 모두 잠긴다.
+        $mapping = AiwAgentProject::where('agent_id', $this->agent->id)->first();
+
+        $this->assertNull($mapping->setup_status);
+        $this->assertTrue($mapping->isReady());
+    }
+
+    public function test_남의_매핑에는_보고할_수_없다(): void
+    {
+        $other = DB::table('projects')->insertGetId([
+            'name' => '남의 것', 'created_by' => $this->job->created_by,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->daemon()->postJson('/api/aiw/mappings/setup', [
+            'project_id' => $other, 'status' => 'ok',
+        ])->assertStatus(404);
     }
 
     // ── 메시지 번호 ─────────────────────────────────────────────────────────

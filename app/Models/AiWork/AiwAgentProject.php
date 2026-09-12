@@ -2,6 +2,7 @@
 
 namespace App\Models\AiWork;
 
+use App\Enums\AiWork\AiwSetupStatus;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,11 +15,25 @@ class AiwAgentProject extends Model
 
     protected $fillable = [
         'agent_id', 'project_id', 'display_name', 'local_path', 'default_branch', 'last_seen_at',
+        'setup_status', 'setup_message', 'setup_checked_at',
     ];
 
     protected $casts = [
-        'last_seen_at' => 'datetime',
+        'last_seen_at'     => 'datetime',
+        'setup_checked_at' => 'datetime',
+        'setup_status'     => AiwSetupStatus::class,
     ];
+
+    /**
+     * 지시를 시작할 수 있는 상태인가.
+     *
+     * 아직 확인받은 적이 없으면 막지 않는다 — 담당자 PC 가 보고하기 전에는
+     * 판단할 근거가 없고, 여기서 막으면 새로 만든 매핑이 모두 잠긴다.
+     */
+    public function isReady(): bool
+    {
+        return $this->setup_status === null || $this->setup_status->isReady();
+    }
 
     /** 이 프로젝트에서 부를 이름. 비워 두면 담당자 본래 이름. */
     public function displayName(): string
