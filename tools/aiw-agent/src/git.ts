@@ -160,14 +160,22 @@ export class GitWorkspace {
             return null;
         }
 
+        const head = (await this.git.revparse([target])).trim();
+        const source = (await this.git.revparse([options.sourceBranch])).trim();
+
+        // 작업 브랜치에 자기 커밋이 없으면 끝이 기본 브랜치와 같다. 그 상태는
+        // "이미 합쳐졌다" 가 아니라 "아직 커밋도 못 했다" 는 뜻이다. 이걸 성공으로
+        // 읽으면 옛 코드가 그대로 배포된다 — 실제로 한 번 그렇게 나갔다.
+        if (source === head) {
+            return null;
+        }
+
         // 작업 브랜치가 기본 브랜치 안에 들어 있는가.
         try {
             await this.git.raw(['merge-base', '--is-ancestor', options.sourceBranch, target]);
         } catch {
             return null;
         }
-
-        const head = (await this.git.revparse([target])).trim();
 
         // 원격까지 같아야 "올렸다" 고 말할 수 있다. 로컬만 합쳐 두고 성공이라
         // 적으면 서버는 옛 코드를 받아 가면서 배포는 성공한 것처럼 보인다.
