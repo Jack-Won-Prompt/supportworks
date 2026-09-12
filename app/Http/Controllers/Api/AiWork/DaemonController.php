@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\AiWork;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Enums\AiWork\AiwSetupStatus;
 use App\Models\AiWork\AiwAgentProject;
+use App\Models\AiWork\AiwDeploy;
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobAttachment;
 use Illuminate\Http\JsonResponse;
@@ -81,6 +82,48 @@ class DaemonController extends AgentApiController
             'status'     => $mapping->setup_status->value,
             'ready'      => $mapping->setup_status->isReady(),
         ]);
+    }
+
+    /**
+     * 담당자 PC 가 실행한 배포의 결과 보고.
+     *
+     * 운영 서버가 이 서버와 다른 프로젝트는 담당자 PC 가 배포한다. 그 PC 는
+     * 각 서버 접속 키를 이미 들고 있어, 이 서버가 남의 운영 서버 키를 갖지
+     * 않아도 된다.
+     *
+     * 자기 프로젝트의 배포만 건드릴 수 있다 — 담당자는 매핑된 프로젝트 밖의
+     * 기록을 고칠 수 없어야 한다.
+     */
+    public function deployResult(Request $request, AiwDeploy $deploy): JsonResponse
+    {
+        $agent = $this->agent($request);
+
+        $mine = AiwAgentProject::where('agent_id', $agent->id)
+            ->where('project_id', $deploy->target?->project_id)
+            ->exists();
+
+        abort_unless($mine, 404);
+
+        $validated = $request->validate([
+            'status'    => ['required', 'in:running,succeeded,failed'],
+            'exit_code' => ['nullable', 'integer'],
+            'output'    => ['nullable', 'string'],
+        ]);
+
+        // 이미 끝난 건은 덮지 않는다. 재전송이 결과를 바꾸면 안 된다.
+        if (in_array($deploy->status, ['succeeded', 'failed'], true)) {
+            return response()->json(['status' => $deploy->status]);
+        }
+
+        $deploy->forceFill(array_filter([
+            'status'      => $validated['status'],
+            'exit_code'   => $validated['exit_code'] ?? null,
+            'output'      => AiwDeploy::truncateOutput($validated['output'] ?? ''),
+            'started_at'  => $deploy->started_at ?? now(),
+            'finished_at' => $validated['status'] === 'running' ? null : now(),
+        ], fn ($v) => $v !== null))->save();
+
+        return response()->json(['status' => $deploy->status]);
     }
 
     /**

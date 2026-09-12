@@ -4,6 +4,7 @@ import { config } from './config.js';
 import { JobManager } from './job-manager.js';
 import { log } from './logger.js';
 import { Realtime } from './realtime.js';
+import { Deployer } from './deployer.js';
 import { Publisher } from './publisher.js';
 import { recoverActiveJobs } from './recover.js';
 import { AlreadyRunningError, acquireLock, releaseLock } from './single-instance.js';
@@ -109,7 +110,7 @@ async function main(): Promise<void> {
         }
     };
 
-    const realtime = new Realtime(api, jobs, agentId, () => void sync(), new Publisher(api, jobs));
+    const realtime = new Realtime(api, jobs, agentId, () => void sync(), new Publisher(api, jobs), new Deployer(api));
     realtime.connect();
 
     await sync();

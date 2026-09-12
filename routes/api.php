@@ -381,6 +381,8 @@ Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function 
     Route::get ('mappings',          [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'mappings'])->name('mappings');
     // 경로·git·브랜치·작업트리 점검 결과. 지시 전에 무엇을 고쳐야 하는지 화면에 띄운다.
     Route::post('mappings/setup',    [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'reportSetup'])->name('mappings.setup');
+    // 운영 서버가 따로인 프로젝트는 담당자 PC 가 배포하고 결과를 여기로 보낸다.
+    Route::post('deploys/{deploy}',  [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'deployResult'])->name('deploys.result');
     Route::post('broadcasting/auth', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'broadcastingAuth'])->name('broadcasting.auth');
     Route::get ('jobs/pending',      [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'pendingJobs'])->name('jobs.pending');
     Route::get ('jobs/{job}/inbox',  [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'inbox'])->name('jobs.inbox');

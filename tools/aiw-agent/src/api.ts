@@ -190,6 +190,14 @@ export class ApiClient {
         } & ControlFlags>(() => this.http.post(`/jobs/${jobId}/messages`, { messages }));
     }
 
+    /** 담당자 PC 가 실행한 배포의 진행/결과 보고. */
+    deployResult(
+        deployId: number,
+        payload: { status: 'running' | 'succeeded' | 'failed'; exit_code?: number | null; output?: string },
+    ) {
+        return this.send<{ status: string }>(() => this.http.post(`/deploys/${deployId}`, payload));
+    }
+
     /** 커밋·푸시 진행/결과 보고. */
     publishResult(
         jobId: number,

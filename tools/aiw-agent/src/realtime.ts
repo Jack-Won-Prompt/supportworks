@@ -4,6 +4,7 @@ import { ApiClient } from './api.js';
 import { config } from './config.js';
 import { JobManager } from './job-manager.js';
 import { log } from './logger.js';
+import { Deployer } from './deployer.js';
 import { Publisher } from './publisher.js';
 
 /**
@@ -33,6 +34,7 @@ export class Realtime {
         private readonly agentId: number,
         private readonly onReconnect: () => void,
         private readonly publisher: Publisher,
+        private readonly deployer: Deployer,
     ) {}
 
     connect(): void {
@@ -82,6 +84,10 @@ export class Realtime {
 
         channel.bind('publish.requested', (payload: any) => {
             this.publisher.handle(payload);
+        });
+
+        channel.bind('deploy.requested', (payload: any) => {
+            this.deployer.handle(payload);
         });
 
         channel.bind('job.user-message', (payload: any) => {

@@ -3,6 +3,8 @@
 namespace App\Services\AiWork;
 
 use App\Jobs\AiWork\RunDeploy;
+use App\Events\AiWork\DeployRequested;
+use App\Models\AiWork\AiwAgentProject;
 use App\Models\AiWork\AiwDeploy;
 use App\Models\AiWork\AiwDeployTarget;
 use App\Models\AiWork\AiwJob;
@@ -58,9 +60,37 @@ class DeployService
             'created_at'   => now(),
         ]);
 
+        // 담당자 PC 가 맡은 대상이면 그쪽으로 보낸다. 이 서버에는 작업 폴더가
+        // 아예 없을 수 있다 — 운영 서버가 따로인 프로젝트가 그렇다.
+        if ($target->runsOnAgent()) {
+            $agentId = $this->agentIdFor($target);
+
+            if ($agentId === null) {
+                $deploy->forceFill([
+                    'status'      => 'failed',
+                    'output'      => '이 프로젝트를 맡은 담당자가 없습니다. 설정 › 담당자 에서 매핑하세요.',
+                    'finished_at' => now(),
+                ])->save();
+
+                throw new RuntimeException('이 프로젝트를 맡은 담당자가 없어 배포할 수 없습니다.');
+            }
+
+            event(new DeployRequested($deploy->load('target'), $agentId));
+
+            return $deploy;
+        }
+
         // 웹 요청 안에서 돌리지 않는다. deploy.sh 는 수 분이 걸린다.
         RunDeploy::dispatch($deploy->id);
 
         return $deploy;
+    }
+
+    /** 이 대상의 프로젝트를 맡은 담당자. 매핑이 곧 실행 주체다. */
+    private function agentIdFor(AiwDeployTarget $target): ?int
+    {
+        $mapping = AiwAgentProject::where('project_id', $target->project_id)->first();
+
+        return $mapping ? (int) $mapping->agent_id : null;
     }
 }

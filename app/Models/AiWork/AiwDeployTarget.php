@@ -17,13 +17,24 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AiwDeployTarget extends Model
 {
     protected $fillable = [
-        'project_id', 'name', 'working_dir', 'command', 'timeout_sec', 'enabled', 'created_by',
+        'project_id', 'name', 'working_dir', 'command', 'runs_on', 'timeout_sec', 'enabled', 'created_by',
     ];
 
     protected $casts = [
         'enabled'     => 'boolean',
         'timeout_sec' => 'integer',
     ];
+
+    /**
+     * 담당자 PC 가 실행하는 대상인가.
+     *
+     * 운영 서버가 이 서버와 다른 프로젝트를 위해 있다. 그 경우 이 서버에는
+     * 작업 폴더 자체가 없어 늘 실패한다 — Unicorn Project 가 그랬다.
+     */
+    public function runsOnAgent(): bool
+    {
+        return $this->runs_on === 'agent';
+    }
 
     public function project(): BelongsTo
     {
