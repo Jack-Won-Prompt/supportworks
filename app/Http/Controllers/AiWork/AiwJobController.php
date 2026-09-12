@@ -6,6 +6,8 @@ use App\Enums\AiWork\AiwJobStatus;
 use App\Events\AiWork\HandoverRequested;
 use App\Events\AiWork\JobCancelRequested;
 use App\Events\AiWork\JobEndRequested;
+use App\Events\AiWork\JobLogAppended;
+use App\Events\AiWork\JobMessageAppended;
 use App\Events\AiWork\JobUserMessage;
 use App\Http\Controllers\Controller;
 use App\Models\AiWork\AiwAgent;
@@ -25,6 +27,7 @@ use App\Services\AiWork\JobStateMachine;
 use App\Services\AiWork\MessageWriter;
 use App\Services\AiWork\PermissionService;
 use App\Services\AiWork\ToolPolicy;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -366,6 +369,41 @@ class AiwJobController extends Controller
         $job->forceFill(['auto_deploy' => true, 'auto_deploy_target_id' => $target->id])->save();
 
         return [sprintf('작업이 끝나면 커밋·푸시 후 배포까지 자동으로 진행합니다 (%s).', $target->name), null];
+    }
+
+    /**
+     * 화면이 놓친 로그·메시지를 따라잡는다.
+     *
+     * 브로드캐스트는 "빠른 길"이고 이쪽이 "정확한 길"이다. 데몬은 이미 같은
+     * 방식으로 재접속마다 누락을 메우는데, 웹 화면에는 그 장치가 없었다.
+     *
+     * 실제로 이런 일이 있었다: 지시를 등록한 **같은 초에** 작업이 실패했다.
+     * 페이지가 그려질 때는 로그가 아직 없었고, 브로드캐스트는 Echo 가 구독하기
+     * 전에 지나갔다. 그래서 실패 사유가 화면에 영영 뜨지 않았다 —
+     * 사용자에게는 "지시했는데 활동 로그가 안 보인다" 로 보였다.
+     */
+    public function feed(Request $request, Project $project, AiwJob $job): JsonResponse
+    {
+        $this->authorize('view', $job);
+        abort_unless((int) $job->project_id === (int) $project->id, 404);
+
+        $afterLog = (int) $request->integer('log_after', -1);
+        $afterMsg = (int) $request->integer('message_after', -1);
+
+        $logs = $job->logs()->where('seq', '>', $afterLog)->orderBy('seq')->get();
+
+        $messages = $job->messages()
+            ->where('seq', '>', $afterMsg)
+            ->with(['author:id,name', 'attachments'])
+            ->orderBy('seq')
+            ->get();
+
+        return response()->json([
+            'status' => $job->status->value,
+            // 브로드캐스트와 같은 모양으로 돌려준다. 화면이 한 가지 처리만 알면 된다.
+            'logs'     => $logs->map(fn ($l) => (new JobLogAppended($l))->broadcastWith())->values(),
+            'messages' => $messages->map(fn ($m) => (new JobMessageAppended($m))->broadcastWith())->values(),
+        ]);
     }
 
     /**

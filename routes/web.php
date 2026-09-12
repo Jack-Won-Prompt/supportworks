@@ -1373,6 +1373,8 @@ Route::middleware('auth')->group(function () {
         Route::get ('create',            [\App\Http\Controllers\AiWork\AiwJobController::class, 'create'])->name('create');
         Route::post('/',                 [\App\Http\Controllers\AiWork\AiwJobController::class, 'store'])->name('store');
         Route::get ('{job}',             [\App\Http\Controllers\AiWork\AiwJobController::class, 'show'])->name('show');
+        // 구독 전에 지나간 로그·메시지를 따라잡는다. WS 는 빠른 길, 이쪽이 정확한 길이다.
+        Route::get ('{job}/feed',        [\App\Http\Controllers\AiWork\AiwJobController::class, 'feed'])->name('feed');
         Route::post('{job}/messages',    [\App\Http\Controllers\AiWork\AiwJobController::class, 'message'])->name('message');
         Route::get ('{job}/attachments/{attachment}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'attachment'])->name('attachment');
         Route::post('{job}/permissions/{permission}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'decide'])->name('decide');

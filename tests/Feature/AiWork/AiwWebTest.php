@@ -487,6 +487,50 @@ class AiwWebTest extends TestCase
         Event::assertDispatched(JobUserMessage::class);
     }
 
+    public function test_따라잡기가_구독_전에_지나간_로그를_돌려준다(): void
+    {
+        // 지시를 등록한 같은 초에 실패하면, 페이지가 그려질 때는 로그가 없고
+        // 이벤트는 Echo 가 구독하기 전에 지나간다. 그때 사유가 영영 뜨지 않았다.
+        $job = $this->job(['status' => AiwJobStatus::Failed]);
+
+        \App\Models\AiWork\AiwJobLog::create([
+            'job_id' => $job->id, 'seq' => 0, 'type' => 'error', 'content' => '작업 폴더가 깨끗하지 않습니다',
+        ]);
+
+        $this->actingAs($this->member)
+            ->getJson(route('projects.ai-works.feed', [$this->project(), $job]).'?log_after=-1')
+            ->assertOk()
+            ->assertJsonPath('status', 'failed')
+            ->assertJsonPath('logs.0.content', '작업 폴더가 깨끗하지 않습니다');
+    }
+
+    public function test_따라잡기는_이미_받은_것을_다시_주지_않는다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::Running]);
+
+        \App\Models\AiWork\AiwJobLog::create([
+            'job_id' => $job->id, 'seq' => 0, 'type' => 'system', 'content' => '이미 봤다',
+        ]);
+        \App\Models\AiWork\AiwJobLog::create([
+            'job_id' => $job->id, 'seq' => 1, 'type' => 'system', 'content' => '새 것',
+        ]);
+
+        $this->actingAs($this->member)
+            ->getJson(route('projects.ai-works.feed', [$this->project(), $job]).'?log_after=0')
+            ->assertOk()
+            ->assertJsonCount(1, 'logs')
+            ->assertJsonPath('logs.0.content', '새 것');
+    }
+
+    public function test_남의_프로젝트_작업은_따라잡을_수_없다(): void
+    {
+        $job = $this->job();
+
+        $this->actingAs($this->outsider)
+            ->getJson(route('projects.ai-works.feed', [$this->project(), $job]))
+            ->assertForbidden();
+    }
+
     public function test_종료된_job에는_메시지를_보낼_수_없다(): void
     {
         $job = $this->job(['status' => AiwJobStatus::Completed]);

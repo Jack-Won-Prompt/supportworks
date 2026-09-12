@@ -79,6 +79,9 @@
         costUsd: {{ (float) $job->cost_usd }},
         costLimit: {{ (float) $job->cost_limit_usd }},
         handoverCount: {{ (int) $job->handover_count }},
+        {{-- 화면이 그려진 시점의 마지막 번호. 구독 전에 지나간 것을 따라잡는 기준이다. --}}
+        lastLogSeq: {{ (int) ($logs->max('seq') ?? -1) }},
+        lastMessageSeq: {{ (int) ($messages->max('seq') ?? -1) }},
      })">
 
     @if (session('status'))
@@ -722,10 +725,58 @@ function aiwJob(initial) {
             }
         },
 
+        /**
+         * 구독 전에 지나간 것을 따라잡는다.
+         *
+         * 브로드캐스트는 빠른 길이고 이쪽이 정확한 길이다. 지시를 등록한 **같은 초에**
+         * 작업이 실패한 적이 있는데, 페이지가 그려질 때는 로그가 아직 없었고 이벤트는
+         * Echo 가 구독하기 전에 지나가 실패 사유가 영영 뜨지 않았다.
+         *
+         * 재접속 때도 부른다 — 끊긴 사이에 흘러간 것이 있다.
+         */
+        async catchUp() {
+            try {
+                const url = new URL(window.location.pathname + '/feed', window.location.origin);
+                url.searchParams.set('log_after', this.lastLogSeq);
+                url.searchParams.set('message_after', this.lastMessageSeq);
+
+                const res = await fetch(url, {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+
+                if (!res.ok) return;
+
+                const data = await res.json();
+
+                for (const log of data.logs ?? []) {
+                    if (!this.liveLogs.some((l) => l.id === log.id)) this.liveLogs.push(log);
+                    this.lastLogSeq = Math.max(this.lastLogSeq, log.seq);
+                }
+
+                for (const message of data.messages ?? []) {
+                    if (!this.liveMessages.some((m) => m.id === message.id)) this.liveMessages.push(message);
+                    this.lastMessageSeq = Math.max(this.lastMessageSeq, message.seq);
+                }
+
+                if (data.status && data.status !== this.status) {
+                    this.status = data.status;
+                }
+            } catch (error) {
+                // 따라잡기에 실패해도 화면은 그대로 둔다. 다음 기회에 다시 맞춘다.
+            }
+        },
+
         subscribe() {
             // Reverb 미설정 환경에서는 EchoAiw 가 null 이다. 화면은 정적으로 동작한다.
             if (!window.EchoAiw || this.subscribed) return;
             this.subscribed = true;
+
+            // 구독이 열리기 전에 지나간 것을 먼저 메운다.
+            this.catchUp();
+
+            // 끊겼다 붙으면 그 사이에 흘러간 것이 있다.
+            window.EchoAiw.connector?.pusher?.connection?.bind('connected', () => this.catchUp());
 
             const ch = window.EchoAiw.private('aiw.job.' + this.jobId);
 
@@ -747,10 +798,12 @@ function aiwJob(initial) {
             ch.listen('.job.artifacts', () => this.refreshArtifacts());
 
             ch.listen('.message.appended', (e) => {
+                this.lastMessageSeq = Math.max(this.lastMessageSeq, e.seq ?? -1);
                 if (!this.liveMessages.some((m) => m.id === e.id)) this.liveMessages.push(e);
             });
 
             ch.listen('.log.appended', (e) => {
+                this.lastLogSeq = Math.max(this.lastLogSeq, e.seq ?? -1);
                 if (!this.liveLogs.some((l) => l.id === e.id)) this.liveLogs.push(e);
                 this.$nextTick(() => { if (this.autoScroll) this.jumpToBottom(); });
             });
