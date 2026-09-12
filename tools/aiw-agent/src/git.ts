@@ -171,9 +171,16 @@ export class GitWorkspace {
         }
 
         // 작업 브랜치가 기본 브랜치 안에 들어 있는가.
-        try {
-            await this.git.raw(['merge-base', '--is-ancestor', options.sourceBranch, target]);
-        } catch {
+        //
+        // `merge-base --is-ancestor` 를 쓰면 안 된다. 답을 출력이 아니라 종료 코드로만
+        // 알려 주는데, 출력이 없으면 simple-git 이 예외를 던지지 않아 catch 가 한 번도
+        // 걸리지 않는다. 그래서 **항상 "합쳐졌다"** 로 읽혔고, 커밋이 막힌 상태를
+        // 성공으로 보고해 옛 코드가 서버로 나갔다(korsafety #33).
+        //
+        // 값으로 비교한다. A 가 B 의 조상이면 merge-base(A,B) 는 A 의 끝과 같다.
+        const base = (await this.git.raw(['merge-base', options.sourceBranch, target])).trim();
+
+        if (base !== source) {
             return null;
         }
 
