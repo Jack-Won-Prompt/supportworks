@@ -12,11 +12,12 @@ $_pnItems = array_values(array_filter([
     ['key'=>'qa',             'url'=>route('projects.questions.index', $project),      'label'=>__('projects.qa'),            'feature'=>'qa'],
     ['key'=>'issues',         'url'=>route('projects.issues.index', $project),         'label'=>__('projects.nav_issues'),         'feature'=>'issues'],
     ['key'=>'files',          'url'=>route('projects.files.index', $project),          'label'=>__('projects.files'),         'feature'=>'files'],
-    ['key'=>'ai-works',       'url'=>route('projects.ai-works.index', $project),       'label'=>'작업 지시',                'feature'=>null],
+    ['key'=>'ai-works',       'url'=>route('projects.ai-works.index', $project),       'label'=>'작업 지시',                'feature'=>null, 'admin'=>true],
     ['key'=>'members',        'url'=>route('projects.members.index', $project),        'label'=>__('projects.members_btn'),   'feature'=>null,  'popup'=>true],
     ['key'=>'weekly-reports', 'url'=>route('projects.weekly-reports.index', $project), 'label'=>__('projects.nav_weekly_reports'), 'feature'=>'weekly_reports'],
     ['key'=>'leaves',         'url'=>route('projects.leaves.index', $project),         'label'=>__('projects.leave_days'),    'feature'=>'leaves'],
-], fn($item) => $item['feature'] === null || $_pnUser->hasFeature($item['feature'])));
+], fn($item) => (! ($item['admin'] ?? false) || $_pnUser?->isAdmin())
+    && ($item['feature'] === null || $_pnUser->hasFeature($item['feature']))));
 @endphp
 
 <style>

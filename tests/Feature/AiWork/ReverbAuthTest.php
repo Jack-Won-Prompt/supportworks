@@ -48,7 +48,8 @@ class ReverbAuthTest extends TestCase
         // 채널은 routes/channels.php 가 부팅 시 reverb 커넥션에 등록한다.
         // 여기서 일부러 재등록하지 않는다 — 등록이 빠지면 이 테스트가 실패해서 회귀를 잡아야 한다.
 
-        $this->member = User::factory()->create();
+        // 채널 인가는 AiwJobPolicy::view 를 그대로 탄다 = 시스템 관리자만.
+        $this->member = User::factory()->create(['role' => 'admin']);
         $this->outsider = User::factory()->create();
 
         $projectId = DB::table('projects')->insertGetId([
@@ -58,7 +59,7 @@ class ReverbAuthTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        // 채널 콜백이 projectMembers 로 판정하므로 멤버십을 실제로 만든다.
+        // 관리자는 멤버가 아니어도 되지만, 실제 화면과 같은 상태로 둔다.
         DB::table('project_members')->insert([
             'project_id' => $projectId,
             'user_id' => $this->member->id,
@@ -107,7 +108,7 @@ class ReverbAuthTest extends TestCase
         ]);
     }
 
-    public function test_프로젝트_멤버는_job_채널_인가를_받는다(): void
+    public function test_관리자는_job_채널_인가를_받는다(): void
     {
         $response = $this->authRequest($this->member);
 
@@ -119,6 +120,23 @@ class ReverbAuthTest extends TestCase
     public function test_프로젝트_비멤버는_거부된다(): void
     {
         $response = $this->authRequest($this->outsider);
+
+        $this->assertContains($response->status(), [401, 403]);
+    }
+
+    public function test_프로젝트_멤버라도_관리자가_아니면_거부된다(): void
+    {
+        // 화면은 403 인데 실시간 로그만 흘러가는 구멍을 막는다.
+        $member = User::factory()->create(['role' => 'member']);
+        DB::table('project_members')->insert([
+            'project_id' => AiwJob::findOrFail($this->jobId)->project_id,
+            'user_id' => $member->id,
+            'role' => 'manager',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->authRequest($member);
 
         $this->assertContains($response->status(), [401, 403]);
     }

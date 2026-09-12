@@ -107,7 +107,7 @@ AI Works는 로그가 초당 수십 건 흐르므로 Pusher 무료·유료 한�
 
 ### `private-aiw.job.{jobId}` — 서버 → 브라우저
 
-인가: 해당 프로젝트 멤버만. `routes/channels.php`의 콜백이 `projectMembers`를 확인한다.
+인가: **시스템 관리자만**. `routes/channels.php`의 콜백이 `AiwJobPolicy::view` 를 그대로 호출한다 — 화면과 채널이 따로 놀지 않게 한 곳에서만 판단한다.
 
 | 이벤트명 | 클래스 | 언제 |
 |---|---|---|

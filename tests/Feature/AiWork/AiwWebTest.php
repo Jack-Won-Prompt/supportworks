@@ -24,6 +24,10 @@ class AiwWebTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** 지시를 내리는 사람. AI Works 는 시스템 관리자 전용이다. */
+    private User $operator;
+
+    /** 관리자가 아닌 프로젝트 멤버. 접근이 막혀야 한다. */
     private User $member;
 
     private User $viewer;
@@ -56,6 +60,7 @@ class AiwWebTest extends TestCase
             'updated_at' => now(),
         ]);
 
+        $this->operator = $this->addMember('manager', 'admin');
         $this->member = $this->addMember('member');
         $this->viewer = $this->addMember('viewer');
 
@@ -74,9 +79,9 @@ class AiwWebTest extends TestCase
         ]);
     }
 
-    private function addMember(string $role): User
+    private function addMember(string $role, string $appRole = 'member'): User
     {
-        $user = User::factory()->create(['role' => 'member']);
+        $user = User::factory()->create(['role' => $appRole]);
         DB::table('project_members')->insert([
             'project_id' => $this->projectId,
             'user_id' => $user->id,
@@ -103,38 +108,51 @@ class AiwWebTest extends TestCase
             'context_limit_tokens' => 200000,
             'allowed_tools' => ['Read', 'Edit'],
             'cost_limit_usd' => 2.0,
-            'created_by' => $this->member->id,
+            'created_by' => $this->operator->id,
         ], $overrides));
     }
 
     // ── 목록 / 상세 ─────────────────────────────────────────────────────────
 
-    public function test_멤버는_목록을_볼_수_있다(): void
+    public function test_관리자는_목록을_볼_수_있다(): void
     {
         $job = $this->job();
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.index', $this->project()))
             ->assertOk()
             ->assertSee($job->title)
             ->assertSee('테스트 PC');
     }
 
-    public function test_운영_정보는_관리자에게만_보인다(): void
+    public function test_프로젝트_멤버라도_관리자가_아니면_막힌다(): void
     {
-        $job = $this->job(['status' => AiwJobStatus::Completed]);
-        $job->forceFill(['duration_ms' => 5000, 'cost_usd' => 0.42])->save();
+        // 지시 한 줄이 작업 PC 의 소스를 고치고 운영 서버에 배포까지 한다.
+        // 프로젝트 역할이 아니라 시스템 관리자 여부로 가른다.
+        $urls = [
+            route('projects.ai-works.index', $this->project()),
+            route('projects.ai-works.create', $this->project()),
+        ];
 
-        $url = route('projects.ai-works.index', $this->project());
+        foreach ([$this->member, $this->viewer] as $user) {
+            foreach ($urls as $url) {
+                $this->actingAs($user)->get($url)->assertForbidden();
+            }
+        }
+    }
 
-        // 소스 경로는 담당자 PC 의 내부 구조다. 지시하는 사람에게는 필요 없다.
-        $this->actingAs($this->member)->get($url)
-            ->assertOk()
-            ->assertDontSee('E:\work\sample')
-            ->assertDontSee('등록자')
-            ->assertDontSee('소요')
-            ->assertDontSee('작업량')
-            ->assertSee('등록일');
+    public function test_관리자는_멤버가_아니어도_볼_수_있다(): void
+    {
+        // 관리자가 모든 프로젝트의 멤버는 아니다. 멤버까지 요구하면 대부분의
+        // 프로젝트에서 탭만 보이고 눌리지 않는다.
+        $this->assertDatabaseMissing('project_members', [
+            'project_id' => $this->projectId,
+            'user_id' => $this->admin->id,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('projects.ai-works.index', $this->project()))
+            ->assertOk();
     }
 
     public function test_관리자는_운영_정보를_본다(): void
@@ -161,7 +179,7 @@ class AiwWebTest extends TestCase
         // 매핑은 있는데 접속한 적이 없다 = 설치가 안 된 것.
         $this->agent->forceFill(['last_seen_at' => null])->saveQuietly();
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.index', $this->project()))
             ->assertOk()
             ->assertSee('모두 오프라인')
@@ -173,7 +191,7 @@ class AiwWebTest extends TestCase
         $this->agent->forceFill(['last_seen_at' => now()->subDay()])->saveQuietly();
 
         // 설치는 됐는데 지금 꺼져 있는 것이라 조치가 다르다.
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.index', $this->project()))
             ->assertOk()
             ->assertSee('데몬이 실행 중인지 확인하세요')
@@ -190,13 +208,13 @@ class AiwWebTest extends TestCase
 
         $job = $this->job(['status' => AiwJobStatus::Completed]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.index', $this->project()))
             ->assertOk()
             ->assertSee('이윤석')
             ->assertDontSee('테스트 PC');
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertSee('이윤석');
@@ -204,7 +222,7 @@ class AiwWebTest extends TestCase
 
     public function test_표시_이름이_없으면_담당자_이름을_쓴다(): void
     {
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.index', $this->project()))
             ->assertOk()
             ->assertSee('테스트 PC');
@@ -223,14 +241,14 @@ class AiwWebTest extends TestCase
 
         AiwJobMessage::create([
             'job_id' => $job->id, 'seq' => 0, 'role' => 'user',
-            'content' => '첫 지시문입니다', 'user_id' => $this->member->id, 'created_at' => now(),
+            'content' => '첫 지시문입니다', 'user_id' => $this->operator->id, 'created_at' => now(),
         ]);
         DB::table('aiw_job_logs')->insert([
             'job_id' => $job->id, 'seq' => 1, 'type' => 'tool_use',
             'content' => 'Read README.md', 'created_at' => now(),
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertSee('첫 지시문입니다')
@@ -246,7 +264,7 @@ class AiwWebTest extends TestCase
             'tool_input' => ['command' => 'npm test'], 'created_at' => now(),
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertSee('승인 요청')
@@ -259,7 +277,7 @@ class AiwWebTest extends TestCase
     {
         Event::fake();
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.store', $this->project()), [
                 'title' => '새 지시',
                 'agent_id' => $this->agent->id,
@@ -295,13 +313,13 @@ class AiwWebTest extends TestCase
 
         // 폼의 hidden 이 보내는 값. 예전에는 값이 없으면 true 로 봤는데, 해제한
         // 체크박스는 아무것도 보내지 않아 브랜치 분리를 끌 방법이 없었다.
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.store', $this->project()), $base + ['use_branch' => '0'])
             ->assertRedirect();
 
         $this->assertFalse((bool) AiwJob::latest('id')->first()->use_branch);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.store', $this->project()), $base + ['use_branch' => '1'])
             ->assertRedirect();
 
@@ -317,7 +335,7 @@ class AiwWebTest extends TestCase
             'error_detail'  => ['files' => ['app/Foo.php'], 'count' => 1],
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertSee('작업 폴더 정리 필요')
@@ -336,7 +354,7 @@ class AiwWebTest extends TestCase
             'error_message' => '알 수 없는 오류',
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertSee('알 수 없는 오류')
@@ -348,12 +366,12 @@ class AiwWebTest extends TestCase
         $parent = $this->job(['status' => AiwJobStatus::Failed, 'use_branch' => true]);
 
         // 실패 화면의 "브랜치 없이 다시 지시" 가 보내는 링크다.
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.create', [$this->project(), 'parent' => $parent->id, 'use_branch' => 0]))
             ->assertOk()
             ->assertSee("useBranch: false", false);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.create', [$this->project(), 'parent' => $parent->id]))
             ->assertOk()
             ->assertSee("useBranch: true", false);
@@ -369,7 +387,7 @@ class AiwWebTest extends TestCase
             'choices' => ['관리자 화면에서 켜기', '마이그레이션으로 켜기'],
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertSee('관리자 화면에서 켜기')
@@ -391,7 +409,7 @@ class AiwWebTest extends TestCase
         ]);
 
         // 이미 답한 질문의 버튼이 남아 있으면 같은 답을 다시 보내게 된다.
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertSee('지금 선택지')
@@ -407,7 +425,7 @@ class AiwWebTest extends TestCase
             'content' => '질문', 'choices' => ['누를 수 없는 선택지'],
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertDontSee('누를 수 없는 선택지');
@@ -419,7 +437,7 @@ class AiwWebTest extends TestCase
         $job = $this->job(['status' => AiwJobStatus::WaitingInput, 'mode' => 'interactive']);
 
         // 버튼은 그 문구를 그대로 사용자 메시지로 보낸다.
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.message', [$this->project(), $job]), [
                 'content' => '관리자 화면에서 켜기',
             ])
@@ -437,7 +455,7 @@ class AiwWebTest extends TestCase
 
         // 같은 폴더에서 둘이 동시에 돌 수 없어 직렬로 기다린다. 화면이 말해 주지
         // 않으면 "보냈는데 아무 일도 없는" 상태로 보인다.
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $queued]))
             ->assertOk()
             ->assertSee('먼저 온 작업')
@@ -449,7 +467,7 @@ class AiwWebTest extends TestCase
         $this->job(['status' => AiwJobStatus::Running, 'title' => '먼저 온 작업']);
         $running = $this->job(['status' => AiwJobStatus::Running]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $running]))
             ->assertOk()
             ->assertDontSee('자동으로 시작');
@@ -457,7 +475,7 @@ class AiwWebTest extends TestCase
 
     public function test_미지원_툴은_422로_거부된다(): void
     {
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.store', $this->project()), [
                 'title' => 'x', 'agent_id' => $this->agent->id, 'instruction' => 'y',
                 'mode' => 'batch', 'allowed_tools' => ['RmRf'],
@@ -481,7 +499,7 @@ class AiwWebTest extends TestCase
 
         $job = $this->job(['status' => AiwJobStatus::WaitingInput, 'mode' => 'interactive']);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.message', [$this->project(), $job]), ['content' => '이렇게 해줘'])
             ->assertRedirect();
 
@@ -499,7 +517,7 @@ class AiwWebTest extends TestCase
             'job_id' => $job->id, 'seq' => 0, 'type' => 'error', 'content' => '작업 폴더가 깨끗하지 않습니다',
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->getJson(route('projects.ai-works.feed', [$this->project(), $job]).'?log_after=-1')
             ->assertOk()
             ->assertJsonPath('status', 'failed')
@@ -517,7 +535,7 @@ class AiwWebTest extends TestCase
             'job_id' => $job->id, 'seq' => 1, 'type' => 'system', 'content' => '새 것',
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->getJson(route('projects.ai-works.feed', [$this->project(), $job]).'?log_after=0')
             ->assertOk()
             ->assertJsonCount(1, 'logs')
@@ -539,7 +557,7 @@ class AiwWebTest extends TestCase
 
         // 화면을 열어 둔 사이 작업이 끝나는 건 흔한 일이다. 오류 페이지로 끊으면
         // 사용자는 이유도 모르고 입력하던 내용도 잃는다.
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.message', [$this->project(), $job]), ['content' => '이어서 해주세요'])
             ->assertRedirect()
             ->assertSessionHas('error')
@@ -555,7 +573,7 @@ class AiwWebTest extends TestCase
     {
         $job = $this->job(['status' => AiwJobStatus::Running, 'mode' => 'batch']);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.message', [$this->project(), $job]), ['content' => 'x'])
             ->assertRedirect()
             ->assertSessionHas('error');
@@ -576,7 +594,7 @@ class AiwWebTest extends TestCase
 
         $job = $this->job(['status' => AiwJobStatus::Running]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.action', [$this->project(), $job, 'cancel']))
             ->assertRedirect();
 
@@ -589,13 +607,13 @@ class AiwWebTest extends TestCase
         Event::fake([HandoverRequested::class]);
 
         $batch = $this->job(['status' => AiwJobStatus::Running, 'mode' => 'batch']);
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.action', [$this->project(), $batch, 'handover']))
             ->assertRedirect()
             ->assertSessionHas('error');
 
         $interactive = $this->job(['status' => AiwJobStatus::Running, 'mode' => 'interactive']);
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.action', [$this->project(), $interactive, 'handover']))
             ->assertRedirect();
 
@@ -610,7 +628,7 @@ class AiwWebTest extends TestCase
             'tool_input' => [], 'created_at' => now(),
         ]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.decide', [$this->project(), $job, $permission]), [
                 'decision' => 'deny', 'deny_reason' => '위험합니다',
             ])
@@ -618,7 +636,7 @@ class AiwWebTest extends TestCase
 
         $permission->refresh();
         $this->assertSame('denied', $permission->status);
-        $this->assertSame($this->member->id, $permission->decided_by);
+        $this->assertSame($this->operator->id, $permission->decided_by);
     }
 
     public function test_CLAUDE_md_승격이_후속job을_만든다(): void
@@ -627,7 +645,7 @@ class AiwWebTest extends TestCase
 
         $job = $this->job(['status' => AiwJobStatus::Completed]);
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->post(route('projects.ai-works.promote', [$this->project(), $job]), [
                 'sections' => ['커밋 전 테스트를 돌린다'],
             ])
@@ -649,11 +667,12 @@ class AiwWebTest extends TestCase
         $this->assertFalse($this->agent->fresh()->usesApiKey());
         $this->assertSame('예상 사용량', $this->agent->fresh()->costLabel());
 
-        $this->actingAs($this->member)
+        // 상세 화면은 더 이상 금액을 그리지 않는다(게이지 제거). 라벨은 목록의
+        // 상한 칸 툴팁에만 쓰이므로 여기서는 모델 수준으로만 확인한다.
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
-            ->assertSee('예상 사용량')
-            ->assertSee('실제 청구액이 아닙니다');
+            ->assertDontSee('실제 청구액이 아닙니다');
     }
 
     public function test_API키_PC는_비용으로_표시한다(): void
@@ -664,7 +683,7 @@ class AiwWebTest extends TestCase
         $this->assertTrue($this->agent->fresh()->usesApiKey());
         $this->assertSame('비용', $this->agent->fresh()->costLabel());
 
-        $this->actingAs($this->member)
+        $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
             ->assertDontSee('실제 청구액이 아닙니다');

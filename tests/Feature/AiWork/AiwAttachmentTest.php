@@ -42,7 +42,8 @@ class AiwAttachmentTest extends TestCase
             \App\Http\Middleware\CollabParticipantMiddleware::class,
         ]);
 
-        $this->member = User::factory()->create();
+        // AI Works 는 시스템 관리자 전용이다.
+        $this->member = User::factory()->create(['role' => 'admin']);
         $this->outsider = User::factory()->create();
 
         $this->projectId = DB::table('projects')->insertGetId([

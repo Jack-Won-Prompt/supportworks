@@ -74,12 +74,6 @@
 <div class="space-y-3" x-data="aiwJob({
         jobId: {{ $job->id }},
         status: @js($job->status->value),
-        contextTokens: {{ (int) $job->context_tokens }},
-        contextLimit: {{ (int) $job->context_limit_tokens }},
-        costUsd: {{ (float) $job->cost_usd }},
-        {{-- null 이면 제한 없음. 0 으로 넘겨 화면이 그렇게 읽는다. --}}
-        costLimit: {{ (float) ($job->cost_limit_usd ?? 0) }},
-        handoverCount: {{ (int) $job->handover_count }},
         {{-- 화면이 그려진 시점의 마지막 번호. 구독 전에 지나간 것을 따라잡는 기준이다. --}}
         lastLogSeq: {{ (int) ($logs->max('seq') ?? -1) }},
         lastMessageSeq: {{ (int) ($messages->max('seq') ?? -1) }},
@@ -99,7 +93,7 @@
 
     {{-- ── 헤더 ─────────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div class="flex items-start justify-between gap-3 flex-wrap mb-2">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
             <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                     <h2 class="text-xl font-bold text-gray-900">{{ $job->title }}</h2>
@@ -155,47 +149,6 @@
                        class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">후속 지시</a>
                 </div>
             @endif
-        </div>
-
-        {{-- 게이지 --}}
-        <div class="grid gap-4 md:grid-cols-2 mt-4">
-            <div>
-                <div class="flex items-center justify-between text-xs mb-1">
-                    <span class="font-semibold text-gray-700">컨텍스트</span>
-                    <span class="text-gray-500">
-                        <span x-text="contextTokens.toLocaleString()"></span> /
-                        <span x-text="contextLimit.toLocaleString()"></span>
-                        <span class="ml-1 text-gray-400">세션 교체 <span x-text="handoverCount"></span>회</span>
-                    </span>
-                </div>
-                <div class="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                    <div class="h-full rounded-full transition-all" :class="contextTone" :style="`width:${contextPct}%`"></div>
-                </div>
-            </div>
-
-            <div>
-                <div class="flex items-center justify-between text-xs mb-1">
-                    <span class="font-semibold text-gray-700" title="{{ $job->agent?->costHint() }}">
-                        {{ $job->agent?->costLabel() ?? '비용' }}
-                    </span>
-                    <span class="text-gray-500">
-                        $<span x-text="costUsd.toFixed(4)"></span> /
-                        <template x-if="costLimit > 0">
-                            <span>$<span x-text="costLimit.toFixed(2)"></span></span>
-                        </template>
-                        <template x-if="costLimit <= 0"><span>제한 없음</span></template>
-                    </span>
-                </div>
-                <div class="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                    <div class="h-full rounded-full transition-all" :class="costTone" :style="`width:${costPct}%`"></div>
-                </div>
-                <p x-show="costPct >= 80" x-cloak class="mt-1 text-xs text-red-600">상한에 근접했습니다.</p>
-                @if ($job->agent && ! $job->agent->usesApiKey())
-                    <p class="mt-1 text-[11px] text-gray-400">
-                        구독 로그인으로 실행되어 실제 청구액이 아닙니다. 폭주를 막는 상한으로만 쓰입니다.
-                    </p>
-                @endif
-            </div>
         </div>
     </div>
 
@@ -787,11 +740,6 @@ function aiwJob(initial) {
 
             ch.listen('.job.status-changed', (e) => {
                 this.status = e.status;
-                this.contextTokens = e.context_tokens;
-                this.contextLimit = e.context_limit_tokens;
-                this.costUsd = e.cost_usd;
-                this.costLimit = e.cost_limit_usd ?? 0;
-                this.handoverCount = e.handover_count;
                 // 종료되면 결과 영역이 서버 렌더라 새로고침이 필요하다.
                 if (['completed', 'failed', 'cancelled'].includes(e.status)) {
                     setTimeout(() => window.location.reload(), 1200);
@@ -839,20 +787,11 @@ function aiwJob(initial) {
             return 'bg-gray-100 text-gray-600';
         },
 
-        get contextPct() { return this.contextLimit > 0 ? Math.min(100, (this.contextTokens / this.contextLimit) * 100) : 0; },
-        get contextTone() {
-            if (this.contextPct >= 80) return 'bg-red-500';
-            if (this.contextPct >= 60) return 'bg-orange-400';
-            return 'bg-indigo-500';
-        },
         /** 실시간 메시지 중 선택지를 가진 마지막 것. 지난 질문의 버튼은 숨긴다. */
         get latestLiveChoiceId() {
             const withChoices = this.liveMessages.filter((m) => m.choices && m.choices.length);
             return withChoices.length ? withChoices[withChoices.length - 1].id : null;
         },
-
-        get costPct() { return this.costLimit > 0 ? Math.min(100, (this.costUsd / this.costLimit) * 100) : 0; },
-        get costTone() { return this.costPct >= 80 ? 'bg-red-500' : 'bg-emerald-500'; },
 
         /**
          * 마크다운 렌더.

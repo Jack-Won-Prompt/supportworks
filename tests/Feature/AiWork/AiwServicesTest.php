@@ -385,25 +385,37 @@ class AiwServicesTest extends TestCase
         $this->assertFalse(Gate::forUser($outsider)->allows('view', $job));
     }
 
-    public function test_viewer는_조회만_가능하다(): void
+    public function test_프로젝트_멤버라도_관리자가_아니면_막힌다(): void
     {
+        // 역할이 manager 든 viewer 든 상관없다. AI Works 는 작업 PC 에서
+        // 명령을 실행하는 기능이라 시스템 관리자에게만 연다.
         $job = $this->job();
-        $viewer = $this->member('viewer');
 
-        $this->assertTrue(Gate::forUser($viewer)->allows('view', $job));
-        $this->assertFalse(Gate::forUser($viewer)->allows('sendMessage', $job));
-        $this->assertFalse(Gate::forUser($viewer)->allows('decidePermission', $job));
-        $this->assertFalse(Gate::forUser($viewer)->allows('cancel', $job));
+        foreach (['manager', 'member', 'viewer'] as $role) {
+            $user = $this->member($role);
+
+            foreach (['view', 'sendMessage', 'decidePermission', 'cancel'] as $ability) {
+                $this->assertFalse(
+                    Gate::forUser($user)->allows($ability, $job),
+                    sprintf('%s 는 %s 를 할 수 없어야 한다', $role, $ability),
+                );
+            }
+        }
     }
 
-    public function test_member는_지시와_승인이_가능하다(): void
+    public function test_관리자는_멤버가_아니어도_전부_가능하다(): void
     {
         $job = $this->job();
-        $member = $this->member('member');
+        $admin = User::factory()->create(['role' => 'admin']);
 
-        $this->assertTrue(Gate::forUser($member)->allows('view', $job));
-        $this->assertTrue(Gate::forUser($member)->allows('sendMessage', $job));
-        $this->assertTrue(Gate::forUser($member)->allows('decidePermission', $job));
+        $this->assertDatabaseMissing('project_members', [
+            'project_id' => $this->projectId,
+            'user_id' => $admin->id,
+        ]);
+
+        foreach (['view', 'sendMessage', 'decidePermission', 'cancel', 'end', 'handover'] as $ability) {
+            $this->assertTrue(Gate::forUser($admin)->allows($ability, $job), $ability);
+        }
     }
 
     public function test_작업PC_관리는_관리자만(): void

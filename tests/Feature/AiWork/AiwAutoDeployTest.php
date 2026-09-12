@@ -49,7 +49,8 @@ class AiwAutoDeployTest extends TestCase
             \App\Http\Middleware\CollabParticipantMiddleware::class,
         ]);
 
-        $this->member = User::factory()->create();
+        // AI Works 는 시스템 관리자 전용이다.
+        $this->member = User::factory()->create(['role' => 'admin']);
 
         $this->projectId = DB::table('projects')->insertGetId([
             'name' => '자동 배포 테스트', 'created_by' => $this->member->id,

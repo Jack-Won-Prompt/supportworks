@@ -87,16 +87,19 @@ Broadcast::channel('collab-session.{sessionKey}', function ($user, $sessionKey) 
 $aiwReverb = config('broadcasting.connections.reverb');
 
 if (filled($aiwReverb['key'] ?? null) && filled($aiwReverb['secret'] ?? null) && filled($aiwReverb['app_id'] ?? null)) {
-    // job 상세 화면의 실시간 구독. 해당 프로젝트 멤버만 허용한다.
-    // (기존 analysis-session 채널과 동일한 projectMembers 패턴)
+    // job 상세 화면의 실시간 구독.
+    //
+    // 권한 판단은 AiwJobPolicy 에 맡긴다. 여기에 조건을 따로 적으면 정책이
+    // 바뀔 때 이 채널만 옛 규칙으로 남아, 화면은 막혔는데 로그는 그대로
+    // 흘러가는 상태가 된다(멤버 기준이던 시절의 잔재였다).
     Broadcast::connection('reverb')->channel('aiw.job.{jobId}', function ($user, $jobId) {
         if (! $user instanceof \App\Models\User) {
             return false;
         }
 
-        return \App\Models\AiWork\AiwJob::where('id', $jobId)
-            ->whereHas('project.projectMembers', fn ($q) => $q->where('user_id', $user->id))
-            ->exists();
+        $job = \App\Models\AiWork\AiwJob::find($jobId);
+
+        return $job !== null && $user->can('view', $job);
     }, ['guards' => ['web']]);
 
     // aiw.agent.* 는 여기 등록하지 않는다. 데몬은 user 가 없어 콜백 방식을 탈 수 없고,

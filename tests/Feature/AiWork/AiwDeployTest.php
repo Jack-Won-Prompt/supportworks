@@ -45,7 +45,8 @@ class AiwDeployTest extends TestCase
         ]);
 
         $this->admin = User::factory()->create(['role' => 'admin']);
-        $this->member = User::factory()->create();
+        // AI Works 는 시스템 관리자 전용이다.
+        $this->member = User::factory()->create(['role' => 'admin']);
 
         $this->projectId = DB::table('projects')->insertGetId([
             'name' => '배포 테스트', 'created_by' => $this->admin->id,
@@ -111,10 +112,12 @@ class AiwDeployTest extends TestCase
     public function test_관리자만_배포_대상을_등록한다(): void
     {
         // 여기 등록한 명령이 서버에서 그대로 실행된다. 사실상 셸 권한이다.
-        $this->actingAs($this->member)->get(route('settings.aiw-deploys.index'))->assertForbidden();
+        $outsider = User::factory()->create(['role' => 'member']);
+
+        $this->actingAs($outsider)->get(route('settings.aiw-deploys.index'))->assertForbidden();
         $this->actingAs($this->admin)->get(route('settings.aiw-deploys.index'))->assertOk();
 
-        $this->actingAs($this->member)->post(route('settings.aiw-deploys.store'), [
+        $this->actingAs($outsider)->post(route('settings.aiw-deploys.store'), [
             'project_id' => $this->projectId, 'name' => '몰래', 'working_dir' => '/tmp', 'command' => 'rm -rf /',
         ])->assertForbidden();
 
