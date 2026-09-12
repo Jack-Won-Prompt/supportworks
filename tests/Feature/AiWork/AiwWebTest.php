@@ -151,7 +151,9 @@ class AiwWebTest extends TestCase
             ->assertOk()
             ->assertSee('등록자')
             ->assertSee('작업량')
-            ->assertSee('E:\work\sample');
+            // 소스 경로는 관리자에게도 이 화면에서는 보이지 않는다. 여기서 할 일은
+            // 지시를 내리고 진행을 보는 것이고, 경로는 설정 › 담당자 에서 다룬다.
+            ->assertDontSee('E:\work\sample');
     }
 
     public function test_담당자가_오프라인이면_이유를_알려준다(): void

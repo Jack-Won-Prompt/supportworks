@@ -70,13 +70,9 @@
                         실행 중 {{ $runningByAgent[$agent->id] ?? 0 }}
                         / 상한 {{ $agent->capabilities['max_parallel_jobs'] ?? '—' }}
                     </span>
-                    {{-- 소스 경로는 담당자 PC 의 내부 구조다. 지시하는 사람에게는 필요 없고,
-                         매핑을 고칠 수 있는 관리자에게만 의미가 있다. --}}
-                    @if ($mapping && $isAdmin)
-                        <span class="text-gray-400" title="{{ $mapping->local_path }}">
-                            {{ \Illuminate\Support\Str::limit($mapping->local_path, 28) }}
-                        </span>
-                    @endif
+                    {{-- 소스 경로는 담당자 PC 의 내부 구조다. 이 화면에서 할 일은 지시를
+                         내리고 진행을 보는 것이라 경로를 볼 이유가 없다. 고쳐야 할 때는
+                         설정 › 담당자 에서 본다. --}}
                     @unless ($isOnline)
                         <span class="text-gray-400">
                             {{ $lastSeen ? $lastSeen->diffForHumans() : '접속 이력 없음' }}
