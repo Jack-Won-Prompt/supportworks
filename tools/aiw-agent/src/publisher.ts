@@ -1,5 +1,6 @@
 import { realpath } from 'node:fs/promises';
 import { ApiClient } from './api.js';
+import { config } from './config.js';
 import { GitWorkspace } from './git.js';
 import type { JobManager } from './job-manager.js';
 import { log } from './logger.js';
@@ -8,6 +9,8 @@ import { log } from './logger.js';
 export interface PublishRequest {
     publish_id: number;
     job_id: number;
+    /** 프로젝트별로 나눠 띄운 프로세스가 남의 요청을 걸러내는 값. */
+    project_id?: number;
     local_path: string;
     source_branch: string;
     target_branch: string;
@@ -38,6 +41,13 @@ export class Publisher {
     ) {}
 
     handle(request: PublishRequest): void {
+        // 토큰이 PC 당 하나라 채널도 하나다. 걸러 주지 않으면 프로젝트별로 띄운
+        // 프로세스가 **모두** 같은 저장소에서 커밋을 시도해 index.lock 이 부딪힌다.
+        // 하나만 성공하고 나머지는 실패로 남아, 성공한 일이 실패로 보고됐다.
+        if (config.projectId !== null && Number(request.project_id) !== config.projectId) {
+            return;
+        }
+
         if (this.inFlight.has(request.publish_id)) {
             return;
         }

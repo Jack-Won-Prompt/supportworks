@@ -41,7 +41,7 @@ Copy-Item 'dist' "$DaemonHome\dist" -Recurse -Force
 Write-Host "  dist → $DaemonHome\dist" -ForegroundColor Green
 
 # 실행 스크립트와 의존성 목록도 저장소 쪽이 원본이다.
-foreach ($f in @('package.json', 'package-lock.json', 'start-agent.ps1', 'start-all.ps1', 'setup-autostart.ps1')) {
+foreach ($f in @('package.json', 'package-lock.json', 'start-agent.ps1', 'start-all.ps1', 'setup-autostart.ps1', 'check-setup.ps1')) {
     Copy-Item $f "$DaemonHome\$f" -Force
     Write-Host "  $f"
 }

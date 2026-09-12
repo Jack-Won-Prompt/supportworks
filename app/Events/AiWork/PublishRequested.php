@@ -34,6 +34,10 @@ class PublishRequested extends AiwEvent
         return [
             'publish_id'     => $this->publish->id,
             'job_id'         => $this->publish->job_id,
+            // 토큰이 PC 당 하나라 채널도 하나다. 프로젝트별로 나눠 띄운 프로세스가
+            // 이 값으로 남의 요청을 걸러낸다 — 없으면 넷이 같은 저장소에서
+            // 동시에 커밋을 시도해 index.lock 이 부딪힌다.
+            'project_id'     => (int) $this->publish->job?->project_id,
             'local_path'     => $this->localPath,
             'source_branch'  => $this->publish->source_branch,
             'target_branch'  => $this->publish->target_branch,
