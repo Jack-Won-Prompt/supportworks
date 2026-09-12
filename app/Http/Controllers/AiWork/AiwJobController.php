@@ -154,7 +154,10 @@ class AiwJobController extends Controller
             'model'           => ['nullable', 'string', 'max:100'],
             'allowed_tools'   => ['required', 'array', 'min:1'],
             'permission_mode' => ['required', 'in:acceptEdits,default'],
-            'cost_limit_usd'  => ['required', 'numeric', 'gt:0', 'max:1000'],
+            // 비워 두면 제한 없음. 구독 로그인으로 도는 담당자는 화면의 금액이
+            // 실제 청구가 아니라 환산값이라, 상한을 강제할 이유가 없다.
+            'cost_limit_usd'  => ['nullable', 'numeric', 'gt:0', 'max:1000'],
+            'no_cost_limit'   => ['nullable', 'boolean'],
             'use_branch'      => ['nullable', 'boolean'],
             'parent_job_id'   => ['nullable', 'integer'],
             'auto_deploy'     => ['nullable', 'boolean'],
@@ -191,7 +194,10 @@ class AiwJobController extends Controller
             'context_limit_tokens' => $this->contextLimitFor($validated['model'] ?? null),
             'allowed_tools'        => $tools,
             'permission_mode'      => $validated['permission_mode'],
-            'cost_limit_usd'       => $validated['cost_limit_usd'],
+            // 체크하면 상한 없이 돈다. 숫자가 비어 있어도 같은 뜻으로 본다.
+            'cost_limit_usd'       => $request->boolean('no_cost_limit')
+                ? null
+                : ($validated['cost_limit_usd'] ?? null),
             // 폼의 hidden 이 "0" 을 보내므로 여기서 그대로 해석한다. 예전에는
             // 값이 없으면 true 로 봤는데, 해제한 체크박스는 아무것도 보내지 않아
             // 브랜치 분리를 끌 수 없었다.

@@ -77,7 +77,8 @@
         contextTokens: {{ (int) $job->context_tokens }},
         contextLimit: {{ (int) $job->context_limit_tokens }},
         costUsd: {{ (float) $job->cost_usd }},
-        costLimit: {{ (float) $job->cost_limit_usd }},
+        {{-- null 이면 제한 없음. 0 으로 넘겨 화면이 그렇게 읽는다. --}}
+        costLimit: {{ (float) ($job->cost_limit_usd ?? 0) }},
         handoverCount: {{ (int) $job->handover_count }},
         {{-- 화면이 그려진 시점의 마지막 번호. 구독 전에 지나간 것을 따라잡는 기준이다. --}}
         lastLogSeq: {{ (int) ($logs->max('seq') ?? -1) }},
@@ -178,7 +179,11 @@
                         {{ $job->agent?->costLabel() ?? '비용' }}
                     </span>
                     <span class="text-gray-500">
-                        $<span x-text="costUsd.toFixed(4)"></span> / $<span x-text="costLimit.toFixed(2)"></span>
+                        $<span x-text="costUsd.toFixed(4)"></span> /
+                        <template x-if="costLimit > 0">
+                            <span>$<span x-text="costLimit.toFixed(2)"></span></span>
+                        </template>
+                        <template x-if="costLimit <= 0"><span>제한 없음</span></template>
                     </span>
                 </div>
                 <div class="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
@@ -785,7 +790,7 @@ function aiwJob(initial) {
                 this.contextTokens = e.context_tokens;
                 this.contextLimit = e.context_limit_tokens;
                 this.costUsd = e.cost_usd;
-                this.costLimit = e.cost_limit_usd;
+                this.costLimit = e.cost_limit_usd ?? 0;
                 this.handoverCount = e.handover_count;
                 // 종료되면 결과 영역이 서버 렌더라 새로고침이 필요하다.
                 if (['completed', 'failed', 'cancelled'].includes(e.status)) {

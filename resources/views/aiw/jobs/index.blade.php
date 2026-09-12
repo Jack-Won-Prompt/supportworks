@@ -202,7 +202,13 @@
                                 </td>
                                 <td class="py-2 pr-3 text-gray-500" title="{{ $job->agent?->costHint() }}">
                                     ${{ number_format((float) $job->cost_usd, 2) }}
-                                    <span class="text-gray-400">/ ${{ number_format((float) $job->cost_limit_usd, 2) }}</span>
+                                    <span class="text-gray-400">
+                                        @if ($job->hasNoCostLimit())
+                                            / 제한 없음
+                                        @else
+                                            / ${{ number_format((float) $job->cost_limit_usd, 2) }}
+                                        @endif
+                                    </span>
                                     @if ($job->agent && ! $job->agent->usesApiKey())
                                         <span class="text-[10px] text-gray-400">추정</span>
                                     @endif

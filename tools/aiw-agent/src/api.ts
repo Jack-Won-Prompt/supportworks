@@ -15,7 +15,8 @@ export interface JobSpec {
     allowed_tools: string[];
     permission_mode: 'acceptEdits' | 'default';
     context_limit_tokens: number;
-    cost_limit_usd: number;
+    /** null 이면 제한 없음. 판단은 서버가 하고 데몬은 cost_over_limit 만 본다. */
+    cost_limit_usd: number | null;
     resume_session_id: string | null;
     status?: string;
     /** 최초 지시문에 붙은 이미지. 내용은 id 로 따로 받는다. */

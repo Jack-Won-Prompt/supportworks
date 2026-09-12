@@ -116,7 +116,10 @@ class AiwJob extends Model
         }
     }
 
-    /** 비용 상한은 0 이하일 수 없다. 상한이 없으면 폭주를 막을 방법이 사라진다. */
+    /**
+     * 상한을 적으려면 0 보다 커야 한다. 비워 두는 것(null)은 "제한 없음" 이라
+     * 허용하지만, 0 이나 음수는 실수로 보고 막는다.
+     */
     private function guardCostLimit(): void
     {
         if ($this->cost_limit_usd !== null && (float) $this->cost_limit_usd <= 0) {
@@ -211,9 +214,26 @@ class AiwJob extends Model
 
     // ── 비용·컨텍스트 ───────────────────────────────────────────────────────
 
+    /**
+     * 상한을 넘었는가. **상한이 없으면(null) 영원히 false 다.**
+     *
+     * 구독 로그인으로 도는 담당자는 화면의 금액이 실제 청구가 아니라 환산값이다.
+     * 그래서 상한을 비워 두는 선택을 허용한다 — 폭주는 데몬의 시간 제한
+     * (JOB_TIMEOUT_SEC / SESSION_MAX_SEC)이 막는다.
+     */
     public function isOverCostLimit(): bool
     {
+        if ($this->cost_limit_usd === null) {
+            return false;
+        }
+
         return (float) $this->cost_usd >= (float) $this->cost_limit_usd;
+    }
+
+    /** 상한 없이 도는 작업인가. 화면이 "제한 없음" 으로 표시한다. */
+    public function hasNoCostLimit(): bool
+    {
+        return $this->cost_limit_usd === null;
     }
 
     /** 0~1. UI 게이지에 쓴다. */

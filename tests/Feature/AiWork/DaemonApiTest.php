@@ -757,6 +757,23 @@ class DaemonApiTest extends TestCase
         $this->assertSame(AiwJobStatus::Failed, $this->job->fresh()->status);
     }
 
+    public function test_상한이_없으면_아무리_써도_중단되지_않는다(): void
+    {
+        // 구독 로그인으로 도는 담당자는 화면의 금액이 실제 청구가 아니라 환산값이다.
+        // 그래서 상한을 비워 두는 선택을 허용한다.
+        $this->job->forceFill(['cost_limit_usd' => null])->save();
+
+        $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);
+
+        $response = $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/status", [
+            'status' => 'running', 'cost_usd' => 999.0,
+        ])->assertOk();
+
+        $this->assertFalse($response->json('cost_over_limit'));
+        $this->assertFalse($this->job->fresh()->status->isTerminal());
+        $this->assertFalse($this->job->fresh()->isOverCostLimit());
+    }
+
     public function test_상한_이내면_중단되지_않는다(): void
     {
         $this->daemon()->postJson("/api/aiw/jobs/{$this->job->id}/start", ['session_id' => 's']);

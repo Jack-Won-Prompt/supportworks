@@ -124,12 +124,34 @@
                     </select>
                 </div>
 
-                <div>
+                @php
+                    // 원 job 이 상한 없이 돌았으면 그대로 물려받는다.
+                    $noLimitDefault = old('no_cost_limit', $parent && $parent->hasNoCostLimit() ? 1 : 0);
+                @endphp
+                <div x-data="{ noLimit: @js((bool) $noLimitDefault) }">
                     <label class="block text-xs font-semibold text-gray-700 mb-1">비용 상한 (USD)</label>
-                    <input type="number" name="cost_limit_usd" step="0.01" min="0.01" max="1000" required
-                           value="{{ old('cost_limit_usd', $parent->cost_limit_usd ?? $defaultCost) }}"
-                           class="w-full rounded-lg border-gray-200 text-sm">
-                    <p class="mt-1 text-xs text-gray-400">초과하면 작업이 자동 중단됩니다.</p>
+
+                    <input type="number" name="cost_limit_usd" step="0.01" min="0.01" max="1000"
+                           :disabled="noLimit"
+                           value="{{ old('cost_limit_usd', $parent?->cost_limit_usd ?? $defaultCost) }}"
+                           class="w-full rounded-lg border-gray-200 text-sm disabled:bg-gray-100 disabled:text-gray-400">
+
+                    {{-- 해제한 체크박스는 아무것도 보내지 않는다. 숨은 값이 "끔" 을 대신 보낸다. --}}
+                    <input type="hidden" name="no_cost_limit" value="0">
+                    <label class="mt-1 inline-flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                        <input type="checkbox" name="no_cost_limit" value="1" x-model="noLimit"
+                               class="rounded border-gray-300">
+                        <span>제한 없음</span>
+                    </label>
+
+                    <p class="mt-1 text-xs text-gray-400" x-show="! noLimit" x-cloak>
+                        초과하면 작업이 자동 중단됩니다.
+                    </p>
+                    {{-- 구독 로그인으로 도는 담당자는 화면의 금액이 실제 청구가 아니라
+                         환산값이다. 그래도 시간 제한은 그대로 남는다는 것을 알려 준다. --}}
+                    <p class="mt-1 text-xs text-amber-700" x-show="noLimit" x-cloak>
+                        금액으로는 멈추지 않습니다. 데몬의 시간 제한(작업 30분·세션 2시간)만 남습니다.
+                    </p>
                 </div>
             </div>
 
