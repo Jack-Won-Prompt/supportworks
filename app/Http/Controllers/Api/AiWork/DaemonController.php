@@ -292,8 +292,8 @@ class DaemonController extends AgentApiController
                     // 최초 지시문에 붙은 이미지. 담당자가 id 로 내려받는다.
                     'attachments'          => $job->attachments()
                         ->whereHas('message', fn ($q) => $q->where('seq', 0))
-                        ->get(['id', 'mime'])
-                        ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime])
+                        ->get(['id', 'mime', 'original_name'])
+                        ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime, 'name' => $a->original_name])
                         ->values(),
                 ];
             })->values(),
@@ -325,7 +325,7 @@ class DaemonController extends AgentApiController
                 'seq'         => (int) $m->seq,
                 'content'     => $m->content,
                 'attachments' => $m->attachments
-                    ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime])
+                    ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime, 'name' => $a->original_name])
                     ->values(),
             ])->values(),
             'permissions' => $decided->map(fn ($p) => [

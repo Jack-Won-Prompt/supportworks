@@ -43,8 +43,8 @@ class JobDispatched extends AiwEvent
             'resume_session_id'    => $this->resumeSessionId,
             'attachments'          => $this->job->attachments()
                 ->whereHas('message', fn ($q) => $q->where('seq', 0))
-                ->get(['id', 'mime'])
-                ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime])
+                ->get(['id', 'mime', 'original_name'])
+                ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime, 'name' => $a->original_name])
                 ->values(),
         ];
     }

@@ -213,7 +213,9 @@ class JobReportController extends AgentApiController
 
         $validated = $request->validate([
             'message_id' => ['required', 'integer', 'min:1'],
-            'file'       => ['required', 'image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
+            // 담당자가 만든 결과물. 이미지뿐 아니라 문서(csv·xlsx·docx·pptx 등)도 받는다.
+            // 형식 판정은 AttachmentService 가 하고, 여기서는 크기만 막는다.
+            'file'       => ['required', 'file', 'max:'.(AttachmentService::MAX_DOCUMENT_BYTES / 1024)],
         ]);
 
         $message = $job->messages()->whereKey($validated['message_id'])->firstOrFail();

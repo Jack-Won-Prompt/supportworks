@@ -20,7 +20,7 @@ export interface JobSpec {
     resume_session_id: string | null;
     status?: string;
     /** 최초 지시문에 붙은 이미지. 내용은 id 로 따로 받는다. */
-    attachments?: { id: number; mime: string }[];
+    attachments?: { id: number; mime: string; name?: string | null }[];
 }
 
 /** 모든 상태성 응답에 실리는 중단 신호. Reverb 이벤트를 놓쳐도 이걸로 따라잡는다. */
@@ -146,7 +146,7 @@ export class ApiClient {
                     message_id: number;
                     seq: number;
                     content: string;
-                    attachments?: { id: number; mime: string }[];
+                    attachments?: { id: number; mime: string; name?: string | null }[];
                 }[];
                 permissions: { request_key: string; status: string; deny_reason: string | null }[];
             } & ControlFlags

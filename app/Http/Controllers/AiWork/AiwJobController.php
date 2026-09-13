@@ -166,7 +166,9 @@ class AiwJobController extends Controller
             'auto_deploy'     => ['nullable', 'boolean'],
             'auto_deploy_target_id' => ['nullable', 'integer'],
             'images'          => ['nullable', 'array', 'max:'.AttachmentService::MAX_PER_MESSAGE],
-            'images.*'        => ['image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
+            // 형식별 검사는 AttachmentService 가 한다(이미지는 리사이즈, 문서는 원본 보관).
+            // 여기서는 가장 큰 한도만 걸어 과도한 업로드를 미리 끊는다.
+            'images.*'        => ['file', 'max:'.(AttachmentService::MAX_DOCUMENT_BYTES / 1024)],
         ]);
 
         // 등록 절차는 모바일 앱과 같은 서비스를 탄다. 여기서는 폼 값을 해석만 한다.
@@ -258,7 +260,7 @@ class AiwJobController extends Controller
         $validated = $request->validate([
             'content'  => ['required', 'string', 'max:20000'],
             'images'   => ['nullable', 'array', 'max:'.AttachmentService::MAX_PER_MESSAGE],
-            'images.*' => ['image', 'max:'.(AttachmentService::MAX_UPLOAD_BYTES / 1024)],
+            'images.*' => ['file', 'max:'.(AttachmentService::MAX_DOCUMENT_BYTES / 1024)],
             // 대화 도중에도 "배포까지 자동으로" 를 켜고 끌 수 있다.
             'auto_deploy'           => ['nullable', 'boolean'],
             'auto_deploy_target_id' => ['nullable', 'integer'],
@@ -464,9 +466,13 @@ class AiwJobController extends Controller
         abort_unless((int) $attachment->job_id === (int) $job->id, 404);
         abort_unless($attachment->exists(), 404);
 
+        // 이미지는 화면에 바로 띄우고(inline), 문서는 내려받게 한다. 브라우저에
+        // xlsx 를 inline 으로 주면 무슨 일이 일어날지 브라우저마다 다르다.
+        $disposition = $attachment->isImage() ? 'inline' : 'attachment';
+
         return response($attachment->contents(), 200, [
             'Content-Type'        => $attachment->mime,
-            'Content-Disposition' => 'inline; filename="'.addslashes($attachment->original_name).'"',
+            'Content-Disposition' => $disposition.'; filename="'.addslashes($attachment->original_name).'"',
             // 내용이 바뀌지 않는 파일이다. 다만 비공개이므로 공유 캐시는 막는다.
             'Cache-Control'       => 'private, max-age=86400',
         ]);

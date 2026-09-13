@@ -121,7 +121,7 @@ class AiwAttachmentTest extends TestCase
         $this->assertSame(300, $attachment->height);
     }
 
-    public function test_이미지가_아니면_거부한다(): void
+    public function test_모르는_형식은_거부한다(): void
     {
         Storage::fake('local');
         $message = $this->message($this->job());
@@ -130,7 +130,62 @@ class AiwAttachmentTest extends TestCase
 
         app(AttachmentService::class)->attach(
             $message,
-            [UploadedFile::fake()->create('doc.pdf', 10, 'application/pdf')],
+            [UploadedFile::fake()->create('dump.bin', 10, 'application/octet-stream')],
+            $this->member,
+        );
+    }
+
+    public function test_문서는_손대지_않고_그대로_보관한다(): void
+    {
+        // 서버가 열어서 텍스트를 뽑지 않는다. 표·서식을 어떻게 줄일지는 실제로
+        // 파일을 여는 쪽(담당자 PC 의 모델)이 판단하는 편이 낫다.
+        Storage::fake('local');
+        $message = $this->message($this->job());
+
+        $file = UploadedFile::fake()->create('견적.xlsx', 12, 'application/octet-stream');
+        $raw  = file_get_contents($file->getRealPath());
+
+        [$saved] = app(AttachmentService::class)->attach($message, [$file], $this->member);
+
+        $this->assertSame(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            $saved->mime,
+            'MIME 이 흔들려도 확장자로 바로잡는다.',
+        );
+        $this->assertSame('견적.xlsx', $saved->original_name);
+        $this->assertNull($saved->width);
+        $this->assertSame(strlen($raw), $saved->bytes);
+        Storage::disk('local')->assertExists($saved->path);
+    }
+
+    public function test_문서_형식들을_받는다(): void
+    {
+        Storage::fake('local');
+        $message = $this->message($this->job());
+
+        foreach (['메모.txt', '표.csv', '계약.pdf', '기획.docx', '발표.pptx'] as $name) {
+            [$saved] = app(AttachmentService::class)->attach(
+                $message,
+                [UploadedFile::fake()->create($name, 5, 'application/octet-stream')],
+                $this->member,
+            );
+
+            $this->assertNotNull($saved->id, $name);
+        }
+    }
+
+    public function test_문서_크기_상한은_이미지보다_넉넉하다(): void
+    {
+        Storage::fake('local');
+        $message = $this->message($this->job());
+
+        $this->assertGreaterThan(AttachmentService::MAX_UPLOAD_BYTES, AttachmentService::MAX_DOCUMENT_BYTES);
+
+        $this->expectException(ValidationException::class);
+
+        app(AttachmentService::class)->attach(
+            $message,
+            [UploadedFile::fake()->create('큰파일.pdf', (int) (AttachmentService::MAX_DOCUMENT_BYTES / 1024) + 100)],
             $this->member,
         );
     }

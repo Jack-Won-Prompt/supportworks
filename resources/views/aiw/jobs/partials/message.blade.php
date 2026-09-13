@@ -70,12 +70,29 @@
                 @if ($message->attachments->isNotEmpty())
                     <div class="mt-2 flex flex-wrap gap-2">
                         @foreach ($message->attachments as $attachment)
-                            @php $src = route('projects.ai-works.attachment', [$project, $job, $attachment]); @endphp
-                            <a href="{{ $src }}" target="_blank" rel="noopener"
-                               title="{{ $attachment->original_name }} · {{ $attachment->humanSize() }}">
-                                <img src="{{ $src }}" alt="{{ $attachment->original_name }}"
-                                     class="h-24 w-auto rounded border border-gray-200 object-cover hover:border-indigo-400">
-                            </a>
+                            @php
+                                $src = route('projects.ai-works.attachment', [$project, $job, $attachment]);
+                                // 이미지는 눈으로 확인하는 것이 목적이라 바로 보여 준다.
+                                // 문서는 미리보기가 불가능하므로 내려받는 줄로 그린다 —
+                                // <img> 로 그리면 깨진 아이콘만 남는다.
+                                $isImage = str_starts_with((string) $attachment->mime, 'image/');
+                            @endphp
+
+                            @if ($isImage)
+                                <a href="{{ $src }}" target="_blank" rel="noopener"
+                                   title="{{ $attachment->original_name }} · {{ $attachment->humanSize() }}">
+                                    <img src="{{ $src }}" alt="{{ $attachment->original_name }}"
+                                         class="h-24 w-auto rounded border border-gray-200 object-cover hover:border-indigo-400">
+                                </a>
+                            @else
+                                <a href="{{ $src }}" target="_blank" rel="noopener"
+                                   class="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-700 hover:border-indigo-400 hover:bg-white"
+                                   title="{{ $attachment->original_name }} · {{ $attachment->humanSize() }}">
+                                    <span class="font-medium">{{ $attachment->fileLabel() }}</span>
+                                    <span class="truncate">{{ $attachment->original_name }}</span>
+                                    <span class="text-gray-400">{{ $attachment->humanSize() }}</span>
+                                </a>
+                            @endif
                         @endforeach
                     </div>
                 @endif

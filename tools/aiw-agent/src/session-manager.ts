@@ -52,6 +52,12 @@ const FIXED_HEADER = (jobId: number, root: string) =>
         `When something must be SEEN to be judged (a rendered page, a visual change),`,
         `save a PNG into ${OUTBOX_DIR}/ and it will be shown to the human with your reply.`,
         'Anything you can describe in words belongs in the reply itself, not there.',
+        '',
+        `The same folder also delivers FILES the human asked you to produce — put them in ${OUTBOX_DIR}/`,
+        'and they arrive as downloads attached to your reply. Accepted: png jpg gif webp txt md csv json',
+        'pdf doc docx xls xlsx ppt pptx. Use it when the answer IS a file (a spreadsheet, a document,',
+        'a deck); a short explanation still belongs in the reply text. On this machine openpyxl,',
+        'python-docx and python-pptx are installed for both `python` and `py`.',
         'Headless Chrome can do this, e.g.:',
         '  chrome --headless=new --disable-gpu --screenshot=<abs path> --window-size=1280,900 <url>',
         'Use forward slashes in paths.',
@@ -221,6 +227,7 @@ export class SessionManager {
             this.job.job_id,
             this.compose(body),
             this.job.attachments ?? [],
+            this.sandbox.root,
         );
     }
 
@@ -350,7 +357,7 @@ export class SessionManager {
             this.pushLog(
                 'daemon',
                 `전달하지 못한 결과물 ${result.skipped.length}건: ${result.skipped.slice(0, 5).join(', ')}`
-                + ' (이미지만 전달됩니다. 글은 답변에 써 주세요.)',
+                + ' (png·jpg·gif·webp·txt·md·csv·json·pdf·doc(x)·xls(x)·ppt(x) 만 전달됩니다.)',
             );
         }
     }
@@ -441,7 +448,7 @@ export class SessionManager {
         this.limits.resume(Date.now());
 
         this.adapter?.send(
-            await buildContent(this.api, this.job.job_id, content, attachments),
+            await buildContent(this.api, this.job.job_id, content, attachments, this.sandbox.root),
         );
         await this.api.quiet('delivered', () => this.api.markDelivered(this.job.job_id, messageId));
         await this.api.quiet('running', () => this.api.status(this.job.job_id, 'running'));

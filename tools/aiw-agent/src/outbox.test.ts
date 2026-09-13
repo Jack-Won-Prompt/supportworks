@@ -82,15 +82,26 @@ test('확장자로 형식을 정한다', async () => {
     );
 });
 
-test('이미지가 아닌 것은 건너뛰고 치운다', async () => {
+test('문서도 올린다 — 표·문서·발표자료는 파일이어야 의미가 있다', async () => {
     const api = new FakeApi();
-    const root = await workspace({ 'note.md': '글', 'shot.png': 'x' });
+    const root = await workspace({ 'report.xlsx': 'x', 'note.md': '글', 'shot.png': 'x' });
 
     const result = await flush(api, root);
 
-    // 글은 답변에 쓰는 것이 맞다. 남겨 두면 매 턴 다시 훑는다.
+    assert.equal(result.uploaded, 3);
+    assert.deepEqual(result.skipped, []);
+    assert.deepEqual(await remaining(root), []);
+});
+
+test('알 수 없는 확장자는 건너뛰고 치운다', async () => {
+    const api = new FakeApi();
+    const root = await workspace({ 'dump.bin': 'x', 'shot.png': 'x' });
+
+    // 남겨 두면 매 턴 다시 훑는다.
+    const result = await flush(api, root);
+
     assert.equal(result.uploaded, 1);
-    assert.deepEqual(result.skipped, ['note.md']);
+    assert.deepEqual(result.skipped, ['dump.bin']);
     assert.deepEqual(await remaining(root), []);
 });
 

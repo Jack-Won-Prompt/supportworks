@@ -450,7 +450,7 @@
                                       placeholder="담당자에게 보낼 메시지">{{ old('content') }}</textarea>
                             <button class="self-end rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">전송</button>
                         </div>
-                        <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif" multiple
+                        <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif,.txt,.md,.csv,.json,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" multiple
                                class="block w-full text-xs text-gray-500 file:mr-3 file:rounded file:border-0
                                       file:bg-gray-100 file:px-2 file:py-1 file:text-[11px] file:text-gray-700">
 

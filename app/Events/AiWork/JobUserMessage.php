@@ -31,8 +31,8 @@ class JobUserMessage extends AiwEvent
             'seq'        => (int) $this->message->seq,
             'content'    => $this->message->content,
             'attachments' => $this->message->attachments()
-                ->get(['id', 'mime'])
-                ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime])
+                ->get(['id', 'mime', 'original_name'])
+                ->map(fn ($a) => ['id' => $a->id, 'mime' => $a->mime, 'name' => $a->original_name])
                 ->values(),
         ];
     }

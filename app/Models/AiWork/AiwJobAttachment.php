@@ -65,4 +65,17 @@ class AiwJobAttachment extends Model
             ? number_format($kb / 1024, 1).'MB'
             : number_format($kb).'KB';
     }
+
+    /** 이미지가 아닌 첨부를 목록에서 구분할 짧은 이름. 확장자가 가장 정확하다. */
+    public function fileLabel(): string
+    {
+        $ext = strtoupper(pathinfo((string) $this->original_name, PATHINFO_EXTENSION));
+
+        return $ext !== '' ? $ext : '파일';
+    }
+
+    public function isImage(): bool
+    {
+        return str_starts_with((string) $this->mime, 'image/');
+    }
 }

@@ -13,13 +13,30 @@ import { log } from './logger.js';
  */
 export const OUTBOX_DIR = 'docs/aiw/outbox';
 
-/** 이미지만 올린다. 글은 답변에 쓰는 것이 맞다. */
+/**
+ * 올릴 수 있는 형식.
+ *
+ * 이미지는 화면에 그대로 보이고, 문서는 내려받는 링크가 된다. 짧은 설명은 여전히
+ * 답변 본문에 쓰는 것이 맞다 — 한 줄짜리 메모를 파일로 주면 사람이 클릭해야 한다.
+ * 여기 있는 것은 "파일이어야 의미가 있는 결과물"(표·문서·발표자료)이다.
+ */
 const MIME_BY_EXT: Record<string, string> = {
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
     '.webp': 'image/webp',
     '.gif': 'image/gif',
+    '.txt': 'text/plain',
+    '.md': 'text/markdown',
+    '.csv': 'text/csv',
+    '.json': 'application/json',
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 };
 
 /** 한 턴에 올릴 수 있는 장수. 넘치면 앞에서 자르고 나머지는 지운다. */

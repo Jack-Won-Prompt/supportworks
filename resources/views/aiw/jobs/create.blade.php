@@ -93,13 +93,17 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">이미지 첨부 (선택)</label>
-                <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif" multiple
+                <label class="block text-xs font-semibold text-gray-700 mb-1">파일 첨부 (선택)</label>
+                <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif,.txt,.md,.csv,.json,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" multiple
                        class="block w-full text-xs text-gray-600 file:mr-3 file:rounded-lg file:border-0
                               file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gray-700">
                 <p class="mt-1 text-xs text-gray-400">
-                    화면 캡처처럼 말로 설명하기 어려운 것을 붙입니다. 최대 5장·장당 10MB.
-                    긴 변 1568px 로 줄여서 전달합니다 — 이미지 한 장이 컨텍스트를 1,000~1,600 토큰 정도 씁니다.
+                    이미지(png·jpg·webp·gif)와 문서(txt·md·csv·json·pdf·doc·docx·xls·xlsx·ppt·pptx).
+                    최대 5개 · 이미지 20MB · 문서 30MB.
+                </p>
+                <p class="mt-0.5 text-xs text-gray-400">
+                    이미지는 담당자가 <span class="font-medium">그림으로 직접</span> 봅니다(긴 변 1568px 로 줄여 전달, 한 장에 1,000~1,600 토큰).
+                    문서는 작업 폴더에 풀어 두고 <span class="font-medium">열어서 읽습니다</span> — 엑셀·워드·PPT 도 내용을 확인할 수 있습니다.
                 </p>
             </div>
 
