@@ -4,6 +4,7 @@ import { config } from './config.js';
 import { JobManager } from './job-manager.js';
 import { log } from './logger.js';
 import { Realtime } from './realtime.js';
+import { SetupReporter } from './setup-reporter.js';
 import { Deployer } from './deployer.js';
 import { Publisher } from './publisher.js';
 import { recoverActiveJobs } from './recover.js';
@@ -110,7 +111,10 @@ async function main(): Promise<void> {
         }
     };
 
-    const realtime = new Realtime(api, jobs, agentId, () => void sync(), new Publisher(api, jobs), new Deployer(api));
+    const realtime = new Realtime(
+        api, jobs, agentId, () => void sync(),
+        new Publisher(api, jobs), new Deployer(api), new SetupReporter(api),
+    );
     realtime.connect();
 
     await sync();

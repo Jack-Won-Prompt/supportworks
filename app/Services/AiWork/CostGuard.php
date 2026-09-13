@@ -2,6 +2,7 @@
 
 namespace App\Services\AiWork;
 
+use App\Enums\AiWork\AiwFailureCode;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Events\AiWork\JobCancelRequested;
 use App\Models\AiWork\AiwJob;
@@ -43,14 +44,42 @@ class CostGuard
         $this->emitCancel($job);
 
         $this->states->transition($job, AiwJobStatus::Failed, [
-            'error_message' => sprintf(
-                '비용 상한을 초과했습니다 ($%s / $%s).',
-                number_format((float) $job->cost_usd, 4),
-                number_format((float) $job->cost_limit_usd, 4),
-            ),
+            'error_message' => $this->explain($job),
+            // 코드가 있어야 화면이 "어떻게 이어가나" 를 버튼으로 보여 줄 수 있다.
+            'error_code'    => AiwFailureCode::CostLimit->value,
+            'error_detail'  => [
+                'cost'   => (float) $job->cost_usd,
+                'limit'  => (float) $job->cost_limit_usd,
+                'branch' => $job->branchName(),
+            ],
         ]);
 
         return true;
+    }
+
+    /**
+     * 사람에게 보여 줄 중단 사유.
+     *
+     * 구독 로그인으로 도는 PC 는 화면의 금액이 실제 청구가 아니라 "API 로 썼다면
+     * 얼마였을지" 의 환산값이다. 그것을 말해 주지 않으면 돈이 빠져나간 것으로
+     * 읽힌다 — 실제로 "비용이 진짜 이렇게 나온다는 의미인가요" 라는 질문을 받았다.
+     */
+    private function explain(AiwJob $job): string
+    {
+        $cost  = number_format((float) $job->cost_usd, 4);
+        $limit = number_format((float) $job->cost_limit_usd, 4);
+        $real  = $job->agent?->usesApiKey() ?? false;
+
+        if ($real) {
+            return sprintf('비용이 상한에 닿아 자동으로 멈췄습니다 ($%s / $%s).', $cost, $limit);
+        }
+
+        return sprintf(
+            '예상 사용량이 상한에 닿아 자동으로 멈췄습니다 ($%s / $%s). '
+            .'구독 로그인으로 실행되어 실제 청구는 없습니다 — 폭주를 막는 장치입니다.',
+            $cost,
+            $limit,
+        );
     }
 
     private function emitCancel(AiwJob $job): void

@@ -9,6 +9,7 @@ use App\Events\AiWork\JobEndRequested;
 use App\Events\AiWork\JobLogAppended;
 use App\Events\AiWork\JobMessageAppended;
 use App\Events\AiWork\JobUserMessage;
+use App\Events\AiWork\MappingSetupRequested;
 use App\Http\Controllers\Controller;
 use App\Models\AiWork\AiwAgent;
 use App\Models\AiWork\AiwAgentProject;
@@ -87,6 +88,8 @@ class AiwJobController extends Controller
             // 소스 경로·등록자·소요·작업량은 운영 정보다. 지시하는 사람에게는
             // 필요 없고, 매핑과 비용을 실제로 다루는 관리자에게만 보인다.
             'isAdmin'        => auth()->user()->can('manageAgents', AiwJob::class),
+            // 점검·정리 버튼은 지시를 낼 수 있는 사람에게만 보인다.
+            'canCreate'      => auth()->user()->can('create', [AiwJob::class, $project]),
             // 담당자 하나가 여러 프로젝트를 맡을 때, 이 프로젝트에서 부를 이름.
             'agentNames'     => $agents->mapWithKeys(fn ($a) => [
                 $a->id => $a->agentProjects->first()?->displayName() ?? $a->name,
@@ -205,6 +208,14 @@ class AiwJobController extends Controller
 
         $job->load(['agent:id,name,capabilities', 'creator:id,name', 'parent:id,title']);
 
+        // 같은 담당자(PC)가 붙들고 있는 다른 작업. 전달됨 상태에서만 의미가 있다.
+        $blocking = $job->status === AiwJobStatus::Dispatched
+            ? AiwJob::where('agent_id', $job->agent_id)
+                ->whereIn('status', $this->activeStatuses())
+                ->where('id', '!=', $job->id)
+                ->first(['id', 'title', 'agent_id', 'project_id'])
+            : null;
+
         return view('aiw.jobs.show', [
             'project'  => $project,
             'job'      => $job,
@@ -228,12 +239,13 @@ class AiwJobController extends Controller
                 ->with(['target:id,name', 'requester:id,name'])->latest('id')->get(),
             // 같은 담당자가 다른 작업을 붙들고 있으면 이 작업은 줄 서 있다.
             // 화면이 말해 주지 않으면 "보냈는데 아무 일도 없는" 상태로 보인다.
-            'blockingJob' => $job->status === AiwJobStatus::Dispatched
-                ? AiwJob::where('agent_id', $job->agent_id)
-                    ->whereIn('status', $this->activeStatuses())
-                    ->where('id', '!=', $job->id)
-                    ->first(['id', 'title'])
-                : null,
+            'blockingJob' => $blocking,
+            // 같은 폴더면 순서대로 하나씩 돌고, 다른 폴더면 PC 의 동시 실행 상한에
+            // 걸린 것이다. 이유가 다른데 같은 문구를 쓰면 사실과 어긋난다 —
+            // 실제로 폴더가 다른 작업에 "같은 작업 폴더에서" 라고 안내하고 있었다.
+            'blockingSameFolder' => $blocking !== null
+                && $this->localPath($job) !== null
+                && $this->localPath($job) === $this->localPath($blocking),
         ]);
     }
 
@@ -351,6 +363,70 @@ class AiwJobController extends Controller
      * 전에 지나갔다. 그래서 실패 사유가 화면에 영영 뜨지 않았다 —
      * 사용자에게는 "지시했는데 활동 로그가 안 보인다" 로 보였다.
      */
+    /**
+     * 담당자 PC 에 매핑 폴더 점검·정리를 요청한다.
+     *
+     * 화면은 담당자가 마지막으로 보고한 결과만 보여 준다. 사람이 폴더를 정리해도
+     * 다음 보고가 올 때까지 빨간 경고가 그대로 남아 "고쳤는데 왜 아직 막혀 있지"
+     * 가 된다. 여기서 다시 물어볼 수 있게 한다.
+     *
+     * 결과는 즉시 오지 않는다 — 데몬이 받아서 확인한 뒤 /mappings/setup 으로
+     * 보고한다. 화면은 setupStatus() 를 폴링해 갱신한다.
+     */
+    public function mappingAction(Request $request, Project $project, AiwAgent $agent, string $action): RedirectResponse
+    {
+        $this->authorize('create', [AiwJob::class, $project]);
+
+        $mapping = AiwAgentProject::where('agent_id', $agent->id)
+            ->where('project_id', $project->id)
+            ->firstOrFail();
+
+        if (! $mapping->is_online) {
+            return back()->with('error', '담당자 PC 가 오프라인이라 요청을 전달할 수 없습니다.');
+        }
+
+        try {
+            event(new MappingSetupRequested((int) $agent->id, (int) $project->id, $action));
+        } catch (\Throwable $e) {
+            // 브로드캐스트가 죽어도 화면이 500 이 되지는 않게 한다. 데몬은 다음
+            // 기동 때 check-setup 으로 같은 일을 하므로 치명적이지 않다.
+            Log::warning('AI Works: 매핑 요청 브로드캐스트 실패', [
+                'project_id' => $project->id,
+                'agent_id'   => $agent->id,
+                'action'     => $action,
+                'error'      => $e->getMessage(),
+            ]);
+
+            return back()->with('error', '요청을 전달하지 못했습니다. 실시간 연결을 확인해 주세요.');
+        }
+
+        return back()->with('status', $action === 'cleanup'
+            ? '작업 폴더 정리를 요청했습니다. 변경은 보관 브랜치로 옮겨집니다.'
+            : '다시 점검을 요청했습니다.');
+    }
+
+    /** 화면이 점검 결과를 따라잡는 데 쓴다. 요청 뒤 결과가 올 때까지 짧게 폴링한다. */
+    public function setupStatus(Request $request, Project $project): JsonResponse
+    {
+        $this->authorize('viewAny', [AiwJob::class, $project]);
+
+        $mappings = AiwAgentProject::where('project_id', $project->id)
+            ->with('agent:id,name')
+            ->get()
+            ->map(fn (AiwAgentProject $m) => [
+                'agent_id'   => (int) $m->agent_id,
+                'status'     => $m->setup_status?->value,
+                'label'      => $m->setup_status?->label(),
+                'tone'       => $m->setup_status?->tone(),
+                'ready'      => $m->setup_status?->isReady() ?? true,
+                'message'    => $m->setup_message,
+                'checked_at' => $m->setup_checked_at?->toIso8601String(),
+                'online'     => (bool) $m->is_online,
+            ]);
+
+        return response()->json(['mappings' => $mappings->values()]);
+    }
+
     public function feed(Request $request, Project $project, AiwJob $job): JsonResponse
     {
         $this->authorize('view', $job);
@@ -559,6 +635,14 @@ class AiwJobController extends Controller
             ->whereHas('agent.agentProjects', fn ($q) => $q->where('project_id', $project->id))
             ->pluck('id', 'agent_id')
             ->all();
+    }
+
+    /** 그 job 이 실제로 도는 폴더. 매핑이 없으면 null. */
+    private function localPath(AiwJob $job): ?string
+    {
+        return AiwAgentProject::where('agent_id', $job->agent_id)
+            ->where('project_id', $job->project_id)
+            ->value('local_path');
     }
 
     private function emit(object $event, int $jobId): void

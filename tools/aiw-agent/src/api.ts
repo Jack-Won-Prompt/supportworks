@@ -192,6 +192,18 @@ export class ApiClient {
         } & ControlFlags>(() => this.http.post(`/jobs/${jobId}/messages`, { messages }));
     }
 
+    /**
+     * 매핑 폴더 점검 결과 보고.
+     *
+     * 예전에는 check-setup.ps1 만 이 엔드포인트를 불렀다(데몬이 뜰 때 한 번).
+     * 화면에서 '다시 점검' 을 누를 수 있게 하려면 도는 데몬도 보고할 수 있어야 한다.
+     */
+    reportSetup(projectId: number, status: string, message: string | null) {
+        return this.send<{ status: string }>(() =>
+            this.http.post('/mappings/setup', { project_id: projectId, status, message }),
+        );
+    }
+
     /** 담당자 PC 가 실행한 배포의 진행/결과 보고. */
     deployResult(
         deployId: number,

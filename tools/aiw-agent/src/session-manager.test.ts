@@ -430,6 +430,17 @@ test('CLAUDE.md 규칙은 첫 세션과 교체 세션 모두에 실린다', asyn
     assert.equal(second.startOptions?.resumeSessionId, null, '문서로만 맥락을 잇는다.');
 });
 
+test('헤더가 사람의 버튼을 알려 준다', async () => {
+    // 막힌 길만 알려 주면 모델이 "사람이 대신 실행해 달라" 로 빈칸을 채운다.
+    // 실제로 push 가 막히자 git 명령을 사람에게 시켰다.
+    const h = await harness();
+    const prompt = String(h.current().startOptions?.prompt);
+
+    assert.match(prompt, /never ask the human to run git commands/i);
+    assert.match(prompt, /buttons in SupportWorks/i);
+    assert.match(prompt, /Stay on the branch the daemon checked out/i);
+});
+
 test('CLAUDE.md 가 없어도 프롬프트는 정상 구성된다', async () => {
     const h = await harness();
 

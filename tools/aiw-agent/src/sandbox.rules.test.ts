@@ -16,6 +16,22 @@ test('원격 push 는 차단된다', () => {
     assert.equal(findBlockedRule('git commit -m "push 관련 수정"'), null);
 });
 
+test('브랜치 전환은 차단된다', () => {
+    // 작업 브랜치를 벗어나면 반영·배포가 통째로 무너진다.
+    assert.equal(findBlockedRule('git checkout main')?.id, 'git-branch-switch');
+    assert.equal(findBlockedRule('git switch main')?.id, 'git-branch-switch');
+    assert.equal(findBlockedRule('git -C . checkout develop')?.id, 'git-branch-switch');
+});
+
+test('파일 단위 되돌리기는 브랜치 전환이 아니다', () => {
+    // 작업 폴더를 고치는 일이라 막을 이유가 없다.
+    assert.equal(findBlockedRule('git checkout -- app/Foo.php'), null);
+    assert.equal(findBlockedRule('git checkout .'), null);
+    assert.equal(findBlockedRule('git checkout -- .'), null);
+    assert.equal(findBlockedRule('git status'), null);
+    assert.equal(findBlockedRule('git commit -m "checkout 관련 수정"'), null);
+});
+
 test('원격 설정 변경은 차단된다', () => {
     assert.equal(findBlockedRule('git remote set-url origin git@x')?.id, 'git-remote-change');
     assert.equal(findBlockedRule('git remote -v'), null);

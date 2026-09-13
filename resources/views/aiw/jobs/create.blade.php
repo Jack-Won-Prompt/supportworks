@@ -126,14 +126,20 @@
 
                 @php
                     // 원 job 이 상한 없이 돌았으면 그대로 물려받는다.
-                    $noLimitDefault = old('no_cost_limit', $parent && $parent->hasNoCostLimit() ? 1 : 0);
+                    // 실패 화면의 "상한 없이 후속 지시" 가 ?no_cost_limit=1 로 보낸다.
+                    $noLimitDefault = old(
+                        'no_cost_limit',
+                        request()->boolean('no_cost_limit') || ($parent && $parent->hasNoCostLimit()) ? 1 : 0,
+                    );
                 @endphp
                 <div x-data="{ noLimit: @js((bool) $noLimitDefault) }">
                     <label class="block text-xs font-semibold text-gray-700 mb-1">비용 상한 (USD)</label>
 
                     <input type="number" name="cost_limit_usd" step="0.01" min="0.01" max="1000"
                            :disabled="noLimit"
-                           value="{{ old('cost_limit_usd', $parent?->cost_limit_usd ?? $defaultCost) }}"
+                           {{-- 상한에 걸려 멈춘 작업의 후속 지시는 ?cost_limit_usd 로 올려서 온다.
+                                원 job 값을 그대로 쓰면 같은 자리에서 또 멈춘다. --}}
+                           value="{{ old('cost_limit_usd', request('cost_limit_usd') ?? $parent?->cost_limit_usd ?? $defaultCost) }}"
                            class="w-full rounded-lg border-gray-200 text-sm disabled:bg-gray-100 disabled:text-gray-400">
 
                     {{-- 해제한 체크박스는 아무것도 보내지 않는다. 숨은 값이 "끔" 을 대신 보낸다. --}}

@@ -158,8 +158,13 @@
             같은 담당자의 작업
             <a href="{{ route('projects.ai-works.show', [$project, $blockingJob->id]) }}"
                class="font-medium underline">#{{ $blockingJob->id }} {{ $blockingJob->title }}</a>
-            이(가) 실행 중이라 대기하고 있습니다. 같은 작업 폴더에서 둘이 동시에 돌면
-            브랜치와 변경이 뒤섞이므로 끝나면 <span class="font-medium">자동으로 시작</span>합니다.
+            이(가) 실행 중이라 대기하고 있습니다.
+            @if ($blockingSameFolder ?? false)
+                같은 작업 폴더에서 둘이 동시에 돌면 브랜치와 변경이 뒤섞이므로 하나씩 처리합니다.
+            @else
+                작업 폴더는 서로 다르지만, 한 PC 가 동시에 맡는 작업 수에 상한이 있습니다.
+            @endif
+            끝나면 <span class="font-medium">자동으로 시작</span>합니다.
         </div>
     @endif
 
@@ -525,21 +530,19 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-sm font-bold text-gray-900 mb-2">결과</h3>
 
-            @if ($job->error_message)
-                <div class="mb-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-                    @if ($code = $job->failureCode())
-                        <div class="font-semibold mb-0.5">{{ $code->label() }}</div>
-                    @endif
-                    {{ $job->error_message }}
-                </div>
+            {{-- 사유 문구는 여기 적지 않는다. 같은 내용이 활동 로그에 그대로 남고
+                 (JobStateMachine::logTerminalReason), 이 칸에 금액까지 다시 띄우면
+                 구독 로그인으로 도는 담당자에게는 청구된 돈으로 읽힌다.
+                 여기 남기는 것은 "무엇을 할 수 있는지" 뿐이다. --}}
+            @php $code = $job->failureCode(); @endphp
 
-                {{-- 복구 안내: 사유를 코드로 받았을 때만 "무엇을 할 수 있는지" 제시할 수 있다.
-                     버튼은 바로 실행하지 않고 프리필된 등록 폼으로 보낸다 — 사용자가
-                     내용을 보고 확인한 뒤 실행하게 한다. --}}
+            @if ($job->error_message)
                 @if ($code)
                     @php $detail = $job->error_detail ?? []; @endphp
                     <div class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-                        <div class="text-xs font-semibold text-amber-900 mb-1.5">이렇게 해결할 수 있습니다</div>
+                        <div class="text-xs font-semibold text-amber-900 mb-1.5">
+                            {{ $code->label() }} — 이렇게 해결할 수 있습니다
+                        </div>
 
                         @if ($code->retryableWithoutBranch() && ! empty($detail['files']))
                             <div class="mb-2 text-xs text-amber-900">
@@ -552,6 +555,22 @@
                                 @if (count($detail['files']) > 10)
                                     <div class="ml-3 text-amber-700">외 {{ count($detail['files']) - 10 }}건</div>
                                 @endif
+                            </div>
+                        @endif
+
+                        @if ($code->needsHigherCostLimit())
+                            <div class="mb-2 text-xs text-amber-900">
+                                여기까지의 작업은 남아 있습니다 —
+                                @if (! empty($detail['branch']))
+                                    중단 시점 내용은 <code>{{ $detail['branch'] }}</code> 브랜치에 있습니다.
+                                    작업 폴더는 수정 이전 상태로 되돌아갔습니다(대화의 시스템 안내 참고).
+                                @else
+                                    브랜치 분리를 끈 작업이라 변경이 작업 폴더에 그대로 있습니다.
+                                @endif
+                                <div class="mt-1">
+                                    이어서 하려면 상한을 올리거나 꺼서 후속 지시를 만드세요.
+                                    상한은 돈이 아니라 <span class="font-medium">멈추는 기준</span>입니다.
+                                </div>
                             </div>
                         @endif
 
@@ -569,6 +588,23 @@
                                 <a href="{{ route('projects.ai-works.create', [$project, 'parent' => $job->id, 'use_branch' => 0]) }}"
                                    class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
                                     브랜치 없이 다시 지시
+                                </a>
+                            @endif
+
+                            @if ($code->needsHigherCostLimit())
+                                @php
+                                    // 원 job 의 상한을 그대로 물려받으면 같은 자리에서 또 멈춘다.
+                                    $raised = min(1000, max(2, round(((float) ($detail['limit'] ?? 2)) * 2, 2)));
+                                @endphp
+                                {{-- 금액은 등록 폼에서 보고 고치면 된다. 이 화면에 숫자를
+                                     띄우면 또 "얼마가 나갔다" 로 읽힌다. --}}
+                                <a href="{{ route('projects.ai-works.create', [$project, 'parent' => $job->id, 'cost_limit_usd' => $raised]) }}"
+                                   class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+                                    상한을 올려 후속 지시
+                                </a>
+                                <a href="{{ route('projects.ai-works.create', [$project, 'parent' => $job->id, 'no_cost_limit' => 1]) }}"
+                                   class="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100">
+                                    상한 없이 후속 지시
                                 </a>
                             @endif
 
@@ -609,6 +645,17 @@
                         @endforeach
                     </ul>
                 </div>
+            @endif
+
+            {{-- 코드 없는 실패는 안내할 것이 없다. 빈 칸만 남기지 말고 어디를 볼지 알려 준다. --}}
+            @if (! $code && ! $job->result_summary && ! $job->changed_files && ! $job->git_diff && ! $job->git_diff_path)
+                <p class="text-xs text-gray-500">
+                    @if ($job->error_message)
+                        멈춘 사유는 오른쪽 <span class="font-medium">활동 로그</span>에 남아 있습니다.
+                    @else
+                        남은 결과가 없습니다.
+                    @endif
+                </p>
             @endif
 
             @if ($job->git_diff)

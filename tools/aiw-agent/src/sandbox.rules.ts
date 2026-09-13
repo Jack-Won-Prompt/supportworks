@@ -21,6 +21,20 @@ export const BLOCK_RULES: BlockRule[] = [
         reason: '이 작업 지시에서는 원격 push 가 금지되어 있습니다. 커밋까지만 하고 사람이 검토한 뒤 push 합니다.',
     },
     {
+        id: 'git-branch-switch',
+        // 작업 브랜치는 데몬이 정한다. AI 가 여기서 벗어나면 반영·배포 전 과정이
+        // 무너진다 — 실제로 `git checkout main` 뒤 main 에 직접 커밋해서,
+        // 작업 브랜치는 비어 있고 결과 반영 버튼으로는 올릴 수 없는 상태가 됐다.
+        // 그때 AI 는 막힌 김에 사람에게 `git push origin main` 을 대신 실행해
+        // 달라고 했다. 자동으로 끝까지 가야 할 일이 사람 손으로 되돌아온 것이다.
+        //
+        // 파일 단위 되돌리기(`git checkout -- path`, `git checkout .`)는 막지
+        // 않는다. 그것은 브랜치를 옮기는 것이 아니라 작업 폴더를 고치는 일이다.
+        pattern: /\bgit\s+(?:(?:-[cC]|--\S+)\s+\S+\s+|--\S+=\S+\s+|-\w\s+)*(?:checkout|switch)\s+(?!--?\s|-{1,2}[a-zA-Z-]*\s+--\s|\.\s*$|--\s)(?!-[bB]\b)[^\s-][^\s]*\s*$/i,
+        reason: '브랜치 전환은 허용되지 않습니다. 이 지시는 데몬이 만들어 준 작업 브랜치에서만 진행하고, '
+            + '원격 반영과 배포는 사람이 화면의 버튼으로 합니다.',
+    },
+    {
         id: 'git-remote-change',
         pattern: /\bgit\s+remote\s+(?:add|set-url|remove|rename)\b/i,
         reason: '원격 저장소 설정 변경은 허용되지 않습니다.',

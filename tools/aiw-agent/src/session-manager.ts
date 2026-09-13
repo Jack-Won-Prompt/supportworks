@@ -28,7 +28,16 @@ const FIXED_HEADER = (jobId: number, root: string) =>
         'Write every reply to the human in Korean, including questions, choice options,',
         'and the final summary. Keep file paths, commands, code, and identifiers as they are.',
         `Working directory ${root} is enforced by the daemon; access outside it is blocked.`,
-        'Never push to remote. When reading long outputs (test logs, large files) use head/tail/grep',
+        // 막힌 길만 알려 주면 모델이 빈칸을 "사람이 대신 해 달라" 로 채운다 —
+        // 실제로 push 가 막히자 `git push origin main` 을 사람에게 실행시키고
+        // 출력을 붙여 달라고 했다. 대신 무엇이 일어나는지까지 말해 준다.
+        'Stay on the branch the daemon checked out for you. Do not run `git checkout`/`git switch`',
+        'to another branch, and never commit onto the default branch — publishing and deploying',
+        'read your work from that branch only. (`git checkout -- <path>` to discard a file is fine.)',
+        'Never push to remote and never ask the human to run git commands for you. The human has',
+        'buttons in SupportWorks that commit, merge, push and deploy your branch. When the work is',
+        'ready, say so in one line and stop; do not write out commands for them to paste.',
+        'When reading long outputs (test logs, large files) use head/tail/grep',
         'to keep them short. When you need a decision from the human, ask a clear question and stop.',
         '',
         'When you stop to ask, and the answer is a choice among a few concrete options,',

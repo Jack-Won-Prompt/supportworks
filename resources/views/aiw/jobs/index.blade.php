@@ -17,6 +17,15 @@
 @include('partials.project-nav', ['project' => $project, 'active' => 'ai-works'])
 
 @php
+    // 점검 요청을 보낸 직후에는 결과가 곧 도착한다. 화면이 스스로 따라잡지 않으면
+    // 사람이 새로고침을 눌러야 하고, 그러면 "요청했는데 아무 반응이 없다" 가 된다.
+    $awaitSetup = (bool) session('status');
+    $checkedAt  = $agents->mapWithKeys(fn ($a) => [
+        $a->id => $a->agentProjects->first()?->setup_checked_at?->toIso8601String(),
+    ]);
+@endphp
+
+@php
     // 온라인 판정은 이 프로젝트를 맡은 프로세스 기준이다. 한 PC 가 프로젝트마다
     // 따로 띄우면 그중 하나만 죽을 수 있어, 담당자 전체로 보면 멈춘 프로젝트가
     // 온라인으로 보인다.
@@ -28,6 +37,12 @@
     @if (session('status'))
         <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm text-emerald-800">
             {{ session('status') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-800">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -113,10 +128,39 @@
                     };
                 @endphp
                 <div class="mt-3 rounded-lg border px-3 py-2 text-xs {{ $panel }}">
-                    <span class="font-semibold">{{ $m->setup_status->label() }}</span> —
-                    {{ $m->setup_message ?: '담당자 PC 에서 소스 폴더를 확인해야 합니다.' }}
-                    @if ($m->setup_checked_at)
-                        <span class="text-gray-500">({{ $m->setup_checked_at->diffForHumans() }} 점검)</span>
+                    <div>
+                        <span class="font-semibold">{{ $m->setup_status->label() }}</span> —
+                        {{ $m->setup_message ?: '담당자 PC 에서 소스 폴더를 확인해야 합니다.' }}
+                        @if ($m->setup_checked_at)
+                            <span class="text-gray-500">({{ $m->setup_checked_at->diffForHumans() }} 점검)</span>
+                        @endif
+                    </div>
+
+                    {{-- 여기서 바로 풀 수 있게 한다. 지금까지는 작업 PC 앞에 가야 했다. --}}
+                    @if ($canCreate && ($m->is_online ?? false))
+                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                            <form method="POST"
+                                  action="{{ route('projects.ai-works.mappings.action', [$project, $agent, 'recheck']) }}">
+                                @csrf
+                                <button class="rounded-lg border border-gray-300 bg-white px-2.5 py-1 font-medium text-gray-700 hover:bg-gray-50">
+                                    다시 점검
+                                </button>
+                            </form>
+
+                            @if ($m->setup_status === \App\Enums\AiWork\AiwSetupStatus::DirtyTree)
+                                <form method="POST"
+                                      action="{{ route('projects.ai-works.mappings.action', [$project, $agent, 'cleanup']) }}"
+                                      onsubmit="return confirm('작업 폴더의 미커밋 변경을 보관 브랜치(aiw/wip-…)로 옮기고 폴더를 정리합니다. 내용은 지워지지 않습니다. 진행할까요?')">
+                                    @csrf
+                                    <button class="rounded-lg border border-amber-300 bg-white px-2.5 py-1 font-medium text-amber-800 hover:bg-amber-100">
+                                        작업 정리
+                                    </button>
+                                </form>
+                                <span class="text-gray-500">정리하면 변경은 보관 브랜치로 옮겨집니다 — 지워지지 않습니다.</span>
+                            @endif
+                        </div>
+                    @elseif ($canCreate)
+                        <p class="mt-2 text-gray-500">담당자 PC 가 오프라인이라 여기서 점검·정리할 수 없습니다.</p>
                     @endif
                 </div>
             @endif
@@ -230,4 +274,44 @@
         <div class="mt-3">{{ $jobs->links() }}</div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+// 점검·정리 결과 따라잡기.
+//
+// 요청은 데몬으로 나가고 결과는 나중에 /mappings/setup 으로 돌아온다. 마지막
+// 점검 시각이 바뀌면 그 결과가 도착한 것이므로 화면을 다시 그린다. 서버 렌더를
+// 그대로 쓰기 위해 부분 갱신 대신 새로고침을 쓴다 — 배지·문구·버튼 조건이
+// 한곳(블레이드)에만 있어야 화면이 어긋나지 않는다.
+(function () {
+    if (!@json($awaitSetup)) { return; }
+
+    const before = @json($checkedAt);
+    const url = @json(route('projects.ai-works.mappings.status', $project));
+    let tries = 0;
+
+    const tick = async () => {
+        if (tries++ >= 20) { return; }          // 3초 × 20 = 1분이면 충분하다
+
+        try {
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+
+            if (res.ok) {
+                const data = await res.json();
+                const changed = (data.mappings || []).some(
+                    (m) => (before[m.agent_id] ?? null) !== (m.checked_at ?? null)
+                );
+
+                if (changed) { window.location.reload(); return; }
+            }
+        } catch (e) { /* 통신이 끊겨도 계속 시도한다 */ }
+
+        setTimeout(tick, 3000);
+    };
+
+    setTimeout(tick, 1500);
+})();
+</script>
+@endpush
+
 @endsection

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\AiWork;
 
+use App\Enums\AiWork\AiwFailureCode;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Events\AiWork\JobCancelRequested;
 use App\Events\AiWork\JobDispatched;
@@ -272,12 +273,47 @@ class AiwServicesTest extends TestCase
         $job = $this->job(['status' => AiwJobStatus::Running, 'cost_limit_usd' => 1.0]);
 
         $over = app(CostGuard::class)->apply($job, 5.0);
+        $fresh = $job->fresh();
 
         $this->assertTrue($over);
-        $this->assertSame(AiwJobStatus::Failed, $job->fresh()->status);
-        $this->assertStringContainsString('비용 상한', $job->fresh()->error_message);
+        $this->assertSame(AiwJobStatus::Failed, $fresh->status);
+        $this->assertStringContainsString('상한에 닿아 자동으로 멈췄습니다', $fresh->error_message);
+
+        // 코드가 있어야 화면이 "어떻게 이어가나" 를 버튼으로 보여 준다.
+        $this->assertSame(AiwFailureCode::CostLimit, $fresh->failureCode());
+        // JSON 을 거치면 1.0 이 정수 1 로 돌아온다. 값만 본다.
+        $this->assertEquals(1.0, $fresh->error_detail['limit']);
+        $this->assertEquals(5.0, $fresh->error_detail['cost']);
 
         Event::assertDispatched(JobCancelRequested::class);
+    }
+
+    public function test_구독_로그인이면_실제_청구가_아님을_밝힌다(): void
+    {
+        // 금액만 보여 주면 돈이 빠져나간 것으로 읽힌다. 실제로 그 질문을 받았다.
+        Event::fake([JobCancelRequested::class]);
+
+        $this->agent->forceFill(['capabilities' => ['auth_mode' => 'subscription']])->save();
+
+        $job = $this->job(['status' => AiwJobStatus::Running, 'cost_limit_usd' => 1.0]);
+        app(CostGuard::class)->apply($job, 5.0);
+
+        $this->assertStringContainsString('실제 청구는 없습니다', $job->fresh()->error_message);
+    }
+
+    public function test_API키_PC_면_청구_문구를_붙이지_않는다(): void
+    {
+        Event::fake([JobCancelRequested::class]);
+
+        $this->agent->forceFill(['capabilities' => ['auth_mode' => 'api_key']])->save();
+
+        $job = $this->job(['status' => AiwJobStatus::Running, 'cost_limit_usd' => 1.0]);
+        app(CostGuard::class)->apply($job, 5.0);
+
+        $message = $job->fresh()->error_message;
+
+        $this->assertStringContainsString('비용이 상한에 닿아', $message);
+        $this->assertStringNotContainsString('실제 청구는 없습니다', $message);
     }
 
     public function test_상한_이내면_비용만_갱신된다(): void

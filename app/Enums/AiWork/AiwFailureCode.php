@@ -28,6 +28,15 @@ enum AiwFailureCode: string
     /** 데몬 재시작으로 세션을 이어갈 수 없다. */
     case DaemonRestarted = 'daemon_restarted';
 
+    /**
+     * 누적 비용이 상한에 닿아 서버가 멈췄다.
+     *
+     * 이 코드만 데몬이 아니라 **서버**(CostGuard)가 붙인다. 실패가 아니라
+     * 설계된 정지라, 사람에게는 "무엇이 잘못됐나" 가 아니라 "어떻게 이어가나"
+     * 를 보여 줘야 한다.
+     */
+    case CostLimit = 'cost_limit';
+
     public function label(): string
     {
         return match ($this) {
@@ -36,6 +45,7 @@ enum AiwFailureCode: string
             self::NoMapping       => '폴더 매핑 없음',
             self::PathMissing     => '경로 없음',
             self::DaemonRestarted => '담당자 재시작',
+            self::CostLimit       => '비용 상한 도달',
         };
     }
 
@@ -55,5 +65,11 @@ enum AiwFailureCode: string
     public function retryableAsIs(): bool
     {
         return $this === self::DaemonRestarted;
+    }
+
+    /** 상한을 올리거나 꺼야 이어갈 수 있는가. */
+    public function needsHigherCostLimit(): bool
+    {
+        return $this === self::CostLimit;
     }
 }

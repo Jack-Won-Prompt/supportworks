@@ -1375,6 +1375,11 @@ Route::middleware('auth')->group(function () {
         Route::get ('{job}',             [\App\Http\Controllers\AiWork\AiwJobController::class, 'show'])->name('show');
         // 구독 전에 지나간 로그·메시지를 따라잡는다. WS 는 빠른 길, 이쪽이 정확한 길이다.
         Route::get ('{job}/feed',        [\App\Http\Controllers\AiWork\AiwJobController::class, 'feed'])->name('feed');
+        // 매핑 폴더 점검·정리. job 이 아니라 담당자 PC 를 상대로 하는 요청이라
+        // {job} 규칙보다 먼저 선언한다(아래 '{job}/{action}' 이 삼켜 버린다).
+        Route::get ('mappings/status',   [\App\Http\Controllers\AiWork\AiwJobController::class, 'setupStatus'])->name('mappings.status');
+        Route::post('mappings/{agent}/{action}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'mappingAction'])
+            ->whereIn('action', ['recheck', 'cleanup'])->name('mappings.action');
         Route::post('{job}/messages',    [\App\Http\Controllers\AiWork\AiwJobController::class, 'message'])->name('message');
         Route::get ('{job}/attachments/{attachment}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'attachment'])->name('attachment');
         Route::post('{job}/permissions/{permission}', [\App\Http\Controllers\AiWork\AiwJobController::class, 'decide'])->name('decide');

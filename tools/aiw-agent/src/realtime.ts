@@ -6,6 +6,7 @@ import { JobManager } from './job-manager.js';
 import { log } from './logger.js';
 import { Deployer } from './deployer.js';
 import { Publisher } from './publisher.js';
+import { SetupReporter } from './setup-reporter.js';
 
 /**
  * Reverb 구독.
@@ -35,6 +36,7 @@ export class Realtime {
         private readonly onReconnect: () => void,
         private readonly publisher: Publisher,
         private readonly deployer: Deployer,
+        private readonly setup: SetupReporter,
     ) {}
 
     connect(): void {
@@ -112,6 +114,15 @@ export class Realtime {
 
         channel.bind('job.end-requested', (payload: any) => {
             void this.jobs.session(payload?.job_id)?.requestEnd();
+        });
+
+        // 화면에서 누른 '다시 점검' · '작업 정리'. 매핑 폴더 상태는 이 PC 만 안다.
+        channel.bind('mapping.recheck-requested', (payload: any) => {
+            void this.setup.recheck(Number(payload?.project_id));
+        });
+
+        channel.bind('mapping.cleanup-requested', (payload: any) => {
+            void this.setup.cleanup(Number(payload?.project_id));
         });
 
         channel.bind('handover.requested', (payload: any) => {

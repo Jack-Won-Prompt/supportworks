@@ -357,8 +357,32 @@ class AiwWebTest extends TestCase
         $this->actingAs($this->operator)
             ->get(route('projects.ai-works.show', [$this->project(), $job]))
             ->assertOk()
-            ->assertSee('알 수 없는 오류')
-            ->assertDontSee('이렇게 해결할 수 있습니다');
+            ->assertDontSee('이렇게 해결할 수 있습니다')
+            // 결과 칸은 사유를 되풀이하지 않는다. 같은 내용이 활동 로그에 남는다.
+            ->assertDontSee('알 수 없는 오류')
+            ->assertSee('활동 로그');
+    }
+
+    public function test_비용_상한_중단에는_금액_대신_이어갈_방법을_보여준다(): void
+    {
+        // 화면에 금액을 띄우면 구독 로그인으로 도는 담당자에게는 청구된 돈으로
+        // 읽힌다. 여기 남길 것은 "어떻게 이어가나" 뿐이다.
+        $job = $this->job([
+            'status'        => AiwJobStatus::Failed,
+            'error_message' => '예상 사용량이 상한에 닿아 자동으로 멈췄습니다 ($2.0255 / $2.0000).',
+            'error_code'    => 'cost_limit',
+            'error_detail'  => ['cost' => 2.0255, 'limit' => 2.0, 'branch' => 'aiw/job-'.$this->projectId],
+        ]);
+
+        $this->actingAs($this->operator)
+            ->get(route('projects.ai-works.show', [$this->project(), $job]))
+            ->assertOk()
+            ->assertSee('비용 상한 도달')
+            ->assertSee('상한을 올려 후속 지시')
+            ->assertSee('상한 없이 후속 지시')
+            ->assertSee('no_cost_limit=1', false)
+            ->assertDontSee('2.0255')
+            ->assertDontSee('$2.0000');
     }
 
     public function test_use_branch_쿼리로_체크박스를_미리_끈다(): void
@@ -733,6 +757,81 @@ class AiwWebTest extends TestCase
             // 본문은 @js 를 거쳐 JSON 으로 들어가므로 한글은 유니코드 이스케이프로 바뀐다.
             // 화면에 들어갔는지는 ASCII 부분으로 확인한다.
             ->assertSee('master', false);
+    }
+
+    // ── 매핑 점검·정리 ──────────────────────────────────────────────────────
+
+    public function test_점검과_정리를_담당자_PC_에_요청한다(): void
+    {
+        Event::fake([\App\Events\AiWork\MappingSetupRequested::class]);
+
+        foreach (['recheck', 'cleanup'] as $action) {
+            $this->actingAs($this->operator)
+                ->post(route('projects.ai-works.mappings.action', [$this->project(), $this->agent, $action]))
+                ->assertRedirect()
+                ->assertSessionHas('status');
+        }
+
+        Event::assertDispatched(
+            \App\Events\AiWork\MappingSetupRequested::class,
+            fn ($e) => $e->action === 'recheck' && $e->projectId === $this->projectId,
+        );
+        Event::assertDispatched(
+            \App\Events\AiWork\MappingSetupRequested::class,
+            fn ($e) => $e->action === 'cleanup',
+        );
+    }
+
+    public function test_오프라인_담당자에게는_요청하지_않는다(): void
+    {
+        // 요청은 실시간 채널로만 간다. 꺼져 있으면 아무 일도 일어나지 않는데
+        // 화면이 "요청했습니다" 라고 하면 사람이 결과를 기다리게 된다.
+        Event::fake([\App\Events\AiWork\MappingSetupRequested::class]);
+
+        $this->agent->forceFill(['last_seen_at' => now()->subDay()])->saveQuietly();
+        AiwAgentProject::where('agent_id', $this->agent->id)
+            ->update(['last_seen_at' => now()->subDay()]);
+
+        $this->actingAs($this->operator)
+            ->post(route('projects.ai-works.mappings.action', [$this->project(), $this->agent, 'recheck']))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        Event::assertNotDispatched(\App\Events\AiWork\MappingSetupRequested::class);
+    }
+
+    public function test_알_수_없는_동작은_라우트가_받지_않는다(): void
+    {
+        $this->actingAs($this->operator)
+            ->post(url("/projects/{$this->projectId}/ai-works/mappings/{$this->agent->id}/wipe"))
+            ->assertNotFound();
+    }
+
+    public function test_점검_상태를_json_으로_따라잡는다(): void
+    {
+        AiwAgentProject::where('agent_id', $this->agent->id)
+            ->where('project_id', $this->projectId)
+            ->update([
+                'setup_status'     => 'dirty_tree',
+                'setup_message'    => '커밋되지 않은 변경 2건',
+                'setup_checked_at' => now(),
+            ]);
+
+        $this->actingAs($this->operator)
+            ->getJson(route('projects.ai-works.mappings.status', $this->project()))
+            ->assertOk()
+            ->assertJsonPath('mappings.0.status', 'dirty_tree')
+            ->assertJsonPath('mappings.0.ready', false)
+            ->assertJsonPath('mappings.0.agent_id', $this->agent->id);
+    }
+
+    public function test_관리자가_아니면_점검도_정리도_할_수_없다(): void
+    {
+        foreach ([$this->member, $this->viewer] as $user) {
+            $this->actingAs($user)
+                ->post(route('projects.ai-works.mappings.action', [$this->project(), $this->agent, 'cleanup']))
+                ->assertForbidden();
+        }
     }
 
     // ── 작업 PC 관리 ────────────────────────────────────────────────────────
