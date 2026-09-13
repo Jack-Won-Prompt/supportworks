@@ -147,10 +147,15 @@ class AiwAttachmentTest extends TestCase
 
         [$saved] = app(AttachmentService::class)->attach($message, [$file], $this->member);
 
+        // DB 에서 다시 읽는다. 메모리의 모델만 보면 컬럼이 짧아 잘려도 통과한다 —
+        // 테스트는 strict 모드가 꺼져 있어 조용히 자르고, 운영에서만 500 이 난다
+        // (실제로 mime 이 varchar(40) 이라 xlsx 첨부가 터졌다).
+        $saved->refresh();
+
         $this->assertSame(
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             $saved->mime,
-            'MIME 이 흔들려도 확장자로 바로잡는다.',
+            'MIME 이 흔들려도 확장자로 바로잡고, 컬럼이 그 길이를 담을 수 있어야 한다.',
         );
         $this->assertSame('견적.xlsx', $saved->original_name);
         $this->assertNull($saved->width);
