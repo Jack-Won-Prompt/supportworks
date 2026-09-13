@@ -108,3 +108,40 @@ test('개인키 파일은 경로와 무관하게 막는다', () => {
     assert.equal(findBlockedRule('npm run build'), null);
     assert.equal(findBlockedRule('git status'), null);
 });
+
+test('원격 데이터베이스 직접 접속은 막는다', () => {
+    // 작업 폴더의 DB 는 로컬이다. 원격을 직접 부르는 것은 운영을 건드리려는 것뿐이다.
+    // 두 규칙이 모두 걸리는 명령이다. 앞선 규칙이 잡으므로 id 는 remote-db-client 다 —
+    // 어느 쪽이 잡든 막히는 것이 핵심이라 여기서는 그 사실만 고정한다.
+    assert.equal(findBlockedRule('mysql -h 3.34.53.36 -u korsafety korsafety')?.id, 'remote-db-client');
+    assert.equal(findBlockedRule('mysqldump -h db.example.com mydb > dump.sql')?.id, 'remote-db-client');
+    assert.equal(findBlockedRule('mysql --host=db.internal -u root app')?.id, 'remote-db-client');
+    assert.equal(findBlockedRule('psql -h 10.0.0.5 -U app app')?.id, 'remote-db-client');
+});
+
+test('로컬 데이터베이스 작업은 그대로 통과한다', () => {
+    // 여기까지 막으면 지시가 스스로 확인할 방법이 없어진다.
+    for (const cmd of [
+        'mysql -h 127.0.0.1 -u root korsafety',
+        'mysql -h127.0.0.1 -u root -e "SHOW TABLES"',
+        'mysqldump -h localhost -u root korsafety > backup.sql',
+        'mysql -u root korsafety < schema.sql',
+        'php artisan migrate --force',
+        'php artisan migrate:status',
+    ]) {
+        assert.equal(findBlockedRule(cmd), null, `막히면 안 됨: ${cmd}`);
+    }
+});
+
+test('운영 서버 주소는 어디에 적히든 막는다', () => {
+    // .env 를 되돌리려는 시도가 여기 걸린다 — 실제로 가장 위험한 경로다.
+    assert.equal(findBlockedRule("sed -i 's/^DB_HOST=.*/DB_HOST=3.34.53.36/' .env")?.id, 'production-host');
+    assert.equal(findBlockedRule('curl http://15.165.77.147/health')?.id, 'production-host');
+    assert.equal(findBlockedRule('ssh ubuntu@15.165.77.147 ls')?.id, 'production-host');
+    assert.equal(findBlockedRule('echo DB_HOST=43.203.246.90 >> .env')?.id, 'production-host');
+
+    // 비슷한 숫자에 걸려 엉뚱한 것을 막으면 안 된다.
+    assert.equal(findBlockedRule('curl http://127.0.0.1:8000/health'), null);
+    assert.equal(findBlockedRule('echo 3.34.53.360'), null);
+    assert.equal(findBlockedRule('echo 13.34.53.36'), null);
+});
