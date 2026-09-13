@@ -36,6 +36,13 @@ return [
     */
     'permission_timeout_min' => env('AIW_PERMISSION_TIMEOUT_MIN', 30),
 
+    /**
+     * 사람의 답을 기다린 지 이만큼 지나면 다시 알린다(분). 이 간격마다 한 번씩,
+     * nudge_max 번까지. 0 으로 두면 재알림을 끈다.
+     */
+    'nudge_after_min' => env('AIW_NUDGE_AFTER_MIN', 10),
+    'nudge_max'       => env('AIW_NUDGE_MAX', 3),
+
     /*
     |---------------------------------------------------------------------------
     | 툴 화이트리스트

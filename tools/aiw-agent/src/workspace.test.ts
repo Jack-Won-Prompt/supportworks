@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { simpleGit } from 'simple-git';
+import { GitWorkspace } from './git.js';
 import { checkSetup, cleanupWorkspace } from './workspace.js';
 
 async function repo(): Promise<string> {
@@ -137,6 +138,32 @@ test('두 번 정리해도 앞선 보관을 덮지 않는다', async () => {
     // 폴더는 그대로 남는다. 어느 쪽이든 첫 보관은 살아 있어야 한다.
     await git.checkout(first.branch!);
     assert.equal(await readFile(join(root, 'app.txt'), 'utf8'), '첫 번째\n');
+
+    await rm(root, { recursive: true, force: true });
+});
+
+test('정리하면 막혀 있던 작업 브랜치 준비가 통과한다', async () => {
+    // 사람이 옆에 없을 때 가장 흔한 실패다: 미커밋 변경 때문에 지시가 시작조차
+    // 못 한다. 치우고 다시 하면 되는 상황이라 데몬이 한 번 스스로 해 본다.
+    const root = await repo();
+    const ws = new GitWorkspace(root);
+
+    await writeFile(join(root, 'app.txt'), '앞선 작업이 남긴 것\n', 'utf8');
+
+    await assert.rejects(
+        () => ws.prepareBranch('aiw/job-99', 'main'),
+        (e: Error) => /정리되지 않은 항목|깨끗해야/.test(e.message),
+    );
+
+    const cleaned = await cleanupWorkspace(spec(root));
+
+    assert.equal(cleaned.setup.status, 'ok');
+
+    // 이제 통과한다.
+    const base = await ws.prepareBranch('aiw/job-99', 'main');
+
+    assert.equal((await simpleGit(root).branchLocal()).current, 'aiw/job-99');
+    assert.ok(base.baseSha.length > 0);
 
     await rm(root, { recursive: true, force: true });
 });

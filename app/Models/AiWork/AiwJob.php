@@ -38,6 +38,7 @@ class AiwJob extends Model
         'error_code', 'error_detail',
         'cost_usd', 'duration_ms', 'error_message',
         'created_by', 'dispatched_at', 'started_at', 'finished_at',
+        'waiting_since', 'nudge_count',
     ];
 
     /**
@@ -72,6 +73,8 @@ class AiwJob extends Model
         'dispatched_at'        => 'datetime',
         'started_at'           => 'datetime',
         'finished_at'          => 'datetime',
+        'waiting_since'        => 'datetime',
+        'nudge_count'          => 'integer',
     ];
 
     protected static function booted(): void

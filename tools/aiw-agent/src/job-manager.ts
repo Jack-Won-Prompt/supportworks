@@ -4,6 +4,7 @@ import { ApiClient, JobSpec } from './api.js';
 import { config } from './config.js';
 import { isJobSetupError, JobSetupError } from './errors.js';
 import { BranchBase, GitWorkspace } from './git.js';
+import { cleanupWorkspace } from './workspace.js';
 import { log } from './logger.js';
 import { SessionManager } from './session-manager.js';
 import { SdkSessionAdapter } from './session/sdk-adapter.js';
@@ -161,20 +162,7 @@ export class JobManager {
         this.active.set(spec.job_id, manager!);
 
         try {
-            if (spec.use_branch) {
-                const git = new GitWorkspace(root);
-
-                if (await git.isRepo()) {
-                    // 어디서 갈라져 나왔는지 기억해 둔다. 중단되면 여기로 되돌린다.
-                    this.branchBase.set(
-                        spec.job_id,
-                        await git.prepareBranch(`aiw/job-${spec.job_id}`, spec.default_branch),
-                    );
-                } else {
-                    manager!.pushLog('daemon', 'git 저장소가 아니라 브랜치 분리를 건너뜁니다.');
-                }
-            }
-
+            await this.prepareWorkspace(spec, root, manager!);
             await manager!.run(root);
         } catch (error) {
             const setup: JobSetupError | null = isJobSetupError(error) ? error : null;
@@ -197,6 +185,66 @@ export class JobManager {
         }
 
         await finished;
+    }
+
+    /**
+     * 작업 브랜치를 준비한다. 폴더가 정리되지 않았으면 한 번 치우고 다시 해 본다.
+     *
+     * 사람이 옆에 없다는 전제에서, 미커밋 변경 때문에 지시가 시작조차 못 하는 것은
+     * 가장 흔하고 가장 허무한 실패다. 그 변경은 대개 앞선 작업이 남긴 것이거나
+     * 빌드 부산물이라, 보관해 두고 진행하는 편이 사람을 기다리는 것보다 낫다.
+     *
+     * **한 번만** 시도한다. 정리했는데도 더럽다면 사람이 봐야 할 상황이다.
+     * 그리고 아무것도 버리지 않는다 — cleanupWorkspace 가 보관 브랜치로 옮긴다.
+     */
+    private async prepareWorkspace(spec: JobSpec, root: string, manager: SessionManager): Promise<void> {
+        if (!spec.use_branch) {
+            return;
+        }
+
+        const git = new GitWorkspace(root);
+
+        if (!(await git.isRepo())) {
+            manager.pushLog('daemon', 'git 저장소가 아니라 브랜치 분리를 건너뜁니다.');
+
+            return;
+        }
+
+        const branch = `aiw/job-${spec.job_id}`;
+
+        try {
+            this.branchBase.set(spec.job_id, await git.prepareBranch(branch, spec.default_branch));
+
+            return;
+        } catch (error) {
+            if (!isJobSetupError(error) || error.code !== 'dirty_tree') {
+                throw error;   // 경로·브랜치 문제는 사람이 고쳐야 한다
+            }
+
+            manager.pushLog('daemon', '작업 폴더가 정리되지 않아 먼저 치웁니다.');
+
+            const result = await cleanupWorkspace({
+                project_id: spec.project_id,
+                local_path: root,
+                default_branch: spec.default_branch,
+            });
+
+            manager.pushLog('daemon', result.message);
+            await this.api.quiet('messages', () =>
+                this.api.messages(spec.job_id, [{
+                    client_key: `autoclean-${spec.job_id}`,
+                    role: 'system',
+                    content: `지시를 시작하기 전에 작업 폴더를 정리했습니다. ${result.message}`,
+                }]),
+            );
+
+            if (result.setup.status !== 'ok') {
+                // 치웠는데도 시작할 수 없다면 사람이 봐야 한다.
+                throw error;
+            }
+
+            this.branchBase.set(spec.job_id, await git.prepareBranch(branch, spec.default_branch));
+        }
     }
 
     private async report(

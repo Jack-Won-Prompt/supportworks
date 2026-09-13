@@ -47,6 +47,18 @@ class JobStateMachine
             $attributes['finished_at'] = now();
         }
 
+        // 사람의 답을 기다리기 시작한 시각. 재알림이 이걸 기준으로 돈다.
+        // 대기를 벗어나면 지운다 — 다음 대기는 처음부터 다시 센다.
+        if ($to->isWaitingForHuman()) {
+            if ($from !== $to) {
+                $attributes['waiting_since'] = now();
+                $attributes['nudge_count'] = 0;
+            }
+        } elseif ($job->waiting_since !== null) {
+            $attributes['waiting_since'] = null;
+            $attributes['nudge_count'] = 0;
+        }
+
         $job->forceFill($attributes)->save();
 
         if ($to->isTerminal()) {

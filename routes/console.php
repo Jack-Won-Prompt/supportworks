@@ -31,4 +31,7 @@ if (config('cache.default') === 'file') {
 
 Schedule::command('aiw:expire-permissions')->everyMinute()->withoutOverlapping();
 Schedule::command('aiw:reap-stale-jobs')->everyMinute()->withoutOverlapping();
+// 사람의 답을 오래 기다리는 작업을 다시 알린다. 첫 알림을 놓치면 작업이
+// 세션 최대 수명까지 서 있다가 조용히 중단된다.
+Schedule::command('aiw:nudge-waiting')->everyMinute()->withoutOverlapping();
 Schedule::command('aiw:prune')->dailyAt('03:00');

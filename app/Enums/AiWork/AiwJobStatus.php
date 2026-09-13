@@ -34,6 +34,12 @@ enum AiwJobStatus: string
         ], true);
     }
 
+    /** 사람이 답해야 넘어가는 상태. 재알림 대상이다. */
+    public function isWaitingForHuman(): bool
+    {
+        return in_array($this, [self::WaitingInput, self::WaitingPermission], true);
+    }
+
     /** 데몬 응답을 기다리는 중이라 idle 타이머를 멈춰야 하는 상태. */
     public function isWaiting(): bool
     {

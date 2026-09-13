@@ -99,6 +99,26 @@ class AiwNotifier
         );
     }
 
+    /**
+     * 답을 기다린 지 오래됐다. 다시 알린다.
+     *
+     * 첫 알림 한 번으로 끝내면 그것을 놓친 순간 작업은 세션 최대 수명까지 서 있다가
+     * 조용히 중단된다. 사람에게는 "왜 안 끝났지" 로만 보인다.
+     */
+    public function waitingTooLong(AiwJob $job, int $minutes, int $attempt): void
+    {
+        $what = $job->status === AiwJobStatus::WaitingPermission ? '승인' : '회신';
+
+        $this->toCreator(
+            $job,
+            sprintf('%s 대기 %d분째', $what, $minutes),
+            $job->status === AiwJobStatus::WaitingPermission
+                ? '승인하지 않으면 작업이 진행되지 않습니다.'
+                : $this->replyPreview($job),
+            'waiting_nudge_'.$attempt,
+        );
+    }
+
     public function publishFinished(AiwPublish $publish): void
     {
         // 사람이 누른 커밋·푸시는 누른 사람이 화면에서 본다. 자동 진행의 실패만 알린다
@@ -163,7 +183,9 @@ class AiwNotifier
     {
         $creator = $job->creator;
 
-        if (! $creator || ! $creator->isAdmin()) {
+        // 관리자만 보내던 시절의 조건이었다. 지금은 '작업 지시 가능' 을 받은 담당자도
+        // 지시를 내리므로, 그 사람이 알림을 못 받으면 대기가 영영 풀리지 않는다.
+        if (! $creator || ! ($creator->isAdmin() || $creator->isAiwOperator())) {
             return;
         }
 

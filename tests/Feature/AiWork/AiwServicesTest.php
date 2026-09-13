@@ -13,6 +13,7 @@ use App\Models\AiWork\AiwAgentProject;
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwPermissionRequest;
 use App\Models\User;
+use App\Services\AiWork\AiwNotifier;
 use App\Services\AiWork\CostGuard;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobDispatcher;
@@ -495,6 +496,90 @@ class AiwServicesTest extends TestCase
 
     // ── 스케줄러 커맨드 ─────────────────────────────────────────────────────
 
+    public function test_대기가_길어지면_다시_알린다(): void
+    {
+        // 첫 알림을 놓치면 작업은 세션 최대 수명까지 서 있다가 조용히 중단된다.
+        config(['aiw.nudge_after_min' => 10, 'aiw.nudge_max' => 2]);
+
+        $notifier = new NudgeRecordingNotifier();
+
+        $this->app->instance(AiwNotifier::class, $notifier);
+
+        // 알림은 작업 지시를 쓸 수 있는 사람에게만 간다(관리자 또는 작업 지시 가능).
+        $this->owner->forceFill(['is_aiw_operator' => true])->save();
+
+        $job = $this->job(['status' => AiwJobStatus::Running]);
+
+        app(JobStateMachine::class)->transition($job, AiwJobStatus::WaitingInput);
+
+        $this->assertNotNull($job->fresh()->waiting_since, '대기 시작 시각이 기록돼야 한다.');
+
+        // 대기에 들어갈 때 이미 첫 알림이 한 번 간다. 여기서 세는 것은 그 뒤의 재알림이다.
+        $nudges = fn () => count(array_filter(
+            $notifier->sent,
+            fn (array $p) => str_starts_with((string) $p['data']['event'], 'waiting_nudge'),
+        ));
+
+        // 아직 이르다.
+        $this->artisan('aiw:nudge-waiting')->assertSuccessful();
+        $this->assertSame(0, $nudges());
+
+        // 10분 뒤 — 한 번.
+        $job->forceFill(['waiting_since' => now()->subMinutes(11)])->saveQuietly();
+        $this->artisan('aiw:nudge-waiting')->assertSuccessful();
+        $this->assertSame(1, $nudges());
+        $this->assertSame(1, $job->fresh()->nudge_count);
+
+        // 같은 분에 또 돌아도 더 보내지 않는다.
+        $this->artisan('aiw:nudge-waiting')->assertSuccessful();
+        $this->assertSame(1, $nudges());
+
+        // 20분 뒤 — 두 번째. 상한(2)에 닿는다.
+        $job->forceFill(['waiting_since' => now()->subMinutes(21)])->saveQuietly();
+        $this->artisan('aiw:nudge-waiting')->assertSuccessful();
+        $this->assertSame(2, $nudges());
+
+        // 상한을 넘겨서는 울리지 않는다. 답하지 않기로 한 것도 사람의 선택이다.
+        $job->forceFill(['waiting_since' => now()->subMinutes(99)])->saveQuietly();
+        $this->artisan('aiw:nudge-waiting')->assertSuccessful();
+        $this->assertSame(2, $nudges());
+    }
+
+    public function test_작업_지시를_쓸_수_없는_사람에게는_알리지_않는다(): void
+    {
+        config(['aiw.nudge_after_min' => 10, 'aiw.nudge_max' => 3]);
+
+        $notifier = new NudgeRecordingNotifier();
+
+        $this->app->instance(AiwNotifier::class, $notifier);
+
+        // owner 는 관리자도 아니고 작업 지시 가능도 아니다.
+        $job = $this->job(['status' => AiwJobStatus::Running]);
+
+        app(JobStateMachine::class)->transition($job, AiwJobStatus::WaitingInput);
+        $job->forceFill(['waiting_since' => now()->subMinutes(30)])->saveQuietly();
+
+        $this->artisan('aiw:nudge-waiting')->assertSuccessful();
+
+        $this->assertCount(0, $notifier->sent);
+    }
+
+    public function test_대기를_벗어나면_재알림_상태가_지워진다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::Running]);
+        $machine = app(JobStateMachine::class);
+
+        $machine->transition($job, AiwJobStatus::WaitingInput);
+        $job->forceFill(['nudge_count' => 2])->saveQuietly();
+
+        $machine->transition($job->fresh(), AiwJobStatus::Running);
+
+        $fresh = $job->fresh();
+
+        $this->assertNull($fresh->waiting_since);
+        $this->assertSame(0, $fresh->nudge_count);
+    }
+
     public function test_reap_stale_jobs가_무응답_에이전트의_job을_정리한다(): void
     {
         $threshold = (int) config('aiw.offline_after_sec', 90) * 4;
@@ -549,5 +634,17 @@ class AiwServicesTest extends TestCase
         $this->assertNotNull(DB::table('aiw_job_logs')->where('job_id', $recent->id)->value('raw'));
         // job 레코드 자체는 남긴다 — 감사 추적이 끊기면 안 된다.
         $this->assertDatabaseHas('aiw_jobs', ['id' => $old->id]);
+    }
+}
+
+/** FCM 대신 보낸 내용을 모아 둔다. */
+class NudgeRecordingNotifier extends AiwNotifier
+{
+    /** @var list<array{user_id:int, title:string, body:string, data:array}> */
+    public array $sent = [];
+
+    protected function send(int $userId, string $title, string $body, array $data): void
+    {
+        $this->sent[] = ['user_id' => $userId, 'title' => $title, 'body' => $body, 'data' => $data];
     }
 }
