@@ -137,8 +137,9 @@ class AiwJobController extends Controller
             // 실패 화면의 "브랜치 없이 다시 지시" 가 ?use_branch=0 으로 보낸다.
             // 쿼리가 없으면 원 job 설정을, 그것도 없으면 켬(안전한 기본값)을 쓴다.
             // "배포까지 자동으로" 체크박스는 등록된 배포 대상이 있을 때만 뜬다.
+            // '배포까지 자동으로' 는 배포 종류만 고른다. 운영 명령은 여기 해당하지 않는다.
             'deployTargets' => AiwDeployTarget::where('project_id', $project->id)
-                ->where('enabled', true)->orderBy('name')->get(),
+                ->deploys()->where('enabled', true)->orderBy('name')->get(),
             'prefillUseBranch' => $request->has('use_branch')
                 ? $request->boolean('use_branch')
                 : (bool) ($parent->use_branch ?? true),
@@ -236,9 +237,18 @@ class AiwJobController extends Controller
                 ?? $job->agent?->name,
             // 배포 대상은 관리자가 미리 등록한 것만 고를 수 있다.
             'deployTargets' => AiwDeployTarget::where('project_id', $job->project_id)
-                ->where('enabled', true)->orderBy('name')->get(),
+                ->deploys()->where('enabled', true)->orderBy('name')->get(),
+            // 운영 명령은 배포와 달리 결과와 무관하게 언제든 쓴다 — 서버가 이상할 때
+            // 사람이 SSH 로 들어가지 않고 여기서 점검·조치할 수 있어야 한다.
+            'opsTargets'    => AiwDeployTarget::where('project_id', $job->project_id)
+                ->ops()->where('enabled', true)->orderBy('name')->get(),
+            // 배포 기록과 운영 명령 기록을 나눈다. 같은 표에 쌓이지만 읽는 자리가 다르다.
             'deploys' => AiwDeploy::where('job_id', $job->id)
-                ->with(['target:id,name', 'requester:id,name'])->latest('id')->get(),
+                ->whereHas('target', fn ($q) => $q->where('kind', AiwDeployTarget::KIND_DEPLOY))
+                ->with(['target:id,name,kind', 'requester:id,name'])->latest('id')->get(),
+            'opsRuns' => AiwDeploy::where('job_id', $job->id)
+                ->whereHas('target', fn ($q) => $q->where('kind', AiwDeployTarget::KIND_OPS))
+                ->with(['target:id,name,kind', 'requester:id,name'])->latest('id')->get(),
             // 같은 담당자가 다른 작업을 붙들고 있으면 이 작업은 줄 서 있다.
             // 화면이 말해 주지 않으면 "보냈는데 아무 일도 없는" 상태로 보인다.
             'blockingJob' => $blocking,

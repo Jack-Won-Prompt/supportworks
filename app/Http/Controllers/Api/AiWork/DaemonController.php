@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\AiWork;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Enums\AiWork\AiwSetupStatus;
 use App\Models\AiWork\AiwAgentProject;
+use App\Services\AiWork\AutoPipeline;
 use App\Models\AiWork\AiwDeploy;
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobAttachment;
@@ -122,6 +123,11 @@ class DaemonController extends AgentApiController
             'started_at'  => $deploy->started_at ?? now(),
             'finished_at' => $validated['status'] === 'running' ? null : now(),
         ], fn ($v) => $v !== null))->save();
+
+        // 담당자 PC 가 실행한 배포도 같은 뒷처리를 받는다.
+        if (in_array($deploy->status, ['succeeded', 'failed'], true)) {
+            app(AutoPipeline::class)->afterDeploy($deploy->refresh());
+        }
 
         return response()->json(['status' => $deploy->status]);
     }

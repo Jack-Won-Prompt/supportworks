@@ -204,6 +204,22 @@ export class ApiClient {
         );
     }
 
+    /**
+     * 등록된 운영 명령을 이름으로 요청한다.
+     *
+     * 명령 문자열은 보내지 않는다 — 서버가 관리자 등록 목록에서 찾아 실행한다.
+     * 없는 이름이면 accepted=false 와 함께 무엇이 있는지 돌려준다.
+     */
+    requestOps(jobId: number, name: string) {
+        return this.send<{
+            accepted: boolean;
+            reason?: string;
+            available?: string[];
+            deploy_id?: number;
+            name?: string;
+        }>(() => this.http.post(`/jobs/${jobId}/ops`, { name }));
+    }
+
     /** 담당자 PC 가 실행한 배포의 진행/결과 보고. */
     deployResult(
         deployId: number,

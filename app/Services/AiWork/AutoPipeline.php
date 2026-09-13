@@ -4,6 +4,8 @@ namespace App\Services\AiWork;
 
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobLog;
+use App\Models\AiWork\AiwDeploy;
+use App\Models\AiWork\AiwDeployTarget;
 use App\Models\AiWork\AiwPublish;
 use App\Events\AiWork\JobLogAppended;
 use Illuminate\Support\Facades\Log;
@@ -75,6 +77,46 @@ class AutoPipeline
             $this->note($job, sprintf('자동 진행: 배포를 시작합니다 (%s).', $target->name));
         } catch (\Throwable $e) {
             $this->note($job, '자동 진행 중단 — 배포를 시작하지 못했습니다: '.$e->getMessage(), true);
+        }
+    }
+
+    /**
+     * 배포가 끝났을 때. 자동 배포가 실패했으면 등록된 점검 명령을 돌려 둔다.
+     *
+     * 원격에 사람이 없다는 전제에서, 배포가 깨진 채로 아무도 서버 상태를 모르는
+     * 시간이 가장 위험하다. 사람이 화면을 열었을 때 "무엇이 깨졌는지" 가 이미
+     * 적혀 있어야 한다.
+     *
+     * 점검 명령은 관리자가 등록한 것만 쓴다. 없으면 아무 일도 하지 않는다.
+     */
+    public function afterDeploy(AiwDeploy $deploy): void
+    {
+        $job = $deploy->job;
+
+        if (! $job || ! $deploy->automatic || $deploy->status !== 'failed') {
+            return;
+        }
+
+        $name = (string) config('aiw.health_check_name', '점검');
+
+        $health = AiwDeployTarget::where('project_id', $job->project_id)
+            ->ops()->where('enabled', true)->where('name', $name)->first();
+
+        if (! $health) {
+            $this->note($job, sprintf(
+                '배포가 실패했습니다. 서버 상태를 함께 보려면 운영 명령 "%s" 을(를) 등록해 두세요.',
+                $name,
+            ));
+
+            return;
+        }
+
+        // 점검이 또 실패해도 여기서 더 번지지 않게 한다 — 점검은 자동 후속이 없다.
+        try {
+            $this->deploys->request($health, $job->creator, '', $job, true);
+            $this->note($job, sprintf('배포 실패 — 상태 점검을 자동으로 실행합니다 (%s).', $health->name));
+        } catch (\Throwable $e) {
+            $this->note($job, '상태 점검을 시작하지 못했습니다: '.$e->getMessage(), true);
         }
     }
 

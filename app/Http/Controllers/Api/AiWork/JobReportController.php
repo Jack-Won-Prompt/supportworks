@@ -21,6 +21,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\AiWork\InvalidJobTransitionException;
 use App\Services\AiWork\AttachmentService;
+use App\Models\AiWork\AiwDeployTarget;
+use App\Services\AiWork\DeployService;
 use App\Services\AiWork\AutoPipeline;
 use App\Services\AiWork\FailureRecovery;
 use App\Services\AiWork\CostGuard;
@@ -45,6 +47,7 @@ class JobReportController extends AgentApiController
         private CostGuard $costGuard,
         private AutoPipeline $autoPipeline,
         private FailureRecovery $recovery,
+        private DeployService $deploys,
         private MessageWriter $messages,
     ) {}
 
@@ -472,6 +475,48 @@ class JobReportController extends AgentApiController
         $this->recovery->afterFail($job->refresh());
 
         return response()->json($this->controlFlags($job));
+    }
+
+    /**
+     * 담당자가 등록된 운영 명령을 실행해 달라고 요청한다.
+     *
+     * **이름만 받는다.** 명령 문자열은 관리자가 등록한 행에서만 오고 요청에서 오지
+     * 않는다 — 그것이 이 기능의 안전장치 전부다. 모델이 임의의 셸 명령을 적어 보낼
+     * 수 있으면 작업 폴더 경계도 승인 카드도 의미가 없어진다.
+     *
+     * 그래서 없는 이름은 실행하지 않고, 무엇이 등록돼 있는지 알려 준다. 모델이
+     * 이름을 지어내고 왜 안 되는지 모르는 상태로 헤매지 않게 하기 위해서다.
+     */
+    public function ops(Request $request, AiwJob $job): JsonResponse
+    {
+        $job = $this->ownedJob($request, $job);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+        ]);
+
+        $available = AiwDeployTarget::where('project_id', $job->project_id)
+            ->ops()->where('enabled', true)->orderBy('name')->get();
+
+        $target = $available->first(fn (AiwDeployTarget $t) => $t->name === $validated['name']);
+
+        if (! $target) {
+            return response()->json([
+                'accepted'  => false,
+                'reason'    => '등록되지 않은 운영 명령입니다.',
+                'available' => $available->pluck('name')->values(),
+            ], 200);
+        }
+
+        try {
+            // 사람이 아니라 담당자가 요청한 것이므로 automatic 으로 기록한다.
+            // 확인 문구는 운영 명령에 해당하지 않는다.
+            $deploy = $this->deploys->request($target, $job->creator, '', $job, true);
+        } catch (\RuntimeException $e) {
+            return response()->json(['accepted' => false, 'reason' => $e->getMessage()], 200);
+        }
+
+        return response()->json(['accepted' => true, 'deploy_id' => $deploy->id, 'name' => $target->name]);
     }
 
     /**

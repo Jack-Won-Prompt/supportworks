@@ -49,17 +49,20 @@ class AiwDeployController extends Controller
             'command'     => ['required', 'string', 'max:500'],
             // 운영 서버가 이 서버와 다르면 담당자 PC 가 실행해야 한다.
             'runs_on'     => ['nullable', 'in:server,agent'],
+            // 배포냐, 운영 점검·조치냐. 실행 경로는 같고 쓰이는 자리가 다르다.
+            'kind'        => ['nullable', 'in:deploy,ops'],
             'timeout_sec' => ['nullable', 'integer', 'min:30', 'max:3600'],
         ]);
 
-        AiwDeployTarget::create($validated + [
+        $target = AiwDeployTarget::create($validated + [
             'runs_on'     => $validated['runs_on'] ?? 'server',
+            'kind'        => $validated['kind'] ?? AiwDeployTarget::KIND_DEPLOY,
             'timeout_sec' => $validated['timeout_sec'] ?? 900,
             'enabled'     => true,
             'created_by'  => $request->user()->id,
         ]);
 
-        return back()->with('status', '배포 대상을 등록했습니다.');
+        return back()->with('status', $target->kindLabel().'을(를) 등록했습니다.');
     }
 
     public function toggle(AiwDeployTarget $target): RedirectResponse
@@ -88,14 +91,17 @@ class AiwDeployController extends Controller
 
         $validated = $request->validate([
             'target_id'    => ['required', 'integer'],
-            'confirmation' => ['required', 'string', 'max:100'],
+            // 확인 문구가 필요한지는 대상의 종류가 정한다(DeployService).
+            // 여기서 필수로 잡으면 운영 명령이 검증 오류로 막히고, 사용자에게는
+            // 서비스가 주는 설명 대신 "confirmation 필드는 필수입니다" 만 보인다.
+            'confirmation' => ['nullable', 'string', 'max:100'],
         ]);
 
         $target = AiwDeployTarget::where('project_id', $project->id)
             ->findOr($validated['target_id'], fn () => abort(404));
 
         try {
-            $this->deploys->request($target, $request->user(), $validated['confirmation'], $job);
+            $this->deploys->request($target, $request->user(), (string) ($validated['confirmation'] ?? ''), $job);
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }

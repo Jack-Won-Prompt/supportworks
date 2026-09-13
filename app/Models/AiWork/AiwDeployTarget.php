@@ -17,13 +17,39 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AiwDeployTarget extends Model
 {
     protected $fillable = [
-        'project_id', 'name', 'working_dir', 'command', 'runs_on', 'timeout_sec', 'enabled', 'created_by',
+        'project_id', 'name', 'kind', 'working_dir', 'command', 'runs_on', 'timeout_sec', 'enabled', 'created_by',
     ];
 
     protected $casts = [
         'enabled'     => 'boolean',
         'timeout_sec' => 'integer',
     ];
+
+    /** 배포 명령. 원격에 코드를 올린다. */
+    public const KIND_DEPLOY = 'deploy';
+
+    /** 운영 명령. 상태 점검·캐시 재생성·큐 재시작·롤백 같은 것들. */
+    public const KIND_OPS = 'ops';
+
+    public function scopeDeploys($query)
+    {
+        return $query->where('kind', self::KIND_DEPLOY);
+    }
+
+    public function scopeOps($query)
+    {
+        return $query->where('kind', self::KIND_OPS);
+    }
+
+    public function isOps(): bool
+    {
+        return $this->kind === self::KIND_OPS;
+    }
+
+    public function kindLabel(): string
+    {
+        return $this->isOps() ? '운영 명령' : '배포';
+    }
 
     /**
      * 담당자 PC 가 실행하는 대상인가.

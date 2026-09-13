@@ -124,6 +124,140 @@ class AiwDeployTest extends TestCase
         $this->assertSame(0, AiwDeployTarget::count());
     }
 
+    // ── 운영 명령 ───────────────────────────────────────────────────────────
+
+    public function test_운영_명령은_확인_문구_없이_실행한다(): void
+    {
+        // 문제가 난 순간에 이름을 받아 적게 하면 정작 필요할 때 쓰이지 않는다.
+        Queue::fake();
+
+        $ops = $this->target(['name' => '점검', 'kind' => AiwDeployTarget::KIND_OPS, 'command' => 'echo ok']);
+        $job = $this->publishedJob();
+
+        $this->actingAs($this->member)
+            ->post(route('projects.ai-works.deploy', [$this->projectId, $job]), [
+                'target_id'    => $ops->id,
+                'confirmation' => '',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('status');
+
+        $this->assertSame(1, AiwDeploy::count());
+    }
+
+    public function test_배포는_여전히_확인_문구를_받는다(): void
+    {
+        Queue::fake();
+
+        $target = $this->target();
+
+        $this->deploy($this->publishedJob(), $target, '')->assertRedirect()->assertSessionHas('error');
+        $this->assertSame(0, AiwDeploy::count());
+    }
+
+    public function test_자동_배포가_실패하면_점검_명령을_돌린다(): void
+    {
+        // 사람이 화면을 열었을 때 무엇이 깨졌는지 이미 적혀 있어야 한다.
+        Queue::fake();
+
+        $health = $this->target(['name' => '점검', 'kind' => AiwDeployTarget::KIND_OPS, 'command' => 'echo health']);
+        $job = $this->publishedJob();
+
+        $failed = AiwDeploy::create([
+            'target_id' => $this->target(['name' => '운영 배포2'])->id,
+            'job_id' => $job->id,
+            'requested_by' => $this->member->id,
+            'automatic' => true,
+            'status' => 'failed',
+            'created_at' => now(),
+        ]);
+
+        app(\App\Services\AiWork\AutoPipeline::class)->afterDeploy($failed);
+
+        $this->assertSame(
+            1,
+            AiwDeploy::where('target_id', $health->id)->where('automatic', true)->count(),
+            '점검이 자동으로 예약돼야 한다.',
+        );
+    }
+
+    public function test_사람이_누른_배포가_실패하면_점검은_돌지_않는다(): void
+    {
+        // 사람이 화면 앞에 있다. 자동으로 더 벌이지 않는다.
+        Queue::fake();
+
+        $health = $this->target(['name' => '점검', 'kind' => AiwDeployTarget::KIND_OPS]);
+        $job = $this->publishedJob();
+
+        $failed = AiwDeploy::create([
+            'target_id' => $this->target(['name' => '운영 배포3'])->id,
+            'job_id' => $job->id,
+            'requested_by' => $this->member->id,
+            'automatic' => false,
+            'status' => 'failed',
+            'created_at' => now(),
+        ]);
+
+        app(\App\Services\AiWork\AutoPipeline::class)->afterDeploy($failed);
+
+        $this->assertSame(0, AiwDeploy::where('target_id', $health->id)->count());
+    }
+
+    public function test_담당자가_이름으로_운영_명령을_요청한다(): void
+    {
+        // 명령 문자열은 요청에서 오지 않는다. 그것이 이 기능의 안전장치 전부다.
+        Queue::fake();
+
+        $ops = $this->target(['name' => '점검', 'kind' => AiwDeployTarget::KIND_OPS, 'command' => 'echo ok']);
+        $job = $this->publishedJob();
+        $token = AiwAgent::generateToken();
+        $this->agent->forceFill(['token_hash' => AiwAgent::hashToken($token)])->saveQuietly();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson("/api/aiw/jobs/{$job->id}/ops", ['name' => '점검'])
+            ->assertOk()
+            ->assertJsonPath('accepted', true);
+
+        $this->assertSame(1, AiwDeploy::where('target_id', $ops->id)->count());
+    }
+
+    public function test_등록되지_않은_이름은_실행하지_않고_목록을_알려준다(): void
+    {
+        // 모델이 이름을 지어내고 왜 안 되는지 모르는 채 헤매지 않게 한다.
+        Queue::fake();
+
+        $this->target(['name' => '점검', 'kind' => AiwDeployTarget::KIND_OPS]);
+        $job = $this->publishedJob();
+        $token = AiwAgent::generateToken();
+        $this->agent->forceFill(['token_hash' => AiwAgent::hashToken($token)])->saveQuietly();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson("/api/aiw/jobs/{$job->id}/ops", ['name' => 'rm -rf /'])
+            ->assertOk()
+            ->assertJsonPath('accepted', false)
+            ->assertJsonPath('available.0', '점검');
+
+        $this->assertSame(0, AiwDeploy::count());
+    }
+
+    public function test_배포_종류는_이름으로_요청할_수_없다(): void
+    {
+        // 운영 명령 경로로 배포를 돌릴 수 있으면 확인 문구가 의미를 잃는다.
+        Queue::fake();
+
+        $this->target(['name' => '운영 배포']);
+        $job = $this->publishedJob();
+        $token = AiwAgent::generateToken();
+        $this->agent->forceFill(['token_hash' => AiwAgent::hashToken($token)])->saveQuietly();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson("/api/aiw/jobs/{$job->id}/ops", ['name' => '운영 배포'])
+            ->assertOk()
+            ->assertJsonPath('accepted', false);
+
+        $this->assertSame(0, AiwDeploy::count());
+    }
+
     // ── 실행 안전장치 ───────────────────────────────────────────────────────
 
     public function test_확인_문구가_맞아야_실행한다(): void

@@ -59,6 +59,20 @@
                        placeholder="bash deploy.sh" class="w-full rounded-lg border-gray-200 text-xs">
             </div>
             <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">종류</label>
+                <select name="kind" class="w-full rounded-lg border-gray-200 text-xs">
+                    <option value="deploy" @selected(old('kind', 'deploy') === 'deploy')>배포 — 원격에 올린 코드를 운영에 반영</option>
+                    <option value="ops" @selected(old('kind') === 'ops')>운영 명령 — 상태 점검·캐시 재생성·큐 재시작·롤백 등</option>
+                </select>
+                {{-- 실행 경로·기록·권한은 둘이 같다. 다른 것은 화면 어디에 나오고
+                     언제 불리는가뿐이다. 운영 명령은 확인 문구 없이 바로 실행되므로
+                     되돌릴 수 없는 것(삭제·초기화)은 배포로 등록하는 편이 안전하다. --}}
+                <p class="mt-1 text-[11px] text-gray-500">
+                    운영 명령은 작업 화면에서 바로 실행할 수 있고, 자동 배포가 실패했을 때
+                    <span class="font-medium">점검</span> 이라는 이름의 명령이 있으면 자동으로 실행해 결과를 남깁니다.
+                </p>
+            </div>
+            <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">실행 위치</label>
                 <select name="runs_on" class="w-full rounded-lg border-gray-200 text-xs">
                     <option value="server" @selected(old('runs_on') === 'server')>이 서버 — 작업 폴더가 supportworks 서버에 있을 때</option>

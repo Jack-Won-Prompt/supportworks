@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 import { ApiClient, JobSpec } from './api.js';
 import { buildContent } from './attachments.js';
 import { parseChoices } from './choices.js';
+import { parseOpsRequests } from './ops-request.js';
 import { flushOutbox, OUTBOX_DIR } from './outbox.js';
 import { config } from './config.js';
 import {
@@ -48,6 +49,15 @@ const FIXED_HEADER = (jobId: number, root: string) =>
         '```',
         'Use it only for a real decision you cannot make yourself. Keep each option under',
         'one line, and put your reasoning in the prose above the block, not inside it.',
+        '',
+        'If you need to check or fix the production server, you cannot run commands there yourself.',
+        'The admin registers named operations in SupportWorks; ask for one by NAME like this:',
+        '```aiw-ops',
+        '점검',
+        '```',
+        'Only the name travels — the command itself lives on the server. If the name is not',
+        'registered you get told which ones are, so never invent one. Its output appears in the',
+        'job screen; say what you expect to learn from it before asking.',
         '',
         `When something must be SEEN to be judged (a rendered page, a visual change),`,
         `save a PNG into ${OUTBOX_DIR}/ and it will be shown to the human with your reply.`,
@@ -303,8 +313,16 @@ export class SessionManager {
             return;
         }
 
+        // 모델이 등록된 운영 명령을 요청했으면 서버에 넘긴다. 이름만 오간다 —
+        // 명령 문자열은 관리자가 등록한 행에서만 온다.
+        const { text: afterOps, names: opsNames } = parseOpsRequests(text);
+
+        if (opsNames.length > 0) {
+            void this.runOps(opsNames);
+        }
+
         // 모델이 선택지를 제시했으면 버튼으로 만들 수 있게 분리해 보낸다.
-        const { text: body, choices } = parseChoices(text);
+        const { text: body, choices } = parseChoices(afterOps);
 
         // 번호는 서버가 매긴다. 여기서는 재전송 판별용 키만 만든다.
         const clientKey = this.nextClientKey();
@@ -337,6 +355,47 @@ export class SessionManager {
                     });
                 }
             });
+    }
+
+    /**
+     * 등록된 운영 명령을 서버에 요청하고, 결과를 모델에게 돌려준다.
+     *
+     * 모델이 스스로 "점검을 돌려 보고 판단" 할 수 있어야 원격에 사람이 없어도
+     * 막힌 데서 풀린다. 다만 할 수 있는 일은 관리자가 미리 정해 둔 목록 안이다.
+     *
+     * 결과를 세션에 다시 넣는 이유: 넣지 않으면 모델은 자기가 무엇을 요청했는지만
+     * 알고 그 답을 영영 못 본 채 다음 턴을 진행한다.
+     */
+    private async runOps(names: string[]): Promise<void> {
+        for (const name of names) {
+            this.pushLog('daemon', `운영 명령 요청: ${name}`);
+
+            const result = await this.api.quiet('ops', () => this.api.requestOps(this.job.job_id, name));
+
+            if (!result) {
+                this.adapter?.send(`[운영 명령] "${name}" 요청이 서버에 닿지 않았습니다. 이 명령 없이 판단해 주세요.`);
+
+                continue;
+            }
+
+            if (!result.accepted) {
+                const list = (result.available ?? []).join(', ');
+
+                this.pushLog('error', `운영 명령 거부: ${name} — ${result.reason ?? ''}`);
+                this.adapter?.send(
+                    `[운영 명령] "${name}" 은(는) 실행할 수 없습니다: ${result.reason ?? '사유 없음'}`
+                    + (list ? ` 등록된 것: ${list}` : ' 등록된 운영 명령이 없습니다.')
+                    + ' 이름을 지어내지 말고, 등록된 것 중에서 고르거나 사람에게 물어보세요.',
+                );
+
+                continue;
+            }
+
+            this.adapter?.send(
+                `[운영 명령] "${name}" 을(를) 시작했습니다. 결과는 잠시 뒤 작업 화면에 남습니다.`
+                + ' 지금 당장 결과가 필요하면 사람에게 확인을 요청하세요.',
+            );
+        }
     }
 
     /**

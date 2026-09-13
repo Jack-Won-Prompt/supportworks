@@ -32,12 +32,17 @@ class DeployService
         bool $automatic = false,
     ): AiwDeploy {
         if (! $target->enabled) {
-            throw new RuntimeException('비활성 상태인 배포 대상입니다.');
+            throw new RuntimeException('비활성 상태인 '.$target->kindLabel().' 대상입니다.');
         }
 
         // 되돌리기 비용이 큰 동작이다. 누르는 순간 무엇이 도는지 알고 있어야 한다.
         // 자동 실행은 지시를 등록할 때 이미 동의한 것이므로 이 확인을 건너뛴다.
-        if (! $automatic && trim($confirmation) !== $target->confirmPhrase()) {
+        //
+        // 운영 명령(점검·캐시 재생성·큐 재시작)은 확인 문구를 받지 않는다. 되돌릴
+        // 것이 없거나 반복해도 같은 결과인 것들이고, 문제가 난 순간에 이름을 받아
+        // 적게 하면 정작 필요할 때 쓰이지 않는다. 되돌릴 수 없는 명령은 배포 종류로
+        // 등록하면 지금과 같은 확인을 받는다.
+        if (! $automatic && ! $target->isOps() && trim($confirmation) !== $target->confirmPhrase()) {
             throw new RuntimeException(
                 sprintf('확인을 위해 대상 이름 "%s" 을(를) 정확히 입력하세요.', $target->confirmPhrase()),
             );

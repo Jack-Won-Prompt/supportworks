@@ -3,6 +3,7 @@
 namespace App\Jobs\AiWork;
 
 use App\Models\AiWork\AiwDeploy;
+use App\Services\AiWork\AutoPipeline;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -144,6 +145,10 @@ class RunDeploy implements ShouldQueue
             'output'      => AiwDeploy::truncateOutput($output),
             'finished_at' => now(),
         ])->save();
+
+        // 자동 배포가 깨졌으면 등록된 점검 명령을 돌려, 사람이 화면을 열었을 때
+        // 무엇이 깨졌는지가 이미 적혀 있게 한다.
+        app(AutoPipeline::class)->afterDeploy($deploy->refresh());
 
         Log::info('AI Works: 배포 종료', [
             'deploy_id' => $deploy->id,

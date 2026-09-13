@@ -245,6 +245,63 @@
         </div>
     @endif
 
+    {{-- ── 운영 명령 ──────────────────────────────────────────────────
+         서버가 이상할 때 사람이 SSH 로 들어가지 않고 여기서 점검·조치한다.
+         명령은 관리자가 등록한 것만 있고, 요청에서 오지 않는다. 배포와 달리
+         작업 결과와 무관하게 언제든 쓸 수 있어야 해서 조건 없이 보인다. --}}
+    @if ($canEdit && $opsTargets->isNotEmpty())
+        @php $runningOps = $opsRuns->first(fn ($d) => $d->isRunning()); @endphp
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-sm font-bold text-gray-900">운영 명령</h3>
+            <p class="mt-1 text-xs text-gray-500">
+                관리자가 등록해 둔 점검·조치 명령입니다. 결과는 아래에 남습니다.
+            </p>
+
+            @if ($runningOps)
+                <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    <span class="font-semibold">{{ $runningOps->statusLabel() }}</span> —
+                    {{ $runningOps->target?->name }}
+                    <span class="text-amber-700">진행 상황은 저절로 갱신됩니다.</span>
+                </div>
+            @else
+                <div class="mt-3 flex flex-wrap gap-2">
+                    @foreach ($opsTargets as $ops)
+                        <form method="POST" action="{{ route('projects.ai-works.deploy', [$project, $job]) }}"
+                              onsubmit="return confirm('{{ $ops->name }} 을(를) 실행합니다. 진행할까요?')">
+                            @csrf
+                            <input type="hidden" name="target_id" value="{{ $ops->id }}">
+                            {{-- 운영 명령은 확인 문구를 받지 않는다(DeployService). 값은 형식상 넣는다. --}}
+                            <input type="hidden" name="confirmation" value="{{ $ops->name }}">
+                            <button class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                                    title="{{ $ops->command }}">
+                                {{ $ops->name }}
+                            </button>
+                        </form>
+                    @endforeach
+                </div>
+            @endif
+
+            @foreach ($opsRuns as $run)
+                <details class="mt-2 rounded-lg border px-3 py-2 text-xs
+                            {{ $run->status === 'succeeded' ? 'border-emerald-200 bg-emerald-50'
+                               : ($run->status === 'failed' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50') }}">
+                    <summary class="cursor-pointer">
+                        <span class="font-semibold">{{ $run->statusLabel() }}</span>
+                        <span class="text-gray-600">{{ $run->target?->name }}</span>
+                        <span class="text-gray-400">{{ $run->requester?->name }}</span>
+                        <span class="text-gray-400">{{ $run->created_at?->format('m-d H:i') }}</span>
+                        @if ($run->automatic)<span class="text-gray-400">자동</span>@endif
+                        @if ($run->exit_code !== null)<span class="text-gray-400">exit {{ $run->exit_code }}</span>@endif
+                    </summary>
+                    @if ($run->output)
+                        <pre class="mt-1 max-h-80 overflow-auto whitespace-pre-wrap rounded bg-gray-900 p-2 text-[11px] text-gray-100">{{ $run->output }}</pre>
+                    @endif
+                </details>
+            @endforeach
+        </div>
+    @endif
+
     {{-- ── 배포 ──────────────────────────────────────────────────────
          원격에 올린 뒤에만 의미가 있다. 아직 push 하지 않았다면 서버가 받아 갈
          커밋이 없다. --}}

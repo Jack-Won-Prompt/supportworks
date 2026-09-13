@@ -411,6 +411,8 @@ Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function 
         Route::post('handover',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'handover'])->name('handover');
         Route::post('complete',    [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'complete'])->name('complete');
         Route::post('fail',        [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'fail'])->name('fail');
+        // 담당자가 등록된 운영 명령을 이름으로 요청한다. 명령 문자열은 서버가 가진다.
+        Route::post('ops',         [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'ops'])->name('ops');
         Route::post('publishes/{publish}', [\App\Http\Controllers\Api\AiWork\JobReportController::class, 'publishResult'])->name('publishes.result');
     });
 });
