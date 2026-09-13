@@ -9,73 +9,21 @@ use App\Services\AiFix\AiAnalyzer;
 use App\Services\AiFix\AiFixOrchestrator;
 use App\Services\AiFix\AnalysisResult;
 use App\Services\AiFix\EscalationEvaluator;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class TriggerWiringTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Schema::create('users', function (Blueprint $t) {
-            $t->id();
-            $t->string('name'); $t->string('email')->unique();
-            $t->string('password')->default('x');
-            $t->string('role')->nullable();
-            $t->boolean('is_guest')->default(false);
-            $t->string('company')->nullable();
-            $t->string('phone')->nullable();
-            $t->string('avatar')->nullable();
-            $t->string('agent_status')->nullable();
-            $t->unsignedBigInteger('company_group_id')->nullable();
-            $t->timestamps();
-        });
-
-        Schema::create('system_error_logs', function (Blueprint $t) {
-            $t->id();
-            $t->string('level', 16);
-            $t->string('exception')->nullable();
-            $t->text('message')->nullable();
-            $t->string('file')->nullable();
-            $t->unsignedInteger('line')->nullable();
-            $t->text('trace')->nullable();
-            $t->json('context')->nullable();
-            $t->boolean('is_resolved')->default(false);
-            $t->unsignedBigInteger('resolved_by')->nullable();
-            $t->timestamp('resolved_at')->nullable();
-            $t->timestamps();
-        });
-
-        Schema::create('ai_fix_jobs', function (Blueprint $t) {
-            $t->id();
-            $t->unsignedBigInteger('system_error_log_id');
-            $t->string('status', 32)->default('pending');
-            $t->string('decision', 16)->nullable();
-            $t->json('red_signals')->nullable();
-            $t->json('yellow_signals')->nullable();
-            $t->text('decision_reason')->nullable();
-            $t->string('blocked_path')->nullable();
-            $t->string('branch_name')->nullable();
-            $t->text('proposed_fix_summary')->nullable();
-            $t->json('changed_files')->nullable();
-            $t->timestamp('escalated_at')->nullable();
-            $t->timestamp('approved_at')->nullable();
-            $t->timestamp('finished_at')->nullable();
-            $t->unsignedInteger('retry_count')->default(0);
-            $t->timestamps();
-        });
-    }
-
-    protected function tearDown(): void
-    {
-        Schema::dropIfExists('ai_fix_jobs');
-        Schema::dropIfExists('system_error_logs');
-        Schema::dropIfExists('users');
-        parent::tearDown();
-    }
+    // 손으로 만든 테이블 대신 실제 스키마 위에서 돈다.
+    //
+    // 예전에는 setUp 에서 system_error_logs·users·ai_fix_jobs 를 직접 만들고
+    // tearDown 에서 drop 했다. sqlite 로 돌던 시절의 방식인데, 지금 테스트는
+    // MySQL(supportworks_test)에서 돈다. 그 결과 두 가지가 한꺼번에 깨졌다 —
+    // 이미 있는 테이블을 만들려다 실패하고, tearDown 이 공용 테스트 DB 의
+    // 진짜 users 테이블까지 지워 뒤따르는 다른 테스트를 무너뜨렸다.
+    // 손으로 적은 컬럼이 실제 스키마와 어긋나기 시작한 것은 덤이다.
+    use RefreshDatabase;
 
     // ── Job 자체 동작 ────────────────────────────────────────────────────────
 

@@ -23,6 +23,8 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            // 이 앱의 가입 폼은 회사명을 필수로 받는다.
+            'company' => '위드웍스',
         ]);
 
         $this->assertAuthenticated();

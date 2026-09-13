@@ -4,6 +4,7 @@ namespace Tests\Unit\AiFix;
 
 use App\Jobs\ApplyAiFixJob;
 use App\Jobs\DeployAiFixJob;
+use App\Models\AdminUser;
 use App\Models\AiFixJob;
 use App\Models\SystemErrorLog;
 use App\Services\AiFix\AiAnalyzer;
@@ -11,74 +12,21 @@ use App\Services\AiFix\AiFixNotifier;
 use App\Services\AiFix\AiFixOrchestrator;
 use App\Services\AiFix\AnalysisResult;
 use App\Services\AiFix\EscalationEvaluator;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class AiFixOrchestratorTest extends TestCase
 {
-    // 전체 마이그레이션이 sqlite 비호환 — 필요한 테이블만 수동 생성.
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Schema::create('system_error_logs', function (Blueprint $t) {
-            $t->id();
-            $t->string('level', 16);
-            $t->string('exception')->nullable();
-            $t->text('message')->nullable();
-            $t->string('file')->nullable();
-            $t->unsignedInteger('line')->nullable();
-            $t->text('trace')->nullable();
-            $t->json('context')->nullable();
-            $t->boolean('is_resolved')->default(false);
-            $t->unsignedBigInteger('resolved_by')->nullable();
-            $t->timestamp('resolved_at')->nullable();
-            $t->timestamps();
-        });
-
-        Schema::create('admin_users', function (Blueprint $t) {
-            $t->id();
-            $t->string('name');
-            $t->timestamps();
-        });
-
-        Schema::create('ai_fix_jobs', function (Blueprint $t) {
-            $t->id();
-            $t->unsignedBigInteger('system_error_log_id');
-            $t->string('status', 32)->default('pending');
-            $t->string('decision', 16)->nullable();
-            $t->json('red_signals')->nullable();
-            $t->json('yellow_signals')->nullable();
-            $t->text('decision_reason')->nullable();
-            $t->string('blocked_path')->nullable();
-            $t->string('branch_name')->nullable();
-            $t->string('worktree_path')->nullable();
-            $t->text('proposed_fix_summary')->nullable();
-            $t->json('changed_files')->nullable();
-            $t->json('test_result')->nullable();
-            $t->string('pr_url')->nullable();
-            $t->string('deployed_commit', 40)->nullable();
-            $t->text('deploy_log')->nullable();
-            $t->unsignedBigInteger('approved_by_admin_id')->nullable();
-            $t->timestamp('escalated_at')->nullable();
-            $t->timestamp('approved_at')->nullable();
-            $t->timestamp('deployed_at')->nullable();
-            $t->timestamp('finished_at')->nullable();
-            $t->text('error_message')->nullable();
-            $t->unsignedInteger('retry_count')->default(0);
-            $t->timestamps();
-        });
-    }
-
-    protected function tearDown(): void
-    {
-        Schema::dropIfExists('ai_fix_jobs');
-        Schema::dropIfExists('admin_users');
-        Schema::dropIfExists('system_error_logs');
-        parent::tearDown();
-    }
+    // 손으로 만든 테이블 대신 실제 스키마 위에서 돈다.
+    //
+    // 예전에는 setUp 에서 system_error_logs·users·ai_fix_jobs 를 직접 만들고
+    // tearDown 에서 drop 했다. sqlite 로 돌던 시절의 방식인데, 지금 테스트는
+    // MySQL(supportworks_test)에서 돈다. 그 결과 두 가지가 한꺼번에 깨졌다 —
+    // 이미 있는 테이블을 만들려다 실패하고, tearDown 이 공용 테스트 DB 의
+    // 진짜 users 테이블까지 지워 뒤따르는 다른 테스트를 무너뜨렸다.
+    // 손으로 적은 컬럼이 실제 스키마와 어긋나기 시작한 것은 덤이다.
+    use RefreshDatabase;
 
     /** 테스트마다 다른 분석 결과를 강제하려고 inline 분석기를 만든다. */
     private function fakeAnalyzer(AnalysisResult $r): AiAnalyzer
@@ -397,17 +345,30 @@ class AiFixOrchestratorTest extends TestCase
         ]);
     }
 
+    /**
+     * 승인자. approve/reject 는 이제 id 가 아니라 모델을 받는다
+     * (approved_by_id + approved_by_type 를 함께 채우기 위해서다).
+     * 저장할 필요는 없다 — 오케스트레이터가 쓰는 것은 키와 클래스뿐이다.
+     */
+    private function admin(int $id): AdminUser
+    {
+        return (new AdminUser)->forceFill(['id' => $id]);
+    }
+
     public function test_approve_from_awaiting_approval_transitions_to_applying(): void
     {
         // Bus::fake 로 후속 ApplyAiFixJob 인라인 실행을 막아 approve() 단독 책임만 검증.
         Bus::fake([ApplyAiFixJob::class]);
 
         $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
-        $this->rawOrchestrator()->approve($job, adminUserId: 42);
+        $this->rawOrchestrator()->approve($job, $this->admin(42));
 
         $fresh = $job->fresh();
         $this->assertSame(AiFixJob::STATUS_APPLYING, $fresh->status);
         $this->assertSame(42, $fresh->approved_by_admin_id);
+        // 승인자는 이제 다형 컬럼에도 남는다. admin_id 는 하위호환으로 함께 채운다.
+        $this->assertSame(42, (int) $fresh->approved_by_id);
+        $this->assertSame(AdminUser::class, $fresh->approved_by_type);
         $this->assertNotNull($fresh->approved_at);
         Bus::assertDispatched(ApplyAiFixJob::class,
             fn ($j) => $j->aiFixJobId === $job->id);
@@ -419,7 +380,7 @@ class AiFixOrchestratorTest extends TestCase
         Bus::fake([DeployAiFixJob::class]);
 
         $job = $this->makeJob(AiFixJob::STATUS_READY_TO_DEPLOY);
-        $this->rawOrchestrator()->approve($job, adminUserId: 7);
+        $this->rawOrchestrator()->approve($job, $this->admin(7));
 
         $this->assertSame(AiFixJob::STATUS_DEPLOYING, $job->fresh()->status);
         Bus::assertDispatched(DeployAiFixJob::class,
@@ -430,13 +391,13 @@ class AiFixOrchestratorTest extends TestCase
     {
         $job = $this->makeJob(AiFixJob::STATUS_PENDING);
         $this->expectException(\DomainException::class);
-        $this->rawOrchestrator()->approve($job, adminUserId: 1);
+        $this->rawOrchestrator()->approve($job, $this->admin(1));
     }
 
     public function test_reject_from_awaiting_approval_transitions_to_rejected(): void
     {
         $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
-        $this->rawOrchestrator()->reject($job, adminUserId: 7, reason: '신뢰도 낮음');
+        $this->rawOrchestrator()->reject($job, $this->admin(7), reason: '신뢰도 낮음');
 
         $fresh = $job->fresh();
         $this->assertSame(AiFixJob::STATUS_REJECTED, $fresh->status);
@@ -449,7 +410,7 @@ class AiFixOrchestratorTest extends TestCase
     public function test_reject_from_ready_to_deploy_allowed(): void
     {
         $job = $this->makeJob(AiFixJob::STATUS_READY_TO_DEPLOY);
-        $this->rawOrchestrator()->reject($job, adminUserId: 1);
+        $this->rawOrchestrator()->reject($job, $this->admin(1));
 
         $this->assertSame(AiFixJob::STATUS_REJECTED, $job->fresh()->status);
     }
@@ -458,7 +419,7 @@ class AiFixOrchestratorTest extends TestCase
     {
         $job = $this->makeJob(AiFixJob::STATUS_APPLYING);
         $this->expectException(\DomainException::class);
-        $this->rawOrchestrator()->reject($job, adminUserId: 1);
+        $this->rawOrchestrator()->reject($job, $this->admin(1));
     }
 
     public function test_approve_fires_notify_hook(): void
@@ -466,7 +427,7 @@ class AiFixOrchestratorTest extends TestCase
         $spy = $this->spyNotifier();
         $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
 
-        $this->rawOrchestrator($spy)->approve($job, adminUserId: 1);
+        $this->rawOrchestrator($spy)->approve($job, $this->admin(1));
 
         $this->assertCount(1, $spy->notified);
         $this->assertSame(AiFixJob::STATUS_APPLYING, $spy->notified[0]['status']);
@@ -477,7 +438,7 @@ class AiFixOrchestratorTest extends TestCase
         $spy = $this->spyNotifier();
         $job = $this->makeJob(AiFixJob::STATUS_AWAITING_APPROVAL);
 
-        $this->rawOrchestrator($spy)->reject($job, adminUserId: 1);
+        $this->rawOrchestrator($spy)->reject($job, $this->admin(1));
 
         $this->assertCount(1, $spy->notified);
         $this->assertSame(AiFixJob::STATUS_REJECTED, $spy->notified[0]['status']);
