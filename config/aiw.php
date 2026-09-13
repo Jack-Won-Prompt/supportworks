@@ -123,6 +123,14 @@ return [
          * 무언가 올라간 뒤다.
          */
         'auto_create_jobs' => env('AIW_ERROR_AUTO_CREATE_JOBS', false),
+
+        /*
+         * 한 프로젝트에서 동시에 돌 수 있는 에러 패치 수.
+         *
+         * 한 폴더를 여러 작업이 동시에 고치면 서로의 변경을 덮는다. 데몬도
+         * 폴더 단위로 줄을 세우므로, 여기서 넘치게 만들면 줄만 길어진다.
+         */
+        'max_open_per_project' => env('AIW_ERROR_MAX_OPEN_PER_PROJECT', 1),
     ],
 
     /*

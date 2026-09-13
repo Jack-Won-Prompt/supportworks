@@ -217,6 +217,12 @@
                                 @if ($job->parent_job_id)
                                     <span class="ml-1 text-[11px] text-gray-400">후속 #{{ $job->parent_job_id }}</span>
                                 @endif
+                                {{-- 밤새 저절로 생긴 지시가 사람이 낸 것과 섞여 보이면,
+                                     아침에 목록을 열었을 때 무엇이 왜 돌았는지 알 수 없다. --}}
+                                @if ($job->kind === \App\Models\AiWork\AiwJob::KIND_ERROR_PATCH)
+                                    <a href="{{ route('projects.aiw-errors.index', $project) }}"
+                                       class="ml-1 rounded bg-orange-50 px-1.5 py-0.5 text-[11px] text-orange-700">운영 오류</a>
+                                @endif
                             </td>
                             <td class="py-2 pr-3">
                                 <span class="rounded px-1.5 py-0.5 text-[11px] {{ $job->mode === 'interactive' ? 'bg-violet-50 text-violet-700' : 'bg-gray-100 text-gray-600' }}">

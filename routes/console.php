@@ -34,4 +34,7 @@ Schedule::command('aiw:reap-stale-jobs')->everyMinute()->withoutOverlapping();
 // 사람의 답을 오래 기다리는 작업을 다시 알린다. 첫 알림을 놓치면 작업이
 // 세션 최대 수명까지 서 있다가 조용히 중단된다.
 Schedule::command('aiw:nudge-waiting')->everyMinute()->withoutOverlapping();
+// 운영 오류 중 자동 수정 대상을 지시로 만든다. 실제 생성 여부는 설정이 정하고
+// 기본은 꺼져 있다 — 명령은 그때 아무것도 하지 않고 끝난다.
+Schedule::command('aiw:dispatch-error-patches')->everyMinute()->withoutOverlapping();
 Schedule::command('aiw:prune')->dailyAt('03:00');

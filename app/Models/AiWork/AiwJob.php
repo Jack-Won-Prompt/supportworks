@@ -28,8 +28,12 @@ class AiwJob extends Model
         'instruction', 'title', 'allowed_tools', 'mode', 'model', 'cost_limit_usd',
     ];
 
+    /** 사람이 낸 지시인가, 운영 오류가 스스로 만든 지시인가. */
+    public const KIND_MANUAL      = 'manual';
+    public const KIND_ERROR_PATCH = 'error_patch';
+
     protected $fillable = [
-        'project_id', 'agent_id', 'parent_job_id',
+        'project_id', 'agent_id', 'parent_job_id', 'kind', 'error_report_id',
         'title', 'instruction', 'mode', 'model', 'context_limit_tokens',
         'allowed_tools', 'permission_mode', 'cost_limit_usd', 'use_branch',
         'auto_deploy', 'auto_deploy_target_id',
