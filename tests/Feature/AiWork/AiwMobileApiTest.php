@@ -136,6 +136,47 @@ class AiwMobileApiTest extends TestCase
             ->assertJsonPath('data.0.project_name', '모바일 테스트 프로젝트');
     }
 
+    public function test_작업_지시_가능_구성원은_자기_프로젝트만_본다(): void
+    {
+        $operator = User::factory()->create(['role' => 'member', 'is_aiw_operator' => true]);
+        DB::table('project_members')->insert([
+            'project_id' => $this->projectId, 'user_id' => $operator->id, 'role' => 'member',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        // 담당자가 매핑돼 있지만 이 사람은 구성원이 아닌 프로젝트.
+        $otherProject = DB::table('projects')->insertGetId([
+            'name' => '남의 프로젝트', 'created_by' => $this->admin->id,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        AiwAgentProject::create([
+            'agent_id' => $this->agent->id, 'project_id' => $otherProject,
+            'local_path' => 'E:\\work\\other', 'default_branch' => 'master',
+        ]);
+
+        $this->job(['status' => AiwJobStatus::WaitingInput]);
+        $this->job(['project_id' => $otherProject, 'status' => AiwJobStatus::WaitingInput]);
+
+        $this->as($operator)->getJson('/api/mobile/ai-works/projects')
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $this->projectId);
+        $this->as($operator)->getJson('/api/mobile/ai-works/attention')
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.project_id', $this->projectId);
+        $this->as($operator)->getJson("/api/mobile/projects/{$otherProject}/ai-works")->assertForbidden();
+
+        // 관리자는 멤버십과 무관하게 둘 다 본다.
+        $this->as($this->admin)->getJson('/api/mobile/ai-works/projects')->assertJsonCount(2, 'data');
+    }
+
+    public function test_로그인_사용자_정보에_작업_지시_가능이_실린다(): void
+    {
+        $operator = User::factory()->create(['role' => 'member', 'is_aiw_operator' => true]);
+
+        $this->as($operator)->getJson('/api/mobile/auth/me')
+            ->assertOk()->assertJsonPath('user.is_aiw_operator', true);
+        $this->as($this->member)->getJson('/api/mobile/auth/me')
+            ->assertOk()->assertJsonPath('user.is_aiw_operator', false);
+    }
+
     // ── 등록 ────────────────────────────────────────────────────────────────
 
     public function test_등록은_대화형_acceptEdits_기본툴로_고정되고_작업_PC_로_전달된다(): void

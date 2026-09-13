@@ -40,7 +40,8 @@ use Illuminate\Support\Str;
  *   2. 실시간 스트림이 없다. 사람이 필요한 순간은 푸시(AiwNotifier)로 알리고, 화면은
  *      열 때와 당겨서 새로고침할 때 이 API 를 다시 읽는다.
  *
- * 권한은 AiwJobPolicy(시스템 관리자 전용)를 그대로 쓴다. 모바일 토큰 미들웨어는
+ * 권한은 AiwJobPolicy(관리자, 또는 그 프로젝트 구성원이면서 '작업 지시 가능')를
+ * 그대로 쓴다. 프로젝트를 가로지르는 목록도 프로젝트마다 이 정책으로 거른다. 모바일 토큰 미들웨어는
  * auth() 가드를 채우지 않으므로 $this->authorize() 대신 Gate::forUser() 로 부른다
  * — authorize() 를 쓰면 사용자가 없는 것으로 판정돼 늘 403 이다.
  */
@@ -62,12 +63,14 @@ class AiwJobController extends Controller
         private MessageWriter $messages,
     ) {}
 
-    /** 작업 PC 가 매핑된 프로젝트. 메뉴의 첫 화면이다. */
+    /** 담당자가 매핑된 프로젝트 중 이 사람이 다룰 수 있는 것. 메뉴의 첫 화면이다. */
     public function projects(Request $request): JsonResponse
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeEntry($request);
 
-        $mappings = AiwAgentProject::with(['project:id,name', 'agent'])->get()
+        $mappings = AiwAgentProject::with(['project:id,name', 'agent'])
+            ->whereIn('project_id', $this->allowedProjectIds($request))
+            ->get()
             ->filter(fn (AiwAgentProject $m) => $m->project !== null && $m->agent !== null)
             ->groupBy('project_id');
 
@@ -103,9 +106,10 @@ class AiwJobController extends Controller
     /** 프로젝트를 가로질러 사람의 답을 기다리는 작업. */
     public function attention(Request $request): JsonResponse
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeEntry($request);
 
         $jobs = $this->listQuery()
+            ->whereIn('project_id', $this->allowedProjectIds($request))
             ->whereIn('status', self::ATTENTION)
             ->with('project:id,name')
             ->limit(50)
@@ -522,12 +526,34 @@ class AiwJobController extends Controller
     }
 
     /**
-     * 프로젝트를 가로지르는 목록. 정책의 능력들은 프로젝트나 job 을 인자로 받으므로
-     * 여기서는 같은 기준(시스템 관리자)을 직접 확인한다 — AiwJobPolicy 참조.
+     * 프로젝트를 가로지르는 목록의 입구. 관리자이거나 '작업 지시 가능' 이어야 들어온다.
+     * 어떤 프로젝트를 보여 줄지는 allowedProjectIds() 가 AiwJobPolicy 로 정한다.
      */
-    private function authorizeAdmin(Request $request): void
+    private function authorizeEntry(Request $request): void
     {
-        abort_unless($request->user()?->isAdmin(), 403, '작업 지시는 관리자만 사용할 수 있습니다.');
+        $user = $request->user();
+
+        abort_unless($user && ($user->isAdmin() || $user->isAiwOperator()), 403, '작업 지시 권한이 없습니다.');
+    }
+
+    /**
+     * 담당자가 매핑된 프로젝트 중 이 사람이 다룰 수 있는 것.
+     *
+     * 판단은 프로젝트마다 AiwJobPolicy(viewAny)에 맡긴다. 조건을 여기 복제하면
+     * 정책이 바뀔 때 목록만 옛 규칙으로 남는다.
+     *
+     * @return Collection<int, int>
+     */
+    private function allowedProjectIds(Request $request): Collection
+    {
+        $gate = Gate::forUser($request->user());
+
+        return Project::query()
+            ->whereIn('id', AiwAgentProject::query()->select('project_id'))
+            ->get(['id'])
+            ->filter(fn (Project $p) => $gate->allows('viewAny', [AiwJob::class, $p]))
+            ->pluck('id')
+            ->values();
     }
 
     private function sameProject(Project $project, AiwJob $job): void

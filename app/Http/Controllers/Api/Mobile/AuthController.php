@@ -174,6 +174,8 @@ class AuthController extends Controller
             'avatar'           => $user->avatar,
             'company_group_id' => $user->company_group_id,
             'is_sr_agent'      => (bool) ($user->is_sr_agent ?? false),
+            // 작업 지시 메뉴 노출용. 실제 허용은 프로젝트마다 AiwJobPolicy 가 정한다.
+            'is_aiw_operator'  => (bool) ($user->is_aiw_operator ?? false),
         ];
     }
 }
