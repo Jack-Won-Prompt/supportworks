@@ -266,8 +266,14 @@ class DaemonController extends AgentApiController
             ->when($request->filled('project_id'), fn ($q) => $q->where('project_id', $request->integer('project_id')))
             ->pluck('local_path', 'project_id');
 
+        // 오래 붙들려 있는 것도 회수한다. 데몬이 받아서 running 으로 바꾼 직후 죽으면
+        // pending 만 보는 따라잡기로는 영영 잡히지 않는다 — 실제로 그렇게 멈췄다.
+        // 다시 돌려도 안전하다: 이미 합쳐진 커밋은 publish 쪽에서 그렇게 판정한다.
+        $stale = now()->subMinutes((int) config('aiw.artifact_stale_min', 10));
+
         $publishes = AiwPublish::query()
-            ->where('status', 'pending')
+            ->where(fn ($q) => $q->where('status', 'pending')
+                ->orWhere(fn ($q) => $q->where('status', 'running')->where('created_at', '<', $stale)))
             ->whereHas('job', fn ($q) => $q->whereIn('project_id', $projectIds->keys()))
             ->with('job:id,project_id,title')
             ->get()
@@ -284,7 +290,8 @@ class DaemonController extends AgentApiController
             ->values();
 
         $deploys = AiwDeploy::query()
-            ->where('status', 'queued')
+            ->where(fn ($q) => $q->where('status', 'queued')
+                ->orWhere(fn ($q) => $q->where('status', 'running')->where('created_at', '<', $stale)))
             ->whereHas('target', fn ($q) => $q->whereIn('project_id', $projectIds->keys())->where('runs_on', 'agent'))
             ->with('target')
             ->get()

@@ -158,6 +158,39 @@ class AiwPublishTest extends TestCase
             ->assertJsonCount(0, 'publishes');
     }
 
+    public function test_붙들린_채_오래된_푸시도_회수한다(): void
+    {
+        // 데몬이 받아서 running 으로 바꾼 직후 죽으면 pending 만 보는 따라잡기로는
+        // 영영 잡히지 않는다. 실제로 그렇게 멈췄다.
+        Event::fake([PublishRequested::class]);
+        config(['aiw.artifact_stale_min' => 10]);
+
+        $job = $this->job();
+        $token = AiwAgent::generateToken();
+
+        $this->agent->forceFill(['token_hash' => AiwAgent::hashToken($token)])->saveQuietly();
+
+        $this->publish($job)->assertRedirect();
+
+        $publish = AiwPublish::firstOrFail();
+
+        // 막 시작한 것은 건드리지 않는다 — 살아 있는 데몬이 돌고 있을 수 있다.
+        $publish->forceFill(['status' => 'running'])->save();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/aiw/artifacts/pending')
+            ->assertOk()
+            ->assertJsonCount(0, 'publishes');
+
+        // 오래 붙들려 있으면 받아 간 데몬이 사라진 것으로 본다.
+        $publish->forceFill(['created_at' => now()->subMinutes(11)])->save();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/aiw/artifacts/pending')
+            ->assertOk()
+            ->assertJsonPath('publishes.0.publish_id', $publish->id);
+    }
+
     public function test_이미_끝난_푸시는_따라잡기에_나오지_않는다(): void
     {
         // 두 번 실행하면 같은 커밋을 다시 밀어 넣는다.
