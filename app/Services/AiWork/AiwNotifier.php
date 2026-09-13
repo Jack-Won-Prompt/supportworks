@@ -4,9 +4,11 @@ namespace App\Services\AiWork;
 
 use App\Enums\AiWork\AiwJobStatus;
 use App\Models\AiWork\AiwDeploy;
+use App\Models\AiWork\AiwErrorReport;
 use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwPermissionRequest;
 use App\Models\AiWork\AiwPublish;
+use App\Models\User;
 use App\Services\FcmService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -117,6 +119,58 @@ class AiwNotifier
                 : $this->replyPreview($job),
             'waiting_nudge_'.$attempt,
         );
+    }
+
+    /**
+     * 운영 사이트에서 새 에러가 올라왔다.
+     *
+     * **처음 보는 지문일 때만 부른다.** 같은 에러가 초당 열 번 올 때 열 번
+     * 울리면 사람은 알림을 꺼 버리고, 그러면 정작 중요한 것도 놓친다.
+     *
+     * 받는 사람이 다른 알림과 다르다. 아직 작업 지시가 없으므로 '지시한 사람'
+     * 이 없다 — 그 프로젝트에서 작업 지시를 낼 수 있는 사람 전부에게 보낸다.
+     */
+    public function errorReported(AiwErrorReport $report): void
+    {
+        $project = $report->project;
+
+        if (! $project) {
+            return;
+        }
+
+        $where = $report->file
+            ? basename((string) $report->file).($report->line ? ':'.$report->line : '')
+            : '위치 미상';
+
+        $title = sprintf('[%s] 운영 오류 — %s', $project->name, $report->exception ?: '예외');
+        $body  = trim(mb_substr((string) $report->message, 0, 120)."\n".$where);
+
+        foreach ($this->errorRecipients($project->id) as $userId) {
+            $this->send($userId, $title, $body, [
+                'type'       => self::TYPE,
+                'project_id' => $project->id,
+                'report_id'  => $report->id,
+                'event'      => 'error_reported',
+            ]);
+        }
+    }
+
+    /**
+     * 이 프로젝트에서 작업 지시를 낼 수 있는 사람.
+     *
+     * 규칙은 AiwJobPolicy 와 같아야 한다 — 알림만 받고 화면은 못 여는 사람이
+     * 생기면, 그 사람은 매번 남에게 물어봐야 한다.
+     */
+    private function errorRecipients(int $projectId): array
+    {
+        return User::query()
+            ->where(fn ($q) => $q
+                ->where('role', 'admin')
+                ->orWhere(fn ($q) => $q
+                    ->where('is_aiw_operator', true)
+                    ->whereHas('projectMembers', fn ($q) => $q->where('project_id', $projectId))))
+            ->pluck('id')
+            ->all();
     }
 
     public function publishFinished(AiwPublish $publish): void
