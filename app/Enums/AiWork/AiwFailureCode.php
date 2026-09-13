@@ -61,10 +61,17 @@ enum AiwFailureCode: string
         return $this === self::DirtyTree;
     }
 
-    /** 같은 설정으로 다시 보내면 되는가. */
+    /**
+     * 같은 설정으로 다시 보내면 되는가.
+     *
+     * dirty_tree 가 여기 있는 이유: 폴더를 정리하고 나면 원래 설정 그대로 다시
+     * 보내는 것이 맞다. 예전에는 '브랜치 없이 다시 지시' 만 제시했는데, 그것은
+     * 정리하기 전에만 맞는 조언이다 — 브랜치를 끄면 결과 반영·배포 경로가 통째로
+     * 사라져서, 나중에 버튼으로는 올릴 수 없는 상태가 된다.
+     */
     public function retryableAsIs(): bool
     {
-        return $this === self::DaemonRestarted;
+        return in_array($this, [self::DaemonRestarted, self::DirtyTree], true);
     }
 
     /** 상한을 올리거나 꺼야 이어갈 수 있는가. */

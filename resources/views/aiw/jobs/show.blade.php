@@ -544,6 +544,16 @@
                             {{ $code->label() }} — 이렇게 해결할 수 있습니다
                         </div>
 
+                        @if ($code->retryableWithoutBranch())
+                            <div class="mb-2 text-xs text-amber-900">
+                                <span class="font-medium">작업 지시 목록</span>의 담당자 경고에서
+                                <span class="font-medium">작업 정리</span>를 누르면 미커밋 변경을 보관 브랜치로 옮겨
+                                정리합니다(지워지지 않습니다). 정리한 뒤에는
+                                <span class="font-medium">같은 설정으로 다시 지시</span>가 맞습니다 —
+                                브랜치를 끄면 나중에 결과 반영·배포를 버튼으로 할 수 없습니다.
+                            </div>
+                        @endif
+
                         @if ($code->retryableWithoutBranch() && ! empty($detail['files']))
                             <div class="mb-2 text-xs text-amber-900">
                                 정리되지 않은 항목 {{ $detail['count'] ?? count($detail['files']) }}건:

@@ -341,6 +341,11 @@ class AiwWebTest extends TestCase
             ->assertSee('작업 폴더 정리 필요')
             ->assertSee('app/Foo.php')
             ->assertSee('브랜치 없이 다시 지시')
+            // 폴더를 정리하고 나면 브랜치를 유지한 채 다시 보내는 것이 맞다.
+            // 이것이 없으면 사람이 브랜치를 끄게 되고, 나중에 결과 반영·배포를
+            // 버튼으로 할 수 없는 상태가 된다.
+            ->assertSee('같은 설정으로 다시 지시')
+            ->assertSee('작업 정리')
             // 버튼은 바로 실행하지 않고 프리필된 등록 폼으로 보낸다.
             // href 안의 & 는 HTML 이스케이프되므로 파라미터로 확인한다.
             ->assertSee('use_branch=0', false)
