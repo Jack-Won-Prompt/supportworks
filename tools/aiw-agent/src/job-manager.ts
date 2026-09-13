@@ -221,6 +221,18 @@ export class JobManager {
                 throw error;   // 경로·브랜치 문제는 사람이 고쳐야 한다
             }
 
+            // 이 작업의 브랜치가 이미 있다면, 남은 변경이 이 작업의 것일 수 있다.
+            // 치우면 자기 결과물을 잃는다 — 사람이 보게 둔다.
+            if (await git.hasBranch(branch)) {
+                manager.pushLog(
+                    'error',
+                    '작업 폴더가 정리되지 않았는데, 이 작업의 브랜치가 이미 있습니다.'
+                    + ' 남은 변경이 이 작업의 것일 수 있어 자동으로 치우지 않습니다.',
+                );
+
+                throw error;
+            }
+
             manager.pushLog('daemon', '작업 폴더가 정리되지 않아 먼저 치웁니다.');
 
             const result = await cleanupWorkspace({

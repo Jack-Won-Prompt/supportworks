@@ -26,14 +26,31 @@ export class GitWorkspace {
         return this.git.checkIsRepo();
     }
 
+    /** 그 이름의 로컬 브랜치가 있는가. 이어서 하는 작업인지 가리는 데 쓴다. */
+    async hasBranch(name: string): Promise<boolean> {
+        return (await this.git.branchLocal()).all.includes(name);
+    }
+
     /**
      * 작업 브랜치를 준비한다.
      *
      * dirty 면 진행하지 않는다 — 남의 미커밋 변경 위에 AI 가 작업하면 diff 가
      * 뒤섞여 무엇이 이 작업의 결과인지 구분할 수 없다.
+     *
+     * **이미 그 작업의 브랜치에 서 있다면 예외다.** 데몬이 재기동돼 같은 작업을
+     * 이어서 할 때가 그렇다. 그때의 미커밋 변경은 남의 것이 아니라 이 작업이 방금
+     * 만든 것이므로, 치우면 자기 결과물을 잃는다 — 실제로 health.sh 를 쓰던 작업이
+     * 재개될 때마다 그 파일이 보관 브랜치로 옮겨져 사라졌다.
      */
     async prepareBranch(branch: string, defaultBranch: string | null): Promise<BranchBase> {
         const status = await this.git.status();
+
+        if (status.current === branch) {
+            // 이어서 하는 중이다. 기준만 알려 주고 아무것도 건드리지 않는다.
+            const baseSha = (await this.git.revparse(['HEAD'])).trim();
+
+            return { baseBranch: defaultBranch ?? branch, baseSha };
+        }
 
         if (!status.isClean()) {
             // 무엇이 걸렸는지 보여 준다. "정리하세요" 만으로는 어느 파일인지 알 수 없어

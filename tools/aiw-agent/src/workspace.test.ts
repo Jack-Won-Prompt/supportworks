@@ -168,6 +168,27 @@ test('정리하면 막혀 있던 작업 브랜치 준비가 통과한다', async
     await rm(root, { recursive: true, force: true });
 });
 
+test('이어서 하는 작업의 미커밋 변경은 건드리지 않는다', async () => {
+    // 데몬이 재기동돼 같은 작업을 이어서 할 때, 남은 변경은 남의 것이 아니라
+    // 이 작업이 방금 만든 것이다. 치우면 자기 결과물을 잃는다 —
+    // 실제로 health.sh 를 쓰던 작업이 재개될 때마다 그 파일이 사라졌다.
+    const root = await repo();
+    const ws = new GitWorkspace(root);
+    const branch = 'aiw/job-77';
+
+    await ws.prepareBranch(branch, 'main');
+    await writeFile(join(root, 'health.sh'), 'echo hi', 'utf8');
+
+    // 같은 브랜치에 서 있으므로 dirty 여도 그대로 통과한다.
+    const base = await ws.prepareBranch(branch, 'main');
+
+    assert.ok(base.baseSha.length > 0);
+    assert.equal(existsSync(join(root, 'health.sh')), true, '작업 중인 파일이 남아 있어야 한다.');
+    assert.equal((await simpleGit(root).branchLocal()).current, branch);
+
+    await rm(root, { recursive: true, force: true });
+});
+
 test('git 저장소가 아니면 정리하지 않고 이유를 돌려준다', async () => {
     const root = await mkdtemp(join(tmpdir(), 'aiw-plain2-'));
     const result = await cleanupWorkspace(spec(root));
