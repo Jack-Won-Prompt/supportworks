@@ -48,6 +48,11 @@
                            class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
                     <span class="font-medium text-gray-700">SR 담당자</span>
                 </label>
+                <label class="inline-flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 hover:bg-gray-100 cursor-pointer">
+                    <input type="checkbox" name="is_aiw_operator" value="1" {{ old('is_aiw_operator', $user->is_aiw_operator) ? 'checked' : '' }}
+                           class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                    <span class="font-medium text-gray-700" title="켜면 본인이 구성원인 프로젝트에서 작업 지시를 쓸 수 있습니다. 지시 한 줄이 작업 PC 의 소스를 고치고 배포까지 하므로, 맡길 사람에게만 켜 주세요.">작업 지시 가능</span>
+                </label>
             </div>
 
             <div class="grid grid-cols-2 gap-4">

@@ -421,10 +421,10 @@ class AiwServicesTest extends TestCase
         $this->assertFalse(Gate::forUser($outsider)->allows('view', $job));
     }
 
-    public function test_프로젝트_멤버라도_관리자가_아니면_막힌다(): void
+    public function test_프로젝트_멤버라도_작업_지시_가능이_아니면_막힌다(): void
     {
-        // 역할이 manager 든 viewer 든 상관없다. AI Works 는 작업 PC 에서
-        // 명령을 실행하는 기능이라 시스템 관리자에게만 연다.
+        // 프로젝트 역할(manager/member/viewer)만으로는 열리지 않는다.
+        // 지시 한 줄이 작업 PC 의 소스를 고치고 배포까지 하기 때문이다.
         $job = $this->job();
 
         foreach (['manager', 'member', 'viewer'] as $role) {
@@ -439,10 +439,40 @@ class AiwServicesTest extends TestCase
         }
     }
 
-    public function test_관리자는_멤버가_아니어도_전부_가능하다(): void
+    public function test_작업_지시_가능이면서_구성원이면_쓸_수_있다(): void
     {
         $job = $this->job();
-        $admin = User::factory()->create(['role' => 'admin']);
+        $user = $this->member('member');
+        $user->forceFill(['is_aiw_operator' => true])->save();
+
+        foreach (['view', 'sendMessage', 'decidePermission', 'cancel', 'end', 'handover'] as $ability) {
+            $this->assertTrue(Gate::forUser($user->fresh())->allows($ability, $job), $ability);
+        }
+    }
+
+    public function test_작업_지시_가능이어도_남의_프로젝트는_못_본다(): void
+    {
+        // 플래그만 켜고 아무 프로젝트나 다루게 하지 않는다. 둘 다여야 열린다.
+        $job = $this->job();
+        $outsider = User::factory()->create(['role' => 'member', 'is_aiw_operator' => true]);
+
+        $this->assertFalse(Gate::forUser($outsider)->allows('view', $job));
+    }
+
+    public function test_작업_지시_가능이어도_작업PC_관리는_못_한다(): void
+    {
+        // 토큰은 그 PC 를 장악할 수 있는 자격이라 관리자만 다룬다.
+        $user = $this->member('manager');
+        $user->forceFill(['is_aiw_operator' => true])->save();
+
+        $this->assertFalse(Gate::forUser($user->fresh())->allows('manageAgents', AiwJob::class));
+    }
+
+    public function test_관리자는_멤버가_아니어도_전부_가능하다(): void
+    {
+        // 관리자는 플래그와 무관하게 항상 열린다.
+        $job = $this->job();
+        $admin = User::factory()->create(['role' => 'admin', 'is_aiw_operator' => false]);
 
         $this->assertDatabaseMissing('project_members', [
             'project_id' => $this->projectId,

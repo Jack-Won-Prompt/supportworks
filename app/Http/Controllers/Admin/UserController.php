@@ -69,8 +69,11 @@ class UserController extends Controller
             'phone'            => 'nullable|string|max:20',
             'company_group_id' => 'nullable|exists:company_groups,id',
             'is_sr_agent'      => 'nullable|boolean',
+            // 켜면 본인이 구성원인 프로젝트에서 작업 지시를 쓸 수 있다(AiwJobPolicy).
+            'is_aiw_operator'  => 'nullable|boolean',
         ]);
         $validated['is_sr_agent'] = $request->boolean('is_sr_agent');
+        $validated['is_aiw_operator'] = $request->boolean('is_aiw_operator');
 
         // 비super_admin은 자신의 그룹에만 배정 가능
         if (!$admin->isSuperAdmin() && $validated['company_group_id']) {
@@ -111,10 +114,12 @@ class UserController extends Controller
             'password'         => 'nullable|min:8|confirmed',
             'company_group_id' => 'nullable|exists:company_groups,id',
             'is_sr_agent'      => 'nullable|boolean',
+            'is_aiw_operator'  => 'nullable|boolean',
             'project_ids'      => 'nullable|array',
             'project_ids.*'    => 'exists:projects,id',
         ]);
         $validated['is_sr_agent'] = $request->boolean('is_sr_agent');
+        $validated['is_aiw_operator'] = $request->boolean('is_aiw_operator');
 
         if (!$admin->isSuperAdmin() && $validated['company_group_id']) {
             $admin->load('companyGroups');

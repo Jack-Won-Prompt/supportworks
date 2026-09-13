@@ -124,7 +124,7 @@ class ReverbAuthTest extends TestCase
         $this->assertContains($response->status(), [401, 403]);
     }
 
-    public function test_프로젝트_멤버라도_관리자가_아니면_거부된다(): void
+    public function test_프로젝트_멤버라도_작업_지시_가능이_아니면_거부된다(): void
     {
         // 화면은 403 인데 실시간 로그만 흘러가는 구멍을 막는다.
         $member = User::factory()->create(['role' => 'member']);

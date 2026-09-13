@@ -125,10 +125,10 @@ class AiwWebTest extends TestCase
             ->assertSee('테스트 PC');
     }
 
-    public function test_프로젝트_멤버라도_관리자가_아니면_막힌다(): void
+    public function test_프로젝트_멤버라도_작업_지시_가능이_아니면_막힌다(): void
     {
         // 지시 한 줄이 작업 PC 의 소스를 고치고 운영 서버에 배포까지 한다.
-        // 프로젝트 역할이 아니라 시스템 관리자 여부로 가른다.
+        // 프로젝트 역할만으로는 열리지 않는다.
         $urls = [
             route('projects.ai-works.index', $this->project()),
             route('projects.ai-works.create', $this->project()),
@@ -139,6 +139,29 @@ class AiwWebTest extends TestCase
                 $this->actingAs($user)->get($url)->assertForbidden();
             }
         }
+    }
+
+    public function test_작업_지시_가능이면서_구성원이면_화면을_쓴다(): void
+    {
+        // 관리자 계정을 나눠 주는 대신 이 옵션을 켜 준다.
+        $this->member->forceFill(['is_aiw_operator' => true])->save();
+
+        $this->actingAs($this->member->fresh())
+            ->get(route('projects.ai-works.index', $this->project()))
+            ->assertOk();
+
+        $this->actingAs($this->member->fresh())
+            ->get(route('projects.ai-works.create', $this->project()))
+            ->assertOk();
+    }
+
+    public function test_작업_지시_가능이어도_구성원이_아니면_막힌다(): void
+    {
+        $this->outsider->forceFill(['is_aiw_operator' => true])->save();
+
+        $this->actingAs($this->outsider->fresh())
+            ->get(route('projects.ai-works.index', $this->project()))
+            ->assertForbidden();
     }
 
     public function test_관리자는_멤버가_아니어도_볼_수_있다(): void

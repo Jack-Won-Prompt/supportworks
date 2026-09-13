@@ -15,7 +15,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'company', 'phone', 'avatar', 'agent_status', 'company_group_id', 'is_guest', 'is_sr_agent',
+        'name', 'email', 'password', 'role', 'company', 'phone', 'avatar', 'agent_status', 'company_group_id', 'is_guest', 'is_sr_agent', 'is_aiw_operator',
     ];
 
     protected $attributes = [
@@ -29,7 +29,19 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_aiw_operator' => 'boolean',
         ];
+    }
+
+    /**
+     * 작업 지시를 쓸 수 있는 사람인가.
+     *
+     * 이것만으로 열리지는 않는다 — 해당 프로젝트의 구성원이어야 한다.
+     * 최종 판단은 AiwJobPolicy 한 곳에서 한다.
+     */
+    public function isAiwOperator(): bool
+    {
+        return (bool) ($this->is_aiw_operator ?? false);
     }
 
     public function companyGroup(): \Illuminate\Database\Eloquent\Relations\BelongsTo
