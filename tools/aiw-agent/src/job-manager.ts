@@ -144,8 +144,8 @@ export class JobManager {
                 this.api,
                 spec,
                 {
-                    onTerminal: (reason, detail) => {
-                        void this.report(spec, root, manager!, reason, detail).finally(() => {
+                    onTerminal: (reason, detail, options) => {
+                        void this.report(spec, root, manager!, reason, detail, options).finally(() => {
                             this.active.delete(spec.job_id);
                             this.known.delete(spec.job_id);
                             this.preLogCount.delete(spec.job_id);
@@ -265,6 +265,7 @@ export class JobManager {
         manager: SessionManager,
         reason: 'completed' | 'failed' | 'cancelled',
         detail?: string,
+        options?: { autoContinue?: boolean },
     ): Promise<void> {
         const { durationMs, costUsd } = manager.metrics;
 
@@ -316,6 +317,8 @@ export class JobManager {
                     git_diff: diff || null,
                     cost_usd: costUsd,
                     duration_ms: durationMs,
+                    // 기본은 이어서 진행한다. 사람 답을 못 받고 마친 경우에만 끊는다.
+                    auto_continue: options?.autoContinue ?? true,
                 }),
             );
 

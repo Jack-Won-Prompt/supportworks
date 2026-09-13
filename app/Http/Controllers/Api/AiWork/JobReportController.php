@@ -353,6 +353,8 @@ class JobReportController extends AgentApiController
             'git_diff'       => ['nullable', 'string'],
             'cost_usd'       => ['nullable', 'numeric', 'min:0'],
             'duration_ms'    => ['nullable', 'integer', 'min:0'],
+            // 데몬이 "여기서 멈춰라" 고 말할 수 있는 자리. 보내지 않으면 이어서 한다.
+            'auto_continue'  => ['nullable', 'boolean'],
         ]);
 
         // 이미 끝난 job 이면 diff 를 다시 저장하지 않는다. 첫 보고가 이미 기록했고,
@@ -379,7 +381,14 @@ class JobReportController extends AgentApiController
         }
 
         // "배포까지 자동으로" 를 켰다면 여기서 다음 단계가 시작된다.
-        $this->autoPipeline->afterComplete($job->refresh());
+        //
+        // 다만 데몬이 auto_continue=false 로 보냈다면 잇지 않는다. 사람 답을 기다리다
+        // 최대 수명이 다해 마친 경우가 그렇다 — 결과는 남기되, 아무도 확인하지 않은
+        // 것을 운영에 밀어 넣지는 않는다. 배포는 화면에서 사람이 누른다.
+        // (그 사정은 데몬이 이미 활동 로그에 적어 두었다.)
+        if ($request->boolean('auto_continue', true)) {
+            $this->autoPipeline->afterComplete($job->refresh());
+        }
 
         return response()->json($this->controlFlags($job));
     }

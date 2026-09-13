@@ -1,7 +1,7 @@
 import './test-env.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { describeExpiry, TimeLimits } from './time-limits.js';
+import { TimeLimits, decideEnding, describeExpiry } from './time-limits.js';
 
 const SPEC = { jobSec: 100, idleSec: 30, sessionSec: 1000 };
 const S = 1000;
@@ -94,4 +94,44 @@ test('문구가 어떤 제한인지 알려 준다', () => {
     assert.match(describeExpiry({ kind: 'job', limitSec: 1800, elapsedSec: 1800 }), /작업 시간 제한\(30분\)/);
     assert.match(describeExpiry({ kind: 'idle', limitSec: 300, elapsedSec: 300 }), /5분 동안 아무 반응이 없어/);
     assert.match(describeExpiry({ kind: 'session', limitSec: 7200, elapsedSec: 7200 }), /최대 수명\(120분\)/);
+});
+
+// ── 어떻게 끝낼 것인가 ──────────────────────────────────────────────────────
+
+test('답변을 기다리다 수명이 다하면 중단이 아니라 마친다', () => {
+    // 모델은 제 턴을 마치고 보고까지 했다. 남은 것은 사람 차례였을 뿐이다.
+    // 중단으로 적으면 작업 폴더가 되돌려지고 결과 반영 경로가 닫힌다 —
+    // 끝난 일을 사람이 후속 지시로 다시 살려내야 했다.
+    const ending = decideEnding({ kind: 'session', limitSec: 7200, elapsedSec: 7200 }, true);
+
+    assert.equal(ending.as, 'completed');
+    assert.match(ending.message, /세션을 마쳤습니다/);
+    assert.match(ending.message, /결과 반영/);
+});
+
+test('확인한 사람이 없으므로 자동 배포는 잇지 않는다', () => {
+    const waited = decideEnding({ kind: 'session', limitSec: 7200, elapsedSec: 7200 }, true);
+    const ran    = decideEnding({ kind: 'session', limitSec: 7200, elapsedSec: 7200 }, false);
+
+    assert.equal(waited.autoContinue, false);
+    // 평소의 완료는 그대로 이어서 배포까지 간다. 이 변경이 그 길을 막으면 안 된다.
+    assert.equal(ran.autoContinue, true);
+});
+
+test('사람을 기다린 것이 아니면 예전처럼 중단이다', () => {
+    // 돌다가 수명이 다한 것은 폭주다. 하던 일을 되돌리는 쪽이 맞다.
+    const ending = decideEnding({ kind: 'session', limitSec: 7200, elapsedSec: 7200 }, false);
+
+    assert.equal(ending.as, 'cancelled');
+    assert.match(ending.message, /자동 중단/);
+});
+
+test('실행 시간·무응답 만료는 기다리는 중이어도 중단이다', () => {
+    // 이 둘은 애초에 사람을 기다리는 동안 세지 않는다. 그런데도 걸렸다면
+    // 기다리는 상태가 아니라 무언가 잘못된 것이므로 되돌리는 편이 안전하다.
+    for (const kind of ['job', 'idle'] as const) {
+        const ending = decideEnding({ kind, limitSec: 1800, elapsedSec: 1800 }, true);
+
+        assert.equal(ending.as, 'cancelled', kind);
+    }
 });

@@ -302,6 +302,38 @@ class AiwAutoDeployTest extends TestCase
         Event::assertDispatched(PublishRequested::class);
     }
 
+    public function test_데몬이_잇지_말라고_하면_배포로_넘어가지_않는다(): void
+    {
+        // 사람 답을 기다리다 최대 수명이 다해 마친 경우다. 결과는 남겨야 하지만,
+        // 아무도 확인하지 않은 것을 운영에 밀어 넣어서는 안 된다.
+        Event::fake();
+        $job = $this->job();
+
+        $this->daemon()
+            ->postJson("/api/aiw/jobs/{$job->id}/complete", [
+                'result_summary' => '답변 대기 중 세션을 마쳤습니다.',
+                'auto_continue'  => false,
+            ])
+            ->assertOk();
+
+        // 완료로 남는다 — 그래야 화면의 '결과 반영' 이 살아 있다.
+        $this->assertSame(AiwJobStatus::Completed, $job->fresh()->status);
+        $this->assertSame(0, AiwPublish::count(), '자동 커밋·푸시가 시작되면 안 된다.');
+    }
+
+    public function test_잇지_말라는_말이_없으면_예전처럼_이어서_한다(): void
+    {
+        // 기본값이 바뀌면 지금 돌고 있는 자동 배포가 조용히 멈춘다.
+        Event::fake();
+        $job = $this->job();
+
+        $this->daemon()
+            ->postJson("/api/aiw/jobs/{$job->id}/complete", ['result_summary' => '끝'])
+            ->assertOk();
+
+        $this->assertNotNull(AiwPublish::where('job_id', $job->id)->first());
+    }
+
     public function test_체크하지_않았으면_아무_일도_없다(): void
     {
         Event::fake();

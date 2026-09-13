@@ -52,6 +52,46 @@ export function describeExpiry(expiry: Expiry): string {
     }
 }
 
+/**
+ * 만료를 어떻게 끝낼 것인가.
+ *
+ * `cancelled` 는 하던 일을 되돌린다(중단 복구). `completed` 는 결과를 남기고
+ * 마친다 — 그래서 화면의 '결과 반영' 이 살아 있다.
+ */
+export type Ending =
+    | { as: 'cancelled'; message: string; autoContinue: true }
+    | { as: 'completed'; message: string; autoContinue: false };
+
+/**
+ * 사람 답을 기다리다 수명이 다한 것은 폭주가 아니다.
+ *
+ * 모델은 제 턴을 마치고 보고까지 했고, 남은 것은 사람 차례였다. 이것을 '중단' 으로
+ * 적으면 작업 폴더가 되돌려지고 결과 반영 경로까지 닫혀, 이미 끝난 일을 사람이
+ * 후속 지시로 다시 살려내야 한다 — 실제로 그렇게 죽은 작업이 있었다.
+ *
+ * 그래서 '완료' 로 끝내되, 자동 배포는 잇지 않는다. 아무도 결과를 확인하지 않은
+ * 채로 운영에 나가는 것이 이 기능에서 가장 되돌리기 어려운 일이기 때문이다.
+ *
+ * 승인 대기는 다르다. 그때는 모델이 일하다 멈춘 것이라 하던 일을 되돌리는 쪽이
+ * 맞다 — 그래서 `awaitingReply` 는 '턴을 마치고 기다리는 중' 일 때만 참이다.
+ */
+export function decideEnding(expiry: Expiry, awaitingReply: boolean): Ending {
+    if (expiry.kind === 'session' && awaitingReply) {
+        const minutes = (sec: number) => `${Math.round(sec / 60)}분`;
+
+        return {
+            as: 'completed',
+            autoContinue: false,
+            message: `답변을 기다린 지 오래되어(총 ${minutes(expiry.elapsedSec)},`
+                + ` 최대 수명 ${minutes(expiry.limitSec)}) 세션을 마쳤습니다.`
+                + ' 작업 결과는 그대로 남아 있어 결과 반영을 누를 수 있습니다.'
+                + ' 아무도 확인하지 않았으므로 자동 배포는 잇지 않았습니다.',
+        };
+    }
+
+    return { as: 'cancelled', autoContinue: true, message: describeExpiry(expiry) };
+}
+
 export class TimeLimits {
     private startedAt = 0;
 

@@ -17,7 +17,7 @@ import { log, JobLogWriter } from './logger.js';
 import { PermissionGate } from './permissions.js';
 import { loadProjectRules } from './project-context.js';
 import { Sandbox } from './sandbox.js';
-import { describeExpiry, TimeLimits } from './time-limits.js';
+import { TimeLimits, decideEnding } from './time-limits.js';
 import type { PromptInput, SessionAdapter, TurnUsage } from './session/adapter.js';
 import { SdkSessionAdapter } from './session/sdk-adapter.js';
 
@@ -77,7 +77,11 @@ const FIXED_HEADER = (jobId: number, root: string) =>
 const SEPARATOR = String.fromCharCode(10, 10);
 
 export interface SessionManagerHooks {
-    onTerminal(reason: 'completed' | 'failed' | 'cancelled', detail?: string): void;
+    onTerminal(
+        reason: 'completed' | 'failed' | 'cancelled',
+        detail?: string,
+        options?: { autoContinue?: boolean },
+    ): void;
 }
 
 /** 세션 실행기 생성자. 테스트가 가짜 어댑터를 끼울 수 있게 밖에서 받는다. */
@@ -143,6 +147,15 @@ export class SessionManager {
     private limitTimer: NodeJS.Timeout | null = null;
 
     private stopped = false;
+
+    /**
+     * 모델이 턴을 마치고 사람 답을 기다리는 중인가.
+     *
+     * 수명이 다했을 때 이것을 '중단' 으로 적을지 '완료' 로 적을지가 여기서 갈린다.
+     * 승인 대기와는 다르다 — 승인 대기는 모델이 일하다 멈춘 것이라, 그때 수명이
+     * 다하면 하던 일을 되돌리는 쪽이 맞다.
+     */
+    private awaitingReply = false;
 
     private handoverInFlight = false;
 
@@ -465,6 +478,9 @@ export class SessionManager {
             // 답을 기다리는 시간은 작업 시간이 아니다. 점심 먹고 와서 답하는 것을
             // 폭주로 세면 대화형 작업을 쓸 수 없다.
             this.limits.pause(Date.now());
+            // 모델은 제 턴을 마쳤다. 여기서부터는 사람 차례다 — 수명이 다했을 때
+            // 이것을 '중단' 으로 적을지 '완료' 로 적을지가 이 값으로 갈린다.
+            this.awaitingReply = true;
 
             await this.api.quiet('waiting_input', () =>
                 this.api.status(this.job.job_id, 'waiting_input'),
@@ -505,6 +521,7 @@ export class SessionManager {
         }
 
         this.limits.resume(Date.now());
+        this.awaitingReply = false;
 
         this.adapter?.send(
             await buildContent(this.api, this.job.job_id, content, attachments, this.sandbox.root),
@@ -647,15 +664,24 @@ export class SessionManager {
             return;
         }
 
-        const reason = describeExpiry(expiry);
+        // 중단할지 마칠지는 time-limits 가 정한다 — 규칙과 이유를 한곳에 둔다.
+        const ending = decideEnding(expiry, this.awaitingReply);
 
-        log('warn', '시간 제한으로 중단합니다.', { jobId: this.job.job_id, kind: expiry.kind });
-        this.pushLog('daemon', reason);
+        log(
+            ending.as === 'completed' ? 'info' : 'warn',
+            ending.as === 'completed' ? '답변 대기 중 수명이 다해 마칩니다.' : '시간 제한으로 중단합니다.',
+            { jobId: this.job.job_id, kind: expiry.kind },
+        );
+        this.pushLog('daemon', ending.message);
         this.adapter?.interrupt();
-        await this.stop('cancelled', reason);
+        await this.stop(ending.as, ending.message, { autoContinue: ending.autoContinue });
     }
 
-    async stop(reason: 'completed' | 'failed' | 'cancelled', detail?: string): Promise<void> {
+    async stop(
+        reason: 'completed' | 'failed' | 'cancelled',
+        detail?: string,
+        options?: { autoContinue?: boolean },
+    ): Promise<void> {
         if (this.stopped) {
             return;
         }
@@ -672,7 +698,7 @@ export class SessionManager {
         await this.flushLogs();
         await this.adapter?.close();
 
-        this.hooks.onTerminal(reason, detail);
+        this.hooks.onTerminal(reason, detail, options);
     }
 
     get metrics() {

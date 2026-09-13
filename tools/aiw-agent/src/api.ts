@@ -353,6 +353,12 @@ export class ApiClient {
             git_diff?: string | null;
             cost_usd?: number;
             duration_ms?: number;
+            /**
+             * 서버가 "배포까지 자동으로" 를 이어서 진행해도 되는가. 기본은 이어서 한다.
+             * 사람 답을 못 받은 채 수명이 다해 끝난 경우에만 false 로 보낸다 —
+             * 아무도 확인하지 않은 결과를 운영에 밀어 넣지 않기 위해서다.
+             */
+            auto_continue?: boolean;
         },
     ) {
         return this.send<ControlFlags>(() => this.http.post(`/jobs/${jobId}/complete`, payload));
