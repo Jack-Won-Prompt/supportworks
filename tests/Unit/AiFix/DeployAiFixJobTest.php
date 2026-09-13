@@ -160,7 +160,7 @@ class DeployAiFixJobTest extends TestCase
         $job = $this->makeDeployingJob();
 
         $throwing = new class implements GitHubMerger {
-            public function mergeBranch(string $branch, string $target, string $commitTitle, string $commitBody = ''): MergeResult {
+            public function mergeBranch(string $branch, string $target, string $commitTitle, string $commitBody = '', ?string $worktreePath = null): MergeResult {
                 throw new \RuntimeException('GitHub 502 Bad Gateway');
             }
         };

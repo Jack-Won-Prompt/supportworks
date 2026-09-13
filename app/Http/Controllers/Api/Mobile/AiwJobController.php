@@ -164,6 +164,7 @@ class AiwJobController extends Controller
                 'allowed_tools'   => ToolPolicy::defaults(),
             ],
             'default_cost_limit_usd' => (float) config('aiw.default_cost_limit_usd', 2.0),
+            'default_no_cost_limit'  => (bool) config('aiw.default_no_cost_limit', true),
         ]);
     }
 
@@ -225,9 +226,12 @@ class AiwJobController extends Controller
                 'model'                 => null,
                 'allowed_tools'         => ToolPolicy::defaults(),
                 'permission_mode'       => 'acceptEdits',
-                'cost_limit_usd'        => $request->boolean('no_cost_limit')
-                    ? null
-                    : (float) config('aiw.default_cost_limit_usd', 2.0),
+                // 앱이 아무 말도 안 하면 서버 기본값을 따른다(기본은 상한 없음).
+                'cost_limit_usd'        => ($request->has('no_cost_limit')
+                    ? $request->boolean('no_cost_limit')
+                    : (bool) config('aiw.default_no_cost_limit', true))
+                        ? null
+                        : (float) config('aiw.default_cost_limit_usd', 2.0),
                 // 안전한 기본값은 켬이다(웹 등록 화면과 같다).
                 'use_branch'            => $request->has('use_branch') ? $request->boolean('use_branch') : true,
                 'parent_job_id'         => $parentId,

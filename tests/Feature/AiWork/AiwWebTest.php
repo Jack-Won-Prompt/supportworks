@@ -429,6 +429,24 @@ class AiwWebTest extends TestCase
             ->assertSee("useBranch: true", false);
     }
 
+    public function test_새_지시는_기본이_상한_없음이다(): void
+    {
+        // 담당자 PC 는 구독 로그인으로 돈다. 화면의 금액은 실제 청구가 아니라
+        // 환산값이라, 상한은 돈을 아껴 주지 않고 사람이 없는 시간에 작업만 끊는다.
+        $this->actingAs($this->operator)
+            ->get(route('projects.ai-works.create', $this->project()))
+            ->assertOk()
+            ->assertSee('noLimit: true', false);
+
+        // 다만 원 job 에 사람이 직접 상한을 걸었다면 후속도 그 선택을 물려받는다.
+        $parent = $this->job(['status' => AiwJobStatus::Failed, 'cost_limit_usd' => 2.0]);
+
+        $this->actingAs($this->operator)
+            ->get(route('projects.ai-works.create', [$this->project(), 'parent' => $parent->id]))
+            ->assertOk()
+            ->assertSee('noLimit: false', false);
+    }
+
     public function test_선택지가_버튼으로_보인다(): void
     {
         $job = $this->job(['status' => AiwJobStatus::WaitingInput, 'mode' => 'interactive']);

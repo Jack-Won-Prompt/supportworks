@@ -132,6 +132,7 @@ class AiwJobController extends Controller
             'autoApprovable' => ToolPolicy::autoApprovable(),
             'busyByPath'    => $busyByPath,
             'defaultCost'   => (float) config('aiw.default_cost_limit_usd', 2.0),
+            'defaultNoLimit' => (bool) config('aiw.default_no_cost_limit', true),
             'contextLimits' => (array) config('aiw.model_context_limits', []),
             'defaultContext' => (int) config('aiw.default_context_limit_tokens', 200000),
             // 실패 화면의 "브랜치 없이 다시 지시" 가 ?use_branch=0 으로 보낸다.

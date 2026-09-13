@@ -198,7 +198,9 @@ class AiwMobileApiTest extends TestCase
         $this->assertSame(AiwJobStatus::Dispatched, $job->status);
         $this->assertSame($this->admin->id, $job->created_by);
         $this->assertTrue($job->use_branch);
-        $this->assertEquals((float) config('aiw.default_cost_limit_usd'), (float) $job->cost_limit_usd);
+        // 앱이 상한을 말하지 않으면 상한 없이 돈다. 금액으로 끊으면 사람이 없는
+        // 시간에 작업만 멈춘다 — 폭주는 담당자 PC 의 시간 제한이 막는다.
+        $this->assertNull($job->cost_limit_usd);
 
         // 지시문은 웹과 같이 대화의 첫 메시지가 된다.
         $first = $job->messages()->orderBy('seq')->first();
@@ -208,14 +210,23 @@ class AiwMobileApiTest extends TestCase
         Event::assertDispatched(JobDispatched::class);
     }
 
-    public function test_비용_상한_없음을_고를_수_있다(): void
+    public function test_상한은_앱이_보낸_대로_걸리거나_풀린다(): void
     {
         Event::fake([JobDispatched::class]);
 
-        $id = $this->as($this->admin)->postJson($this->base(), $this->payload(['no_cost_limit' => true]))
+        $off = $this->as($this->admin)->postJson($this->base(), $this->payload(['no_cost_limit' => true]))
             ->assertCreated()->json('id');
 
-        $this->assertNull(AiwJob::findOrFail($id)->cost_limit_usd);
+        $this->assertNull(AiwJob::findOrFail($off)->cost_limit_usd);
+
+        // 기본이 "상한 없음" 이 된 뒤에도, 굳이 걸어 달라고 하면 걸린다.
+        $on = $this->as($this->admin)->postJson($this->base(), $this->payload(['no_cost_limit' => false]))
+            ->assertCreated()->json('id');
+
+        $this->assertEquals(
+            (float) config('aiw.default_cost_limit_usd'),
+            (float) AiwJob::findOrFail($on)->cost_limit_usd,
+        );
     }
 
     public function test_자동_배포는_브랜치_분리와_이_프로젝트의_대상이_있을_때만_켜진다(): void

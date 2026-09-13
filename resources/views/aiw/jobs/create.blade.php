@@ -129,11 +129,15 @@
                 </div>
 
                 @php
-                    // 원 job 이 상한 없이 돌았으면 그대로 물려받는다.
+                    // 기본은 "상한 없음" 이다(config/aiw.php 에 이유를 적어 뒀다).
+                    // 원 job 이 있으면 그 선택을 그대로 물려받는다 — 사람이 그 작업에
+                    // 상한을 직접 걸었다면 후속에서도 지키는 것이 맞다.
                     // 실패 화면의 "상한 없이 후속 지시" 가 ?no_cost_limit=1 로 보낸다.
                     $noLimitDefault = old(
                         'no_cost_limit',
-                        request()->boolean('no_cost_limit') || ($parent && $parent->hasNoCostLimit()) ? 1 : 0,
+                        request()->boolean('no_cost_limit')
+                            || ($parent ? $parent->hasNoCostLimit() : config('aiw.default_no_cost_limit', true))
+                            ? 1 : 0,
                     );
                 @endphp
                 <div x-data="{ noLimit: @js((bool) $noLimitDefault) }">
