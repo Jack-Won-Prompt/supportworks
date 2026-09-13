@@ -95,6 +95,46 @@ test('AI 가 스스로 커밋해 둔 것도 브랜치에 남고 폴더는 되돌
     await rm(root, { recursive: true, force: true });
 });
 
+test('완료된 작업의 결과물은 그 브랜치에 담기고 폴더가 깨끗해진다', async () => {
+    // 남겨 두면 다음에 누른 다른 작업의 커밋·푸시가 그것까지 쓸어 담는다 —
+    // 실제로 #65 가 만들던 health.sh 가 #64 의 커밋에 딸려 운영까지 올라갔다.
+    const root = await repo();
+    const ws = new GitWorkspace(root);
+    const branch = 'aiw/job-10';
+
+    await ws.prepareBranch(branch, 'master');
+    await writeFile(join(root, 'app.txt'), '완성한 내용\n', 'utf8');
+    await writeFile(join(root, 'added.txt'), '새 파일\n', 'utf8');
+
+    const kept = await ws.commitCompleted({ branch, commitMessage: '작업 지시 #10 결과' });
+
+    assert.equal(kept.files.length, 2);
+    assert.ok(kept.commitSha);
+
+    const git = simpleGit(root);
+
+    assert.ok((await git.status()).isClean(), '다음 지시가 막히지 않아야 한다.');
+    // 브랜치는 옮기지 않는다 — 결과물이 눈앞에서 사라지면 사람이 놀란다.
+    assert.equal((await git.branchLocal()).current, branch);
+    assert.equal(await readFile(join(root, 'app.txt'), 'utf8'), '완성한 내용\n');
+
+    await rm(root, { recursive: true, force: true });
+});
+
+test('남의 브랜치에 서 있으면 담지 않는다', async () => {
+    const root = await repo();
+    const ws = new GitWorkspace(root);
+
+    await writeFile(join(root, 'app.txt'), '사람이 하던 것\n', 'utf8');
+
+    const kept = await ws.commitCompleted({ branch: 'aiw/job-11', commitMessage: 'x' });
+
+    assert.equal(kept.commitSha, null);
+    assert.equal(await readFile(join(root, 'app.txt'), 'utf8'), '사람이 하던 것\n', '건드리지 않는다.');
+
+    await rm(root, { recursive: true, force: true });
+});
+
 test('고친 것이 없으면 되돌릴 것도 없다', async () => {
     const root = await repo();
     const ws = new GitWorkspace(root);

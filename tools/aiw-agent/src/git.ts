@@ -396,6 +396,46 @@ export class GitWorkspace {
         return { kind: 'restored', branch, baseBranch: base.baseBranch, files, commitSha };
     }
 
+    /**
+     * 끝난 작업의 결과물을 그 작업의 브랜치에 커밋한다.
+     *
+     * 지금까지 완료된 작업의 변경은 커밋되지 않은 채 폴더에 남았다. 그러면 두 가지가
+     * 어긋난다.
+     *
+     *  - 다음에 누른 **다른 작업의 커밋·푸시가 그것까지 쓸어 담는다**. publish 는
+     *    작업 폴더의 모든 변경을 커밋하기 때문이다 — 실제로 #65 가 만들던 health.sh 가
+     *    #64 의 커밋에 딸려 운영까지 올라갔다.
+     *  - 다음 지시가 dirty_tree 로 막힌다.
+     *
+     * 그래서 끝나는 자리에서 자기 브랜치에 담아 둔다. "작업이 끝나면 결과는 브랜치에,
+     * 폴더는 깨끗하게" 가 중단(restoreAfterAbort)과 완료 양쪽에서 같아진다.
+     *
+     * 브랜치를 옮기지는 않는다. 결과물이 폴더에서 눈앞에 사라지면 사람이 놀란다.
+     */
+    async commitCompleted(options: { branch: string; commitMessage: string }): Promise<{
+        files: string[];
+        commitSha: string | null;
+    }> {
+        const current = (await this.git.branchLocal()).current;
+
+        if (current !== options.branch) {
+            // 사람이 폴더를 다른 브랜치로 옮겨 놨다. 남의 자리에 커밋하지 않는다.
+            return { files: [], commitSha: null };
+        }
+
+        const files = await this.changedFiles();
+
+        if (files.length === 0) {
+            return { files: [], commitSha: null };
+        }
+
+        await this.git.add(['-A']);
+
+        const commit = await this.git.commit(options.commitMessage);
+
+        return { files, commitSha: commit.commit || null };
+    }
+
     async changedFiles(): Promise<string[]> {
         const status = await this.git.status();
 

@@ -275,11 +275,38 @@ export class JobManager {
 
             try {
                 if (await git.isRepo()) {
+                    // 커밋하기 전에 읽는다. 커밋한 뒤에는 '변경된 파일' 이 비어 버린다.
                     changed = await git.changedFiles();
                     diff = await git.collectDiff(spec.default_branch);
                 }
             } catch (error) {
                 log('warn', 'diff 수집 실패', { jobId: spec.job_id, error: String(error) });
+            }
+
+            // 결과물을 이 작업의 브랜치에 담고 폴더를 깨끗하게 남긴다.
+            // 남겨 두면 다음에 누른 다른 작업의 커밋·푸시가 그것까지 쓸어 담고
+            // (publish 는 폴더의 모든 변경을 커밋한다), 다음 지시는 dirty_tree 로 막힌다.
+            if (spec.use_branch) {
+                try {
+                    if (await git.isRepo()) {
+                        const kept = await git.commitCompleted({
+                            branch: `aiw/job-${spec.job_id}`,
+                            commitMessage: `작업 지시 #${spec.job_id} 결과`,
+                        });
+
+                        if (kept.commitSha) {
+                            manager.pushLog(
+                                'daemon',
+                                `결과 ${kept.files.length}개를 작업 브랜치에 담았습니다`
+                                + ` (커밋 ${kept.commitSha.slice(0, 8)}). 작업 폴더는 깨끗합니다.`,
+                            );
+                        }
+                    }
+                } catch (error) {
+                    // 담지 못해도 결과 보고는 그대로 간다. 변경은 폴더에 남아 있다.
+                    log('warn', '결과물 커밋 실패', { jobId: spec.job_id, error: String(error) });
+                    manager.pushLog('error', `결과물을 작업 브랜치에 담지 못했습니다: ${String(error)}`);
+                }
             }
 
             await this.api.quiet('complete', () =>
