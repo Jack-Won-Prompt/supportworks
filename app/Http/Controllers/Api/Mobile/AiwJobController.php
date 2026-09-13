@@ -149,8 +149,9 @@ class AiwJobController extends Controller
                     'status_label' => $busy[$m->agent_id]->status->label(),
                 ] : null,
             ])->values(),
+            // '배포까지 자동으로' 는 배포 종류만 고른다. 운영 명령은 여기 해당하지 않는다(웹과 같다).
             'deploy_targets' => AiwDeployTarget::where('project_id', $project->id)
-                ->where('enabled', true)->orderBy('name')->get(['id', 'name'])
+                ->deploys()->where('enabled', true)->orderBy('name')->get(['id', 'name'])
                 ->map(fn (AiwDeployTarget $t) => ['id' => $t->id, 'name' => $t->name])
                 ->values(),
             'fixed'          => [

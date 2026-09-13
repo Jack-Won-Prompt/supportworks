@@ -75,6 +75,10 @@ async function main(): Promise<void> {
     // agent_id 는 하트비트가 알려준다 — 사람이 화면에서 번호를 옮겨 적을 필요가 없다.
     const agentId = first.agent_id;
 
+    // sync 안에서도 쓰므로 먼저 만든다. 같은 인스턴스라야 inFlight 가 중복을 막는다.
+    const publisher = new Publisher(api, jobs);
+    const deployer = new Deployer(api);
+
     const sync = async () => {
         try {
             const { jobs: pending } = await api.pendingJobs();
@@ -106,6 +110,18 @@ async function main(): Promise<void> {
                     }
                 }
             }
+            // 놓친 커밋·푸시와 배포를 따라잡는다. 이벤트로만 받던 시절에는 데몬이
+            // 재기동되는 사이에 누른 버튼이 그대로 사라지고, 화면은 "진행 중" 에서
+            // 영영 멈췄다. 중복 실행은 각 실행기의 inFlight 가 막는다.
+            const artifacts = await api.pendingArtifacts();
+
+            for (const request of artifacts.publishes) {
+                publisher.handle(request);
+            }
+
+            for (const request of artifacts.deploys) {
+                deployer.handle(request);
+            }
         } catch (error) {
             log('warn', '동기화 실패 — 다음 하트비트에 다시 시도합니다.', { error: String(error) });
         }
@@ -113,7 +129,7 @@ async function main(): Promise<void> {
 
     const realtime = new Realtime(
         api, jobs, agentId, () => void sync(),
-        new Publisher(api, jobs), new Deployer(api), new SetupReporter(api),
+        publisher, deployer, new SetupReporter(api),
     );
     realtime.connect();
 

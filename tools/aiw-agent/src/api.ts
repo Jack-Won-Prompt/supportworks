@@ -205,6 +205,39 @@ export class ApiClient {
     }
 
     /**
+     * 놓친 커밋·푸시와 배포 요청을 따라잡는다.
+     *
+     * 이 둘은 한동안 실시간 이벤트로만 왔다. 그래서 데몬이 재기동되는 사이에 사람이
+     * 버튼을 누르면 요청이 사라지고 화면은 "진행 중" 에서 영영 멈췄다.
+     */
+    pendingArtifacts() {
+        const params: Record<string, unknown> = {};
+
+        if (config.projectId !== null) { params.project_id = config.projectId; }
+
+        return this.send<{
+            publishes: {
+                publish_id: number;
+                job_id: number;
+                project_id: number;
+                local_path: string;
+                source_branch: string;
+                target_branch: string;
+                commit_message: string;
+            }[];
+            deploys: {
+                deploy_id: number;
+                job_id: number | null;
+                project_id: number;
+                name: string;
+                working_dir: string;
+                command: string;
+                timeout_sec: number;
+            }[];
+        }>(() => this.http.get('/artifacts/pending', Object.keys(params).length ? { params } : undefined));
+    }
+
+    /**
      * 등록된 운영 명령을 이름으로 요청한다.
      *
      * 명령 문자열은 보내지 않는다 — 서버가 관리자 등록 목록에서 찾아 실행한다.

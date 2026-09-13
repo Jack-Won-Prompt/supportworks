@@ -56,9 +56,11 @@ class JobCreator
         // 툴 목록은 서버가 강제한다. 클라이언트가 보낸 값을 그대로 쓰지 않는다.
         $tools = $this->tools->sanitize($input['allowed_tools']);
 
-        // 배포 대상도 서버가 확인한다. 다른 프로젝트의 대상을 끼워 넣을 수 없다.
+        // 배포 대상도 서버가 확인한다. 다른 프로젝트의 대상을 끼워 넣을 수 없고,
+        // 운영 명령(kind=ops)은 자동 배포로 고를 수 없다 — 작업이 끝나면 사람 확인
+        // 없이 실행되는 자리라, 화면이 거르더라도 여기서 한 번 더 막는다.
         $autoTarget = ! empty($input['auto_deploy_target_id'])
-            ? AiwDeployTarget::where('project_id', $project->id)->where('enabled', true)
+            ? AiwDeployTarget::where('project_id', $project->id)->deploys()->where('enabled', true)
                 ->find((int) $input['auto_deploy_target_id'])
             : null;
 

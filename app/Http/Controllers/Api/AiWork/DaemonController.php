@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\AiWork;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Enums\AiWork\AiwSetupStatus;
 use App\Models\AiWork\AiwAgentProject;
+use App\Models\AiWork\AiwPublish;
 use App\Services\AiWork\AutoPipeline;
 use App\Models\AiWork\AiwDeploy;
 use App\Models\AiWork\AiwJob;
@@ -247,6 +248,60 @@ class DaemonController extends AgentApiController
      * 아무도 돌보지 않는 고아가 된다. 스펙에는 resume_session_id 가 실려 있어
      * 데몬이 이어붙이기를 시도할 수 있다.
      */
+    /**
+     * 아직 담당자가 집어가지 않은 커밋·푸시와 배포 요청.
+     *
+     * 이 둘은 실시간 이벤트로만 전달되고 있었다. 그래서 데몬이 재기동되는 사이에
+     * 사람이 버튼을 누르면 요청이 그대로 사라지고, 화면은 "진행 중" 에서 영영
+     * 멈춘다 — 취소할 방법도 없다. 실제로 그렇게 7분을 서 있었다.
+     *
+     * 작업·메시지·승인에는 이미 이런 따라잡기가 있다. 같은 원칙을 여기에도 둔다:
+     * **이벤트는 빠른 길이고 폴링이 정확한 길이다.**
+     */
+    public function pendingArtifacts(Request $request): JsonResponse
+    {
+        $agent = $this->agent($request);
+
+        $projectIds = AiwAgentProject::where('agent_id', $agent->id)
+            ->when($request->filled('project_id'), fn ($q) => $q->where('project_id', $request->integer('project_id')))
+            ->pluck('local_path', 'project_id');
+
+        $publishes = AiwPublish::query()
+            ->where('status', 'pending')
+            ->whereHas('job', fn ($q) => $q->whereIn('project_id', $projectIds->keys()))
+            ->with('job:id,project_id,title')
+            ->get()
+            ->map(fn (AiwPublish $p) => [
+                'publish_id'     => $p->id,
+                'job_id'         => $p->job_id,
+                'project_id'     => (int) $p->job->project_id,
+                'local_path'     => $projectIds[$p->job->project_id] ?? null,
+                'source_branch'  => $p->source_branch,
+                'target_branch'  => $p->target_branch,
+                'commit_message' => $p->commit_message,
+            ])
+            ->filter(fn (array $row) => $row['local_path'] !== null)
+            ->values();
+
+        $deploys = AiwDeploy::query()
+            ->where('status', 'queued')
+            ->whereHas('target', fn ($q) => $q->whereIn('project_id', $projectIds->keys())->where('runs_on', 'agent'))
+            ->with('target')
+            ->get()
+            ->map(fn (AiwDeploy $d) => [
+                'deploy_id'   => $d->id,
+                'job_id'      => $d->job_id,
+                'project_id'  => (int) $d->target->project_id,
+                'name'        => $d->target->name,
+                'working_dir' => $d->target->working_dir,
+                'command'     => $d->target->command,
+                'timeout_sec' => (int) $d->target->timeout_sec,
+            ])
+            ->values();
+
+        return response()->json(['publishes' => $publishes, 'deploys' => $deploys]);
+    }
+
     public function pendingJobs(Request $request): JsonResponse
     {
         $agent = $this->agent($request);

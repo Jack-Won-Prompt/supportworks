@@ -114,6 +114,69 @@ class AiwPublishTest extends TestCase
         $this->assertStringContainsString('버튼 위치 변경', AiwPublish::firstOrFail()->commit_message);
     }
 
+    public function test_놓친_푸시_요청을_따라잡을_수_있다(): void
+    {
+        // 데몬이 재기동되는 사이에 사람이 버튼을 누르면 실시간 이벤트가 사라진다.
+        // 그때 화면은 "진행 중" 에서 영영 멈췄다 — 취소할 방법도 없었다.
+        Event::fake([PublishRequested::class]);
+
+        $job = $this->job();
+        $token = AiwAgent::generateToken();
+
+        $this->agent->forceFill(['token_hash' => AiwAgent::hashToken($token)])->saveQuietly();
+
+        $this->publish($job)->assertRedirect();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/aiw/artifacts/pending')
+            ->assertOk()
+            ->assertJsonPath('publishes.0.job_id', $job->id)
+            ->assertJsonPath('publishes.0.source_branch', $job->branchName())
+            // 명령이 아니라 작업 폴더를 알려 준다. 데몬이 그 폴더에서 돈다.
+            ->assertJsonPath('publishes.0.local_path', 'E:/work/sample');
+    }
+
+    public function test_남의_프로젝트_푸시는_따라잡기에_나오지_않는다(): void
+    {
+        Event::fake([PublishRequested::class]);
+
+        $this->publish($this->job())->assertRedirect();
+
+        // 매핑이 없는 담당자는 아무것도 보지 못한다.
+        $otherToken = AiwAgent::generateToken();
+
+        AiwAgent::create([
+            'name' => '남의 PC',
+            'token_hash' => AiwAgent::hashToken($otherToken),
+            'user_id' => $this->member->id,
+            'last_seen_at' => now(),
+        ]);
+
+        $this->withHeader('Authorization', 'Bearer '.$otherToken)
+            ->getJson('/api/aiw/artifacts/pending')
+            ->assertOk()
+            ->assertJsonCount(0, 'publishes');
+    }
+
+    public function test_이미_끝난_푸시는_따라잡기에_나오지_않는다(): void
+    {
+        // 두 번 실행하면 같은 커밋을 다시 밀어 넣는다.
+        Event::fake([PublishRequested::class]);
+
+        $job = $this->job();
+        $token = AiwAgent::generateToken();
+
+        $this->agent->forceFill(['token_hash' => AiwAgent::hashToken($token)])->saveQuietly();
+
+        $this->publish($job)->assertRedirect();
+        AiwPublish::query()->update(['status' => 'succeeded']);
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/aiw/artifacts/pending')
+            ->assertOk()
+            ->assertJsonCount(0, 'publishes');
+    }
+
     public function test_중단된_작업은_올릴_수_없다(): void
     {
         // 중단 시점의 내용은 작업 브랜치에 보관 커밋으로 남는다. 그것을 한 번의

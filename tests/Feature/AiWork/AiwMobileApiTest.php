@@ -196,6 +196,32 @@ class AiwMobileApiTest extends TestCase
         $this->assertNotNull($noBranch->json('notice'));
     }
 
+    public function test_운영_명령은_자동_배포_대상으로_보이지도_고를_수도_없다(): void
+    {
+        Event::fake([JobDispatched::class]);
+
+        $ops = AiwDeployTarget::create([
+            'project_id' => $this->projectId, 'name' => '서버 점검', 'kind' => 'ops',
+            'working_dir' => sys_get_temp_dir(), 'command' => 'echo check',
+            'timeout_sec' => 60, 'enabled' => true, 'created_by' => $this->admin->id,
+        ]);
+
+        $this->as($this->admin)->getJson($this->base().'/options')
+            ->assertOk()
+            ->assertJsonCount(1, 'deploy_targets')
+            ->assertJsonPath('deploy_targets.0.id', $this->target->id);
+
+        // 화면에 없더라도 번호를 직접 보내면 서버가 막아야 한다.
+        $response = $this->as($this->admin)->postJson($this->base(), $this->payload([
+            'auto_deploy' => true, 'auto_deploy_target_id' => $ops->id,
+        ]))->assertCreated();
+
+        $job = AiwJob::findOrFail($response->json('id'));
+        $this->assertFalse($job->auto_deploy);
+        $this->assertNull($job->auto_deploy_target_id);
+        $this->assertNotNull($response->json('notice'));
+    }
+
     public function test_이_프로젝트를_맡지_않은_작업_PC_로는_보낼_수_없다(): void
     {
         $other = AiwAgent::create([

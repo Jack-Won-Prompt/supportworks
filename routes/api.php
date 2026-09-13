@@ -397,6 +397,9 @@ Route::prefix('aiw')->middleware('aiw.agent')->name('api.aiw.')->group(function 
     Route::post('deploys/{deploy}',  [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'deployResult'])->name('deploys.result');
     Route::post('broadcasting/auth', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'broadcastingAuth'])->name('broadcasting.auth');
     Route::get ('jobs/pending',      [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'pendingJobs'])->name('jobs.pending');
+    // 실시간 이벤트를 놓친 커밋·푸시와 배포를 따라잡는다. 이벤트는 빠른 길이고
+    // 폴링이 정확한 길이다 — 작업·메시지·승인과 같은 원칙.
+    Route::get ('artifacts/pending', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'pendingArtifacts'])->name('artifacts.pending');
     Route::get ('jobs/{job}/inbox',  [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'inbox'])->name('jobs.inbox');
     Route::get ('jobs/{job}/attachments/{attachment}', [\App\Http\Controllers\Api\AiWork\DaemonController::class, 'attachment'])->name('jobs.attachment');
 
