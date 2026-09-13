@@ -12,9 +12,7 @@
 @section('content')
 <div class="space-y-3">
 
-    @if (session('status'))
-        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm text-emerald-800">{{ session('status') }}</div>
-    @endif
+    {{-- 알림은 레이아웃이 전역 토스트로 띄운다(window.appToast). 배너로 또 그리면 중복된다. --}}
 
     @if ($errors->any())
         <div class="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">

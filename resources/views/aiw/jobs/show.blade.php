@@ -79,17 +79,8 @@
         lastMessageSeq: {{ (int) ($messages->max('seq') ?? -1) }},
      })">
 
-    @if (session('status'))
-        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm text-emerald-800">
-            {{ session('status') }}
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div class="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-800">
-            {{ session('error') }}
-        </div>
-    @endif
+    {{-- 알림은 레이아웃이 전역 토스트로 띄운다(window.appToast). 여기서 배너로
+         또 그리면 같은 문장이 두 번 보이고, 화면 위쪽이 밀려 내려간다. --}}
 
     {{-- ── 헤더 ─────────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
