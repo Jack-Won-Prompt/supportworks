@@ -241,7 +241,7 @@ class AiwJobController extends Controller
         $notices = [];
 
         if (! $sent) {
-            $notices[] = '작업 PC 가 오프라인입니다. 켜지면 자동으로 시작됩니다.';
+            $notices[] = '담당자가 오프라인입니다. 켜지면 자동으로 시작됩니다.';
         }
 
         // 켜 달라고 했는데 켜지 못했으면 말한다. 켰다고 믿고 기다리게 두지 않는다.
