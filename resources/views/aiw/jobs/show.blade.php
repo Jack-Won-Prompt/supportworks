@@ -106,7 +106,10 @@
             {{-- 액션 --}}
             @if ($canEdit)
                 <div class="flex flex-wrap gap-2">
-                    <form method="POST" x-show="isActive || status === 'dispatched'" x-cloak
+                    {{-- 대기 중인 작업도 취소할 수 있어야 한다. 줄 서 있는 동안 필요
+                         없어졌다면 빼 주는 것이 맞고, 그러지 않으면 같은 폴더의 다음
+                         작업까지 함께 막힌다. --}}
+                    <form method="POST" x-show="! isTerminal" x-cloak
                           action="{{ route('projects.ai-works.action', [$project, $job, 'cancel']) }}"
                           onsubmit="return confirm('작업을 취소하시겠습니까?')">
                         @csrf

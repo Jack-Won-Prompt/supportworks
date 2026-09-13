@@ -249,6 +249,31 @@ class AiwAttachmentTest extends TestCase
         $this->assertSame(0, (int) $job->attachments()->first()->message->seq);
     }
 
+    public function test_첨부_저장이_실패하면_지시도_남지_않는다(): void
+    {
+        // 데몬은 queued 를 폴링으로 집어간다. 반쪽짜리 job 이 남으면 사람에게는
+        // 오류가 보이는데 담당자는 그 지시를 실행한다 — 실제로 그렇게 됐다.
+        Storage::fake('local');
+
+        $before = AiwJob::count();
+
+        $this->actingAs($this->member)
+            ->post(route('projects.ai-works.store', $this->projectId), [
+                'title' => '첨부 실패',
+                'agent_id' => $this->agent->id,
+                'instruction' => '이 파일을 보세요',
+                'mode' => 'interactive',
+                'allowed_tools' => ['Read'],
+                'permission_mode' => 'acceptEdits',
+                'cost_limit_usd' => 2.0,
+                'use_branch' => '1',
+                'images' => [UploadedFile::fake()->create('dump.bin', 5, 'application/octet-stream')],
+            ])
+            ->assertSessionHasErrors();
+
+        $this->assertSame($before, AiwJob::count(), '되돌아가야 한다.');
+    }
+
     public function test_프로젝트_멤버만_첨부를_볼_수_있다(): void
     {
         Storage::fake('local');

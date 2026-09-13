@@ -552,8 +552,11 @@ class AiwJobController extends Controller
     {
         $this->authorize('cancel', $job);
 
-        if (! $job->status->isActive() && $job->status !== AiwJobStatus::Dispatched) {
-            return $this->conflict($job, '취소할 수 없는 상태입니다');
+        // 대기(queued)도 취소할 수 있어야 한다. 시작도 안 한 작업인데 막아 두면
+        // 영영 남아서 같은 폴더의 다음 작업까지 줄 세운다 — 실제로 그렇게 막혔다.
+        // 상태 기계는 원래 queued → cancelled 를 허용한다.
+        if ($job->status->isTerminal()) {
+            return $this->conflict($job, '이미 끝난 작업입니다');
         }
 
         $this->emit(new JobCancelRequested($job, 'user cancelled'), $job->id);

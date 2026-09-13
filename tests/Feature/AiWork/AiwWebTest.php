@@ -654,6 +654,31 @@ class AiwWebTest extends TestCase
         Event::assertDispatched(JobCancelRequested::class);
     }
 
+    public function test_대기_중인_작업도_취소할_수_있다(): void
+    {
+        // 시작도 안 한 작업을 못 지우면 같은 폴더의 다음 작업까지 줄 세운다.
+        $job = $this->job(['status' => AiwJobStatus::Queued]);
+
+        $this->actingAs($this->operator)
+            ->post(route('projects.ai-works.action', [$this->project(), $job, 'cancel']))
+            ->assertRedirect()
+            ->assertSessionHas('status');
+
+        $this->assertSame(AiwJobStatus::Cancelled, $job->fresh()->status);
+    }
+
+    public function test_이미_끝난_작업은_취소할_수_없다(): void
+    {
+        $job = $this->job(['status' => AiwJobStatus::Completed]);
+
+        $this->actingAs($this->operator)
+            ->post(route('projects.ai-works.action', [$this->project(), $job, 'cancel']))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertSame(AiwJobStatus::Completed, $job->fresh()->status);
+    }
+
     public function test_컨텍스트_정리는_대화형_실행중에만_가능하다(): void
     {
         Event::fake([HandoverRequested::class]);

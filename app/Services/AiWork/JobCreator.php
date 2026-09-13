@@ -8,6 +8,7 @@ use App\Models\AiWork\AiwJob;
 use App\Models\AiWork\AiwJobMessage;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
 
 /**
@@ -67,6 +68,35 @@ class JobCreator
         // 브랜치에 섞이면 이 작업만 골라 올릴 수 없다.
         $autoDeploy = ! empty($input['auto_deploy']) && $useBranch && $autoTarget !== null;
 
+        // job·첫 메시지·첨부를 한 덩어리로 만든다.
+        //
+        // 데몬은 이벤트를 놓쳐도 /jobs/pending 폴링으로 queued 를 집어간다. 그래서
+        // 중간에 실패해 job 행만 남으면, 사람에게는 500 이 보이는데 담당자는 그
+        // 반쪽짜리 지시를 실행한다 — 실제로 첨부 저장이 실패하자 첨부 없는 지시가
+        // 그대로 돌았고, 취소도 되지 않아 같은 폴더의 다음 작업까지 막혔다.
+        $job = DB::transaction(fn () => $this->persist(
+            $project, $agent, $user, $input, $images, $tools, $useBranch, $autoDeploy, $autoTarget,
+        ));
+
+        // 전달은 커밋 뒤에 한다. 롤백될 수도 있는 job 을 담당자에게 알릴 수는 없다.
+        $sent = $job->parent_job_id
+            ? $this->dispatcher->dispatchFollowUp($job)
+            : $this->dispatcher->dispatch($job);
+
+        return [$job, $sent];
+    }
+
+    private function persist(
+        Project $project,
+        AiwAgent $agent,
+        User $user,
+        array $input,
+        array $images,
+        array $tools,
+        bool $useBranch,
+        bool $autoDeploy,
+        ?AiwDeployTarget $autoTarget,
+    ): AiwJob {
         $job = AiwJob::create([
             'project_id'            => $project->id,
             'agent_id'              => $agent->id,
@@ -97,13 +127,10 @@ class JobCreator
         ]);
 
         // 첨부는 dispatch 전에 저장해야 담당자가 받는 payload 에 함께 실린다.
+        // 여기서 실패하면 위의 job 과 메시지까지 함께 되돌아간다.
         $this->attachments->attach($first, $images, $user);
 
-        $sent = $job->parent_job_id
-            ? $this->dispatcher->dispatchFollowUp($job)
-            : $this->dispatcher->dispatch($job);
-
-        return [$job, $sent];
+        return $job;
     }
 
     private function contextLimitFor(?string $model): int
