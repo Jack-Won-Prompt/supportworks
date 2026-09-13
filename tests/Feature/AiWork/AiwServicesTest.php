@@ -15,6 +15,7 @@ use App\Models\AiWork\AiwPermissionRequest;
 use App\Models\User;
 use App\Services\AiWork\AiwNotifier;
 use App\Services\AiWork\CostGuard;
+use App\Services\AiWork\FailureRecovery;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobDispatcher;
 use App\Services\AiWork\JobStateMachine;
@@ -578,6 +579,80 @@ class AiwServicesTest extends TestCase
 
         $this->assertNull($fresh->waiting_since);
         $this->assertSame(0, $fresh->nudge_count);
+    }
+
+    // ── 자동 재시도 ─────────────────────────────────────────────────────────
+
+    public function test_담당자가_사라져_끊긴_작업은_자동으로_다시_보낸다(): void
+    {
+        config(['aiw.auto_retry_max' => 1]);
+
+        $job = $this->job(['status' => AiwJobStatus::Running]);
+
+        app(JobStateMachine::class)->transition($job, AiwJobStatus::Failed, [
+            'error_message' => '담당자가 응답하지 않아 중단되었습니다.',
+            'error_code'    => AiwFailureCode::AgentUnreachable->value,
+        ]);
+
+        $retry = app(FailureRecovery::class)->afterFail($job->fresh());
+
+        $this->assertNotNull($retry);
+        $this->assertSame($job->id, $retry->parent_job_id);
+        $this->assertSame($job->instruction, $retry->instruction);
+        $this->assertSame(1, $retry->retry_count, '횟수를 물려받아 올린다.');
+        // 설정이 그대로여야 자동 배포까지 이어진다.
+        // DB 에서 다시 읽어 비교한다 — 만들 때 생략한 값은 메모리에 null 로 남는다.
+        $original = $job->fresh();
+
+        $this->assertSame((bool) $original->auto_deploy, (bool) $retry->auto_deploy);
+        $this->assertSame((bool) $original->use_branch, (bool) $retry->use_branch);
+        $this->assertSame($original->allowed_tools, $retry->allowed_tools);
+    }
+
+    public function test_상한에_닿으면_다시_보내지_않는다(): void
+    {
+        config(['aiw.auto_retry_max' => 1]);
+
+        $job = $this->job(['status' => AiwJobStatus::Running]);
+        $job->forceFill(['retry_count' => 1])->saveQuietly();
+
+        app(JobStateMachine::class)->transition($job, AiwJobStatus::Failed, [
+            'error_message' => '또 끊겼습니다.',
+            'error_code'    => AiwFailureCode::AgentUnreachable->value,
+        ]);
+
+        $this->assertNull(app(FailureRecovery::class)->afterFail($job->fresh()));
+    }
+
+    public function test_판단이_필요한_실패는_자동으로_다시_보내지_않는다(): void
+    {
+        // 상한·설정·코드 문제를 그대로 다시 보내면 같은 자리에서 또 멈춘다.
+        config(['aiw.auto_retry_max' => 3]);
+
+        foreach ([AiwFailureCode::CostLimit, AiwFailureCode::DirtyTree, AiwFailureCode::PathMissing] as $code) {
+            $job = $this->job(['status' => AiwJobStatus::Running]);
+
+            app(JobStateMachine::class)->transition($job, AiwJobStatus::Failed, [
+                'error_message' => '멈춤',
+                'error_code'    => $code->value,
+            ]);
+
+            $this->assertNull(app(FailureRecovery::class)->afterFail($job->fresh()), $code->value);
+        }
+    }
+
+    public function test_자동_재시도를_끄면_아무것도_하지_않는다(): void
+    {
+        config(['aiw.auto_retry_max' => 0]);
+
+        $job = $this->job(['status' => AiwJobStatus::Running]);
+
+        app(JobStateMachine::class)->transition($job, AiwJobStatus::Failed, [
+            'error_message' => '끊김',
+            'error_code'    => AiwFailureCode::AgentUnreachable->value,
+        ]);
+
+        $this->assertNull(app(FailureRecovery::class)->afterFail($job->fresh()));
     }
 
     public function test_reap_stale_jobs가_무응답_에이전트의_job을_정리한다(): void

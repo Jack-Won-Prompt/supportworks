@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use App\Exceptions\AiWork\InvalidJobTransitionException;
 use App\Services\AiWork\AttachmentService;
 use App\Services\AiWork\AutoPipeline;
+use App\Services\AiWork\FailureRecovery;
 use App\Services\AiWork\CostGuard;
 use App\Services\AiWork\HandoverService;
 use App\Services\AiWork\JobStateMachine;
@@ -43,6 +44,7 @@ class JobReportController extends AgentApiController
         private HandoverService $handovers,
         private CostGuard $costGuard,
         private AutoPipeline $autoPipeline,
+        private FailureRecovery $recovery,
         private MessageWriter $messages,
     ) {}
 
@@ -464,6 +466,10 @@ class JobReportController extends AgentApiController
         } catch (InvalidJobTransitionException $e) {
             abort(409, $e->getMessage());
         }
+
+        // 환경이 사라져 끊긴 실패는 서버가 같은 지시를 다시 보낸다.
+        // 사람이 올 때까지 아무 일도 일어나지 않는 것이 가장 아깝다.
+        $this->recovery->afterFail($job->refresh());
 
         return response()->json($this->controlFlags($job));
     }

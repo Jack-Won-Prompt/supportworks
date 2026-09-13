@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands\AiWork;
 
+use App\Enums\AiWork\AiwFailureCode;
 use App\Enums\AiWork\AiwJobStatus;
 use App\Models\AiWork\AiwJob;
+use App\Services\AiWork\FailureRecovery;
 use App\Services\AiWork\JobStateMachine;
 use Illuminate\Console\Command;
 
@@ -20,7 +22,7 @@ class ReapStaleJobsCommand extends Command
 
     protected $description = 'AI Works: 무응답 담당자의 활성 job 을 실패 처리한다';
 
-    public function handle(JobStateMachine $states): int
+    public function handle(JobStateMachine $states, FailureRecovery $recovery): int
     {
         // 하트비트 주기(offline_after_sec)의 4배를 기다린다. 일시적 네트워크
         // 끊김으로 멀쩡한 작업을 죽이지 않기 위한 여유다.
@@ -40,8 +42,12 @@ class ReapStaleJobsCommand extends Command
 
         foreach ($jobs as $job) {
             $states->transition($job, AiwJobStatus::Failed, [
-                'error_message' => '담당자가 응답하지 않아 중단되었습니다. 후속 지시로 이어서 진행하세요.',
+                'error_message' => '담당자가 응답하지 않아 중단되었습니다.',
+                // 코드가 있어야 서버가 "다시 보내도 되는 실패" 인지 판단할 수 있다.
+                'error_code'    => AiwFailureCode::AgentUnreachable->value,
             ]);
+
+            $recovery->afterFail($job->refresh());
 
             $this->warn("작업 #{$job->id} 를 실패 처리했습니다 (agent unreachable).");
         }

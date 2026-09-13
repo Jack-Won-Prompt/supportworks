@@ -29,6 +29,14 @@ enum AiwFailureCode: string
     case DaemonRestarted = 'daemon_restarted';
 
     /**
+     * 담당자 PC 가 응답하지 않아 서버가 끊었다(aiw:reap-stale-jobs).
+     *
+     * 코드나 지시가 잘못된 것이 아니라 환경이 사라진 것이다. 그래서 같은 지시를
+     * 그대로 다시 보내면 되는 몇 안 되는 실패에 속한다.
+     */
+    case AgentUnreachable = 'agent_unreachable';
+
+    /**
      * 누적 비용이 상한에 닿아 서버가 멈췄다.
      *
      * 이 코드만 데몬이 아니라 **서버**(CostGuard)가 붙인다. 실패가 아니라
@@ -46,6 +54,7 @@ enum AiwFailureCode: string
             self::PathMissing     => '경로 없음',
             self::DaemonRestarted => '담당자 재시작',
             self::CostLimit       => '비용 상한 도달',
+            self::AgentUnreachable => '담당자 응답 없음',
         };
     }
 
@@ -71,7 +80,18 @@ enum AiwFailureCode: string
      */
     public function retryableAsIs(): bool
     {
-        return in_array($this, [self::DaemonRestarted, self::DirtyTree], true);
+        return in_array($this, [self::DaemonRestarted, self::DirtyTree, self::AgentUnreachable], true);
+    }
+
+    /**
+     * 사람에게 묻지 않고 서버가 다시 보내도 되는가.
+     *
+     * 환경이 사라진 경우만이다. 코드가 틀렸거나 상한에 걸린 실패를 그대로 다시
+     * 보내면 같은 자리에서 또 멈추고 비용만 든다 — 그건 사람이 판단할 일이다.
+     */
+    public function autoRetryable(): bool
+    {
+        return in_array($this, [self::DaemonRestarted, self::AgentUnreachable], true);
     }
 
     /** 상한을 올리거나 꺼야 이어갈 수 있는가. */
