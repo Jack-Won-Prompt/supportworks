@@ -1390,8 +1390,24 @@ Route::middleware('auth')->group(function () {
             ->whereIn('action', ['cancel', 'end', 'handover', 'redispatch'])->name('action');
     });
 
+    // 운영 사이트에서 올라온 오류. 작업 지시로 이어지기 전에 사람이 눈으로 보는 곳이다.
+    Route::prefix('projects/{project}/aiw-errors')->name('projects.aiw-errors.')->group(function () {
+        Route::get ('/', [\App\Http\Controllers\AiWork\AiwErrorSourceController::class, 'reports'])->name('index');
+        Route::post('{report}/ignore', [\App\Http\Controllers\AiWork\AiwErrorSourceController::class, 'ignore'])->name('ignore');
+    });
+
     // 작업 PC 관리(관리자). "AI 에이전트"가 아니라 "작업 PC" — 기존 상담원 agent 와 구분한다.
     // 배포 대상 등록. 여기 등록한 명령이 서버에서 그대로 실행되므로 관리자만 다룬다.
+    // 오류 수집 출처. 여기 토큰이 그 프로젝트에 오류를 쌓을 자격이고, 그 오류는
+    // 작업 지시로 이어진다 — 담당자 토큰과 같은 급이라 관리자만 다룬다.
+    Route::prefix('settings/aiw-errors')->name('settings.aiw-errors.')->group(function () {
+        Route::get   ('/',                [\App\Http\Controllers\AiWork\AiwErrorSourceController::class, 'index'])->name('index');
+        Route::post  ('/',                [\App\Http\Controllers\AiWork\AiwErrorSourceController::class, 'store'])->name('store');
+        Route::post  ('{source}/toggle',  [\App\Http\Controllers\AiWork\AiwErrorSourceController::class, 'toggle'])->name('toggle');
+        Route::post  ('{source}/reissue', [\App\Http\Controllers\AiWork\AiwErrorSourceController::class, 'reissue'])->name('reissue');
+        Route::delete('{source}',         [\App\Http\Controllers\AiWork\AiwErrorSourceController::class, 'destroy'])->name('destroy');
+    });
+
     Route::prefix('settings/aiw-deploys')->name('settings.aiw-deploys.')->group(function () {
         Route::get ('/',                 [\App\Http\Controllers\AiWork\AiwDeployController::class, 'index'])->name('index');
         Route::post('/',                 [\App\Http\Controllers\AiWork\AiwDeployController::class, 'store'])->name('store');

@@ -607,6 +607,13 @@
                             </svg>
                             <span class="gsb-hide">배포 대상</span>
                         </a>
+                        {{-- 오류 수집 출처: 이 토큰이 그 프로젝트에 오류를 쌓을 자격이다. 관리자 전용. --}}
+                        <a href="{{ route('settings.aiw-errors.index') }}" class="sidebar-item {{ request()->routeIs('settings.aiw-errors.*') ? 'active' : '' }}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/>
+                            </svg>
+                            <span class="gsb-hide">오류 수집</span>
+                        </a>
                     </div>
                     <div class="sidebar-divider"></div>
                     @endif

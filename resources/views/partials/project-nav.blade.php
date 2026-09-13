@@ -13,6 +13,7 @@ $_pnItems = array_values(array_filter([
     ['key'=>'issues',         'url'=>route('projects.issues.index', $project),         'label'=>__('projects.nav_issues'),         'feature'=>'issues'],
     ['key'=>'files',          'url'=>route('projects.files.index', $project),          'label'=>__('projects.files'),         'feature'=>'files'],
     ['key'=>'ai-works',       'url'=>route('projects.ai-works.index', $project),       'label'=>'작업 지시',                'feature'=>null, 'gate'=>'aiw'],
+    ['key'=>'aiw-errors',     'url'=>route('projects.aiw-errors.index', $project),     'label'=>'운영 오류',                'feature'=>null, 'gate'=>'aiw'],
     ['key'=>'members',        'url'=>route('projects.members.index', $project),        'label'=>__('projects.members_btn'),   'feature'=>null,  'popup'=>true],
     ['key'=>'weekly-reports', 'url'=>route('projects.weekly-reports.index', $project), 'label'=>__('projects.nav_weekly_reports'), 'feature'=>'weekly_reports'],
     ['key'=>'leaves',         'url'=>route('projects.leaves.index', $project),         'label'=>__('projects.leave_days'),    'feature'=>'leaves'],
