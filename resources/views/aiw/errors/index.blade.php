@@ -12,6 +12,11 @@
 @endsection
 
 @php
+    $verdicts = [
+        'auto'   => ['자동 수정 대상', 'bg-indigo-50 text-indigo-700'],
+        'human'  => ['사람 확인',     'bg-red-50 text-red-700'],
+        'ignore' => ['고칠 것 없음',  'bg-gray-100 text-gray-500'],
+    ];
     $labels = [
         'new'      => ['미처리', 'bg-amber-50 text-amber-700'],
         'queued'   => ['지시 생성', 'bg-blue-50 text-blue-700'],
@@ -34,6 +39,14 @@
         </div>
         <p class="mt-1 text-sm text-gray-500">
             운영 사이트에서 올라온 예외입니다. <span class="font-medium">같은 예외·파일·줄은 한 건으로 묶여</span> 발생 횟수만 올라갑니다.
+        </p>
+        <p class="mt-1 text-xs text-gray-500">
+            받는 즉시 <span class="font-medium">자동 수정 대상 / 사람 확인 / 고칠 것 없음</span> 으로 갈라 둡니다.
+            @if (config('aiw.error_triage.auto_create_jobs'))
+                자동 수정 대상은 작업 지시로 이어집니다.
+            @else
+                <span class="text-amber-700">지금은 판정만 하고 작업 지시는 만들지 않습니다</span> — 판정이 맞는지 보고 켭니다.
+            @endif
         </p>
 
         {{-- 상태별 추림. 평소에는 미처리만 보면 된다. --}}
@@ -68,6 +81,10 @@
                     <div class="rounded-lg border border-gray-100 px-3 py-2">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="rounded px-1.5 py-0.5 text-xs {{ $class }}">{{ $label }}</span>
+                            @if ($report->verdict && isset($verdicts[$report->verdict]))
+                                @php [$vLabel, $vClass] = $verdicts[$report->verdict]; @endphp
+                                <span class="rounded px-1.5 py-0.5 text-xs {{ $vClass }}" title="{{ $report->verdict_reason }}">{{ $vLabel }}</span>
+                            @endif
                             <span class="text-sm font-semibold text-gray-900">{{ $report->exception ?: '예외' }}</span>
 
                             {{-- 몇 번 났는지가 우선순위다. 한 번 난 것과 천 번 난 것은 다른 일이다. --}}
@@ -92,6 +109,11 @@
 
                         @if ($report->message)
                             <div class="mt-1 text-sm text-gray-700">{{ Str::limit($report->message, 200) }}</div>
+                        @endif
+
+                        {{-- 판정만 있고 이유가 없으면, 사람이 그 판정을 의심할 때 확인할 방법이 없다. --}}
+                        @if ($report->verdict_reason)
+                            <div class="mt-1 text-xs text-gray-500">{{ $report->verdict_reason }}</div>
                         @endif
 
                         <div class="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-400">

@@ -57,6 +57,76 @@ return [
 
     /*
     |---------------------------------------------------------------------------
+    | 오류 판정 (error_triage)
+    |---------------------------------------------------------------------------
+    | 올라온 오류를 자동으로 고쳐도 되는지 가르는 규칙. ignore → human → auto
+    | 순서로 본다. 무시가 먼저다 — 404 가 결제 경로에서 났다고 사람을 부르면
+    | 봇이 훑고 갈 때마다 휴대폰이 울린다.
+    |
+    | 이 목록의 뿌리는 config/ai-fix.php 의 always_block 이다. 거기서 이미 한 번
+    | 고민해 둔 것을, 판단 근거가 '고칠 파일' 이 아니라 '오류가 난 자리' 인
+    | 이쪽 사정에 맞춰 옮겼다.
+    */
+    'error_triage' => [
+
+        // 고칠 것이 없는 예외. 대부분 클라이언트가 만든 상황이다.
+        'ignore_exceptions' => [
+            'NotFoundHttpException',
+            'MethodNotAllowedHttpException',
+            'ValidationException',
+            'AuthenticationException',
+            'AuthorizationException',
+            'TokenMismatchException',
+            'ThrottleRequestsException',
+            'PostTooLargeException',
+            'SuspiciousOperationException',
+        ],
+
+        // 코드 밖에 원인이 있을 수 있는 예외. 자동으로 코드를 고쳐 봐야
+        // 헛일이고, 잘못 고치면 멀쩡한 코드를 망친다.
+        'human_exceptions' => [
+            'QueryException',
+            'PDOException',
+            'ConnectionException',
+            'LockTimeoutException',
+            'MaintenanceModeException',
+        ],
+
+        // 이 자리에서 난 오류는 자동으로 손대지 않는다. 돈과 신원이 걸려 있거나,
+        // 되돌리기가 어려운 곳이다.
+        'block_paths' => [
+            'app/Services/Payment/*',
+            'app/Services/Billing/*',
+            'app/Http/Middleware/Auth*.php',
+            'app/Http/Middleware/Admin*.php',
+            'database/migrations/*',
+            'config/database.php',
+            'config/auth.php',
+            'config/services.php',
+            '.env*',
+            'vendor/*',
+        ],
+
+        /*
+         * 자동 지시를 만들기 전에 필요한 최소 발생 횟수.
+         *
+         * 한 번 나고 마는 오류는 대개 일시적인 것이라(네트워크 끊김 등) 고칠
+         * 것이 없다. 그때마다 지시를 만들면 밤새 헛일을 한다.
+         */
+        'min_count_for_auto' => env('AIW_ERROR_MIN_COUNT_FOR_AUTO', 2),
+
+        /*
+         * 판정이 auto 라도 실제로 작업 지시를 만들 것인가.
+         *
+         * 기본은 꺼 둔다. 판정이 맞는지 화면에서 며칠 보고 켠다 — 한 번에 켜면
+         * 잘못 판정된 오류가 첫날 밤에 지시로 나가고, 그때는 이미 운영에
+         * 무언가 올라간 뒤다.
+         */
+        'auto_create_jobs' => env('AIW_ERROR_AUTO_CREATE_JOBS', false),
+    ],
+
+    /*
+    |---------------------------------------------------------------------------
     | 승인 요청 타임아웃 (분)
     |---------------------------------------------------------------------------
     | 이 시간이 지나도 결정되지 않은 승인 요청은 스케줄러가 expired 로 바꾸고

@@ -23,7 +23,8 @@ class AiwErrorReport extends Model
     protected $fillable = [
         'project_id', 'source_id', 'fingerprint', 'level', 'exception', 'message',
         'file', 'line', 'url', 'trace', 'context', 'count',
-        'first_seen_at', 'last_seen_at', 'status', 'job_id', 'patch_attempts',
+        'first_seen_at', 'last_seen_at', 'status', 'verdict', 'verdict_reason',
+        'job_id', 'patch_attempts',
     ];
 
     protected $casts = [

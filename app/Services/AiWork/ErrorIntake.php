@@ -7,15 +7,20 @@ use App\Models\AiWork\AiwErrorSource;
 use Illuminate\Support\Facades\DB;
 
 /**
- * 운영 사이트가 보내온 에러를 받아 묶는다.
+ * 운영 사이트가 보내온 에러를 받아 묶고, 어떻게 다룰지 갈라 둔다.
  *
- * 하는 일은 둘뿐이다 — 지문을 만들고, 같은 지문이면 세기만 한다.
- * 무엇을 고칠지 판단하는 일은 여기 있지 않다. 받는 일과 판단하는 일을 섞으면
- * 판단 규칙을 고칠 때마다 수집이 멈출 위험을 진다.
+ * 지문을 만들어 같은 것은 세기만 하고, 처음 보는 것에는 판정(ErrorTriage)을
+ * 붙인다. 규칙 자체는 ErrorTriage 가 갖는다 — 여기는 그 결과를 첫 상태로
+ * 옮겨 적을 뿐이다. 규칙을 고칠 때 수집 경로를 건드리지 않기 위해서다.
+ *
+ * 판정까지가 이 단계의 끝이다. 작업 지시를 만드는 일은 아직 하지 않는다.
  */
 class ErrorIntake
 {
-    public function __construct(private AiwNotifier $notifier) {}
+    public function __construct(
+        private AiwNotifier $notifier,
+        private ErrorTriage $triage,
+    ) {}
 
     /**
      * @param  array{
@@ -56,7 +61,7 @@ class ErrorIntake
                 return [$existing, false];
             }
 
-            $report = AiwErrorReport::create([
+            $report = new AiwErrorReport([
                 'project_id'    => $source->project_id,
                 'source_id'     => $source->id,
                 'fingerprint'   => $fingerprint,
@@ -74,14 +79,38 @@ class ErrorIntake
                 'status'        => AiwErrorReport::STATUS_NEW,
             ]);
 
+            /*
+             * 받는 즉시 판정한다. 나중에 훑어 판정하면, 그 사이 화면에는
+             * 봇 스캔과 진짜 고장이 섞여 보이고 알림도 섞여 나간다.
+             *
+             * 판정이 곧 첫 상태다 — 무시할 것은 처음부터 덮어 두고, 사람이
+             * 봐야 하는 것은 그렇게 표시한다. 둘 다 사람이 되돌릴 수 있다.
+             */
+            [$verdict, $reason] = $this->triage->decide($report);
+
+            $report->verdict        = $verdict;
+            $report->verdict_reason = $reason;
+            $report->status         = match ($verdict) {
+                ErrorTriage::IGNORE => AiwErrorReport::STATUS_IGNORED,
+                ErrorTriage::HUMAN  => AiwErrorReport::STATUS_BLOCKED,
+                default             => AiwErrorReport::STATUS_NEW,
+            };
+
+            $report->save();
+
             return [$report, true];
         });
 
         $source->forceFill(['last_seen_at' => now()])->save();
 
-        // 알림은 처음 볼 때만 보낸다. 같은 에러가 초당 열 번 올 때 열 번 울리면
-        // 사람은 알림을 꺼 버리고, 그러면 정작 중요한 것도 놓친다.
-        if ($isNew) {
+        /*
+         * 알림은 처음 볼 때만, 그리고 고칠 값어치가 있을 때만 보낸다.
+         *
+         * 같은 에러가 초당 열 번 올 때 열 번 울리면 사람은 알림을 꺼 버리고,
+         * 그러면 정작 중요한 것도 놓친다. 404 와 봇 스캔으로 울리는 것도 같다 —
+         * 몇 번 겪으면 알림 자체를 믿지 않게 된다.
+         */
+        if ($isNew && $report->verdict !== ErrorTriage::IGNORE) {
             $this->notifier->safely(fn (AiwNotifier $n) => $n->errorReported($report));
         }
 
